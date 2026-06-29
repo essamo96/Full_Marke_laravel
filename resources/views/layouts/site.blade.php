@@ -42,18 +42,18 @@
   </script>
 
   <!-- Custom Theme Stylesheets -->
-  <link rel="stylesheet" href="{{ asset('site/css/variables.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/dark.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/light.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/gold.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/transitions.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/scroll-effects.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/3d-effects.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/hover-effects.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/landing.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/hero-animation.css') }}">
+  <link rel="stylesheet" href="{{ asset('site/css/variables.css') }}?v=1.0">
+  <link rel="stylesheet" href="{{ asset('site/css/themes/dark.css') }}?v=1.0">
+  <link rel="stylesheet" href="{{ asset('site/css/themes/light.css') }}?v=1.1" id="theme-light">
+  <link rel="stylesheet" href="{{ asset('site/css/themes/gold.css') }}?v=1.1" id="theme-gold" disabled>
+  <link rel="stylesheet" href="{{ asset('site/css/animations/transitions.css') }}?v=1.0">
+  <link rel="stylesheet" href="{{ asset('site/css/animations/scroll-effects.css') }}?v=1.0">
+  <link rel="stylesheet" href="{{ asset('site/css/animations/3d-effects.css') }}?v=1.0">
+  <link rel="stylesheet" href="{{ asset('site/css/animations/hover-effects.css') }}?v=1.1">
+  <link rel="stylesheet" href="{{ asset('site/css/landing.css') }}?v=1.2">
+  <link rel="stylesheet" href="{{ asset('site/css/hero-animation.css') }}?v=1.2">
   <!-- Arabic / RTL stylesheet — only its [dir="rtl"] rules activate -->
-  <link rel="stylesheet" href="{{ asset('site/css/rtl.css') }}">
+  <link rel="stylesheet" href="{{ asset('site/css/rtl.css') }}?v=1.1">
 
   <!-- Theme loading script (prevents theme flash) -->
   <script src="{{ asset('site/js/theme-manager.js') }}"></script>

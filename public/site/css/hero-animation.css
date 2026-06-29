@@ -54,18 +54,22 @@ html.hero-done body {
   position: absolute;
   z-index: 3;
   display: flex;
-  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100px;
 }
 
 .splash-word {
+  position: absolute;
   font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 800;
   color: var(--text-primary);
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(20px) scale(0.95);
   /* Animation is controlled via JS adding .is-active */
-  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+  transition: opacity 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .splash-word.is-active {
