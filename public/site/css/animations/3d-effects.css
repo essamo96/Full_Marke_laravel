@@ -1,0 +1,61 @@
+/* 3d-effects.css */
+.perspective-container {
+  perspective: 1000px;
+}
+
+.tilt-wrapper {
+  transition: transform var(--transition-3d);
+  transform-style: preserve-3d;
+}
+
+/* Floating Animations */
+.float-slow {
+  animation: floatSlowKey 6s ease-in-out infinite;
+}
+
+.float-medium {
+  animation: floatMediumKey 4s ease-in-out infinite;
+}
+
+.float-fast {
+  animation: floatFastKey 3s ease-in-out infinite;
+}
+
+@keyframes floatSlowKey {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(2deg);
+  }
+}
+
+@keyframes floatMediumKey {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(-1.5deg);
+  }
+}
+
+@keyframes floatFastKey {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-7px) scale(1.02);
+  }
+}
+
+/* 3D Glass showcase frame */
+.dashboard-frame-3d {
+  transform: rotateY(-15deg) rotateX(10deg) rotateZ(2deg);
+  box-shadow: -20px 20px 50px rgba(0, 0, 0, 0.4);
+  transition: transform var(--transition-slow);
+}
+
+.dashboard-frame-3d:hover {
+  transform: rotateY(0deg) rotateX(0deg) rotateZ(0deg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}

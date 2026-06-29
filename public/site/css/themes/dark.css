@@ -1,0 +1,41 @@
+/* dark.css */
+.theme-dark {
+  /* Colors */
+  --bg-primary: #05070f;
+  --bg-secondary: #0a0f1d;
+  --bg-tertiary: #11182c;
+  
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+
+  /* Accent Colors */
+  --accent-color: #00f0ff;
+  --accent-gradient: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%);
+  --accent-glow: rgba(0, 240, 255, 0.3);
+  --accent-hover: #33f3ff;
+  
+  /* Glassmorphism Styles */
+  --glass-bg: rgba(10, 15, 29, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.5);
+  --glass-glow: rgba(0, 240, 255, 0.05);
+
+  /* Card Colors */
+  --card-bg: #0c1328;
+  --card-border: rgba(255, 255, 255, 0.05);
+  --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+  
+  /* Inputs */
+  --input-bg: rgba(5, 7, 15, 0.8);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-focus-border: #00f0ff;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.7);
+  
+  /* Separator */
+  --separator-color: rgba(255, 255, 255, 0.05);
+}

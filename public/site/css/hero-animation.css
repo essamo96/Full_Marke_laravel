@@ -1,0 +1,1663 @@
+/* ============================================================
+   Hero frame-by-frame animation + global section reveal
+   Isolated stylesheet — no Tailwind, no framework deps
+   ============================================================ */
+
+/* ---------- Scroll lock while hero plays ---------- */
+html.hero-loading,
+html.hero-loading body {
+  overflow: hidden !important;
+  height: 100%;
+  touch-action: none;
+}
+
+html.hero-done body {
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   Modern Splash Screen — centered pulsing logo, theme-aware
+   ============================================================ */
+.hero-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  background: var(--bg-primary, #060606);
+  overflow: hidden;
+  transition: opacity .8s cubic-bezier(.22, .7, .2, 1),
+    visibility .8s cubic-bezier(.22, .7, .2, 1);
+}
+
+.hero-splash.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Clean, theme-colored backdrop */
+.hero-splash__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 50% 50%, var(--accent-glow) 0%, transparent 38%),
+    radial-gradient(circle at 50% 50%, var(--bg-secondary) 0%, var(--bg-primary) 90%);
+}
+
+/* Motivational Words */
+.hero-splash__words {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  gap: 1rem;
+}
+
+.splash-word {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  opacity: 0;
+  transform: translateY(20px);
+  /* Animation is controlled via JS adding .is-active */
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.splash-word.is-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.splash-word.is-hidden {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* Logo container */
+.hero-splash__logo-wrap {
+  position: relative;
+  z-index: 2;
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.6s cubic-bezier(.22, .7, .2, 1), transform 0.6s cubic-bezier(.22, .7, .2, 1);
+}
+
+.hero-splash__logo-wrap.is-visible {
+  opacity: 1;
+  transform: scale(1);
+  /* Soft theme-colored halo directly under the logo */
+  background: radial-gradient(circle,
+      var(--accent-glow) 0%,
+      rgba(0, 0, 0, 0) 70%);
+  animation: splashHaloBreathe 2.4s ease-in-out infinite 0.6s;
+}
+
+/* The orbital ring — a single rotating accent arc */
+.hero-splash__orbit {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--accent-color);
+  border-right-color: var(--accent-color);
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+  filter: drop-shadow(0 0 10px var(--accent-glow));
+}
+
+.hero-splash__logo-wrap.is-visible .hero-splash__orbit {
+  opacity: .85;
+  animation: splashOrbit 2.6s cubic-bezier(.65, .05, .36, 1) infinite;
+}
+
+/* The logo itself */
+.hero-splash__logo {
+  position: relative;
+  z-index: 2;
+  width: 200px;
+  height: 200px;
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 18px var(--accent-glow));
+  animation: splashLogoBreath 2.4s ease-in-out infinite 0.6s;
+}
+
+@keyframes splashHaloBreathe {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--accent-glow);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 40px 6px var(--accent-glow);
+    transform: scale(1.04);
+  }
+}
+
+@keyframes splashOrbit {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes splashLogoBreath {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-splash__words {
+    gap: 0.5rem;
+  }
+  .splash-word {
+    font-size: 1.5rem;
+  }
+
+  .hero-splash__logo-wrap {
+    width: 200px;
+    height: 200px;
+  }
+
+  .hero-splash__logo {
+    width: 160px;
+    height: 160px;
+    max-width: 160px;
+    max-height: 160px;
+  }
+
+  .hero-splash__orbit {
+    inset: -8px;
+  }
+}
+
+/* ---------- Frame stage ---------- */
+.hero-section {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  /* Hard-enforce centering of the hero content within the frame */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center;
+}
+
+.hero-frame-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background: #060606;
+  overflow: hidden;
+}
+
+/* Both <video> and the fallback <img> share the same fullscreen behaviour */
+.hero-frame-stage__media {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  min-width: 100vw;
+  min-height: 100vh;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* All three layers are absolute. JS toggles .is-active to crossfade. */
+.hero-frame-stage__video,
+.hero-frame-stage__still {
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 1.1s cubic-bezier(.22, .7, .2, 1);
+  will-change: opacity;
+}
+
+.hero-frame-stage__video.is-active,
+.hero-frame-stage__still.is-active {
+  opacity: 1;
+  z-index: 2;
+}
+
+/* Subtle scale-in on the still image for a modern "settle" effect */
+.hero-frame-stage__still {
+  transform: scale(1.04);
+  transition: opacity 1.2s cubic-bezier(.22, .7, .2, 1),
+    transform 2.4s cubic-bezier(.22, .7, .2, 1);
+}
+
+.hero-frame-stage__still.is-active {
+  transform: scale(1);
+}
+
+/* Subtle gradient veil to lift content readability on the final frame */
+.hero-frame-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.15) 45%,
+      rgba(0, 0, 0, 0.55) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---------- Icon-only nav buttons ---------- */
+.icon-btn {
+  width: 42px;
+  height: 42px;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px !important;
+  font-size: 1.05rem;
+  line-height: 1;
+  transition: transform .25s ease, background .25s ease, color .25s ease;
+}
+
+.icon-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+}
+
+.icon-btn:active {
+  transform: scale(.96);
+}
+
+.icon-btn>i {
+  margin: 0 !important;
+  display: inline-block;
+  transition: transform .35s cubic-bezier(.22, .7, .2, 1);
+}
+
+#themeCycleBtn:active>i,
+#themeCycleBtnMobile:active>i {
+  transform: rotate(180deg) scale(.9);
+}
+
+.icon-btn-lg {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px !important;
+  font-size: 1.25rem;
+}
+
+/* ---------- Staggered hero content reveal ---------- */
+.hero-content-overlay {
+  position: relative;
+  z-index: 3;
+  /* Center the content block itself, regardless of Bootstrap .container width */
+  width: 100%;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-content-overlay>* {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-content-overlay .hero-stagger {
+  opacity: 0;
+  transform: translateY(40px) scale(.96);
+  filter: blur(8px);
+  transition: opacity 1.1s cubic-bezier(.22, .7, .2, 1),
+    transform 1.1s cubic-bezier(.22, .7, .2, 1),
+    filter 1.1s cubic-bezier(.22, .7, .2, 1);
+  will-change: opacity, transform, filter;
+}
+
+.hero-content-overlay.is-revealed .hero-stagger {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+.hero-content-overlay.is-revealed .hero-stagger[data-stagger="1"] {
+  transition-delay: .10s;
+}
+
+.hero-content-overlay.is-revealed .hero-stagger[data-stagger="2"] {
+  transition-delay: .35s;
+}
+
+.hero-content-overlay.is-revealed .hero-stagger[data-stagger="3"] {
+  transition-delay: .65s;
+}
+
+.hero-content-overlay.is-revealed .hero-stagger[data-stagger="4"] {
+  transition-delay: .95s;
+}
+
+.hero-content-overlay.is-revealed .hero-stagger[data-stagger="5"] {
+  transition-delay: 1.25s;
+}
+
+/* ----- REVERSE staggered fade-OUT before the videos restart ----- */
+.hero-content-overlay.is-hiding .hero-stagger {
+  opacity: 0;
+  transform: translateY(40px) scale(.96);
+  filter: blur(8px);
+}
+
+/* Hide last element first, headline last → feels like a graceful "exit" */
+.hero-content-overlay.is-hiding .hero-stagger[data-stagger="5"] {
+  transition-delay: 0s;
+}
+
+.hero-content-overlay.is-hiding .hero-stagger[data-stagger="4"] {
+  transition-delay: .12s;
+}
+
+.hero-content-overlay.is-hiding .hero-stagger[data-stagger="3"] {
+  transition-delay: .26s;
+}
+
+.hero-content-overlay.is-hiding .hero-stagger[data-stagger="2"] {
+  transition-delay: .42s;
+}
+
+.hero-content-overlay.is-hiding .hero-stagger[data-stagger="1"] {
+  transition-delay: .60s;
+}
+
+/* Particles canvas also fades along with the content */
+#particles-canvas.is-fading-out {
+  opacity: 0;
+}
+
+/* Soft golden glow pulse when content finishes revealing */
+@keyframes heroGlowIn {
+  0% {
+    box-shadow: 0 0 0 0 rgba(197, 168, 128, 0);
+  }
+
+  60% {
+    box-shadow: 0 18px 60px -10px rgba(197, 168, 128, .35);
+  }
+
+  100% {
+    box-shadow: 0 8px 30px -10px rgba(197, 168, 128, .2);
+  }
+}
+
+.hero-content-overlay.is-revealed .btn-luxury {
+  animation: heroGlowIn 1.6s ease-out 1.4s both;
+}
+
+/* ---------- Global section reveal (IntersectionObserver) ---------- */
+.io-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity .95s cubic-bezier(.22, .7, .2, 1),
+    transform .95s cubic-bezier(.22, .7, .2, 1);
+  will-change: opacity, transform;
+}
+
+.io-reveal.is-in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Guarantee horizontal centering for every section's Bootstrap container */
+section>.container,
+footer>.container {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Make sure no transformed ancestor breaks fixed/absolute children layout */
+section.io-reveal,
+footer.io-reveal {
+  transform-origin: center top;
+}
+
+/* ---------- Responsive tuning ---------- */
+@media (max-width: 768px) {
+  .hero-section {
+    height: 100svh;
+    min-height: 100svh;
+  }
+
+  /* The mobile-encoded videos are 720x1280 (9:16) — they already include
+     a blurred-fill background, so `cover` here just edge-aligns them. */
+  .hero-frame-stage__media,
+  .hero-frame-stage__video,
+  .hero-frame-stage__still {
+    width: 100vw;
+    height: 100svh;
+    min-height: 100svh;
+    object-fit: cover;
+    object-position: center center;
+  }
+
+  /* The about-section video also gets its portrait version on mobile */
+  .about-video-wrapper {
+    height: 60vh;
+    min-height: 380px;
+  }
+
+  .about-video {
+    object-fit: cover;
+    object-position: center center;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-preloader__bar {
+    width: 70vw;
+  }
+}
+
+/* ============================================================
+   Navbar + global spacing polish (theme-aware via CSS vars)
+   ============================================================ */
+
+/* Navbar — consistent height, padding, link rhythm.
+   max-width raised past Bootstrap's standard 1320px container cap: the
+   200px-tall logo is much wider too (~350px), so the navbar row needs
+   more horizontal room than the rest of the page's content sections. */
+.sticky-header>.container {
+  max-width: 1680px;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  gap: 1.5rem;
+}
+
+.sticky-header nav {
+  gap: 1.75rem;
+}
+
+.sticky-header nav a.desktop-nav-link {
+  position: relative;
+  padding: .5rem 0;
+  font-size: .95rem;
+  letter-spacing: .01em;
+  transition: color .25s ease;
+}
+
+.sticky-header nav a.desktop-nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent-color);
+  transition: width .3s cubic-bezier(.22, .7, .2, 1);
+}
+
+.sticky-header nav a.desktop-nav-link:hover,
+.sticky-header nav a.desktop-nav-link.active {
+  color: var(--accent-color) !important;
+}
+
+/* Animated underline — theme-aware accent color, active in every state */
+.sticky-header nav a.desktop-nav-link:hover::after,
+.sticky-header nav a.desktop-nav-link.active::after {
+  width: 100%;
+}
+
+/* Make the underline pop on the bright light-theme hero overlay */
+.theme-light .sticky-header:not(.scrolled) nav a.desktop-nav-link::after {
+  background: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, .45);
+}
+
+/* Force-remove any bottom border on the navbar while at top of page */
+.sticky-header:not(.scrolled) {
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Right-side action buttons — even spacing */
+.sticky-header>.container>.xl\:flex,
+.sticky-header>.container>div:last-child {
+  gap: .65rem;
+}
+
+/* ============================================================
+   Navbar — anti-cramping rules (English / default direction)
+   Keep everything on one line, prevent button text wrapping,
+   tighten gaps & font sizes responsively.
+   ============================================================ */
+#header-nav .primary-nav {
+  gap: 1.3rem;
+}
+
+#header-nav .header-actions {
+  gap: .4rem;
+}
+
+#header-nav .desktop-nav-link {
+  font-size: .95rem;
+  white-space: nowrap;
+  padding: .4rem .2rem;
+}
+
+#header-nav .nav-more-btn {
+  padding: .5rem .9rem !important;
+  font-size: .95rem !important;
+  white-space: nowrap;
+}
+
+/* Action buttons stay on one line, no wrapping, and stay compact so the
+   nav links (primary-nav) get the bulk of the available width — override
+   Bootstrap's px-4/py-2 utility sizing. */
+#header-nav .btn-luxury,
+#header-nav .btn-glass {
+  white-space: nowrap;
+  min-width: max-content;
+  padding-top: .4rem;
+  padding-bottom: .4rem;
+  padding-left: .75rem;
+  padding-right: .75rem;
+  font-size: .82rem;
+  line-height: 1.3;
+}
+
+#header-nav .icon-btn {
+  width: 2.05rem;
+  height: 2.05rem;
+  font-size: .85rem;
+}
+
+/* Logo — shown at its requested full size (200px tall, up to 150% of its
+   container's width) from tablet up. The navbar height/spacing below is
+   sized around this. On mobile the header stays compact (see
+   variables.css), so the logo is capped much smaller there to avoid
+   overwhelming the small header next to the hamburger button. */
+#navbar-logo {
+  height: 50px;
+  max-width: 100%;
+  width: auto;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  #navbar-logo {
+    height: 70px;
+    max-width: 100%;
+  }
+}
+
+/* Brand block beside the logo — stable line height */
+#header-nav span.text-xl {
+  font-size: 1.15rem;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+#header-nav span.text-xl>span.font-normal {
+  font-size: .72rem;
+  white-space: nowrap;
+}
+
+/* Container — consistent breathing room */
+.sticky-header>.container {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  gap: 1rem;
+}
+
+/* Tablet & up (≥768px) — spacing adjusted to be comfortable since the logo
+   has a reasonable size of 70px tall. */
+@media (min-width: 768px) {
+  #header-nav .primary-nav {
+    gap: 1.5rem;
+  }
+
+  #header-nav .header-actions {
+    gap: 0.75rem;
+  }
+
+  #header-nav .desktop-nav-link {
+    font-size: 1rem;
+  }
+
+  #header-nav .btn-luxury,
+  #header-nav .btn-glass {
+    font-size: 1rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  #header-nav .nav-more-btn {
+    font-size: 1rem !important;
+    padding: .5rem 1rem !important;
+  }
+
+
+
+  #header-nav span.text-xl {
+    font-size: 1.05rem;
+  }
+}
+
+/* Icon buttons — theme-aware accent on hover */
+.icon-btn {
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.icon-btn:hover {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  box-shadow: 0 8px 24px -10px var(--accent-glow);
+}
+
+/* Section vertical rhythm — uniform across themes.
+   Each section is a full-viewport-tall flex frame so its content is
+   always vertically centered and never collides with the next section.
+   `min-height` (not `height`) lets genuinely tall content (long forms,
+   FAQ accordions open, etc.) grow past 100vh instead of being clipped. */
+section[id]:not(#hero) {
+  min-height: 100vh;
+  padding-top: clamp(4rem, 8vw, 7rem);
+  padding-bottom: clamp(4rem, 8vw, 7rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Content must stay fully visible — no axis is clipped except the
+     hero, which intentionally crops its background video layers. */
+  overflow: visible;
+}
+
+section[id]:not(#hero) > .container {
+  width: 100%;
+}
+
+section[id]+.section-separator {
+  margin: 0 auto;
+}
+
+/* Containers always have safe horizontal padding so content never
+   touches the viewport edge */
+section[id]>.container,
+footer>.container {
+  padding-left: clamp(1rem, 4vw, 2rem);
+  padding-right: clamp(1rem, 4vw, 2rem);
+}
+
+/* About section — floating widget should stay INSIDE the column */
+#about .glass-panel .absolute.\-bottom-6 {
+  left: 1rem !important;
+  bottom: 1rem !important;
+}
+
+/* ============================================================
+   Large-screen spacing fixes (≥1280px, ≥1536px, ≥1920px)
+   Bootstrap caps .container at ~1320px on xxl which leaves
+   huge empty margins on FHD/2K/4K monitors. The following
+   widens content + scales paddings so it doesn't feel cramped.
+   ============================================================ */
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1200px;
+  }
+
+  section[id] {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+
+  /* Headline spacing under section title */
+  section[id]>.container>.text-center {
+    margin-bottom: 5rem;
+  }
+
+  /* Grid gutter */
+  .row {
+    --bs-gutter-x: 2.25rem;
+    --bs-gutter-y: 2.25rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1320px;
+  }
+
+  section[id] {
+    padding-top: 7rem;
+    padding-bottom: 7rem;
+  }
+
+  section[id]>.container>.text-center {
+    margin-bottom: 5.5rem;
+  }
+
+  .row {
+    --bs-gutter-x: 2.5rem;
+    --bs-gutter-y: 2.5rem;
+  }
+
+  /* Slightly larger headlines */
+  section[id] .text-3xl.md\:text-5xl {
+    font-size: 3rem !important;
+    line-height: 1.1;
+  }
+}
+
+@media (min-width: 1680px) {
+  .container {
+    max-width: 1440px;
+  }
+
+  section[id] {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+  }
+
+  section[id]>.container>.text-center {
+    margin-bottom: 6rem;
+  }
+
+  .row {
+    --bs-gutter-x: 2.75rem;
+    --bs-gutter-y: 2.75rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .container {
+    max-width: 1560px;
+  }
+
+  section[id] {
+    padding-top: 9rem;
+    padding-bottom: 9rem;
+  }
+
+  .row {
+    --bs-gutter-x: 3rem;
+    --bs-gutter-y: 3rem;
+  }
+}
+
+/* Card / panel internal padding scales with viewport */
+@media (min-width: 1280px) {
+
+  .glass-panel.p-5,
+  .glass-panel.p-6,
+  .glass-panel.p-12 {
+    padding: 2.25rem !important;
+  }
+}
+
+@media (min-width: 1680px) {
+
+  .glass-panel.p-5,
+  .glass-panel.p-6,
+  .glass-panel.p-12 {
+    padding: 2.75rem !important;
+  }
+}
+
+/* Navbar container also benefits from extra horizontal breathing room */
+@media (min-width: 1440px) {
+  .sticky-header>.container {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+@media (min-width: 1680px) {
+  .sticky-header>.container {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+/* ----- Scroll fix: only ONE scrollbar, no jank ----- */
+html {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+html.hero-loading,
+html.hero-loading body {
+  overflow: hidden !important;
+}
+
+/* Anchor-link offset so content never sits under the fixed navbar */
+html {
+  scroll-padding-top: var(--navbar-height, 80px);
+}
+
+/* Note: removed scroll-behavior:smooth from html — it conflicts with mouse-wheel
+   momentum on Windows and causes the "heavy" feeling. Anchor links still work
+   instantly; you can re-enable per-click with JS if a smooth jump is desired. */
+
+/* Particles canvas — fade in only after the hero intro is done */
+#particles-canvas {
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  pointer-events: none;
+}
+
+#particles-canvas.is-on {
+  opacity: 1;
+}
+
+/* ----- FAQ: hide the section header while an accordion item is open ----- */
+#faq .faq-header-block {
+  transition: opacity .45s ease, transform .45s ease, max-height .45s ease;
+  overflow: hidden;
+  max-height: 320px;
+}
+
+#faq:has(.accordion-button:not(.collapsed)) .faq-header-block {
+  opacity: 0;
+  transform: translateY(-12px);
+  max-height: 0;
+  margin-bottom: 0 !important;
+  pointer-events: none;
+}
+
+/* Native <select> dropdown: keep options legible across themes */
+select option {
+  color: #111 !important;
+  background: #fff !important;
+}
+
+/* Mobile menu — improved padding + safe-area */
+.mobile-nav-menu {
+  padding: 1.75rem 1.5rem;
+  gap: 1rem;
+}
+
+/* Logo block — tighter alignment */
+#header-nav .h-12 {
+  height: 44px;
+}
+
+#header-nav span.text-xl {
+  line-height: 1.05;
+  margin-left: .65rem;
+}
+
+/* Buttons — consistent radius across themes */
+.btn-luxury,
+.btn-glass {
+  border-radius: 12px;
+  letter-spacing: .015em;
+}
+
+/* ============================================================
+   Typography — modern academic UI (Inter + Tajawal)
+   ============================================================ */
+.sticky-header,
+.sticky-header nav a,
+.mobile-nav-menu,
+.mobile-nav-menu a,
+.btn,
+.btn-luxury,
+.btn-glass {
+  font-family: var(--font-en);
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+}
+
+/* Optical sizes / weights */
+.sticky-header nav a.desktop-nav-link {
+  font-weight: 500;
+}
+
+.btn-luxury,
+.btn-glass {
+  font-weight: 600;
+}
+
+#hero h1 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+#hero p {
+  font-weight: 400;
+}
+
+/* ============================================================
+   Navbar — Light-mode legibility over animated hero videos
+   ============================================================ */
+/* Light theme: transparent over hero (video stays sharp) but with
+   a subtle dark gradient + white text for contrast */
+.theme-light .sticky-header:not(.scrolled) {
+  background: linear-gradient(180deg, rgba(8, 12, 24, .45) 0%, rgba(8, 12, 24, 0) 100%);
+  border-bottom-color: transparent;
+}
+
+.theme-light .sticky-header:not(.scrolled) nav a.desktop-nav-link,
+.theme-light .sticky-header:not(.scrolled) #header-nav span,
+.theme-light .sticky-header:not(.scrolled) .icon-btn {
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+}
+
+.theme-light .sticky-header:not(.scrolled) .icon-btn {
+  background: rgba(255, 255, 255, .10);
+  border-color: rgba(255, 255, 255, .18);
+}
+
+/* Once scrolled past hero, switch to a translucent white glass */
+.theme-light .sticky-header.scrolled {
+  background: rgba(255, 255, 255, .72);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+  border-bottom: 1px solid rgba(15, 23, 42, .06);
+}
+
+/* Dark + Gold themes: keep a very subtle gradient over hero so logo pops */
+.theme-dark .sticky-header:not(.scrolled),
+.theme-gold .sticky-header:not(.scrolled) {
+  background: linear-gradient(180deg, rgba(0, 0, 0, .35) 0%, transparent 100%);
+}
+
+/* ============================================================
+   RTL logo / brand spacing — header + footer
+   ============================================================ */
+#header-nav .h-12,
+footer .h-12 {
+  margin-right: .75rem;
+  margin-left: 0;
+}
+
+/* ============================================================
+   Hero scroll-down indicator — fixed to bottom-center of viewport
+   (sits relative to #hero so it doesn't bounce with overlay reveal)
+   ============================================================ */
+#hero-scroll-indicator {
+  position: absolute;
+  left: 50%;
+  bottom: 2.5rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-primary);
+
+  /* Default = hidden (matches hero-stagger initial state) */
+  opacity: 0;
+  filter: blur(8px);
+  transform: translate(-50%, 40px) scale(.96);
+  transition: opacity 1.1s cubic-bezier(.22, .7, .2, 1),
+    transform 1.1s cubic-bezier(.22, .7, .2, 1),
+    filter 1.1s cubic-bezier(.22, .7, .2, 1);
+  will-change: opacity, transform, filter;
+}
+
+#hero-scroll-indicator .bi-chevron-double-down {
+  font-size: 1.4rem;
+  margin-top: .35rem;
+}
+
+/* Reveal — last item in the stagger (delay matches data-stagger="5") */
+.hero-content-overlay.is-revealed~#hero-scroll-indicator {
+  opacity: .9;
+  filter: blur(0);
+  transform: translate(-50%, 0) scale(1);
+  transition-delay: 1.25s;
+}
+
+/* Hide — first item in the reverse stagger */
+.hero-content-overlay.is-hiding~#hero-scroll-indicator {
+  opacity: 0;
+  filter: blur(8px);
+  transform: translate(-50%, 40px) scale(.96);
+  transition-delay: 0s;
+}
+
+/* Light theme: scroll indicator must read on bright videos */
+.theme-light #hero-scroll-indicator {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+}
+
+/* Make sure the .hero-section is the positioning context for the indicator */
+#hero {
+  position: relative;
+}
+
+/* ============================================================
+   FAQ accordion — visible & legible text in all themes
+   ============================================================ */
+.faq-accordion .accordion-item {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border) !important;
+  border-radius: 12px !important;
+  margin-bottom: .75rem;
+  overflow: hidden;
+}
+
+.faq-accordion .accordion-button {
+  background: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  font-family: var(--font-en);
+  padding: 1.1rem 1.25rem;
+  box-shadow: none !important;
+}
+
+.faq-accordion .accordion-button:not(.collapsed) {
+  background: var(--card-bg) !important;
+  color: var(--accent-color) !important;
+}
+
+.faq-accordion .accordion-button::after {
+  filter: invert(var(--accordion-arrow-invert, 0));
+}
+
+.theme-dark .faq-accordion .accordion-button::after,
+.theme-gold .faq-accordion .accordion-button::after {
+  filter: invert(1) brightness(1.4);
+}
+
+/* FAQ answer body — force readable color in every theme.
+   Bootstrap 5.3 uses internal CSS custom properties (--bs-accordion-*)
+   that can override theme colors when an item becomes active. We pin
+   ALL of them here so the answer text is never invisible. */
+.faq-accordion .accordion-item,
+.faq-accordion .accordion-collapse,
+.faq-accordion .accordion-body {
+  --bs-accordion-color: var(--text-primary);
+  --bs-accordion-bg: var(--card-bg);
+  --bs-accordion-active-color: var(--text-primary);
+  --bs-accordion-active-bg: var(--card-bg);
+  --bs-accordion-body-color: var(--text-primary);
+}
+
+.faq-accordion .accordion-body,
+.faq-accordion .accordion-body * {
+  background: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  padding-inline-start: 0;
+  padding-inline-end: 0;
+}
+
+.faq-accordion .accordion-body {
+  padding: 1rem 1.25rem 1.5rem !important;
+  line-height: 1.75;
+  font-size: .98rem;
+}
+
+/* ============================================================
+   About section — looping autoplay video (#about-video)
+   ============================================================ */
+.about-video-wrapper {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 12px;
+  isolation: isolate;
+}
+
+.about-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px;
+  /* Smooth gentle ken-burns-style breathing, very subtle */
+  transition: transform 8s ease-in-out;
+}
+
+.about-video-wrapper:hover .about-video {
+  transform: scale(1.03);
+}
+
+.about-video-tint {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, .35) 100%);
+  pointer-events: none;
+  border-radius: 12px;
+  z-index: 1;
+}
+
+/* ============================================================
+   Counter stats — themed icon + number
+   ============================================================ */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform .35s cubic-bezier(.22, .7, .2, 1), box-shadow .35s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px -20px var(--accent-glow);
+}
+
+.stat-card::before {
+  /* Subtle theme-colored radial halo at top */
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  width: 220px;
+  height: 220px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  opacity: .55;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.stat-card>* {
+  position: relative;
+  z-index: 1;
+}
+
+.stat-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 2rem;
+  color: var(--accent-color);
+  background: linear-gradient(135deg, var(--accent-glow) 0%, transparent 100%);
+  border: 1px solid var(--accent-color);
+  box-shadow: 0 8px 24px -10px var(--accent-glow), inset 0 0 18px var(--accent-glow);
+  transition: transform .4s cubic-bezier(.22, .7, .2, 1);
+}
+
+.stat-card:hover .stat-icon {
+  transform: rotate(-6deg) scale(1.08);
+}
+
+/* The big number — themed accent + gradient text */
+.stat-card .counter-number {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 4px 14px var(--accent-glow));
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* ============================================================
+   Testimonials avatars — uniform circular crop
+   ============================================================ */
+.testimonial-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex: 0 0 64px;
+  border: 2px solid var(--accent-color);
+  box-shadow: 0 6px 18px -8px var(--accent-glow);
+  margin-right: 1rem;
+}
+
+.testimonial-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ============================================================
+   Responsive Navbar — two breakpoints
+     • <768px    : mobile menu toggle only (compact logo, see variables.css)
+     • ≥768px    : all 7 nav items inline + icon actions + full-size logo
+   Only 7 nav items exist now (News/FAQ were removed from the navbar but
+   stay on the page), so everything always fits inline — no "More" dropdown.
+   ============================================================ */
+
+/* Default — hide everything below md, show on md+ */
+.primary-nav,
+.header-actions {
+  display: none !important;
+}
+
+.mobile-menu-toggle {
+  display: inline-flex;
+}
+
+/* Tablet & up (≥768px) */
+@media (min-width: 768px) {
+  .primary-nav {
+    display: flex !important;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .header-actions {
+    display: flex !important;
+    align-items: center;
+    gap: .65rem;
+  }
+
+  .mobile-menu-toggle {
+    display: none !important;
+  }
+
+  /* Student/Teacher Login + Apply Now always stay visible as labeled
+     buttons next to each other — never collapsed to icon-only. */
+  .header-actions .student-gate-link,
+  .header-actions .teacher-gate-link {
+    display: inline-block;
+  }
+}
+
+.primary-nav>.nav-item-primary {
+  display: inline-block;
+}
+
+.primary-nav .nav-more-btn {
+  padding: .5rem 1rem !important;
+  font-size: .95rem;
+  font-weight: 500;
+  border-radius: 12px !important;
+}
+
+.primary-nav .nav-more-btn::after {
+  margin-left: .35rem;
+  vertical-align: .15em;
+}
+
+/* Dropdown menu styling, theme-aware */
+.primary-nav .dropdown-menu {
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--glass-border);
+  min-width: 180px;
+  padding: .35rem;
+}
+
+.primary-nav .dropdown-menu .dropdown-item {
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: .55rem .9rem;
+  font-weight: 500;
+  font-family: var(--font-en);
+  transition: background .2s ease, color .2s ease;
+}
+
+.primary-nav .dropdown-menu .dropdown-item:hover,
+.primary-nav .dropdown-menu .dropdown-item:focus {
+  background: var(--accent-glow);
+  color: var(--accent-color);
+}
+
+/* ============================================================
+   Light theme — navbar brand colors over the dark hero gradient
+   ============================================================ */
+/* Logo image switches to the white variant (set by JS via [data-logo]) */
+.theme-light .sticky-header:not(.scrolled) #navbar-logo {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .35));
+}
+
+/* ============================================================
+   Brand text beside the logo (Light theme)
+     • Over hero (top)    : WHITE
+     • Scrolled past hero : BLACK
+   Smooth color transition both ways via direct color animation.
+   #header-nav IS the .sticky-header element — it gets the .scrolled
+   class directly, so we target #header-nav.scrolled (NOT .sticky-header.scrolled #header-nav).
+   ============================================================ */
+
+/* ----- Initial state (over hero) -----
+   "FULL MARK"  (outer span text node) → same blue as the Apply Now button
+   "ACADEMY" (inner .font-normal span)  → WHITE
+*/
+html.theme-light #header-nav span.text-xl {
+  color: var(--accent-color, #0284c7) !important;
+  /* FULL MARK = button blue */
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .35);
+  transition: color .6s cubic-bezier(.22, .7, .2, 1),
+    text-shadow .6s cubic-bezier(.22, .7, .2, 1);
+}
+
+html.theme-light #header-nav span.text-xl>span.font-normal {
+  color: #ffffff !important;
+  /* ACADEMY = white */
+  opacity: 1 !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .35);
+  transition: color .6s cubic-bezier(.22, .7, .2, 1),
+    text-shadow .6s cubic-bezier(.22, .7, .2, 1);
+}
+
+/* ----- Scrolled state — both words go to BLACK ----- */
+html.theme-light #header-nav.scrolled span.text-xl,
+html.theme-light #header-nav.scrolled span.text-xl>span.font-normal {
+  color: #0a0a0a !important;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, .55);
+}
+
+/* Mobile menu toggle (.bi-list icon) — same scroll-aware color flip */
+html.theme-light #header-nav .mobile-menu-toggle,
+html.theme-light #header-nav .mobile-menu-toggle i.bi-list {
+  color: #ffffff !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+  transition: color .6s cubic-bezier(.22, .7, .2, 1),
+    text-shadow .6s cubic-bezier(.22, .7, .2, 1);
+}
+
+html.theme-light #header-nav.scrolled .mobile-menu-toggle,
+html.theme-light #header-nav.scrolled .mobile-menu-toggle i.bi-list {
+  color: #0a0a0a !important;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, .55);
+}
+
+/* "Apply Now" / luxury button text → white in light theme */
+.theme-light .btn-luxury,
+.theme-light .btn-luxury * {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .18);
+}
+
+/* ============================================================
+   Apply Now — shimmer-sweep hover effect (all themes)
+   ============================================================ */
+.btn-luxury {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform .35s cubic-bezier(.22, .7, .2, 1),
+    box-shadow .35s ease,
+    filter .35s ease;
+}
+
+.btn-luxury::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(115deg,
+      transparent 0%,
+      rgba(255, 255, 255, .5) 50%,
+      transparent 100%);
+  transform: skewX(-22deg);
+  transition: left .75s cubic-bezier(.22, .7, .2, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.btn-luxury>* {
+  position: relative;
+  z-index: 2;
+}
+
+.btn-luxury:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 18px 36px -14px var(--accent-glow),
+    0 0 22px var(--accent-glow);
+  filter: brightness(1.06);
+}
+
+.btn-luxury:hover::before {
+  left: 130%;
+}
+
+/* ============================================================
+   Student Gate (Light theme) — color shifts with scroll state
+     • Over hero (top)        : WHITE text + WHITE border + white travelling-border on hover
+     • Scrolled past hero     : BLUE  text + BLUE  border + blue  travelling-border on hover
+   Transitions are smooth in both directions.
+   ============================================================ */
+@property --sg-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* Custom prop drives the live color so transitions are smooth */
+.theme-light .student-gate-link,
+.theme-light .teacher-gate-link {
+  --sg-color: #ffffff;
+  /* WHITE while over the hero */
+  color: var(--sg-color) !important;
+  background: transparent !important;
+  border: 1.5px solid var(--sg-color) !important;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: color .55s ease,
+    border-color .55s ease,
+    background .35s ease,
+    transform .3s ease,
+    box-shadow .35s ease,
+    --sg-color .55s ease;
+}
+
+/* Once the navbar has scrolled past the hero → switch to brand blue */
+.theme-light .sticky-header.scrolled .student-gate-link,
+.theme-light .sticky-header.scrolled .teacher-gate-link {
+  --sg-color: #0284c7;
+  /* BLUE after scroll */
+}
+
+/* Travelling-light gradient border — color follows --sg-color so it
+   matches both states automatically */
+.theme-light .student-gate-link::before,
+.theme-light .teacher-gate-link::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--sg-angle, 0deg),
+      transparent 0deg,
+      var(--sg-color) 50deg,
+      transparent 140deg,
+      transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .25s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Hover — same elegant animated border in both states, just themed */
+.theme-light .student-gate-link:hover,
+.theme-light .teacher-gate-link:hover {
+  background: color-mix(in srgb, var(--sg-color) 10%, transparent) !important;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--sg-color) 35%, transparent);
+  transform: translateY(-2px);
+}
+
+.theme-light .student-gate-link:hover::before,
+.theme-light .teacher-gate-link:hover::before {
+  opacity: 1;
+  animation: studentGateBorder 2.2s linear infinite;
+}
+
+@keyframes studentGateBorder {
+  to {
+    --sg-angle: 360deg;
+  }
+}
+
+.theme-light .student-gate-link>*,
+.theme-light .teacher-gate-link>* {
+  position: relative;
+  z-index: 1;
+}
+
+/* "More" dropdown trigger → white text over hero (legible on dark gradient) */
+.theme-light .sticky-header:not(.scrolled) .nav-more-btn,
+.theme-light .sticky-header:not(.scrolled) .nav-more-btn * {
+  color: #ffffff !important;
+}
+
+/* After scroll (light glass) → revert to readable dark */
+.theme-light .sticky-header.scrolled .nav-more-btn,
+.theme-light .sticky-header.scrolled .nav-more-btn * {
+  color: var(--text-primary) !important;
+}
+
+/* ============================================================
+   Hero — softer overlay over the videos in Light theme,
+   theme-aware brand-name gradient, readable secondary text
+   ============================================================ */
+/* Significantly reduce the white wash in light theme so videos pop */
+.theme-light .hero-overlay {
+  background: radial-gradient(circle at center,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(15, 23, 42, 0.45) 100%) !important;
+}
+
+/* Light theme hero text — title white, but the DESCRIPTION must be black */
+.theme-light #hero h1,
+.theme-light #hero a {
+  color: #ffffff !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, .35);
+}
+
+/* Hero <p> description — WHITE in light theme (updated) */
+.theme-light .hero-content-overlay p,
+.theme-light #hero p {
+  color: #ffffff !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, .45);
+  font-weight: 500;
+}
+
+/* Tilt-card sub-description text — brand BLUE in light theme */
+.theme-light #hero .tilt-card p.text-xs,
+.theme-light #hero .tilt-card p.opacity-75 {
+  color: var(--accent-color, #0284c7) !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, .55);
+  font-weight: 500;
+}
+
+/* Theme-aware brand gradient (replaces hardcoded Tailwind gold) */
+#hero h1>span[data-en="FULL MARKS ACADEMY"],
+#hero h1 .brand-gradient {
+  background: var(--accent-gradient) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 4px 18px var(--accent-glow));
+}
+
+.theme-light #hero h1>span[data-en="FULL MARKS ACADEMY"] {
+  -webkit-text-fill-color: #ffffff !important;
+  background: none !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .4);
+}
+
+/* ============================================================
+   Scroll-reveal — directional slides (alternating L/R)
+   ============================================================ */
+.io-slide-l,
+.io-slide-r,
+.io-fade-up {
+  opacity: 0;
+  transition: opacity 1s cubic-bezier(.22, .7, .2, 1),
+    transform 1s cubic-bezier(.22, .7, .2, 1);
+  transition-delay: var(--io-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.io-slide-l {
+  transform: translateX(-60px);
+}
+
+.io-slide-r {
+  transform: translateX(60px);
+}
+
+.io-fade-up {
+  transform: translateY(30px);
+}
+
+.io-slide-l.is-in-view,
+.io-slide-r.is-in-view,
+.io-fade-up.is-in-view {
+  opacity: 1;
+  transform: none;
+}
+
+
+section[id],
+footer,
+.hero-section {
+  overflow-x: hidden;
+}
+
+/* Body itself never scrolls horizontally */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+  .hero-content-overlay .hero-stagger,
+  .io-reveal {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

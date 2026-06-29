@@ -1,0 +1,4 @@
+
+.announcement-card { position: relative; overflow: hidden; transition: all 0.3s; }
+.announcement-card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--accent-gradient); }
+.announcement-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }

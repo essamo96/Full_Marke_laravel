@@ -1,0 +1,4 @@
+
+.session-card { transition: all 0.3s; border-left: 3px solid var(--separator-color); }
+[dir="rtl"] .session-card { border-left: none; border-right: 3px solid var(--separator-color); }
+.session-card:hover { border-color: var(--accent-color); background: rgba(197, 168, 128, 0.05); }

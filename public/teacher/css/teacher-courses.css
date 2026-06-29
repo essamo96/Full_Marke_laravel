@@ -1,0 +1,6 @@
+
+.course-list-item { transition: all 0.2s; border-left: 3px solid transparent; }
+[dir="rtl"] .course-list-item { border-left: none; border-right: 3px solid transparent; }
+.course-list-item:hover { border-color: var(--accent-color); background: rgba(197,168,128,0.05); }
+.progress-bar-custom { height: 6px; background: var(--separator-color); border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--accent-gradient); width: 0; transition: width 1s ease; }

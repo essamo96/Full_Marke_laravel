@@ -1,0 +1,4 @@
+
+.setting-row { padding: 16px 0; border-bottom: 1px solid var(--separator-color); display: flex; justify-content: space-between; align-items: center; }
+.form-switch .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
+.form-switch .form-check-input:checked { background-color: var(--accent-color); border-color: var(--accent-color); }

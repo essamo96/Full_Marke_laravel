@@ -1,0 +1,4 @@
+
+.assignment-card { border: 1px solid var(--separator-color); transition: all 0.3s; }
+.assignment-card:hover { border-color: var(--accent-color); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+.due-badge { background: rgba(255,71,87,0.1); color: #ff4757; }

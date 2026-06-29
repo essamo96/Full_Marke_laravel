@@ -1,0 +1,5 @@
+
+.invoice-card { transition: all 0.3s ease; border: 1px solid var(--separator-color); }
+.invoice-card:hover { border-color: var(--accent-color); box-shadow: 0 0 20px rgba(197, 168, 128, 0.1); }
+.status-badge.paid { background: rgba(46, 204, 113, 0.1); color: #2ecc71; border: 1px solid #2ecc71; }
+.status-badge.unpaid { background: rgba(255, 71, 87, 0.1); color: #ff4757; border: 1px solid #ff4757; }

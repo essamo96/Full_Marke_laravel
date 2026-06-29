@@ -1,0 +1,4 @@
+
+.security-shield { font-size: 4rem; color: #2ecc71; text-shadow: 0 0 20px rgba(46,204,113,0.3); }
+.login-history-item { border-left: 2px solid var(--separator-color); padding-left: 16px; margin-bottom: 16px; }
+[dir="rtl"] .login-history-item { border-left: none; border-right: 2px solid var(--separator-color); padding-left: 0; padding-right: 16px; }

@@ -1,0 +1,61 @@
+/* variables.css */
+@import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  /* Typography */
+  --font-en: 'Inter', 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ar: 'Tajawal', 'Almarai', system-ui, sans-serif;
+  --font-display: 'Inter', 'Outfit', system-ui, sans-serif;
+  
+  /* Layout Dimensions */
+  /* Tall enough to fit the 70px-high logo (desktop/tablet) with breathing room. */
+  --navbar-height: 100px;
+  --navbar-height-scroll: 90px;
+  --container-width: 1280px;
+
+  /* Border Radius */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-3d: 0.1s ease-out;
+
+  /* Z-Index Hierarchy */
+  --z-bg: -1;
+  --z-base: 1;
+  --z-header: 100;
+  --z-dropdown: 200;
+  --z-modal: 500;
+}
+
+body {
+  font-family: var(--font-en);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+/* RTL Support */
+[dir="rtl"] body {
+  font-family: var(--font-ar);
+}
+
+/* Below 768px the navbar collapses to logo + hamburger only — keep the
+   header compact there regardless of the larger desktop logo height. */
+@media (max-width: 767.98px) {
+  :root {
+    --navbar-height: 72px;
+    --navbar-height-scroll: 64px;
+  }
+}
+

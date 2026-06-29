@@ -1,0 +1,4 @@
+
+.alert-item { border-left: 3px solid var(--accent-color); }
+[dir="rtl"] .alert-item { border-left: none; border-right: 3px solid var(--accent-color); }
+.alert-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }

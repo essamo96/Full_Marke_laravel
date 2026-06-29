@@ -1,0 +1,5 @@
+
+.program-card { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.program-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 15px 30px rgba(197, 168, 128, 0.15); }
+.program-badge { position: absolute; top: -12px; right: 24px; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 2; }
+[dir="rtl"] .program-badge { right: auto; left: 24px; }

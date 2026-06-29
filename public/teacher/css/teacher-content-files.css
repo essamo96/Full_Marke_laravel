@@ -1,0 +1,5 @@
+
+.file-card { transition: all 0.2s; cursor: pointer; border: 1px solid transparent; }
+.file-card:hover { border-color: var(--accent-color); background: rgba(197,168,128,0.05); }
+.upload-zone { border: 2px dashed var(--separator-color); border-radius: 16px; padding: 40px; text-align: center; transition: all 0.3s; cursor: pointer; }
+.upload-zone:hover { border-color: var(--accent-color); background: rgba(197,168,128,0.05); }

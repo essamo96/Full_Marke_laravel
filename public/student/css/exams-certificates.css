@@ -1,0 +1,19 @@
+
+.certificate-card { 
+  background: var(--bg-secondary); 
+  border: 1px solid var(--separator-color); 
+  position: relative; 
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.certificate-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(197,168,128,0) 0%, rgba(197,168,128,0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+.certificate-card:hover { transform: translateY(-5px); border-color: var(--accent-color); box-shadow: 0 15px 30px rgba(197,168,128,0.15); }
+.certificate-card:hover::after { opacity: 1; }
+.cert-icon { font-size: 3rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }

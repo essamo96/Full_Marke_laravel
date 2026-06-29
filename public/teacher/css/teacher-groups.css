@@ -1,0 +1,5 @@
+
+.group-card { border-top: 3px solid var(--accent-color); }
+.member-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--bg-primary); margin-left: -10px; }
+[dir="rtl"] .member-avatar { margin-left: 0; margin-right: -10px; }
+.member-avatar:first-child { margin-left: 0; margin-right: 0; }

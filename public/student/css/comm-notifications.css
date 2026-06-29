@@ -1,0 +1,4 @@
+
+.notif-item { transition: all 0.2s; border-bottom: 1px solid var(--separator-color); }
+.notif-item.unread { background: rgba(197, 168, 128, 0.05); }
+.notif-item:hover { background: rgba(255,255,255,0.02); }

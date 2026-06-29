@@ -1,0 +1,5 @@
+
+.student-row { transition: background 0.2s; }
+.student-row:hover { background: rgba(255,255,255,0.02); }
+.status-active { color: #2ecc71; background: rgba(46,204,113,0.1); }
+.status-inactive { color: #ff4757; background: rgba(255,71,87,0.1); }

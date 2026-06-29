@@ -1,0 +1,6 @@
+
+.finance-stat-card { border-top: 4px solid var(--accent-color); transition: transform 0.3s; }
+.finance-stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(197, 168, 128, 0.15); }
+.transaction-row { transition: all 0.2s; border-bottom: 1px solid var(--separator-color); }
+.transaction-row:hover { background: rgba(197, 168, 128, 0.05); padding-left: 8px; }
+[dir="rtl"] .transaction-row:hover { padding-left: 0; padding-right: 8px; }

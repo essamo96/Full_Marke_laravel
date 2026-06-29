@@ -1,0 +1,3 @@
+
+.grading-queue-item { border-left: 4px solid var(--accent-color); background: linear-gradient(90deg, rgba(197,168,128,0.1) 0%, transparent 100%); }
+[dir="rtl"] .grading-queue-item { border-left: none; border-right: 4px solid var(--accent-color); background: linear-gradient(-90deg, rgba(197,168,128,0.1) 0%, transparent 100%); }

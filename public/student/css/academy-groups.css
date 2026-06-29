@@ -1,0 +1,9 @@
+
+.avatar-stack { display: flex; align-items: center; }
+.avatar-stack img { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--bg-primary); margin-left: -12px; transition: transform 0.2s; }
+.avatar-stack img:hover { transform: translateY(-4px); z-index: 10; }
+[dir="rtl"] .avatar-stack img { margin-left: 0; margin-right: -12px; }
+.group-card { border-left: 3px solid transparent; transition: all 0.3s ease; }
+.group-card:hover { border-left-color: var(--accent-color); background: rgba(255,255,255,0.02); }
+[dir="rtl"] .group-card { border-left: none; border-right: 3px solid transparent; }
+[dir="rtl"] .group-card:hover { border-right-color: var(--accent-color); }

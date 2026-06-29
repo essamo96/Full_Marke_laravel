@@ -1,0 +1,5 @@
+
+.course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+.course-ring { transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 1s ease-in-out; }
+.course-card { transition: all 0.3s ease; }
+.course-card:hover { border-color: var(--accent-color); box-shadow: 0 0 20px rgba(197, 168, 128, 0.1); }

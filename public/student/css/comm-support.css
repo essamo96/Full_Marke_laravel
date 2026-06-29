@@ -1,0 +1,5 @@
+
+.ticket-card { transition: all 0.3s; border: 1px solid transparent; }
+.ticket-card:hover { border-color: var(--accent-color); }
+.status-open { color: #2ecc71; background: rgba(46,204,113,0.1); }
+.status-closed { color: var(--text-secondary); background: var(--bg-secondary); }

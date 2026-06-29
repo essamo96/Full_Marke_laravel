@@ -1,0 +1,5 @@
+
+.test-card { border: 1px solid var(--separator-color); transition: all 0.3s; }
+.test-card:hover { border-color: var(--accent-color); transform: translateY(-3px); }
+.status-published { background: rgba(46, 204, 113, 0.1); color: #2ecc71; border: 1px solid #2ecc71; }
+.status-draft { background: rgba(241, 196, 15, 0.1); color: #f1c40f; border: 1px solid #f1c40f; }

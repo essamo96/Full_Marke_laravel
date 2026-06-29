@@ -1,0 +1,43 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.fleet
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+# /public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+Homestead.json
+Homestead.yaml
+Thumbs.db
+metronic_html_v8.1.8_demo1
+/metronic_html_v8.1.8_demo1/*
+
+# Reference-only source material — not part of the deployed app, never tracked.
+/academy
+academy
+academy/*
+/yabous_org
+yabous_org/*
+/metronic_html_v8.1.8_demo1
+/metronic_html_v8.1.8_demo1/*
+
+# Hero section videos — too large/slow to push reliably; deploy these to the
+# server separately (FTP/manual upload) rather than through git.
+/public/site/images/slider1.mp4
+/public/site/images/slider2.mp4
+/public/site/images/aboutUs.mp4
+/public/site/images/aboutUs_mobile.mp4
+

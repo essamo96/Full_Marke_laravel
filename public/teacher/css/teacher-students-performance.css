@@ -1,0 +1,3 @@
+
+.perf-card { background: linear-gradient(135deg, rgba(197,168,128,0.05) 0%, transparent 100%); border: 1px solid var(--separator-color); }
+.chart-placeholder { height: 200px; border: 1px dashed var(--separator-color); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }

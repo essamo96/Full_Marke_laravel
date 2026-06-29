@@ -1,0 +1,6 @@
+
+.attendance-grid { display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: 10px; align-items: center; }
+.att-cell { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+.att-present { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid #2ecc71; }
+.att-absent { background: rgba(255,71,87,0.15); color: #ff4757; border: 1px solid #ff4757; }
+.att-late { background: rgba(241,196,15,0.15); color: #f1c40f; border: 1px solid #f1c40f; }

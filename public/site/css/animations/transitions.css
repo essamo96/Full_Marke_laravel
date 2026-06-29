@@ -1,0 +1,29 @@
+/* transitions.css */
+.fade-in {
+  opacity: 0;
+  animation: fadeInVar var(--transition-slow) forwards;
+}
+
+.slide-up {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: slideUpVar var(--transition-slow) forwards;
+}
+
+@keyframes fadeInVar {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUpVar {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Page transitions, smooth layout changes */
+.smooth-transition {
+  transition: all var(--transition-normal);
+}

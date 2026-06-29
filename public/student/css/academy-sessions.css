@@ -1,0 +1,7 @@
+
+.session-timeline { position: relative; padding-left: 24px; border-left: 2px solid var(--separator-color); }
+[dir="rtl"] .session-timeline { padding-left: 0; padding-right: 24px; border-left: none; border-right: 2px solid var(--separator-color); }
+.session-dot { position: absolute; left: -9px; top: 0; width: 16px; height: 16px; border-radius: 50%; background: var(--bg-secondary); border: 2px solid var(--accent-color); }
+[dir="rtl"] .session-dot { left: auto; right: -9px; }
+.pulse-dot { animation: pulse 2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }

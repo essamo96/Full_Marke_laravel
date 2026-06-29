@@ -1,0 +1,5 @@
+
+.live-pulse-dot { width: 12px; height: 12px; background-color: #ff4757; border-radius: 50%; display: inline-block; animation: pulse-live 1.5s infinite; }
+@keyframes pulse-live { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 71, 87, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } }
+.room-control-btn { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; transition: all 0.2s; background: var(--bg-secondary); border: 1px solid var(--separator-color); }
+.room-control-btn:hover { background: rgba(197, 168, 128, 0.1); border-color: var(--accent-color); color: var(--accent-color); }
