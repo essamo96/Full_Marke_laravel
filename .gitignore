@@ -36,8 +36,8 @@ yabous_org/*
 
 # Hero section videos — too large/slow to push reliably; deploy these to the
 # server separately (FTP/manual upload) rather than through git.
-/public/site/images/slider1.mp4
-/public/site/images/slider2.mp4
+# /public/site/images/slider1.mp4
+# /public/site/images/slider2.mp4
 /public/site/images/aboutUs.mp4
 /public/site/images/aboutUs_mobile.mp4
 
