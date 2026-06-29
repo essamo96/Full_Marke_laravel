@@ -543,9 +543,9 @@
       <div class="row g-4 justify-content-center reveal">
         <!-- Teacher 1 -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
+          <div class="glass-panel teacher-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
             <div style="height: 250px; overflow: hidden; position: relative;">
-              <img src="{{ asset('site/images/img/students/student1.jpg') }}" alt="Ahmad Al-Saeed" class="w-100 h-100 object-cover" style="object-fit: cover;">
+              <img src="{{ asset('site/images/img/students/teacher_1.png') }}" alt="Ahmad Al-Saeed" class="w-100 h-100 object-cover" style="object-fit: cover;">
             </div>
             <div class="p-6 text-center flex-grow d-flex flex-column justify-content-between">
               <div>
@@ -555,16 +555,23 @@
                   Certified British Council trainer.
                 </p>
               </div>
-              <a href="#" class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm" data-en="View Profile" data-ar="عرض الملف الشخصي">View Profile</a>
+              <div class="teacher-social-wrapper relative">
+                <button class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm teacher-connect-btn" data-en="Connect" data-ar="تواصل">Connect</button>
+                <div class="social-arc-menu">
+                  <a href="#" class="social-arc-item item-1"><i class="bi bi-linkedin"></i></a>
+                  <a href="#" class="social-arc-item item-2"><i class="bi bi-twitter"></i></a>
+                  <a href="#" class="social-arc-item item-3"><i class="bi bi-envelope"></i></a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Teacher 2 -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
+          <div class="glass-panel teacher-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
             <div style="height: 250px; overflow: hidden; position: relative;">
-              <img src="{{ asset('site/images/img/students/student2.jpg') }}" alt="Mariam Naser" class="w-100 h-100 object-cover" style="object-fit: cover;">
+              <img src="{{ asset('site/images/img/students/teacher_2.png') }}" alt="Mariam Naser" class="w-100 h-100 object-cover" style="object-fit: cover;">
             </div>
             <div class="p-6 text-center flex-grow d-flex flex-column justify-content-between">
               <div>
@@ -574,16 +581,23 @@
                   Specialist in communicative language.
                 </p>
               </div>
-              <a href="#" class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm" data-en="View Profile" data-ar="عرض الملف الشخصي">View Profile</a>
+              <div class="teacher-social-wrapper relative">
+                <button class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm teacher-connect-btn" data-en="Connect" data-ar="تواصل">Connect</button>
+                <div class="social-arc-menu">
+                  <a href="#" class="social-arc-item item-1"><i class="bi bi-linkedin"></i></a>
+                  <a href="#" class="social-arc-item item-2"><i class="bi bi-twitter"></i></a>
+                  <a href="#" class="social-arc-item item-3"><i class="bi bi-envelope"></i></a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Teacher 3 -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
+          <div class="glass-panel teacher-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
             <div style="height: 250px; overflow: hidden; position: relative;">
-              <img src="{{ asset('site/images/img/students/student3.jpg') }}" alt="Dr. Omar Fayed" class="w-100 h-100 object-cover" style="object-fit: cover;">
+              <img src="{{ asset('site/images/img/students/teacher_3.png') }}" alt="Dr. Omar Fayed" class="w-100 h-100 object-cover" style="object-fit: cover;">
             </div>
             <div class="p-6 text-center flex-grow d-flex flex-column justify-content-between">
               <div>
@@ -593,18 +607,23 @@
                   Ensuring top academic scores.
                 </p>
               </div>
-              <a href="#" class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm" data-en="View Profile" data-ar="عرض الملف الشخصي">View Profile</a>
+              <div class="teacher-social-wrapper relative">
+                <button class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm teacher-connect-btn" data-en="Connect" data-ar="تواصل">Connect</button>
+                <div class="social-arc-menu">
+                  <a href="#" class="social-arc-item item-1"><i class="bi bi-linkedin"></i></a>
+                  <a href="#" class="social-arc-item item-2"><i class="bi bi-twitter"></i></a>
+                  <a href="#" class="social-arc-item item-3"><i class="bi bi-envelope"></i></a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Teacher 4 -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
+          <div class="glass-panel teacher-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
             <div style="height: 250px; overflow: hidden; position: relative;">
-              <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary">
-                <i class="bi bi-person-circle text-5xl text-gold"></i>
-              </div>
+              <img src="{{ asset('site/images/img/students/teacher_4.png') }}" alt="Sarah Jones" class="w-100 h-100 object-cover" style="object-fit: cover;">
             </div>
             <div class="p-6 text-center flex-grow d-flex flex-column justify-content-between">
               <div>
@@ -614,10 +633,41 @@
                   Focus on advanced conversation.
                 </p>
               </div>
-              <a href="#" class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm" data-en="View Profile" data-ar="عرض الملف الشخصي">View Profile</a>
+              <div class="teacher-social-wrapper relative">
+                <button class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm teacher-connect-btn" data-en="Connect" data-ar="تواصل">Connect</button>
+                <div class="social-arc-menu">
+                  <a href="#" class="social-arc-item item-1"><i class="bi bi-linkedin"></i></a>
+                  <a href="#" class="social-arc-item item-2"><i class="bi bi-twitter"></i></a>
+                  <a href="#" class="social-arc-item item-3"><i class="bi bi-envelope"></i></a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+      
+      <!-- Connect Buttons Logic -->
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const connectBtns = document.querySelectorAll('.teacher-connect-btn');
+          connectBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.preventDefault();
+              const menu = btn.nextElementSibling;
+              menu.classList.toggle('is-open');
+            });
+          });
+          
+          // Close menus if clicking outside
+          document.addEventListener('click', (e) => {
+            if (!e.target.closest('.teacher-social-wrapper')) {
+              document.querySelectorAll('.social-arc-menu.is-open').forEach(menu => {
+                menu.classList.remove('is-open');
+              });
+            }
+          });
+        });
+      </script>
       </div>
     </div>
   </section>

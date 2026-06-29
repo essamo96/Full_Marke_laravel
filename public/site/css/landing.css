@@ -463,3 +463,66 @@
   left: auto;
   right: 12px;
 }
+
+/* Teachers Social Arc Animations */
+.teacher-connect-btn {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  position: relative;
+  z-index: 10;
+}
+.teacher-card:hover .teacher-connect-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+.teacher-social-wrapper {
+  position: relative;
+}
+.social-arc-menu {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.social-arc-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  width: 36px;
+  height: 36px;
+  background: var(--accent-color);
+  color: #050402;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+}
+.social-arc-item:hover {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+}
+.social-arc-menu.is-open {
+  pointer-events: auto;
+}
+/* When open, items translate out radially */
+.social-arc-menu.is-open .item-1 {
+  transform: translate(calc(-50% - 40px), calc(-50% - 45px)) scale(1);
+  opacity: 1;
+}
+.social-arc-menu.is-open .item-2 {
+  transform: translate(-50%, calc(-50% - 60px)) scale(1);
+  opacity: 1;
+}
+.social-arc-menu.is-open .item-3 {
+  transform: translate(calc(-50% + 40px), calc(-50% - 45px)) scale(1);
+  opacity: 1;
+}

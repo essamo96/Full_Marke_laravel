@@ -1,4 +1,4 @@
-name: 🚀 Deploy Website to full-mark-academy
+name: 🚀 Deploy Website to Full_Marke_laravel
 
 on:
   push:
