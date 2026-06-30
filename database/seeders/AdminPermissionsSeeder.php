@@ -29,6 +29,7 @@ class AdminPermissionsSeeder extends Seeder
         'approvals' => 'الطلبات المعلقة',
         'payments' => 'المدفوعات',
         'financial_reports' => 'التقارير المالية',
+        'study_branches' => 'الفروع الدراسية',
     ];
 
     // ki- icon (Keenicons duotone, verified present in plugins.bundle.css) per sidebar module.
@@ -47,10 +48,11 @@ class AdminPermissionsSeeder extends Seeder
         'approvals' => 'ki-duotone ki-double-check-circle',
         'payments' => 'ki-duotone ki-dollar',
         'financial_reports' => 'ki-duotone ki-chart-line-up',
+        'study_branches' => 'ki-duotone ki-map',
     ];
 
     protected array $academyModules = [
-        'programs', 'subjects', 'groups', 'teachers', 'students',
+        'programs', 'study_branches', 'subjects', 'groups', 'teachers', 'students',
         'payment_methods', 'approvals', 'payments', 'financial_reports',
     ];
 

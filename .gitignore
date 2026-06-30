@@ -33,7 +33,9 @@ academy/*
 yabous_org/*
 /metronic_html_v8.1.8_demo1
 /metronic_html_v8.1.8_demo1/*
-
+/oxford
+/oxford/*
+oxford
 # Hero section videos — too large/slow to push reliably; deploy these to the
 # server separately (FTP/manual upload) rather than through git.
 # /public/site/images/slider1.mp4

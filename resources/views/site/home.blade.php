@@ -87,14 +87,14 @@
   </section>
 
   <!-- About Section -->
-  <section id="about" class="py-24" style="background: var(--bg-secondary);">
+  <section id="about" style="background: var(--bg-secondary);">
     <div class="container px-4">
       <div class="row align-items-center gy-12">
         <!-- Text Column -->
         <div class="col-lg-6 reveal-left">
-          <h5 class="text-gold font-bold tracking-widest text-sm uppercase mb-2" data-en="DISCOVER FULL MARK" data-ar="اكتشف العلامة الكاملة">DISCOVER FULL MARK</h5>
-          <h2 class="text-3xl md:text-5xl font-extrabold mb-4" style="color: var(--text-primary);" data-en="Leading Academic Training Institution" data-ar="المؤسسة الأكاديمية الرائدة للتدريب">Leading Academic Training Institution</h2>
-          <div class="w-16 h-1 bg-gold mb-6 rounded-full"></div>
+          <h5 class="section-subtitle" data-en="DISCOVER FULL MARK" data-ar="اكتشف العلامة الكاملة">DISCOVER FULL MARK</h5>
+          <h2 class="section-title" data-en="Leading Academic Training Institution" data-ar="المؤسسة الأكاديمية الرائدة للتدريب">Leading Academic Training Institution</h2>
+          <div class="section-divider"></div>
           <p class="text-lg leading-relaxed mb-6" style="color: var(--text-secondary);"
              data-en="FULL MARKS ACADEMY stands at the forefront of language education and testing. As an approved Full Mark Test of English (OTE) center, we deliver globally recognized certifications alongside premier academic instruction tailored for IELTS preparation, general levels, and corporate business communication."
              data-ar="تقف أكاديمية العلامة الكاملة في طليعة تعليم اللغات والتقييم الدولي. بصفتنا مركزًا معتمدًا لاختبار Full Mark Test of English (OTE)، نقدم شهادات معترف بها عالميًا إلى جانب تدريب أكاديمي متميز مُعد خصيصًا لاجتياز اختبار آيلتس، المستويات العامة، والمحادثة المهنية للمؤسسات.">
@@ -158,99 +158,107 @@
   </div>
 
   <!-- Programs Section -->
-  <section id="programs" class="py-24" style="background: var(--bg-primary);">
+  <section id="programs" style="background: var(--bg-primary);">
     <div class="container px-4">
       <div class="text-center max-w-2xl mx-auto mb-16 reveal">
-        <h5 class="text-gold font-bold tracking-widest text-sm uppercase mb-2" data-en="OUR ACADEMIC PROGRAMS" data-ar="برامجنا التعليمية">OUR ACADEMIC PROGRAMS</h5>
-        <h2 class="text-3xl md:text-5xl font-extrabold mb-4" style="color: var(--text-primary);" data-en="Specialized Programs for a Brighter Future" data-ar="برامج متخصصة لبناء مستقبل واعد">Specialized Programs for a Brighter Future</h2>
-        <div class="mx-auto w-16 h-1 bg-gold rounded-full"></div>
+        <h5 class="section-subtitle" data-en="OUR ACADEMIC PROGRAMS" data-ar="برامجنا التعليمية">OUR ACADEMIC PROGRAMS</h5>
+        <h2 class="section-title" data-en="Specialized Programs for a Brighter Future" data-ar="برامج متخصصة لبناء مستقبل واعد">Specialized Programs for a Brighter Future</h2>
+        <div class="section-divider mx-auto"></div>
       </div>
 
       <div class="row g-4 justify-content-center reveal">
         <!-- Program 1: Tawjihi -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel news-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow">
-            <div class="news-img-wrapper">
+          <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
+            <a href="{{ route('programs.show', 'tawjihi') }}" class="news-img-wrapper d-block overflow-hidden">
               <img src="{{ asset('site/images/img/programs/prog1.png') }}" alt="Tawjihi Program" class="news-img">
-            </div>
-            <div class="p-6 flex-grow d-flex flex-column justify-content-between">
+            </a>
+            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
               <div>
-                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Tawjihi Program" data-ar="برنامج التوجيهي">Tawjihi Program</h4>
+                <h4 class="text-xl font-bold mb-3">
+                  <a href="{{ route('programs.show', 'tawjihi') }}" class="stretched-link text-decoration-none hover-text-accent" style="color: var(--text-primary);" data-en="Tawjihi Program" data-ar="برنامج التوجيهي">Tawjihi Program</a>
+                </h4>
                 <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
                    data-en="Comprehensive preparation for high school students with elite teachers to ensure top scores and academic excellence."
                    data-ar="تأهيل شامل لطلبة الثانوية العامة مع نخبة من أفضل المعلمين لضمان التفوق والحصول على العلامة الكاملة.">
                   Comprehensive preparation for high school students with elite teachers to ensure top scores and academic excellence.
                 </p>
               </div>
-              <a href="{{ route('programs.show', 'tawjihi') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
+              <div class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
                 Join Program
-              </a>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Program 2: Children -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel news-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow">
-            <div class="news-img-wrapper">
+          <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
+            <a href="{{ route('programs.show', 'children') }}" class="news-img-wrapper d-block overflow-hidden">
               <img src="{{ asset('site/images/img/programs/prog2.png') }}" alt="Children Program" class="news-img">
-            </div>
-            <div class="p-6 flex-grow d-flex flex-column justify-content-between">
+            </a>
+            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
               <div>
-                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Children Program" data-ar="برنامج الأطفال">Children Program</h4>
+                <h4 class="text-xl font-bold mb-3">
+                  <a href="{{ route('programs.show', 'children') }}" class="stretched-link text-decoration-none hover-text-accent" style="color: var(--text-primary);" data-en="Children Program" data-ar="برنامج الأطفال">Children Program</a>
+                </h4>
                 <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
                    data-en="Fun, interactive language learning designed to build a strong foundation for young learners using modern tools."
                    data-ar="تعليم تفاعلي مرح يهدف إلى بناء لغوي قوي للأطفال من سن مبكر باستخدام وسائل تعليمية مبتكرة.">
                   Fun, interactive language learning designed to build a strong foundation for young learners using modern tools.
                 </p>
               </div>
-              <a href="{{ route('programs.show', 'children') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
+              <div class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
                 Join Program
-              </a>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Program 3: Speech Therapy -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel news-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow">
-            <div class="news-img-wrapper">
+          <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
+            <a href="{{ route('programs.show', 'speech') }}" class="news-img-wrapper d-block overflow-hidden">
               <img src="{{ asset('site/images/img/programs/prog3.png') }}" alt="Speech Therapy" class="news-img">
-            </div>
-            <div class="p-6 flex-grow d-flex flex-column justify-content-between">
+            </a>
+            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
               <div>
-                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Speech Therapy Program" data-ar="برنامج النطق">Speech Therapy Program</h4>
+                <h4 class="text-xl font-bold mb-3">
+                  <a href="{{ route('programs.show', 'speech') }}" class="stretched-link text-decoration-none hover-text-accent" style="color: var(--text-primary);" data-en="Speech Therapy Program" data-ar="برنامج النطق">Speech Therapy Program</a>
+                </h4>
                 <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
                    data-en="Specialized therapy sessions to resolve speech difficulties and enhance articulation for children and adults."
                    data-ar="جلسات متخصصة لعلاج مشاكل النطق والتخاطب وتحسين النطق السليم لدى الأطفال والبالغين بأحدث الأساليب.">
                   Specialized therapy sessions to resolve speech difficulties and enhance articulation for children and adults.
                 </p>
               </div>
-              <a href="{{ route('programs.show', 'speech') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
+              <div class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
                 Join Program
-              </a>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Program 4: Rehabilitation -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel news-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow">
-            <div class="news-img-wrapper">
+          <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
+            <a href="{{ route('programs.show', 'rehab') }}" class="news-img-wrapper d-block overflow-hidden">
               <img src="{{ asset('site/images/img/programs/prog4.png') }}" alt="Rehabilitation Program" class="news-img">
-            </div>
-            <div class="p-6 flex-grow d-flex flex-column justify-content-between">
+            </a>
+            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
               <div>
-                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Rehabilitation Program" data-ar="برنامج التأهيلي">Rehabilitation Program</h4>
+                <h4 class="text-xl font-bold mb-3">
+                  <a href="{{ route('programs.show', 'rehab') }}" class="stretched-link text-decoration-none hover-text-accent" style="color: var(--text-primary);" data-en="Rehabilitation Program" data-ar="برنامج التأهيلي">Rehabilitation Program</a>
+                </h4>
                 <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
                    data-en="Intensive training designed to build key academic skills and prepare students for integration into standard tracks."
                    data-ar="برنامج مكثف لتطوير المهارات الأكاديمية والاجتماعية وتأهيل الطلاب للاندماج الفعال في البيئات التعليمية.">
                   Intensive training designed to build key academic skills and prepare students for integration into standard tracks.
                 </p>
               </div>
-              <a href="{{ route('programs.show', 'rehab') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
+              <div class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
                 Join Program
-              </a>
+              </div>
             </div>
           </div>
         </div>
@@ -264,12 +272,12 @@
   </div>
 
   <!-- Core Strengths Section (Hexagon Grid) -->
-  <section id="strengths" class="py-24" style="background: var(--bg-primary);">
+  <section id="strengths" style="background: var(--bg-primary);">
     <div class="container px-4">
       <div class="text-center max-w-2xl mx-auto mb-16 reveal">
-        <h5 class="text-gold font-bold tracking-widest text-sm uppercase mb-2" data-en="WHY FULL MARK?" data-ar="لماذا العلامة الكاملة؟">WHY FULL MARK?</h5>
-        <h2 class="text-3xl md:text-5xl font-extrabold mb-4" style="color: var(--text-primary);" data-en="Core Pillars of Academic Success" data-ar="الركائز الأساسية للنجاح الأكاديمي">Core Pillars of Academic Success</h2>
-        <div class="mx-auto w-16 h-1 bg-gold rounded-full"></div>
+        <h5 class="section-subtitle" data-en="WHY FULL MARK?" data-ar="لماذا العلامة الكاملة؟">WHY FULL MARK?</h5>
+        <h2 class="section-title" data-en="Core Pillars of Academic Success" data-ar="الركائز الأساسية للنجاح الأكاديمي">Core Pillars of Academic Success</h2>
+        <div class="section-divider mx-auto"></div>
       </div>
 
       <div class="hexagon-grid reveal">
@@ -342,63 +350,69 @@
   </div>
 
   <!-- Quick Action Grid -->
-  <section id="actions" class="py-24" style="background: var(--bg-secondary);">
+  <section id="actions" style="background: var(--bg-secondary);">
     <div class="container px-4">
       <div class="text-center max-w-2xl mx-auto mb-16 reveal">
-        <h5 class="text-gold font-bold tracking-widest text-sm uppercase mb-2" data-en="EASY NAVIGATION" data-ar="وصول سريع">EASY NAVIGATION</h5>
-        <h2 class="text-3xl md:text-5xl font-extrabold mb-4" style="color: var(--text-primary);" data-en="Enroll and Booking Gateways" data-ar="بوابات التسجيل والحجز الفوري">Enroll and Booking Gateways</h2>
-        <div class="mx-auto w-16 h-1 bg-gold rounded-full"></div>
+        <h5 class="section-subtitle" data-en="EASY NAVIGATION" data-ar="وصول سريع">EASY NAVIGATION</h5>
+        <h2 class="section-title" data-en="Enroll and Booking Gateways" data-ar="بوابات التسجيل والحجز الفوري">Enroll and Booking Gateways</h2>
+        <div class="section-divider mx-auto"></div>
       </div>
 
       <div class="row g-4 reveal">
         <!-- Brochure -->
         <div class="col-lg-4">
-          <div class="glass-panel p-5 text-center h-100 d-flex flex-column justify-content-between tilt-card hover-glow">
-            <div>
-              <div class="w-16 h-16 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
-                <i class="bi bi-file-pdf"></i>
+          <div class="glass-panel hover-premium-card text-center h-100 d-flex flex-column justify-content-between">
+            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between h-100">
+              <div>
+                <div class="w-16 h-16 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
+                  <i class="bi bi-file-pdf"></i>
+                </div>
+                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Our Syllabus" data-ar="منهج الأكاديمية">Our Syllabus</h4>
+                <p class="opacity-75 text-sm mb-6" data-en="Download the comprehensive academy brochure detailing levels, learning paths, pricing, and OTE structure."
+                   data-ar="قم بتحميل كتيب الأكاديمية الشامل لاستعراض المستويات، الخطط التعليمية، الأسعار، وبنية اختبارات OTE المعتمدة.">
+                  Download the comprehensive academy brochure detailing levels, learning paths, pricing, and OTE structure.
+                </p>
               </div>
-              <h3 class="text-2xl font-bold mb-3" style="color: var(--text-primary);" data-en="Our Syllabus" data-ar="منهج الأكاديمية">Our Syllabus</h3>
-              <p class="opacity-75 text-sm mb-6" data-en="Download the comprehensive academy brochure detailing levels, learning paths, pricing, and OTE structure."
-                 data-ar="قم بتحميل كتيب الأكاديمية الشامل لاستعراض المستويات، الخطط التعليمية، الأسعار، وبنية اختبارات OTE المعتمدة.">
-                Download the comprehensive academy brochure detailing levels, learning paths, pricing, and OTE structure.
-              </p>
+              <a href="{{ asset('site/images/doc/brochur.pdf') }}" target="_blank" class="btn btn-luxury w-100 py-3 rounded-lg" data-en="Download PDF" data-ar="تحميل الكتيب">Download PDF</a>
             </div>
-            <a href="{{ asset('site/images/doc/brochur.pdf') }}" target="_blank" class="btn btn-luxury w-100 py-3 rounded-lg" data-en="Download PDF" data-ar="تحميل الكتيب">Download PDF</a>
           </div>
         </div>
 
         <!-- Placement Test -->
         <div class="col-lg-4">
-          <div class="glass-panel p-5 text-center h-100 d-flex flex-column justify-content-between tilt-card hover-glow">
-            <div>
-              <div class="w-16 h-16 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
-                <i class="bi bi-person-check-fill"></i>
+          <div class="glass-panel hover-premium-card text-center h-100 d-flex flex-column justify-content-between">
+            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between h-100">
+              <div>
+                <div class="w-16 h-16 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
+                  <i class="bi bi-person-check-fill"></i>
+                </div>
+                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Placement Booking" data-ar="حجز تحديد المستوى">Placement Booking</h4>
+                <p class="opacity-75 text-sm mb-6" data-en="Reserve your slot for the English language placement exam to accurately evaluate your current level."
+                   data-ar="احجز موعد اختبار تحديد المستوى في اللغة الإنجليزية لتقييم مستواك الحالي وضمك للمستوى الأنسب لك.">
+                  Reserve your slot for the English language placement exam to accurately evaluate your current level.
+                </p>
               </div>
-              <h3 class="text-2xl font-bold mb-3" style="color: var(--text-primary);" data-en="Placement Booking" data-ar="حجز تحديد المستوى">Placement Booking</h3>
-              <p class="opacity-75 text-sm mb-6" data-en="Reserve your slot for the English language placement exam to accurately evaluate your current level."
-                 data-ar="احجز موعد اختبار تحديد المستوى في اللغة الإنجليزية لتقييم مستواك الحالي وضمك للمستوى الأنسب لك.">
-                Reserve your slot for the English language placement exam to accurately evaluate your current level.
-              </p>
+              <a href="#contact" class="btn btn-luxury w-100 py-3 rounded-lg" data-en="Reserve Now" data-ar="احجز موعدك">Reserve Now</a>
             </div>
-            <a href="#contact" class="btn btn-luxury w-100 py-3 rounded-lg" data-en="Reserve Now" data-ar="احجز موعدك">Reserve Now</a>
           </div>
         </div>
 
         <!-- Book Course -->
         <div class="col-lg-4">
-          <div class="glass-panel p-5 text-center h-100 d-flex flex-column justify-content-between tilt-card hover-glow">
-            <div>
-              <div class="w-16 h-16 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
-                <i class="bi bi-bookmark-star-fill"></i>
+          <div class="glass-panel hover-premium-card text-center h-100 d-flex flex-column justify-content-between">
+            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between h-100">
+              <div>
+                <div class="w-16 h-16 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
+                  <i class="bi bi-bookmark-star-fill"></i>
+                </div>
+                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Course Booking" data-ar="تسجيل في دورة">Course Booking</h4>
+                <p class="opacity-75 text-sm mb-6" data-en="Directly register in our IELTS prep modules, Academic writing workshops, or General levels."
+                   data-ar="سجل مباشرة في دورات التحضير لآيلتس، ورش الكتابة الأكاديمية، أو مستويات تقوية المحادثة واللغة العامة.">
+                  Directly register in our IELTS prep modules, Academic writing workshops, or General levels.
+                </p>
               </div>
-              <h3 class="text-2xl font-bold mb-3" style="color: var(--text-primary);" data-en="Course Booking" data-ar="تسجيل في دورة">Course Booking</h3>
-              <p class="opacity-75 text-sm mb-6" data-en="Directly register in our IELTS prep modules, Academic writing workshops, or General levels."
-                 data-ar="سجل مباشرة في دورات التحضير لآيلتس، ورش الكتابة الأكاديمية، أو مستويات تقوية المحادثة واللغة العامة.">
-                Directly register in our IELTS prep modules, Academic writing workshops, or General levels.
-              </p>
+              <a href="#contact" class="btn btn-luxury w-100 py-3 rounded-lg" data-en="Secure Seat" data-ar="احجز مقعدك">Secure Seat</a>
             </div>
-            <a href="#contact" class="btn btn-luxury w-100 py-3 rounded-lg" data-en="Secure Seat" data-ar="احجز مقعدك">Secure Seat</a>
           </div>
         </div>
       </div>
@@ -439,18 +453,18 @@
   </section>
 
   <!-- News Section -->
-  <section id="news" class="py-24" style="background: var(--bg-primary);">
+  <section id="news" style="background: var(--bg-primary);">
     <div class="container px-4">
       <div class="text-center max-w-2xl mx-auto mb-16 reveal">
-        <h5 class="text-gold font-bold tracking-widest text-sm uppercase mb-2" data-en="ACADEMY NEWS" data-ar="أخبار الأكاديمية">ACADEMY NEWS</h5>
-        <h2 class="text-3xl md:text-5xl font-extrabold mb-4" style="color: var(--text-primary);" data-en="Latest News and Updates" data-ar="آخر الأخبار والفعاليات">Latest News and Updates</h2>
-        <div class="mx-auto w-16 h-1 bg-gold rounded-full"></div>
+        <h5 class="section-subtitle" data-en="ACADEMY NEWS" data-ar="أخبار الأكاديمية">ACADEMY NEWS</h5>
+        <h2 class="section-title" data-en="Latest News and Updates" data-ar="آخر الأخبار والفعاليات">Latest News and Updates</h2>
+        <div class="section-divider mx-auto"></div>
       </div>
 
       <div class="row g-4 reveal">
         <!-- News item 1 -->
         <div class="col-md-4">
-          <div class="glass-panel news-card">
+          <div class="glass-panel news-card hover-premium-card">
             <div class="news-img-wrapper">
               <img src="{{ asset('site/images/img/banner/ote_hall.png') }}" alt="News" class="news-img">
               <div class="news-date-badge">
@@ -458,10 +472,11 @@
                 <span class="text-xs font-bold uppercase">MAY</span>
               </div>
             </div>
-            <div class="p-6 flex-grow d-flex flex-column justify-content-between">
+            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
               <div>
-                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="New OTE Placement Sessions" data-ar="جلسات اختبار OTE جديدة">New OTE Placement Sessions</h4>
-                <p class="opacity-75 text-sm mb-4" data-en="Approved dates for the upcoming Full Mark Test of English assessment are now open for registration."
+                <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="New OTE Placement Sessions" data-ar="جلسات اختبار OTE جديدة">New OTE Placement Sessions</h4>
+                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
+                   data-en="Approved dates for the upcoming Full Mark Test of English assessment are now open for registration."
                    data-ar="المواعيد المعتمدة لجلسات تقييم اختبار العلامة الكاملة للغة الإنجليزية القادمة مفتوحة للتسجيل الآن.">
                   Approved dates for the upcoming Full Mark Test of English assessment are now open for registration.
                 </p>
@@ -475,7 +490,7 @@
 
         <!-- News item 2 -->
         <div class="col-md-4">
-          <div class="glass-panel news-card">
+          <div class="glass-panel news-card hover-premium-card">
             <div class="news-img-wrapper">
               <img src="{{ asset('site/images/img/news/news2.png') }}" alt="News" class="news-img">
               <div class="news-date-badge">
@@ -483,10 +498,11 @@
                 <span class="text-xs font-bold uppercase">JUN</span>
               </div>
             </div>
-            <div class="p-6 flex-grow d-flex flex-column justify-content-between">
+            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
               <div>
-                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="IELTS Prep Program Starting" data-ar="بدء التسجيل لدورة الآيلتس المكثفة">IELTS Prep Program Starting</h4>
-                <p class="opacity-75 text-sm mb-4" data-en="Register for our academic IELTS training cohort led by certified British trainers with mock testing."
+                <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="IELTS Prep Program Starting" data-ar="بدء التسجيل لدورة الآيلتس المكثفة">IELTS Prep Program Starting</h4>
+                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
+                   data-en="Register for our academic IELTS training cohort led by certified British trainers with mock testing."
                    data-ar="سجل الآن في المجموعة الأكاديمية الجديدة للتحضير لاختبار آيلتس بإشراف مدربين مؤهلين واختبارات تجريبية.">
                   Register for our academic IELTS training cohort led by certified British trainers with mock testing.
                 </p>
@@ -500,7 +516,7 @@
 
         <!-- News item 3 -->
         <div class="col-md-4">
-          <div class="glass-panel news-card">
+          <div class="glass-panel news-card hover-premium-card">
             <div class="news-img-wrapper">
               <img src="{{ asset('site/images/img/news/news3.png') }}" alt="News" class="news-img">
               <div class="news-date-badge">
@@ -508,10 +524,11 @@
                 <span class="text-xs font-bold uppercase">JUL</span>
               </div>
             </div>
-            <div class="p-6 flex-grow d-flex flex-column justify-content-between">
+            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
               <div>
-                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Academic Speaking & Writing" data-ar="ورشة عمل المحادثة الأكاديمية">Academic Speaking & Writing</h4>
-                <p class="opacity-75 text-sm mb-4" data-en="Improve your essay structures and academic speaking fluency with our intensive workshops."
+                <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="Academic Speaking & Writing" data-ar="ورشة عمل المحادثة الأكاديمية">Academic Speaking & Writing</h4>
+                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
+                   data-en="Improve your essay structures and academic speaking fluency with our intensive workshops."
                    data-ar="قم بتحسين صياغة المقالات الأكاديمية وطلاقة المحادثة العلمية من خلال ورشنا التدريبية المركزة.">
                   Improve your essay structures and academic speaking fluency with our intensive workshops.
                 </p>
@@ -532,26 +549,26 @@
   </div>
 
   <!-- Teachers Section -->
-  <section id="teachers" class="py-24" style="background: var(--bg-primary);">
+  <section id="teachers" style="background: var(--bg-primary);">
     <div class="container px-4">
       <div class="text-center max-w-2xl mx-auto mb-16 reveal">
-        <h5 class="text-gold font-bold tracking-widest text-sm uppercase mb-2" data-en="EXPERT INSTRUCTORS" data-ar="نخبة المعلمين">EXPERT INSTRUCTORS</h5>
-        <h2 class="text-3xl md:text-5xl font-extrabold mb-4" style="color: var(--text-primary);" data-en="Meet Our Academic Team" data-ar="تعرف على طاقمنا الأكاديمي">Meet Our Academic Team</h2>
-        <div class="mx-auto w-16 h-1 bg-gold rounded-full"></div>
+        <h5 class="section-subtitle" data-en="EXPERT INSTRUCTORS" data-ar="نخبة المعلمين">EXPERT INSTRUCTORS</h5>
+        <h2 class="section-title" data-en="Meet Our Academic Team" data-ar="تعرف على طاقمنا الأكاديمي">Meet Our Academic Team</h2>
+        <div class="section-divider mx-auto"></div>
       </div>
 
       <div class="row g-4 justify-content-center reveal">
         <!-- Teacher 1 -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel teacher-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
+          <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
             <div style="height: 250px; overflow: hidden; position: relative;">
               <img src="{{ asset('site/images/img/students/teacher_1.png') }}" alt="Ahmad Al-Saeed" class="w-100 h-100 object-cover" style="object-fit: cover;">
             </div>
-            <div class="p-6 text-center flex-grow d-flex flex-column justify-content-between">
+            <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
               <div>
-                <h4 class="text-xl font-bold mb-1" style="color: var(--text-primary);">Ahmad Al-Saeed</h4>
+                <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Ahmad Al-Saeed</h4>
                 <p class="text-sm font-bold text-gold mb-3" data-en="IELTS Expert" data-ar="خبير آيلتس">IELTS Expert</p>
-                <p class="opacity-75 text-sm mb-4" data-en="Certified British Council trainer." data-ar="مدرب معتمد من المجلس الثقافي البريطاني.">
+                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);" data-en="Certified British Council trainer." data-ar="مدرب معتمد من المجلس الثقافي البريطاني.">
                   Certified British Council trainer.
                 </p>
               </div>
@@ -569,15 +586,15 @@
 
         <!-- Teacher 2 -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel teacher-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
+          <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
             <div style="height: 250px; overflow: hidden; position: relative;">
               <img src="{{ asset('site/images/img/students/teacher_2.png') }}" alt="Mariam Naser" class="w-100 h-100 object-cover" style="object-fit: cover;">
             </div>
-            <div class="p-6 text-center flex-grow d-flex flex-column justify-content-between">
+            <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
               <div>
-                <h4 class="text-xl font-bold mb-1" style="color: var(--text-primary);">Mariam Naser</h4>
+                <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Mariam Naser</h4>
                 <p class="text-sm font-bold text-gold mb-3" data-en="General English" data-ar="لغة إنجليزية عامة">General English</p>
-                <p class="opacity-75 text-sm mb-4" data-en="Specialist in communicative language." data-ar="متخصصة في مهارات التواصل والمحادثة.">
+                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);" data-en="Specialist in communicative language." data-ar="متخصصة في مهارات التواصل والمحادثة.">
                   Specialist in communicative language.
                 </p>
               </div>
@@ -595,15 +612,15 @@
 
         <!-- Teacher 3 -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel teacher-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
+          <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
             <div style="height: 250px; overflow: hidden; position: relative;">
               <img src="{{ asset('site/images/img/students/teacher_3.png') }}" alt="Dr. Omar Fayed" class="w-100 h-100 object-cover" style="object-fit: cover;">
             </div>
-            <div class="p-6 text-center flex-grow d-flex flex-column justify-content-between">
+            <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
               <div>
-                <h4 class="text-xl font-bold mb-1" style="color: var(--text-primary);">Dr. Omar Fayed</h4>
+                <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Dr. Omar Fayed</h4>
                 <p class="text-sm font-bold text-gold mb-3" data-en="Tawjihi Coordinator" data-ar="منسق التوجيهي">Tawjihi Coordinator</p>
-                <p class="opacity-75 text-sm mb-4" data-en="Ensuring top academic scores." data-ar="ضمان الحصول على أعلى العلامات الأكاديمية.">
+                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);" data-en="Ensuring top academic scores." data-ar="ضمان الحصول على أعلى العلامات الأكاديمية.">
                   Ensuring top academic scores.
                 </p>
               </div>
@@ -621,15 +638,15 @@
 
         <!-- Teacher 4 -->
         <div class="col-md-6 col-lg-3">
-          <div class="glass-panel teacher-card h-100 d-flex flex-column justify-content-between tilt-card hover-glow overflow-hidden">
+          <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
             <div style="height: 250px; overflow: hidden; position: relative;">
               <img src="{{ asset('site/images/img/students/teacher_4.png') }}" alt="Sarah Jones" class="w-100 h-100 object-cover" style="object-fit: cover;">
             </div>
-            <div class="p-6 text-center flex-grow d-flex flex-column justify-content-between">
+            <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
               <div>
-                <h4 class="text-xl font-bold mb-1" style="color: var(--text-primary);">Sarah Jones</h4>
+                <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Sarah Jones</h4>
                 <p class="text-sm font-bold text-gold mb-3" data-en="Native Speaker" data-ar="متحدثة أصلية">Native Speaker</p>
-                <p class="opacity-75 text-sm mb-4" data-en="Focus on advanced conversation." data-ar="التركيز على مهارات المحادثة المتقدمة.">
+                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);" data-en="Focus on advanced conversation." data-ar="التركيز على مهارات المحادثة المتقدمة.">
                   Focus on advanced conversation.
                 </p>
               </div>
@@ -678,12 +695,12 @@
   </div>
 
   <!-- Testimonials Section -->
-  <section id="testimonials" class="py-24" style="background: var(--bg-secondary);">
+  <section id="testimonials" style="background: var(--bg-secondary);">
     <div class="container px-4">
       <div class="text-center max-w-2xl mx-auto mb-16 reveal">
-        <h5 class="text-gold font-bold tracking-widest text-sm uppercase mb-2" data-en="STUDENT FEEDBACK" data-ar="تقييمات الطلاب">STUDENT FEEDBACK</h5>
-        <h2 class="text-3xl md:text-5xl font-extrabold mb-4" style="color: var(--text-primary);" data-en="What Our Students Say" data-ar="ماذا يقول طلابنا؟">What Our Students Say</h2>
-        <div class="mx-auto w-16 h-1 bg-gold rounded-full"></div>
+        <h5 class="section-subtitle" data-en="STUDENT FEEDBACK" data-ar="تقييمات الطلاب">STUDENT FEEDBACK</h5>
+        <h2 class="section-title" data-en="What Our Students Say" data-ar="ماذا يقول طلابنا؟">What Our Students Say</h2>
+        <div class="section-divider mx-auto"></div>
       </div>
 
       <div class="swiper testimonials-swiper reveal">
@@ -774,12 +791,12 @@
   </section>
 
   <!-- FAQ Section -->
-  <section id="faq" class="py-24" style="background: var(--bg-primary);">
+  <section id="faq" style="background: var(--bg-primary);">
     <div class="container px-4">
       <div class="faq-header-block text-center max-w-2xl mx-auto mb-16 reveal">
-        <h5 class="text-gold font-bold tracking-widest text-sm uppercase mb-2" data-en="QUESTIONS & ANSWERS" data-ar="الأسئلة والأجوبة">QUESTIONS & ANSWERS</h5>
-        <h2 class="text-3xl md:text-5xl font-extrabold mb-4" style="color: var(--text-primary);" data-en="Frequently Asked Questions" data-ar="الأسئلة الشائعة للطلاب">Frequently Asked Questions</h2>
-        <div class="mx-auto w-16 h-1 bg-gold rounded-full"></div>
+        <h5 class="section-subtitle" data-en="QUESTIONS & ANSWERS" data-ar="الأسئلة والأجوبة">QUESTIONS & ANSWERS</h5>
+        <h2 class="section-title" data-en="Frequently Asked Questions" data-ar="الأسئلة الشائعة للطلاب">Frequently Asked Questions</h2>
+        <div class="section-divider mx-auto"></div>
       </div>
 
       <div class="row justify-content-center reveal">
@@ -852,13 +869,14 @@
   </div>
 
   <!-- Contact Us Section -->
-  <section id="contact" class="py-24" style="background: var(--bg-secondary);">
+  <section id="contact" style="background: var(--bg-secondary);">
     <div class="container px-4">
       <div class="row gy-12 reveal">
         <!-- Info Cards -->
         <div class="col-lg-5">
-          <h5 class="text-gold font-bold tracking-widest text-sm uppercase mb-2" data-en="CONNECT WITH US" data-ar="تواصل معنا">CONNECT WITH US</h5>
-          <h2 class="text-3xl md:text-5xl font-extrabold mb-6" style="color: var(--text-primary);" data-en="Get In Touch Today" data-ar="ابدأ رحلتك الأكاديمية الآن">Get In Touch Today</h2>
+          <h5 class="section-subtitle" data-en="CONNECT WITH US" data-ar="تواصل معنا">CONNECT WITH US</h5>
+          <h2 class="section-title" data-en="Get In Touch Today" data-ar="ابدأ رحلتك الأكاديمية الآن">Get In Touch Today</h2>
+          <div class="section-divider"></div>
 
           <div class="d-flex flex-column space-y-6 mt-8">
             <div class="d-flex align-items-center p-4 glass-panel">

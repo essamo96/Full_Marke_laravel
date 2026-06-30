@@ -625,7 +625,7 @@ footer.io-reveal {
   object-fit: contain;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
   #navbar-logo {
     height: 70px;
     max-width: 100%;
@@ -651,9 +651,9 @@ footer.io-reveal {
   gap: 1rem;
 }
 
-/* Tablet & up (≥768px) — spacing adjusted to be comfortable since the logo
+/* Desktop & up (≥1200px) — spacing adjusted to be comfortable since the logo
    has a reasonable size of 70px tall. */
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
   #header-nav .primary-nav {
     gap: 1.5rem;
   }
@@ -1283,8 +1283,8 @@ footer .h-12 {
   display: inline-flex;
 }
 
-/* Tablet & up (≥768px) */
-@media (min-width: 768px) {
+/* Desktop & up (≥1200px) */
+@media (min-width: 1200px) {
   .primary-nav {
     display: flex !important;
     align-items: center;

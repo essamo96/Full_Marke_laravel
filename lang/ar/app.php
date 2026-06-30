@@ -51,6 +51,9 @@ return [
 
     // Academy modules
     'programs' => 'البرامج',
+    'study_branches' => 'الفروع الدراسية',
+    'study_branch_name_ar' => 'اسم الفرع الدراسي (عربي)',
+    'study_branch_name_en' => 'اسم الفرع الدراسي (إنجليزي)',
     'subjects' => 'المواد',
     'groups' => 'المجموعات',
     'payment_methods' => 'طرق الدفع',

@@ -17,10 +17,10 @@
         <a href="#hero" class="desktop-nav-link nav-item-primary text-decoration-none font-medium active" style="color: var(--text-primary);" data-en="Home" data-ar="الرئيسية">Home</a>
         <a href="#about" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="About" data-ar="عن الأكاديمية">About</a>
         <a href="#programs" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Programs" data-ar="البرامج">Programs</a>
-        <a href="#actions" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Services" data-ar="خدماتنا">Services</a>
-        <a href="#contact" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Contact" data-ar="اتصل بنا">Contact</a>
         <a href="#strengths" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Strengths" data-ar="مميزاتنا">Strengths</a>
+        <a href="#actions" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Services" data-ar="خدماتنا">Services</a>
         <a href="#testimonials" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Testimonials" data-ar="التقييمات">Testimonials</a>
+        <a href="#contact" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Contact" data-ar="اتصل بنا">Contact</a>
       </nav>
 
       <!-- Action Buttons — visible from tablet up -->

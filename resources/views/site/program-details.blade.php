@@ -66,12 +66,12 @@
   </section>
 
   <!-- Subjects Section -->
-  <section class="py-24" style="background: var(--bg-primary);">
+  <section style="background: var(--bg-primary);">
     <div class="container px-4">
       <div class="text-center max-w-2xl mx-auto mb-16 reveal">
-        <h5 class="text-gold font-bold tracking-widest text-sm uppercase mb-2" data-en="PROGRAM SUBJECTS" data-ar="المواد الدراسية للبرنامج">PROGRAM SUBJECTS</h5>
-        <h2 class="text-3xl md:text-5xl font-extrabold mb-4" style="color: var(--text-primary);" data-en="Taught Course Modules" data-ar="المساقات الدراسية المتاحة">Taught Course Modules</h2>
-        <div class="mx-auto w-16 h-1 bg-gold rounded-full"></div>
+        <h5 class="section-subtitle" data-en="PROGRAM SUBJECTS" data-ar="المواد الدراسية للبرنامج">PROGRAM SUBJECTS</h5>
+        <h2 class="section-title" data-en="Taught Course Modules" data-ar="المساقات الدراسية المتاحة">Taught Course Modules</h2>
+        <div class="section-divider mx-auto"></div>
       </div>
 
       <div id="subjects-container" class="row g-4 justify-content-center reveal">

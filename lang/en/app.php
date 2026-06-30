@@ -51,6 +51,9 @@ return [
 
     // Academy modules
     'programs' => 'Programs',
+    'study_branches' => 'Study Branches',
+    'study_branch_name_ar' => 'Study Branch Name (Arabic)',
+    'study_branch_name_en' => 'Study Branch Name (English)',
     'subjects' => 'Subjects',
     'groups' => 'Groups',
     'payment_methods' => 'Payment Methods',

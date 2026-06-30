@@ -27,6 +27,7 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
 
     // Academy management modules (see academy_system_analysis.md)
     require __DIR__.'/admin-programs.php';
+    require __DIR__.'/admin-study-branches.php';
     require __DIR__.'/admin-subjects.php';
     require __DIR__.'/admin-subject-resources.php';
     require __DIR__.'/admin-groups.php';

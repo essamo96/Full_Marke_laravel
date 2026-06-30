@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Program;
+use App\Models\StudyBranch;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,9 +23,10 @@ class SiteController extends Controller
     {
         $programs = Program::where('is_active', true)->orderBy('order')->with('subjects')->get();
         $branches = Branch::active()->orderBy('name')->get();
+        $studyBranches = StudyBranch::active()->orderBy('name_en')->get();
         $selectedProgram = $request->query('program');
 
-        return view('site.apply-now', compact('programs', 'branches', 'selectedProgram'));
+        return view('site.apply-now', compact('programs', 'branches', 'studyBranches', 'selectedProgram'));
     }
 
     public function storeApplication(Request $request): RedirectResponse
@@ -39,6 +41,7 @@ class SiteController extends Controller
             'gender' => 'nullable|in:male,female',
             'address' => 'nullable|string',
             'branch_id' => 'nullable|exists:branches,id',
+            'study_branch_id' => 'nullable|exists:study_branches,id',
             'major_profession' => 'nullable|string|max:255',
             'health_information' => 'nullable|string',
             'program_id' => 'nullable|exists:programs,id',

@@ -80,10 +80,10 @@
   gap: .9rem;
 }
 
-/* Tablet & up (≥768px) — spacing adjusted to be comfortable since the logo
+/* Desktop & up (≥1200px) — spacing adjusted to be comfortable since the logo
    has a reasonable size of 70px tall. Kept slightly tighter than LTR as Arabic 
    words take up more horizontal space. */
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
   [dir="rtl"] #header-nav .primary-nav {
     gap: 1.25rem !important;
   }

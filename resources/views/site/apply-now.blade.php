@@ -3,12 +3,12 @@
 @section('title', 'Apply Now | FULL MARKS ACADEMY')
 
 @section('content')
-  <section class="py-24" style="background: var(--bg-secondary); padding-top: 160px !important;">
+  <section style="background: var(--bg-secondary); padding-top: 160px !important;">
     <div class="container px-4">
       <div class="text-center max-w-2xl mx-auto mb-12 reveal">
-        <h5 class="text-gold font-bold tracking-widest text-sm uppercase mb-2" data-en="JOIN FULL MARK" data-ar="انضم إلى العلامة الكاملة">JOIN FULL MARK</h5>
-        <h2 class="text-3xl md:text-5xl font-extrabold mb-4" style="color: var(--text-primary);" data-en="Apply Now" data-ar="تقديم طلب الانضمام">Apply Now</h2>
-        <div class="mx-auto w-16 h-1 bg-gold rounded-full"></div>
+        <h5 class="section-subtitle" data-en="JOIN FULL MARK" data-ar="انضم إلى العلامة الكاملة">JOIN FULL MARK</h5>
+        <h2 class="section-title" data-en="Apply Now" data-ar="تقديم طلب الانضمام">Apply Now</h2>
+        <div class="section-divider mx-auto"></div>
       </div>
 
       <div class="row justify-content-center">
@@ -101,6 +101,21 @@
                   </div>
                   @error('branch_id') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
+                <div class="col-md-6">
+                  <div class="floating-input-group">
+                    <select name="study_branch_id" id="applyStudyBranch">
+                      <option value="" selected data-en="No preference" data-ar="بدون تفضيل">No preference</option>
+                      @foreach ($studyBranches as $studyBranch)
+                        <option value="{{ $studyBranch->id }}" @selected(old('study_branch_id') == $studyBranch->id) data-en="{{ $studyBranch->name_en }}" data-ar="{{ $studyBranch->name_ar }}">{{ $studyBranch->name }}</option>
+                      @endforeach
+                    </select>
+                    <label for="applyStudyBranch" data-en="Study Branch" data-ar="الفرع الدراسي">Study Branch</label>
+                  </div>
+                  @error('study_branch_id') <small class="text-danger">{{ $message }}</small> @enderror
+                </div>
+              </div>
+
+              <div class="row">
                 <div class="col-md-6">
                   <div class="floating-input-group">
                     <input type="text" name="major_profession" id="applyProfession" placeholder=" " value="{{ old('major_profession') }}">

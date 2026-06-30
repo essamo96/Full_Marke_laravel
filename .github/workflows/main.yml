@@ -19,7 +19,14 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
-          cache: "composer" # تفعيل الكاش لـ Composer لتسريع العملية
+
+      - name: 💾 Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
 
       - name: 📦 Install Composer dependencies
         run: composer install --no-dev --optimize-autoloader --prefer-dist
