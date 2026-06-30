@@ -461,84 +461,91 @@
         <div class="section-divider mx-auto"></div>
       </div>
 
-      <div class="row g-4 reveal">
-        <!-- News item 1 -->
-        <div class="col-md-4">
-          <div class="glass-panel news-card hover-premium-card">
-            <div class="news-img-wrapper">
-              <img src="{{ asset('site/images/img/banner/ote_hall.png') }}" alt="News" class="news-img">
-              <div class="news-date-badge">
-                <span class="block">28</span>
-                <span class="text-xs font-bold uppercase">MAY</span>
+      <!-- News Swiper -->
+      <div class="swiper news-swiper reveal position-relative overflow-hidden">
+        <div class="swiper-wrapper">
+          <!-- News item 1 -->
+          <div class="swiper-slide h-auto">
+            <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
+              <div class="news-img-wrapper">
+                <img src="{{ asset('site/images/img/banner/ote_hall.png') }}" alt="News" class="news-img">
+                <div class="news-date-badge">
+                  <span class="block">28</span>
+                  <span class="text-xs font-bold uppercase">MAY</span>
+                </div>
+              </div>
+              <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
+                <div>
+                  <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="New OTE Placement Sessions" data-ar="جلسات اختبار OTE جديدة">New OTE Placement Sessions</h4>
+                  <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
+                     data-en="Approved dates for the upcoming Full Mark Test of English assessment are now open for registration."
+                     data-ar="المواعيد المعتمدة لجلسات تقييم اختبار العلامة الكاملة للغة الإنجليزية القادمة مفتوحة للتسجيل الآن.">
+                    Approved dates for the upcoming Full Mark Test of English assessment are now open for registration.
+                  </p>
+                </div>
+                <a href="#contact" class="text-gold font-bold text-decoration-none d-flex align-items-center mt-3" data-en="Read More" data-ar="اقرأ المزيد">
+                  Read More <i class="bi bi-arrow-right ms-2"></i>
+                </a>
               </div>
             </div>
-            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
-              <div>
-                <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="New OTE Placement Sessions" data-ar="جلسات اختبار OTE جديدة">New OTE Placement Sessions</h4>
-                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                   data-en="Approved dates for the upcoming Full Mark Test of English assessment are now open for registration."
-                   data-ar="المواعيد المعتمدة لجلسات تقييم اختبار العلامة الكاملة للغة الإنجليزية القادمة مفتوحة للتسجيل الآن.">
-                  Approved dates for the upcoming Full Mark Test of English assessment are now open for registration.
-                </p>
+          </div>
+
+          <!-- News item 2 -->
+          <div class="swiper-slide h-auto">
+            <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
+              <div class="news-img-wrapper">
+                <img src="{{ asset('site/images/img/news/news2.png') }}" alt="News" class="news-img">
+                <div class="news-date-badge">
+                  <span class="block">12</span>
+                  <span class="text-xs font-bold uppercase">JUN</span>
+                </div>
               </div>
-              <a href="#contact" class="text-gold font-bold text-decoration-none d-flex align-items-center mt-3" data-en="Read More" data-ar="اقرأ المزيد">
-                Read More <i class="bi bi-arrow-right ms-2"></i>
-              </a>
+              <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
+                <div>
+                  <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="IELTS Prep Program Starting" data-ar="بدء التسجيل لدورة الآيلتس المكثفة">IELTS Prep Program Starting</h4>
+                  <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
+                     data-en="Register for our academic IELTS training cohort led by certified British trainers with mock testing."
+                     data-ar="سجل الآن في المجموعة الأكاديمية الجديدة للتحضير لاختبار آيلتس بإشراف مدربين مؤهلين واختبارات تجريبية.">
+                    Register for our academic IELTS training cohort led by certified British trainers with mock testing.
+                  </p>
+                </div>
+                <a href="#contact" class="text-gold font-bold text-decoration-none d-flex align-items-center mt-3" data-en="Read More" data-ar="اقرأ المزيد">
+                  Read More <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- News item 3 -->
+          <div class="swiper-slide h-auto">
+            <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
+              <div class="news-img-wrapper">
+                <img src="{{ asset('site/images/img/news/news3.png') }}" alt="News" class="news-img">
+                <div class="news-date-badge">
+                  <span class="block">05</span>
+                  <span class="text-xs font-bold uppercase">JUL</span>
+                </div>
+              </div>
+              <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
+                <div>
+                  <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="Academic Speaking & Writing" data-ar="ورشة عمل المحادثة الأكاديمية">Academic Speaking & Writing</h4>
+                  <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
+                     data-en="Improve your essay structures and academic speaking fluency with our intensive workshops."
+                     data-ar="قم بتحسين صياغة المقالات الأكاديمية وطلاقة المحادثة العلمية من خلال ورشنا التدريبية المركزة.">
+                    Improve your essay structures and academic speaking fluency with our intensive workshops.
+                  </p>
+                </div>
+                <a href="#contact" class="text-gold font-bold text-decoration-none d-flex align-items-center mt-3" data-en="Read More" data-ar="اقرأ المزيد">
+                  Read More <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- News item 2 -->
-        <div class="col-md-4">
-          <div class="glass-panel news-card hover-premium-card">
-            <div class="news-img-wrapper">
-              <img src="{{ asset('site/images/img/news/news2.png') }}" alt="News" class="news-img">
-              <div class="news-date-badge">
-                <span class="block">12</span>
-                <span class="text-xs font-bold uppercase">JUN</span>
-              </div>
-            </div>
-            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
-              <div>
-                <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="IELTS Prep Program Starting" data-ar="بدء التسجيل لدورة الآيلتس المكثفة">IELTS Prep Program Starting</h4>
-                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                   data-en="Register for our academic IELTS training cohort led by certified British trainers with mock testing."
-                   data-ar="سجل الآن في المجموعة الأكاديمية الجديدة للتحضير لاختبار آيلتس بإشراف مدربين مؤهلين واختبارات تجريبية.">
-                  Register for our academic IELTS training cohort led by certified British trainers with mock testing.
-                </p>
-              </div>
-              <a href="#contact" class="text-gold font-bold text-decoration-none d-flex align-items-center mt-3" data-en="Read More" data-ar="اقرأ المزيد">
-                Read More <i class="bi bi-arrow-right ms-2"></i>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- News item 3 -->
-        <div class="col-md-4">
-          <div class="glass-panel news-card hover-premium-card">
-            <div class="news-img-wrapper">
-              <img src="{{ asset('site/images/img/news/news3.png') }}" alt="News" class="news-img">
-              <div class="news-date-badge">
-                <span class="block">05</span>
-                <span class="text-xs font-bold uppercase">JUL</span>
-              </div>
-            </div>
-            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
-              <div>
-                <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="Academic Speaking & Writing" data-ar="ورشة عمل المحادثة الأكاديمية">Academic Speaking & Writing</h4>
-                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                   data-en="Improve your essay structures and academic speaking fluency with our intensive workshops."
-                   data-ar="قم بتحسين صياغة المقالات الأكاديمية وطلاقة المحادثة العلمية من خلال ورشنا التدريبية المركزة.">
-                  Improve your essay structures and academic speaking fluency with our intensive workshops.
-                </p>
-              </div>
-              <a href="#contact" class="text-gold font-bold text-decoration-none d-flex align-items-center mt-3" data-en="Read More" data-ar="اقرأ المزيد">
-                Read More <i class="bi bi-arrow-right ms-2"></i>
-              </a>
-            </div>
-          </div>
-        </div>
+        <!-- Navigation buttons -->
+        <div class="swiper-button-prev news-swiper-prev"></div>
+        <div class="swiper-button-next news-swiper-next"></div>
       </div>
     </div>
   </section>
@@ -557,131 +564,156 @@
         <div class="section-divider mx-auto"></div>
       </div>
 
-      <div class="row g-4 justify-content-center reveal">
-        <!-- Teacher 1 -->
-        <div class="col-md-6 col-lg-3">
-          <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
-            <div style="height: 250px; overflow: hidden; position: relative;">
-              <img src="{{ asset('site/images/img/students/teacher_1.png') }}" alt="Ahmad Al-Saeed" class="w-100 h-100 object-cover" style="object-fit: cover;">
-            </div>
-            <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
-              <div>
-                <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Ahmad Al-Saeed</h4>
-                <p class="text-sm font-bold text-gold mb-3" data-en="IELTS Expert" data-ar="خبير آيلتس">IELTS Expert</p>
-                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);" data-en="Certified British Council trainer." data-ar="مدرب معتمد من المجلس الثقافي البريطاني.">
-                  Certified British Council trainer.
-                </p>
+      <!-- Teachers Swiper -->
+      <div class="swiper teachers-swiper reveal position-relative overflow-hidden">
+        <div class="swiper-wrapper">
+          <!-- Teacher 1 -->
+          <div class="swiper-slide h-auto">
+            <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
+              <div class="teacher-image-wrapper">
+                <img src="{{ asset('site/images/img/students/teacher_1.png') }}" alt="Ahmad Al-Saeed" class="teacher-image">
+                <div class="teacher-overlay">
+                  <button class="teacher-links-trigger btn btn-luxury rounded-full p-0 d-flex align-items-center justify-content-center" aria-label="Toggle links">
+                    <i class="bi bi-plus-lg fs-4"></i>
+                  </button>
+                  <div class="teacher-links-menu">
+                    <a href="#" class="teacher-social-link"><i class="bi bi-linkedin"></i></a>
+                    <a href="#" class="teacher-social-link"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#" class="teacher-social-link"><i class="bi bi-envelope-fill"></i></a>
+                  </div>
+                </div>
               </div>
-              <div class="teacher-social-wrapper relative">
-                <button class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm teacher-connect-btn" data-en="Connect" data-ar="تواصل">Connect</button>
-                <div class="social-arc-menu">
-                  <a href="#" class="social-arc-item item-1"><i class="bi bi-linkedin"></i></a>
-                  <a href="#" class="social-arc-item item-2"><i class="bi bi-twitter"></i></a>
-                  <a href="#" class="social-arc-item item-3"><i class="bi bi-envelope"></i></a>
+              <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
+                <div>
+                  <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Ahmad Al-Saeed</h4>
+                  <p class="text-sm font-bold text-gold mb-3" data-en="IELTS Expert" data-ar="خبير آيلتس">IELTS Expert</p>
+                  <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary);" data-en="Certified British Council trainer." data-ar="مدرب معتمد من المجلس الثقافي البريطاني.">
+                    Certified British Council trainer.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Teacher 2 -->
+          <div class="swiper-slide h-auto">
+            <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
+              <div class="teacher-image-wrapper">
+                <img src="{{ asset('site/images/img/students/teacher_2.png') }}" alt="Mariam Naser" class="teacher-image">
+                <div class="teacher-overlay">
+                  <button class="teacher-links-trigger btn btn-luxury rounded-full p-0 d-flex align-items-center justify-content-center" aria-label="Toggle links">
+                    <i class="bi bi-plus-lg fs-4"></i>
+                  </button>
+                  <div class="teacher-links-menu">
+                    <a href="#" class="teacher-social-link"><i class="bi bi-linkedin"></i></a>
+                    <a href="#" class="teacher-social-link"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#" class="teacher-social-link"><i class="bi bi-envelope-fill"></i></a>
+                  </div>
+                </div>
+              </div>
+              <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
+                <div>
+                  <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Mariam Naser</h4>
+                  <p class="text-sm font-bold text-gold mb-3" data-en="General English" data-ar="لغة إنجليزية عامة">General English</p>
+                  <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary);" data-en="Specialist in communicative language." data-ar="متخصصة في مهارات التواصل والمحادثة.">
+                    Specialist in communicative language.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Teacher 3 -->
+          <div class="swiper-slide h-auto">
+            <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
+              <div class="teacher-image-wrapper">
+                <img src="{{ asset('site/images/img/students/teacher_3.png') }}" alt="Dr. Omar Fayed" class="teacher-image">
+                <div class="teacher-overlay">
+                  <button class="teacher-links-trigger btn btn-luxury rounded-full p-0 d-flex align-items-center justify-content-center" aria-label="Toggle links">
+                    <i class="bi bi-plus-lg fs-4"></i>
+                  </button>
+                  <div class="teacher-links-menu">
+                    <a href="#" class="teacher-social-link"><i class="bi bi-linkedin"></i></a>
+                    <a href="#" class="teacher-social-link"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#" class="teacher-social-link"><i class="bi bi-envelope-fill"></i></a>
+                  </div>
+                </div>
+              </div>
+              <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
+                <div>
+                  <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Dr. Omar Fayed</h4>
+                  <p class="text-sm font-bold text-gold mb-3" data-en="Tawjihi Coordinator" data-ar="منسق التوجيهي">Tawjihi Coordinator</p>
+                  <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary);" data-en="Ensuring top academic scores." data-ar="ضمان الحصول على أعلى العلامات الأكاديمية.">
+                    Ensuring top academic scores.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Teacher 4 -->
+          <div class="swiper-slide h-auto">
+            <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
+              <div class="teacher-image-wrapper">
+                <img src="{{ asset('site/images/img/students/teacher_4.png') }}" alt="Sarah Jones" class="teacher-image">
+                <div class="teacher-overlay">
+                  <button class="teacher-links-trigger btn btn-luxury rounded-full p-0 d-flex align-items-center justify-content-center" aria-label="Toggle links">
+                    <i class="bi bi-plus-lg fs-4"></i>
+                  </button>
+                  <div class="teacher-links-menu">
+                    <a href="#" class="teacher-social-link"><i class="bi bi-linkedin"></i></a>
+                    <a href="#" class="teacher-social-link"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#" class="teacher-social-link"><i class="bi bi-envelope-fill"></i></a>
+                  </div>
+                </div>
+              </div>
+              <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
+                <div>
+                  <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Sarah Jones</h4>
+                  <p class="text-sm font-bold text-gold mb-3" data-en="Native Speaker" data-ar="متحدثة أصلية">Native Speaker</p>
+                  <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary);" data-en="Focus on advanced conversation." data-ar="التركيز على مهارات المحادثة المتقدمة.">
+                    Focus on advanced conversation.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Teacher 2 -->
-        <div class="col-md-6 col-lg-3">
-          <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
-            <div style="height: 250px; overflow: hidden; position: relative;">
-              <img src="{{ asset('site/images/img/students/teacher_2.png') }}" alt="Mariam Naser" class="w-100 h-100 object-cover" style="object-fit: cover;">
-            </div>
-            <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
-              <div>
-                <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Mariam Naser</h4>
-                <p class="text-sm font-bold text-gold mb-3" data-en="General English" data-ar="لغة إنجليزية عامة">General English</p>
-                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);" data-en="Specialist in communicative language." data-ar="متخصصة في مهارات التواصل والمحادثة.">
-                  Specialist in communicative language.
-                </p>
-              </div>
-              <div class="teacher-social-wrapper relative">
-                <button class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm teacher-connect-btn" data-en="Connect" data-ar="تواصل">Connect</button>
-                <div class="social-arc-menu">
-                  <a href="#" class="social-arc-item item-1"><i class="bi bi-linkedin"></i></a>
-                  <a href="#" class="social-arc-item item-2"><i class="bi bi-twitter"></i></a>
-                  <a href="#" class="social-arc-item item-3"><i class="bi bi-envelope"></i></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Teacher 3 -->
-        <div class="col-md-6 col-lg-3">
-          <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
-            <div style="height: 250px; overflow: hidden; position: relative;">
-              <img src="{{ asset('site/images/img/students/teacher_3.png') }}" alt="Dr. Omar Fayed" class="w-100 h-100 object-cover" style="object-fit: cover;">
-            </div>
-            <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
-              <div>
-                <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Dr. Omar Fayed</h4>
-                <p class="text-sm font-bold text-gold mb-3" data-en="Tawjihi Coordinator" data-ar="منسق التوجيهي">Tawjihi Coordinator</p>
-                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);" data-en="Ensuring top academic scores." data-ar="ضمان الحصول على أعلى العلامات الأكاديمية.">
-                  Ensuring top academic scores.
-                </p>
-              </div>
-              <div class="teacher-social-wrapper relative">
-                <button class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm teacher-connect-btn" data-en="Connect" data-ar="تواصل">Connect</button>
-                <div class="social-arc-menu">
-                  <a href="#" class="social-arc-item item-1"><i class="bi bi-linkedin"></i></a>
-                  <a href="#" class="social-arc-item item-2"><i class="bi bi-twitter"></i></a>
-                  <a href="#" class="social-arc-item item-3"><i class="bi bi-envelope"></i></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Teacher 4 -->
-        <div class="col-md-6 col-lg-3">
-          <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
-            <div style="height: 250px; overflow: hidden; position: relative;">
-              <img src="{{ asset('site/images/img/students/teacher_4.png') }}" alt="Sarah Jones" class="w-100 h-100 object-cover" style="object-fit: cover;">
-            </div>
-            <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
-              <div>
-                <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Sarah Jones</h4>
-                <p class="text-sm font-bold text-gold mb-3" data-en="Native Speaker" data-ar="متحدثة أصلية">Native Speaker</p>
-                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);" data-en="Focus on advanced conversation." data-ar="التركيز على مهارات المحادثة المتقدمة.">
-                  Focus on advanced conversation.
-                </p>
-              </div>
-              <div class="teacher-social-wrapper relative">
-                <button class="btn btn-glass w-100 py-2 rounded-lg text-center text-sm teacher-connect-btn" data-en="Connect" data-ar="تواصل">Connect</button>
-                <div class="social-arc-menu">
-                  <a href="#" class="social-arc-item item-1"><i class="bi bi-linkedin"></i></a>
-                  <a href="#" class="social-arc-item item-2"><i class="bi bi-twitter"></i></a>
-                  <a href="#" class="social-arc-item item-3"><i class="bi bi-envelope"></i></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Navigation buttons -->
+        <div class="swiper-button-prev teachers-swiper-prev"></div>
+        <div class="swiper-button-next teachers-swiper-next"></div>
       </div>
-      
-      <!-- Connect Buttons Logic -->
+
+      <!-- Links Trigger Javascript -->
       <script>
         document.addEventListener('DOMContentLoaded', () => {
-          const connectBtns = document.querySelectorAll('.teacher-connect-btn');
-          connectBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
+          const triggers = document.querySelectorAll('.teacher-links-trigger');
+          triggers.forEach(trigger => {
+            trigger.addEventListener('click', (e) => {
               e.preventDefault();
-              const menu = btn.nextElementSibling;
+              e.stopPropagation();
+              const menu = trigger.nextElementSibling;
+              
+              // Close other open menus
+              document.querySelectorAll('.teacher-links-menu.is-open').forEach(m => {
+                if (m !== menu) {
+                  m.classList.remove('is-open');
+                  m.previousElementSibling.classList.remove('is-active');
+                }
+              });
+              
+              trigger.classList.toggle('is-active');
               menu.classList.toggle('is-open');
             });
           });
           
           // Close menus if clicking outside
-          document.addEventListener('click', (e) => {
-            if (!e.target.closest('.teacher-social-wrapper')) {
-              document.querySelectorAll('.social-arc-menu.is-open').forEach(menu => {
-                menu.classList.remove('is-open');
-              });
-            }
+          document.addEventListener('click', () => {
+            document.querySelectorAll('.teacher-links-menu.is-open').forEach(m => {
+              m.classList.remove('is-open');
+              m.previousElementSibling.classList.remove('is-active');
+            });
           });
         });
       </script>
@@ -786,6 +818,10 @@
 
         <!-- Navigation bullets -->
         <div class="swiper-pagination mt-8"></div>
+
+        <!-- Navigation buttons -->
+        <div class="swiper-button-prev testimonials-swiper-prev"></div>
+        <div class="swiper-button-next testimonials-swiper-next"></div>
       </div>
     </div>
   </section>

@@ -5,6 +5,8 @@
 @php($pageTitle = __('app.sidebar'))
 
 @section('content')
+    @include('admin.components.search-filter', ['route' => 'sidebar.view', 'placeholder' => __('app.name')])
+
     <div class="card">
         <div class="card-header border-0 pt-6">
             <div class="card-title"><h2>{{ __('app.sidebar') }}</h2></div>

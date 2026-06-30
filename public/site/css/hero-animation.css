@@ -1126,20 +1126,23 @@ footer .h-12 {
   --bs-accordion-body-color: var(--text-primary);
 }
 
-.faq-accordion .accordion-body,
-.faq-accordion .accordion-body * {
+.faq-accordion .accordion-body {
   background: var(--card-bg) !important;
   color: var(--text-primary) !important;
   opacity: 1 !important;
   -webkit-text-fill-color: var(--text-primary) !important;
-  padding-inline-start: 0;
-  padding-inline-end: 0;
-}
-
-.faq-accordion .accordion-body {
-  padding: 1rem 1.25rem 1.5rem !important;
+  padding: 1.25rem 1.5rem !important;
   line-height: 1.75;
   font-size: .98rem;
+}
+
+/* Ensure open accordion height is not collapsed or clipped by browser transition glitches */
+.faq-accordion .accordion-collapse.show {
+  display: block !important;
+  height: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  overflow: visible !important;
 }
 
 /* ============================================================

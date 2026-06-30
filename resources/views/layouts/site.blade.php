@@ -112,12 +112,16 @@
       window.mySwiperInstance = new Swiper('.testimonials-swiper', {
         loop: true,
         autoplay: {
-          delay: 5000,
+          delay: 4000,
           disableOnInteraction: false,
         },
         pagination: {
           el: '.swiper-pagination',
           clickable: true,
+        },
+        navigation: {
+          nextEl: '.testimonials-swiper-next',
+          prevEl: '.testimonials-swiper-prev',
         },
         slidesPerView: 1,
         spaceBetween: 20,
@@ -128,6 +132,50 @@
           },
           1024: {
             slidesPerView: 3,
+            spaceBetween: 30
+          }
+        }
+      });
+
+      window.newsSwiperInstance = new Swiper('.news-swiper', {
+        loop: false,
+        slidesPerView: 1,
+        spaceBetween: 24,
+        navigation: {
+          nextEl: '.news-swiper-next',
+          prevEl: '.news-swiper-prev',
+        },
+        breakpoints: {
+          768: {
+            slidesPerView: 2,
+            spaceBetween: 24
+          },
+          1024: {
+            slidesPerView: 3,
+            spaceBetween: 30
+          }
+        }
+      });
+
+      window.teachersSwiperInstance = new Swiper('.teachers-swiper', {
+        loop: false,
+        slidesPerView: 1,
+        spaceBetween: 24,
+        navigation: {
+          nextEl: '.teachers-swiper-next',
+          prevEl: '.teachers-swiper-prev',
+        },
+        breakpoints: {
+          768: {
+            slidesPerView: 2,
+            spaceBetween: 24
+          },
+          992: {
+            slidesPerView: 3,
+            spaceBetween: 24
+          },
+          1200: {
+            slidesPerView: 4,
             spaceBetween: 30
           }
         }
@@ -143,8 +191,14 @@
     window.addEventListener('languageChanged', () => {
       if (window.mySwiperInstance) {
         window.mySwiperInstance.destroy(true, true);
-        initSwiper();
       }
+      if (window.newsSwiperInstance) {
+        window.newsSwiperInstance.destroy(true, true);
+      }
+      if (window.teachersSwiperInstance) {
+        window.teachersSwiperInstance.destroy(true, true);
+      }
+      initSwiper();
     });
 
     // Handle Contact Form Submit Mock

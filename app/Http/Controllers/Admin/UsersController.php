@@ -21,9 +21,17 @@ class UsersController extends AdminController
         $this->path = 'users';
     }
 
-    public function getIndex()
+    public function getIndex(Request $request)
     {
-        $users = Admin::with('roles')->latest()->paginate(15);
+        $search = $request->get('search');
+
+        $users = Admin::with('roles')
+            ->when($search, fn ($q) => $q->where(fn ($q2) => $q2
+                ->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.users.view', self::$data + ['users' => $users]);
     }

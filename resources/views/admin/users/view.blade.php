@@ -5,6 +5,8 @@
 @php($pageTitle = __('app.users'))
 
 @section('content')
+    @include('admin.components.search-filter', ['route' => 'users.view', 'placeholder' => __('app.email')])
+
     <div class="card">
         <div class="card-header border-0 pt-6">
             <div class="card-title"><h2>{{ __('app.users') }}</h2></div>

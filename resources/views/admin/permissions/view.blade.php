@@ -5,6 +5,8 @@
 @php($pageTitle = __('app.permissions'))
 
 @section('content')
+    @include('admin.components.search-filter', ['route' => 'permissions.view', 'placeholder' => __('app.name')])
+
     <div class="card">
         <div class="card-header border-0 pt-6">
             <div class="card-title"><h2>{{ __('app.permissions') }}</h2></div>

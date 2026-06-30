@@ -18,9 +18,17 @@ class StudyBranchesController extends AdminController
         $this->path = 'study_branches';
     }
 
-    public function getIndex()
+    public function getIndex(Request $request)
     {
-        $studyBranches = StudyBranch::withCount('applications')->orderBy('id', 'desc')->paginate(15);
+        $search = $request->get('search');
+
+        $studyBranches = StudyBranch::withCount('applications')
+            ->when($search, fn ($q) => $q->where(fn ($q2) => $q2
+                ->where('name_ar', 'like', "%{$search}%")
+                ->orWhere('name_en', 'like', "%{$search}%")))
+            ->orderBy('id', 'desc')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.study_branches.view', self::$data + ['studyBranches' => $studyBranches]);
     }

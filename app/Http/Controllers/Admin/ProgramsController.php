@@ -18,9 +18,17 @@ class ProgramsController extends AdminController
         $this->path = 'programs';
     }
 
-    public function getIndex()
+    public function getIndex(Request $request)
     {
-        $programs = Program::withCount('subjects')->orderBy('order')->paginate(15);
+        $search = $request->get('search');
+
+        $programs = Program::withCount('subjects')
+            ->when($search, fn ($q) => $q->where(fn ($q2) => $q2
+                ->where('title_ar', 'like', "%{$search}%")
+                ->orWhere('title_en', 'like', "%{$search}%")))
+            ->orderBy('order')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.programs.view', self::$data + ['programs' => $programs]);
     }

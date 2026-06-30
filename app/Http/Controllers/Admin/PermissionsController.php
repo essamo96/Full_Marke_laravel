@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\PermissionRequest;
+use App\Models\PermissionsGroup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class PermissionsController extends AdminController
@@ -20,18 +20,22 @@ class PermissionsController extends AdminController
         $this->path = 'permissions';
     }
 
-    public function getIndex()
+    public function getIndex(Request $request)
     {
-        $roles = Role::where('guard_name', 'admin')->with('permissions')->paginate(15);
+        $search = $request->get('search');
+
+        $roles = Role::where('guard_name', 'admin')
+            ->when($search, fn ($q) => $q->where('name', 'like', "%{$search}%"))
+            ->with('permissions')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.permissions.view', self::$data + ['roles' => $roles]);
     }
 
     public function getAdd()
     {
-        $permissions = Permission::where('guard_name', 'admin')->get();
-
-        return view('admin.permissions.add', self::$data + ['permissions' => $permissions, 'info' => null]);
+        return view('admin.permissions.add', self::$data + ['permissionGroups' => $this->getGroupedPermissions(), 'info' => null]);
     }
 
     public function postAdd(PermissionRequest $request)
@@ -52,9 +56,7 @@ class PermissionsController extends AdminController
             return redirect()->route('permissions.view')->with('danger', __('app.not_found'));
         }
 
-        $permissions = Permission::where('guard_name', 'admin')->get();
-
-        return view('admin.permissions.add', self::$data + ['permissions' => $permissions, 'info' => $role]);
+        return view('admin.permissions.add', self::$data + ['permissionGroups' => $this->getGroupedPermissions(), 'info' => $role]);
     }
 
     public function postEdit(PermissionRequest $request, $id)
@@ -85,5 +87,24 @@ class PermissionsController extends AdminController
         } catch (\Exception $e) {
             return response()->json(['success' => false], 422);
         }
+    }
+
+    /**
+     * Permissions grouped by their owning sidebar module (permissions_groups),
+     * ordered view→add→edit→status→delete, for the grouped checkbox UI.
+     */
+    private function getGroupedPermissions()
+    {
+        $actionOrder = "FIELD(SUBSTRING_INDEX(name, '.', -1),'view','add','edit','status','delete')";
+
+        return PermissionsGroup::where('status', 1)
+            ->where('parent_id', 0)
+            ->orderByRaw('COALESCE(sort, 9999) ASC')
+            ->with([
+                'permissions' => fn ($q) => $q->where('guard_name', 'admin')->orderByRaw($actionOrder),
+                'children' => fn ($q) => $q->where('status', 1)->orderBy('sort')
+                    ->with(['permissions' => fn ($pq) => $pq->where('guard_name', 'admin')->orderByRaw($actionOrder)]),
+            ])
+            ->get();
     }
 }

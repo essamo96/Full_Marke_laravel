@@ -19,9 +19,19 @@ class SidebarController extends AdminController
         $this->path = 'sidebar';
     }
 
-    public function getIndex()
+    public function getIndex(Request $request)
     {
-        $groups = PermissionsGroup::with('parent')->orderBy('parent_id')->orderBy('sort')->paginate(15);
+        $search = $request->get('search');
+
+        $groups = PermissionsGroup::with('parent')
+            ->when($search, fn ($q) => $q->where(fn ($q2) => $q2
+                ->where('name', 'like', "%{$search}%")
+                ->orWhere('name_ar', 'like', "%{$search}%")
+                ->orWhere('name_en', 'like', "%{$search}%")))
+            ->orderBy('parent_id')
+            ->orderBy('sort')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.sidebar.view', self::$data + ['groups' => $groups]);
     }

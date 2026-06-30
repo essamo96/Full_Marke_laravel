@@ -37,6 +37,8 @@ return [
     'delete' => 'Delete',
     'active' => 'Active',
     'inactive' => 'Inactive',
+    'search' => 'Search',
+    'reset' => 'Reset',
     'parent_group' => 'Parent Group',
     'name_ar' => 'Name (Arabic)',
     'name_en' => 'Name (English)',

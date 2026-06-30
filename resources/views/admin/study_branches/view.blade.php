@@ -5,6 +5,8 @@
 @php($pageTitle = __('app.study_branches'))
 
 @section('content')
+    @include('admin.components.search-filter', ['route' => 'study_branches.view', 'placeholder' => __('app.study_branch_name_ar')])
+
     <div class="card">
         <div class="card-header border-0 pt-6">
             <div class="card-title"><h2>{{ __('app.study_branches') }}</h2></div>
