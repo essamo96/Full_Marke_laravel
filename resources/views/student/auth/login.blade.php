@@ -3,14 +3,6 @@
 @section('title', 'Student Login | FULL MARK ACADEMY')
 
 @section('content')
-          <!-- Card Header -->
-          <div class="card-header-block">
-            <h1 class="card-title" data-en="Student Portal" data-ar="بوابة الطالب">Student Portal</h1>
-            <p class="card-subtitle" data-en="Welcome back — sign in to continue your learning journey." data-ar="مرحباً بك — سجّل دخولك لمواصلة رحلتك الأكاديمية.">
-              Welcome back — sign in to continue your learning journey.
-            </p>
-          </div>
-
           @if ($errors->any())
             <div class="alert alert-danger">{{ $errors->first() }}</div>
           @endif

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\Rule;
 
 class ProgramRequest extends FormRequest
@@ -14,7 +15,14 @@ class ProgramRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('id');
+        $id = null;
+        if ($this->route('id')) {
+            try {
+                $id = Crypt::decrypt($this->route('id'));
+            } catch (\Exception $e) {
+                $id = null;
+            }
+        }
 
         return [
             'title_ar' => 'required|string|max:255',

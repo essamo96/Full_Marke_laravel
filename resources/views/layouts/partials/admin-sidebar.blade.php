@@ -3,13 +3,12 @@
      data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true"
      data-kt-drawer-width="225px" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle">
 
-    <div class="app-sidebar-logo px-6 d-flex align-items-center" id="kt_app_sidebar_logo">
+    <div class="app-sidebar-logo px-6 d-flex align-items-center justify-content-center" id="kt_app_sidebar_logo">
         <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center app-sidebar-logo-default">
-            <img src="{{ asset('site/images/img/logo.png') }}" alt="Full Mark Academy" class="h-40px me-2">
-            <span class="fs-5 fw-bold text-white">Full Mark Academy</span>
+            <img src="{{ asset('site/images/full_mark_dark.png') }}" alt="Full Mark Academy" class="h-50px">
         </a>
         <a href="{{ route('admin.dashboard') }}" class="app-sidebar-logo-minimize">
-            <img src="{{ asset('site/images/img/logo.png') }}" alt="Full Mark Academy" class="h-30px">
+            <img src="{{ asset('site/images/full_mark_dark.png') }}" alt="Full Mark Academy" class="h-35px">
         </a>
 
         <div id="kt_app_sidebar_toggle"
@@ -48,7 +47,9 @@
                                    href="{{ route($menu->name.'.view') }}">
                                     <span class="menu-icon">
                                         <i class="{{ $menu->icon ?? 'ki-duotone ki-element-11' }} fs-2" style="color: {{ $menu->color }}">
-                                            <span class="path1"></span><span class="path2"></span>
+                                            @for ($p = 1; $p <= 10; $p++)
+                                                <span class="path{{ $p }}"></span>
+                                            @endfor
                                         </i>
                                     </span>
                                     <span class="menu-title">{{ app()->getLocale() === 'ar' ? ($menu->name_ar ?? $menu->name) : ($menu->name_en ?? $menu->name) }}</span>
@@ -68,7 +69,9 @@
                                        href="{{ route($child->name.'.view') }}">
                                         <span class="menu-icon">
                                             <i class="{{ $child->icon ?? 'ki-duotone ki-element-11' }} fs-2" style="color: {{ $child->color }}">
-                                                <span class="path1"></span><span class="path2"></span>
+                                                @for ($p = 1; $p <= 10; $p++)
+                                                    <span class="path{{ $p }}"></span>
+                                                @endfor
                                             </i>
                                         </span>
                                         <span class="menu-title">{{ app()->getLocale() === 'ar' ? ($child->name_ar ?? $child->name) : ($child->name_en ?? $child->name) }}</span>

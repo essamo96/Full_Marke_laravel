@@ -304,6 +304,8 @@
   </div><!-- /page-wrapper -->
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>window.currentLang = '{{ app()->getLocale() }}';</script>
+  <script src="{{ asset('site/js/language-manager.js') }}?v=1.1"></script>
   <script src="{{ asset('site/js/landing.js') }}"></script>
   <script src="{{ asset('site/js/animations.js') }}"></script>
   <script src="{{ asset('site/js/scroll-effects.js') }}"></script>

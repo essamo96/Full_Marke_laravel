@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\VerificationCodeMail;
 use App\Models\EmailVerification;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -24,7 +25,13 @@ class OtpService
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        Mail::to($email)->send(new VerificationCodeMail($code));
+        try {
+            Mail::to($email)->send(new VerificationCodeMail($code));
+        } catch (\Throwable $e) {
+            // Don't let a transient mail failure block the user from reaching
+            // the verify-code screen — they can use "resend" once mail recovers.
+            Log::error('OTP mail send failed', ['email' => $email, 'user_type' => $userType, 'error' => $e->getMessage()]);
+        }
 
         return $verification;
     }

@@ -93,6 +93,22 @@
             </div>
         </div>
 
+        {{-- ============ Localization Settings ============ --}}
+        <div class="card mb-5">
+            <div class="card-header">
+                <h3 class="card-title">{{ __('app.localization_settings') }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-check form-switch form-check-custom form-check-solid">
+                    <input class="form-check-input" type="checkbox" name="show_translation_button" value="1" id="show_translation_button" {{ old('show_translation_button', $info->show_translation_button) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="show_translation_button">
+                        {{ __('app.show_translation_button') }}
+                    </label>
+                </div>
+                <div class="form-text mt-3">{{ __('app.show_translation_button_hint') }}</div>
+            </div>
+        </div>
+
         {{-- ============ Maintenance / Closure Screen ============ --}}
         <div class="card mb-5">
             <div class="card-header">

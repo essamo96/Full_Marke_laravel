@@ -44,11 +44,13 @@
 
     // Update logo images based on theme
     let logoSrc = '/site/images/logo_v2_gold.png';
-    if (themeName === 'theme-dark' || themeName === 'theme-light') {
+    if (themeName === 'theme-dark') {
+      logoSrc = '/site/images/full_mark_dark.png';
+    } else if (themeName === 'theme-light') {
       logoSrc = '/site/images/logo_v2_blue.png';
     }
 
-    const logoIds = ['navbar-logo', 'hero-splash-logo', 'footer-logo', 'footer-approved-logo'];
+    const logoIds = ['navbar-logo', 'hero-splash-logo', 'footer-logo', 'footer-approved-logo', 'admin-login-logo'];
     logoIds.forEach(id => {
       const img = document.getElementById(id);
       if (img) img.src = logoSrc;

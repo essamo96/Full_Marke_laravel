@@ -7,9 +7,10 @@
         @csrf
 
         <div class="text-center mb-11">
-            <img src="{{ asset('site/images/img/logo_backup.png') }}" alt="Full Mark Academy" class="h-60px mb-5">
-            <h1 class="text-gray-900 fw-bolder mb-3">Admin Sign In</h1>
-            <div class="text-gray-500 fw-semibold fs-6">Full Mark Academy — Administration Panel</div>
+            <div class="position-relative d-inline-block mb-5" style="width: 260px; height: 200px;">
+                <img src="{{ asset('site/images/logo_v2_blue.png') }}" alt="Full Mark Academy" class="theme-light-show h-150px" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <img src="{{ asset('site/images/full_mark_dark.png') }}" alt="Full Mark Academy" class="theme-dark-show h-150px" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            </div>
         </div>
 
         @if ($errors->any())

@@ -21,6 +21,7 @@ class SiteSetting extends Model
         'maintenance_mode',
         'maintenance_title',
         'maintenance_message',
+        'show_translation_button',
     ];
 
     protected function casts(): array
@@ -28,6 +29,7 @@ class SiteSetting extends Model
         return [
             'social_links' => 'array',
             'maintenance_mode' => 'boolean',
+            'show_translation_button' => 'boolean',
         ];
     }
 
@@ -43,6 +45,10 @@ class SiteSetting extends Model
             'about_video' => 'site/images/aboutUs.mp4',
             'hero_still_image' => 'site/images/hero-animation-img/bg-main.jpg',
             'social_links' => [],
+            'show_translation_button' => true,
+            'seo_title' => 'أكاديمية العلامة الكاملة | Full Mark Academy',
+            'seo_description' => 'أكاديمية العلامة الكاملة تقدم أفضل البرامج التعليمية التفاعلية والدورات الشاملة التي تضمن تفوقك الدراسي وتأهيلك لمستقبل مشرق.',
+            'seo_keywords' => 'أكاديمية العلامة الكاملة, تعليم, دورات, توجيهي, تقوية, Full Mark Academy, Education',
         ]);
     }
 }

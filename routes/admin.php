@@ -31,6 +31,7 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/admin-subject-resources.php';
     require __DIR__.'/admin-groups.php';
     require __DIR__.'/admin-teachers.php';
+    require __DIR__.'/admin-students.php';
     require __DIR__.'/admin-payment-methods.php';
     require __DIR__.'/admin-approvals.php';
     require __DIR__.'/admin-payments.php';

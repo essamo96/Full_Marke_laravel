@@ -40,6 +40,29 @@
         <link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css">
         <link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css">
     @endif
+
+    <style>
+        .admin-bg-slide {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.4s ease-in-out;
+        }
+        .admin-bg-slide.active { opacity: 1; }
+        .admin-brand-captions { position: relative; min-height: 2.5em; max-width: 680px; width: 90%; }
+        .admin-brand-caption {
+            position: absolute;
+            inset-inline-start: 0;
+            inset-inline-end: 0;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 1.4s ease-in-out, transform 1.4s ease-in-out;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, .65);
+        }
+        .admin-brand-caption.active { opacity: 1; transform: translateY(0); }
+    </style>
 </head>
 <body id="kt_body" class="app-blank">
 
@@ -133,12 +156,28 @@
                 </div>
             </div>
 
-            <div class="d-flex flex-lg-row-fluid w-lg-50 bgi-size-cover bgi-position-center order-1 order-lg-2 bg-dark">
-                <div class="d-flex flex-column flex-center py-15 px-5 px-md-15 w-100">
-                    <span class="fs-2qx fw-bold text-white mb-7">Full Mark Academy</span>
-                    <span class="fs-base text-white opacity-75">
-                        Admin Portal — Full Mark Academy
-                    </span>
+            @php
+                $brandSlides = [
+                    ['image' => asset('site/images/bg-main.jpg'), 'text' => $isRtl ? 'كل عملية تسجيل دخول هي خطوة نحو التميّز.' : 'Every sign-in is a step toward excellence.'],
+                    ['image' => asset('site/images/img/banner/ote_hall.png'), 'text' => $isRtl ? 'نبني مستقبل طلابنا بعلم وثقة.' : 'Building our students\' future with knowledge and confidence.'],
+                    ['image' => asset('site/images/img/featured/children.png'), 'text' => $isRtl ? 'العلامة الكاملة... شغفنا نحو القمة.' : 'Full Mark... our passion toward the top.'],
+                ];
+            @endphp
+            <div class="d-flex flex-lg-row-fluid w-lg-50 bgi-size-cover bgi-position-center order-1 order-lg-2 bg-dark position-relative overflow-hidden">
+                <div class="admin-bg-slideshow position-absolute top-0 start-0 w-100 h-100" style="z-index: 1;">
+                    @foreach ($brandSlides as $i => $slide)
+                        <div class="admin-bg-slide {{ $i === 0 ? 'active' : '' }}" style="background-image: url('{{ $slide['image'] }}');"></div>
+                    @endforeach
+                </div>
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="z-index: 2; background: linear-gradient(180deg, rgba(11,18,32,.55) 0%, rgba(11,18,32,.75) 60%, rgba(11,18,32,.92) 100%);"></div>
+                <canvas class="admin-particles-canvas position-absolute top-0 start-0 w-100 h-100" style="z-index: 3;"></canvas>
+                <div class="d-flex flex-column flex-center py-15 px-5 px-md-15 w-100 position-relative" style="z-index: 4;">
+                    <img id="admin-login-logo" src="{{ asset('site/images/full_mark_dark.png') }}" alt="Full Mark Academy" class="mb-7" style="max-height: 310px;">
+                    <div class="admin-brand-captions text-center">
+                        @foreach ($brandSlides as $i => $slide)
+                            <span class="admin-brand-caption fs-base text-white {{ $i === 0 ? 'active' : '' }}">{{ $slide['text'] }}</span>
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
@@ -147,5 +186,26 @@
 
     <script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}"></script>
     <script src="{{ asset('assets/js/scripts.bundle.js') }}"></script>
+    <script src="{{ asset('assets/js/admin-login-particles.js') }}"></script>
+    <script src="{{ asset('site/js/theme-manager.js') }}"></script>
+    <script>
+        (function () {
+            var slides = document.querySelectorAll('.admin-bg-slide');
+            var captions = document.querySelectorAll('.admin-brand-caption');
+            if (!slides.length) return;
+
+            var index = 0;
+            setInterval(function () {
+                slides[index].classList.remove('active');
+                if (captions[index]) captions[index].classList.remove('active');
+
+                index = (index + 1) % slides.length;
+
+                slides[index].classList.add('active');
+                if (captions[index]) captions[index].classList.add('active');
+            }, 4000);
+        })();
+    </script>
+    @stack('scripts')
 </body>
 </html>

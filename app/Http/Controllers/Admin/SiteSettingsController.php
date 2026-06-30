@@ -66,6 +66,7 @@ class SiteSettingsController extends AdminController
         }
         $validated['social_links'] = $socialLinks;
         $validated['maintenance_mode'] = $request->boolean('maintenance_mode');
+        $validated['show_translation_button'] = $request->boolean('show_translation_button');
 
         $record->fill($validated)->save();
 

@@ -40,6 +40,7 @@ class SiteSettingRequest extends FormRequest
             'maintenance_mode' => 'nullable|boolean',
             'maintenance_title' => 'nullable|string|max:255',
             'maintenance_message' => 'nullable|string|max:2000',
+            'show_translation_button' => 'nullable|boolean',
         ];
     }
 }

@@ -1,12 +1,16 @@
 @php
     $isRtl = app()->getLocale() === 'ar';
+    $siteSettings = \App\Models\SiteSetting::current();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="theme-gold" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>@yield('title', 'FULL MARKS ACADEMY')</title>
+  <title>@yield('title', $siteSettings->seo_title ?? 'FULL MARKS ACADEMY')</title>
+  <meta name="description" content="{{ $siteSettings->seo_description ?? '' }}">
+  <meta name="keywords" content="{{ $siteSettings->seo_keywords ?? '' }}">
+  
   <!-- Favicons -->
   <link rel="icon" type="image/png" href="{{ asset('site/images/logo_v2_gold.png') }}">
   <link rel="shortcut icon" href="{{ asset('site/images/logo_v2_gold.png') }}">
@@ -43,9 +47,9 @@
 
   <!-- Custom Theme Stylesheets -->
   <link rel="stylesheet" href="{{ asset('site/css/variables.css') }}?v=1.0">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/dark.css') }}?v=1.0">
+  <link rel="stylesheet" href="{{ asset('site/css/themes/dark.css') }}?v=1.1" id="theme-dark">
   <link rel="stylesheet" href="{{ asset('site/css/themes/light.css') }}?v=1.1" id="theme-light">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/gold.css') }}?v=1.1" id="theme-gold" disabled>
+  <link rel="stylesheet" href="{{ asset('site/css/themes/gold.css') }}?v=1.1" id="theme-gold">
   <link rel="stylesheet" href="{{ asset('site/css/animations/transitions.css') }}?v=1.0">
   <link rel="stylesheet" href="{{ asset('site/css/animations/scroll-effects.css') }}?v=1.0">
   <link rel="stylesheet" href="{{ asset('site/css/animations/3d-effects.css') }}?v=1.0">
@@ -57,28 +61,6 @@
 
   <!-- Theme loading script (prevents theme flash) -->
   <script src="{{ asset('site/js/theme-manager.js') }}"></script>
-
-  <!-- Global Logo Size Override (For both RTL and LTR) -->
-  <!-- #navbar-logo is intentionally excluded — it's sized by the dedicated,
-       responsive rule in hero-animation.css; this !important block was
-       overriding it back up to 100px and crowding out the nav items. -->
-  <style>
-    #footer-logo,
-    #footer-approved-logo,
-    #hero-splash-logo,
-    .hero-splash__logo {
-      height: 100px !important;
-      max-height: 100px !important;
-      width: auto !important;
-      max-width: none !important;
-    }
-    
-    /* Ensure hero logo wrapper can accommodate the 100px logo without squishing */
-    .hero-splash__logo-wrap {
-      width: auto !important;
-      height: auto !important;
-    }
-  </style>
   @stack('styles')
 </head>
 <body class="smooth-transition">
@@ -121,45 +103,10 @@
   <script src="{{ asset('site/js/particles.js') }}"></script>
   <script src="{{ asset('site/js/cart.js') }}"></script>
 
-  <!-- Client-side translation language manager -->
+  <script>window.currentLang = '{{ app()->getLocale() }}';</script>
+  <script src="{{ asset('site/js/language-manager.js') }}?v=1.1"></script>
+
   <script>
-    let currentLang = '{{ app()->getLocale() }}';
-
-    function applyLanguage(lang) {
-      const htmlElement = document.documentElement;
-      
-      if (lang === 'ar') {
-        htmlElement.setAttribute('dir', 'rtl');
-        htmlElement.setAttribute('lang', 'ar');
-        document.body.style.fontFamily = 'var(--font-ar)';
-      } else {
-        htmlElement.setAttribute('dir', 'ltr');
-        htmlElement.setAttribute('lang', 'en');
-        document.body.style.fontFamily = 'var(--font-en)';
-      }
-
-      // Find and translate all marked elements
-      document.querySelectorAll('[data-en][data-ar]').forEach(element => {
-        const textVal = element.getAttribute(`data-${lang}`);
-        
-        // Handle input placeholders and labels differently
-        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-          element.setAttribute('placeholder', textVal);
-        } else if (element.tagName === 'OPTION') {
-          element.textContent = textVal;
-        } else {
-          // Keep structure, change text
-          element.textContent = textVal;
-        }
-      });
-      
-      // Update Swiper direction if initialized
-      if (window.mySwiperInstance) {
-        window.mySwiperInstance.destroy(true, true);
-        initSwiper();
-      }
-    }
-
     function initSwiper() {
       const dir = document.documentElement.getAttribute('dir') || 'ltr';
       window.mySwiperInstance = new Swiper('.testimonials-swiper', {
@@ -187,10 +134,17 @@
       });
     }
 
-    // Load Swiper + apply the server-resolved language on page ready
+    // Load Swiper on DOM ready
     document.addEventListener('DOMContentLoaded', () => {
-      applyLanguage(currentLang);
       initSwiper();
+    });
+
+    // Recreate swiper when language changes to preserve slider direction
+    window.addEventListener('languageChanged', () => {
+      if (window.mySwiperInstance) {
+        window.mySwiperInstance.destroy(true, true);
+        initSwiper();
+      }
     });
 
     // Handle Contact Form Submit Mock
@@ -199,7 +153,7 @@
       const name = document.getElementById('contactName').value;
       const email = document.getElementById('contactEmail').value;
       
-      const successMsg = currentLang === 'ar' 
+      const successMsg = window.currentLang === 'ar' 
         ? `شكرًا لك يا ${name}، تم إرسال رسالتك بنجاح! سنتواصل معك قريبًا على ${email}.`
         : `Thank you, ${name}! Your message has been sent successfully. We will contact you soon at ${email}.`;
         

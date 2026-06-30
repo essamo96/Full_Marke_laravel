@@ -526,3 +526,19 @@
   transform: translate(calc(-50% + 40px), calc(-50% - 45px)) scale(1);
   opacity: 1;
 }
+
+/* Global Footer & Splash Logo overrides */
+#footer-logo,
+#footer-approved-logo,
+#hero-splash-logo,
+.hero-splash__logo {
+  height: 100px !important;
+  max-height: 100px !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+.hero-splash__logo-wrap {
+  width: auto !important;
+  height: auto !important;
+}

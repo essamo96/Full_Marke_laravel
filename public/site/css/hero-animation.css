@@ -457,14 +457,13 @@ footer.io-reveal {
 }
 
 /* ---------- Responsive tuning ---------- */
-@media (max-width: 768px) {
+/* Responsive Video Adjustments for Tablet & Mobile */
+@media (max-width: 1024px) {
   .hero-section {
     height: 100svh;
     min-height: 100svh;
   }
 
-  /* The mobile-encoded videos are 720x1280 (9:16) — they already include
-     a blurred-fill background, so `cover` here just edge-aligns them. */
   .hero-frame-stage__media,
   .hero-frame-stage__video,
   .hero-frame-stage__still {
@@ -475,15 +474,23 @@ footer.io-reveal {
     object-position: center center;
   }
 
-  /* The about-section video also gets its portrait version on mobile */
   .about-video-wrapper {
-    height: 60vh;
-    min-height: 380px;
+    height: 50vh;
+    min-height: 400px;
   }
 
   .about-video {
     object-fit: cover;
     object-position: center center;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .about-video-wrapper {
+    height: 40vh;
+    min-height: 300px;
   }
 }
 
