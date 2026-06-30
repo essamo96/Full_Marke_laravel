@@ -47,9 +47,13 @@
     };
     Object.entries(map).forEach(([id, src]) => {
       const el = document.getElementById(id);
-      if (el && el.getAttribute('src') !== src) {
-        el.setAttribute('src', src);
-        try { el.load(); } catch (_) { }
+      if (el) {
+        // Compare fully resolved URLs to avoid redundant calls to load()
+        const targetSrc = new URL(src, window.location.origin).href;
+        if (el.src !== targetSrc) {
+          el.setAttribute('src', src);
+          try { el.load(); } catch (_) { }
+        }
       }
     });
   }
@@ -105,11 +109,17 @@
     return new Promise((resolve) => {
       resetLayers();
 
+      let safetyTimeout = null;
+
       // ----- Video1 -> Video2 crossfade -----
       let v1HandedOff = false;
       const handoffToV2 = () => {
         if (v1HandedOff) return;
         v1HandedOff = true;
+        if (safetyTimeout) {
+          clearTimeout(safetyTimeout);
+          safetyTimeout = null;
+        }
         try { v2.currentTime = 0; } catch (_) { }
         const p = v2.play();
         if (p && p.catch) p.catch(() => { });
@@ -159,7 +169,28 @@
 
       // Start video1 (autoplay attribute may already have started it).
       const p1 = v1.play();
-      if (p1 && p1.catch) p1.catch(() => { });
+      if (p1 && p1.catch) {
+        p1.catch((err) => {
+          console.warn("Autoplay blocked. Waiting for interaction to play video.", err);
+          
+          const forcePlay = () => {
+            v1.play().catch(() => {});
+            document.removeEventListener('click', forcePlay);
+            document.removeEventListener('touchstart', forcePlay);
+            document.removeEventListener('scroll', forcePlay);
+          };
+          
+          document.addEventListener('click', forcePlay, { once: true });
+          document.addEventListener('touchstart', forcePlay, { once: true });
+          document.addEventListener('scroll', forcePlay, { once: true });
+        });
+      }
+
+      // Hard safety net: if video 1 is blocked/frozen, force handoff after 8 seconds
+      safetyTimeout = setTimeout(() => {
+        console.warn("Video 1 safety timeout reached. Skipping to next layer.");
+        handoffToV2();
+      }, 8000);
     });
   }
 
