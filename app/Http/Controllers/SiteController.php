@@ -54,7 +54,16 @@ class SiteController extends Controller
 
         $application = Application::create($data);
 
-        session(['pending_application_id' => $application->id]);
+        // Generate a random 6-digit OTP
+        $otp = (string) random_int(100000, 999999);
+        
+        session([
+            'pending_application_id' => $application->id,
+            'pending_application_otp' => $otp,
+        ]);
+
+        // Send OTP email to student
+        \Illuminate\Support\Facades\Mail::to($application->email)->send(new \App\Mail\VerificationCodeMail($otp));
 
         // Trigger real-time Pusher event for the admin dashboard
         try {
@@ -86,16 +95,18 @@ class SiteController extends Controller
             'otp' => 'required|string|size:6',
         ]);
 
-        if ($request->input('otp') !== '123456') {
+        $expectedOtp = session('pending_application_otp');
+        $pendingId = session('pending_application_id');
+
+        if (!$pendingId || !$expectedOtp) {
+            return redirect()->route('apply.create')->withErrors(['otp' => app()->getLocale() === 'ar' ? 'انتهت الصلاحية. الرجاء التقديم مجدداً.' : 'Session expired. Please apply again.']);
+        }
+
+        if ($request->input('otp') !== $expectedOtp) {
             return redirect()
                 ->route('apply.create')
                 ->with('applied', true)
                 ->withErrors(['otp' => app()->getLocale() === 'ar' ? 'رمز التحقق غير صحيح!' : 'Invalid verification code!']);
-        }
-
-        $pendingId = session('pending_application_id');
-        if (!$pendingId) {
-            return redirect()->route('apply.create')->withErrors(['otp' => app()->getLocale() === 'ar' ? 'انتهت الصلاحية. الرجاء التقديم مجدداً.' : 'Session expired. Please apply again.']);
         }
 
         $application = Application::find($pendingId);
@@ -125,7 +136,7 @@ class SiteController extends Controller
             ]);
         }
 
-        session()->forget('pending_application_id');
+        session()->forget(['pending_application_id', 'pending_application_otp']);
 
         auth('student')->login($student);
 

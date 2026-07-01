@@ -24,12 +24,6 @@
           <span class="sidebar-nav-item-text" data-en="Overview" data-ar="الرئيسية">Overview</span>
         </a>
 
-        <!-- Cart -->
-        <a href="{{ route('student.cart') }}" class="sidebar-nav-item {{ request()->routeIs('student.cart') ? 'active' : '' }}">
-          <i class="bi bi-cart3 sidebar-nav-item-icon"></i>
-          <span class="sidebar-nav-item-text" data-en="My Cart" data-ar="سلة التسجيل">My Cart</span>
-        </a>
-
         <!-- Academy -->
         <a href="#menuAcademy" class="sidebar-nav-item accordion-trigger"  aria-expanded="false" aria-controls="menuAcademy">
           <i class="bi bi-mortarboard sidebar-nav-item-icon"></i>
@@ -96,6 +90,12 @@
             </form>
           </li>
         </ul>
+
+        <!-- Cart -->
+        <a href="{{ route('student.cart') }}" class="sidebar-nav-item {{ request()->routeIs('student.cart') ? 'active' : '' }}">
+          <i class="bi bi-cart3 sidebar-nav-item-icon"></i>
+          <span class="sidebar-nav-item-text" data-en="My Cart" data-ar="سلة التسجيل">My Cart</span>
+        </a>
       </nav>
 
       <div class="mt-4 pt-4 border-t d-flex flex-column gap-2" style="border-color: var(--separator-color) !important;">
