@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Spatie\Permission\Models\Role;
+use Yajra\DataTables\Facades\DataTables;
 
 class PermissionsController extends AdminController
 {
@@ -20,17 +21,24 @@ class PermissionsController extends AdminController
         $this->path = 'permissions';
     }
 
-    public function getIndex(Request $request)
+    public function getIndex()
     {
-        $search = $request->get('search');
+        return view('admin.permissions.view', self::$data);
+    }
+
+    public function getList(Request $request)
+    {
+        $search = $request->get('search_value');
 
         $roles = Role::where('guard_name', 'admin')
             ->when($search, fn ($q) => $q->where('name', 'like', "%{$search}%"))
-            ->with('permissions')
-            ->paginate(15)
-            ->withQueryString();
+            ->with('permissions');
 
-        return view('admin.permissions.view', self::$data + ['roles' => $roles]);
+        return DataTables::of($roles)
+            ->addColumn('permissions', fn ($role) => e($role->permissions->pluck('name')->implode(', ')))
+            ->addColumn('actions', fn ($role) => view('admin.permissions.parts.actions', ['role' => $role])->render())
+            ->rawColumns(['actions'])
+            ->toJson();
     }
 
     public function getAdd()

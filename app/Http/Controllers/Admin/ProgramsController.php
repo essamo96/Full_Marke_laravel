@@ -6,6 +6,7 @@ use App\Http\Requests\Admin\ProgramRequest;
 use App\Models\Program;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Yajra\DataTables\Facades\DataTables;
 
 class ProgramsController extends AdminController
 {
@@ -18,19 +19,30 @@ class ProgramsController extends AdminController
         $this->path = 'programs';
     }
 
-    public function getIndex(Request $request)
+    public function getIndex()
     {
-        $search = $request->get('search');
+        return view('admin.programs.view', self::$data);
+    }
+
+    public function getList(Request $request)
+    {
+        $search = $request->get('search_value');
 
         $programs = Program::withCount('subjects')
             ->when($search, fn ($q) => $q->where(fn ($q2) => $q2
                 ->where('title_ar', 'like', "%{$search}%")
                 ->orWhere('title_en', 'like', "%{$search}%")))
-            ->orderBy('order')
-            ->paginate(15)
-            ->withQueryString();
+            ->orderBy('order');
 
-        return view('admin.programs.view', self::$data + ['programs' => $programs]);
+        return DataTables::of($programs)
+            ->addColumn('image', fn ($program) => view('admin.programs.parts.image', ['program' => $program])->render())
+            ->addColumn('name', fn ($program) => view('admin.programs.parts.name', ['program' => $program])->render())
+            ->addColumn('type', fn ($program) => '<span class="badge badge-light-info">' . __('app.type_'.$program->type) . '</span>')
+            ->addColumn('subjects_count', fn ($program) => $program->subjects_count)
+            ->addColumn('status', fn ($program) => view('admin.programs.parts.status', ['program' => $program])->render())
+            ->addColumn('actions', fn ($program) => view('admin.programs.parts.actions', ['program' => $program])->render())
+            ->rawColumns(['image', 'name', 'type', 'status', 'actions'])
+            ->toJson();
     }
 
     public function getAdd()

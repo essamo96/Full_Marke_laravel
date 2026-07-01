@@ -6,6 +6,7 @@ use App\Http\Requests\Admin\StudyBranchRequest;
 use App\Models\StudyBranch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Yajra\DataTables\Facades\DataTables;
 
 class StudyBranchesController extends AdminController
 {
@@ -18,19 +19,27 @@ class StudyBranchesController extends AdminController
         $this->path = 'study_branches';
     }
 
-    public function getIndex(Request $request)
+    public function getIndex()
     {
-        $search = $request->get('search');
+        return view('admin.study_branches.view', self::$data);
+    }
+
+    public function getList(Request $request)
+    {
+        $search = $request->get('search_value');
 
         $studyBranches = StudyBranch::withCount('applications')
             ->when($search, fn ($q) => $q->where(fn ($q2) => $q2
                 ->where('name_ar', 'like', "%{$search}%")
                 ->orWhere('name_en', 'like', "%{$search}%")))
-            ->orderBy('id', 'desc')
-            ->paginate(15)
-            ->withQueryString();
+            ->orderBy('id', 'desc');
 
-        return view('admin.study_branches.view', self::$data + ['studyBranches' => $studyBranches]);
+        return DataTables::of($studyBranches)
+            ->addColumn('name', fn ($studyBranch) => view('admin.study_branches.parts.name', ['studyBranch' => $studyBranch])->render())
+            ->addColumn('status', fn ($studyBranch) => view('admin.study_branches.parts.status', ['studyBranch' => $studyBranch])->render())
+            ->addColumn('actions', fn ($studyBranch) => view('admin.study_branches.parts.actions', ['studyBranch' => $studyBranch])->render())
+            ->rawColumns(['name', 'status', 'actions'])
+            ->toJson();
     }
 
     public function getAdd()

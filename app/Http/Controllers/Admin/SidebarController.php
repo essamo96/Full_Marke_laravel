@@ -7,6 +7,7 @@ use App\Models\PermissionsGroup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
+use Yajra\DataTables\Facades\DataTables;
 
 class SidebarController extends AdminController
 {
@@ -19,9 +20,14 @@ class SidebarController extends AdminController
         $this->path = 'sidebar';
     }
 
-    public function getIndex(Request $request)
+    public function getIndex()
     {
-        $search = $request->get('search');
+        return view('admin.sidebar.view', self::$data);
+    }
+
+    public function getList(Request $request)
+    {
+        $search = $request->get('search_value');
 
         $groups = PermissionsGroup::with('parent')
             ->when($search, fn ($q) => $q->where(fn ($q2) => $q2
@@ -29,11 +35,15 @@ class SidebarController extends AdminController
                 ->orWhere('name_ar', 'like', "%{$search}%")
                 ->orWhere('name_en', 'like', "%{$search}%")))
             ->orderBy('parent_id')
-            ->orderBy('sort')
-            ->paginate(15)
-            ->withQueryString();
+            ->orderBy('sort');
 
-        return view('admin.sidebar.view', self::$data + ['groups' => $groups]);
+        return DataTables::of($groups)
+            ->addColumn('name', fn ($group) => e($group->name_en ?? $group->name))
+            ->addColumn('parent', fn ($group) => e($group->parent->name_en ?? $group->parent->name ?? '—'))
+            ->addColumn('status', fn ($group) => view('admin.sidebar.parts.status', ['group' => $group])->render())
+            ->addColumn('actions', fn ($group) => view('admin.sidebar.parts.actions', ['group' => $group])->render())
+            ->rawColumns(['status', 'actions'])
+            ->toJson();
     }
 
     public function getAdd()

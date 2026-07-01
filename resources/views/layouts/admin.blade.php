@@ -59,6 +59,25 @@
         </style>
     @endif
 
+    {{-- Tables (including DataTables) use the same font as the sidebar, at a larger, more readable size --}}
+    <style>
+        .table, table.dataTable, .dataTables_wrapper {
+            font-family: {{ $isRtl ? "'Cairo', 'Inter', sans-serif" : "'Inter', sans-serif" }};
+            font-size: 1.05rem;
+        }
+        .table thead th {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+        .dataTables_wrapper .dataTables_processing {
+            font-family: {{ $isRtl ? "'Cairo', 'Inter', sans-serif" : "'Inter', sans-serif" }};
+        }
+        table.dataTable.admin-datatable td,
+        table.dataTable.admin-datatable th {
+            vertical-align: middle;
+        }
+    </style>
+
     @stack('styles')
 </head>
 <body id="kt_app_body" data-kt-app-layout="dark-sidebar" data-kt-app-header-fixed="true"

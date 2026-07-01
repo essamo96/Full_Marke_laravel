@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Yajra\DataTables\Facades\DataTables;
 
 class UsersController extends AdminController
 {
@@ -21,19 +22,28 @@ class UsersController extends AdminController
         $this->path = 'users';
     }
 
-    public function getIndex(Request $request)
+    public function getIndex()
     {
-        $search = $request->get('search');
+        return view('admin.users.view', self::$data);
+    }
+
+    public function getList(Request $request)
+    {
+        $search = $request->get('search_value');
 
         $users = Admin::with('roles')
             ->when($search, fn ($q) => $q->where(fn ($q2) => $q2
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%")))
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+            ->latest();
 
-        return view('admin.users.view', self::$data + ['users' => $users]);
+        return DataTables::of($users)
+            ->addColumn('photo', fn ($user) => view('admin.users.parts.photo', ['user' => $user])->render())
+            ->addColumn('role', fn ($user) => $user->roles->pluck('name')->implode(', '))
+            ->addColumn('status', fn ($user) => view('admin.users.parts.status', ['user' => $user])->render())
+            ->addColumn('actions', fn ($user) => view('admin.users.parts.actions', ['user' => $user])->render())
+            ->rawColumns(['photo', 'status', 'actions'])
+            ->toJson();
     }
 
     public function getAdd()

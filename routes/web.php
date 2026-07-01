@@ -17,6 +17,7 @@ Route::middleware('site.locale')->group(function () {
     Route::get('/programs/{program:slug}', [SiteController::class, 'programDetails'])->name('programs.show');
     Route::get('/apply-now', [SiteController::class, 'applyNow'])->name('apply.create');
     Route::post('/apply-now', [SiteController::class, 'storeApplication'])->name('apply.store');
+    Route::post('/apply-now/verify', [SiteController::class, 'verifyApplication'])->name('apply.verify');
 
     Auth::routes();
 

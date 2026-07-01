@@ -1002,5 +1002,22 @@
     </div>
   </section>
 
+  @if (session('welcome_student'))
+    <div class="position-fixed bottom-4 end-4 z-50 reveal-scale" style="bottom: 20px; right: 20px; z-index: 9999;">
+      <div class="glass-panel p-4 text-center d-flex align-items-center gap-4" style="border: 1px solid var(--accent-color); background: var(--bg-secondary); min-width: 320px; box-shadow: var(--shadow-lg);">
+        <div class="d-flex align-items-center justify-content-center text-3xl text-gold" style="width: 48px; height: 48px; border-radius: 50%; background: rgba(197, 168, 128, 0.15);">
+          <i class="bi bi-person-check-fill"></i>
+        </div>
+        <div class="text-start">
+          <h5 class="font-bold mb-1" style="color: var(--text-primary);" data-en="Welcome Back!" data-ar="مرحباً بك!">Welcome Back!</h5>
+          <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary);">
+            {{ session('welcome_student') }}
+          </p>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto" onclick="this.parentElement.parentElement.remove()" aria-label="Close"></button>
+      </div>
+    </div>
+  @endif
+
   <!-- Footer -->
 @endsection

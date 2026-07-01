@@ -5,7 +5,7 @@
 @php($pageTitle = __('app.sidebar'))
 
 @section('content')
-    @include('admin.components.search-filter', ['route' => 'sidebar.view', 'placeholder' => __('app.name')])
+    @include('admin.components.search-filter', ['route' => 'sidebar.view', 'placeholder' => __('app.name'), 'datatable' => true])
 
     <div class="card">
         <div class="card-header border-0 pt-6">
@@ -17,44 +17,28 @@
             </div>
         </div>
         <div class="card-body py-4">
-            <table class="table align-middle table-row-dashed fs-6 gy-5">
+            <table id="sidebar_table" class="table align-middle table-row-dashed gy-5 admin-datatable">
                 <thead>
-                    <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
+                    <tr class="text-start text-gray-500 fw-bold text-uppercase gs-0">
                         <th>{{ __('app.name') }}</th>
                         <th>{{ __('app.parent_group') }}</th>
-                        <th>{{ __('app.sort') }}</th>
                         <th>{{ __('app.status') }}</th>
                         <th class="text-end">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
-                <tbody class="fw-semibold text-gray-600">
-                    @foreach ($groups as $group)
-                        <tr>
-                            <td>{{ $group->name_en ?? $group->name }}</td>
-                            <td>{{ $group->parent->name_en ?? $group->parent->name ?? '—' }}</td>
-                            <td>{{ $group->sort }}</td>
-                            <td>
-                                <form action="{{ route('sidebar.status') }}" method="POST" class="d-inline ajax-status-form">
-                                    @csrf
-                                    <input type="hidden" name="id" value="{{ \Illuminate\Support\Facades\Crypt::encrypt($group->id) }}">
-                                    <button type="submit" class="badge {{ $group->status ? 'badge-light-success' : 'badge-light-danger' }} border-0">
-                                        {{ $group->status ? __('app.active') : __('app.inactive') }}
-                                    </button>
-                                </form>
-                            </td>
-                            <td class="text-end">
-                                <a href="{{ route('sidebar.edit', \Illuminate\Support\Facades\Crypt::encrypt($group->id)) }}" class="btn btn-sm btn-light-primary">{{ __('app.edit') }}</a>
-                                <form action="{{ route('sidebar.delete') }}" method="POST" class="d-inline ajax-delete-form">
-                                    @csrf
-                                    <input type="hidden" name="id" value="{{ \Illuminate\Support\Facades\Crypt::encrypt($group->id) }}">
-                                    <button type="submit" class="btn btn-sm btn-light-danger">{{ __('app.delete') }}</button>
-                                </form>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
+                <tbody class="fw-semibold text-gray-600"></tbody>
             </table>
-            {{ $groups->links() }}
         </div>
     </div>
+
+    @include('admin.components.datatable-init', [
+        'tableId' => 'sidebar_table',
+        'ajaxUrl' => route('sidebar.list'),
+        'columns' => [
+            ['data' => 'name', 'name' => 'name', 'title' => __('app.name')],
+            ['data' => 'parent', 'name' => 'parent_id', 'title' => __('app.parent_group')],
+            ['data' => 'status', 'name' => 'status', 'title' => __('app.status')],
+            ['data' => 'actions', 'name' => 'actions', 'title' => __('app.actions'), 'className' => 'text-end'],
+        ],
+    ])
 @endsection

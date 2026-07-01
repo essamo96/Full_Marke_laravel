@@ -5,7 +5,7 @@
 @php($pageTitle = __('app.programs'))
 
 @section('content')
-    @include('admin.components.search-filter', ['route' => 'programs.view', 'placeholder' => __('app.program_name_ar')])
+    @include('admin.components.search-filter', ['route' => 'programs.view', 'placeholder' => __('app.program_name_ar'), 'datatable' => true])
 
     <div class="card">
         <div class="card-header border-0 pt-6">
@@ -17,9 +17,9 @@
             </div>
         </div>
         <div class="card-body py-4">
-            <table class="table align-middle table-row-dashed fs-6 gy-5">
+            <table id="programs_table" class="table align-middle table-row-dashed gy-5 admin-datatable">
                 <thead>
-                    <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
+                    <tr class="text-start text-gray-500 fw-bold text-uppercase gs-0">
                         <th>{{ __('app.image') }}</th>
                         <th>{{ __('app.name') }}</th>
                         <th>{{ __('app.program_type') }}</th>
@@ -28,13 +28,21 @@
                         <th class="text-end">{{ __('app.actions') }}</th>
                     </tr>
                 </thead>
-                <tbody class="fw-semibold text-gray-600">
-                    @foreach ($programs as $program)
-                        @include('admin.programs.parts.row', ['program' => $program])
-                    @endforeach
-                </tbody>
+                <tbody class="fw-semibold text-gray-600"></tbody>
             </table>
-            {{ $programs->links() }}
         </div>
     </div>
+
+    @include('admin.components.datatable-init', [
+        'tableId' => 'programs_table',
+        'ajaxUrl' => route('programs.list'),
+        'columns' => [
+            ['data' => 'image', 'name' => 'image', 'title' => __('app.image')],
+            ['data' => 'name', 'name' => 'title_ar', 'title' => __('app.name')],
+            ['data' => 'type', 'name' => 'type', 'title' => __('app.program_type')],
+            ['data' => 'subjects_count', 'name' => 'subjects_count', 'title' => __('app.subjects')],
+            ['data' => 'status', 'name' => 'is_active', 'title' => __('app.status')],
+            ['data' => 'actions', 'name' => 'actions', 'title' => __('app.actions'), 'className' => 'text-end'],
+        ],
+    ])
 @endsection

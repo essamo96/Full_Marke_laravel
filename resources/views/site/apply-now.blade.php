@@ -15,11 +15,49 @@
         <div class="col-lg-8">
 
           @if (session('applied'))
-            <div class="glass-panel p-6 mb-6 text-center" style="border: 1px solid var(--accent-color);">
-              <p class="mb-0 font-bold" style="color: var(--text-primary);" data-en="Thank you! Your application has been received. Our team will contact you shortly." data-ar="شكراً لك! تم استلام طلبك بنجاح. سيتواصل معك فريقنا قريباً.">
-                Thank you! Your application has been received. Our team will contact you shortly.
-              </p>
+            <!-- OTP Verification Modal -->
+            <div class="modal fade" id="otpModal" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true" data-bs-backdrop="static">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content glass-panel p-6 md:p-8" style="border: 1px solid var(--accent-color); background: var(--bg-secondary);">
+                  <div class="modal-header border-0 justify-content-between p-0 mb-4">
+                    <h5 class="modal-title font-bold text-2xl text-gold" id="otpModalLabel" data-en="Verify Your Email" data-ar="تحقق من بريدك الإلكتروني">Verify Your Email</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body border-0 p-0">
+                    <p style="color: var(--text-secondary);" class="text-sm mb-6 leading-relaxed"
+                       data-en="We have sent a 6-digit verification code to your email. Please enter it below to complete your registration."
+                       data-ar="لقد أرسلنا رمز تحقق مكون من 6 أرقام إلى بريدك الإلكتروني. يرجى إدخاله أدناه لإكمال عملية التسجيل.">
+                      We have sent a 6-digit verification code to your email. Please enter it below to complete your registration.
+                    </p>
+                    
+                    <form method="POST" action="{{ route('apply.verify') }}">
+                      @csrf
+                      <div class="floating-input-group mb-4">
+                        <input type="text" name="otp" id="otpCode" placeholder=" " required maxlength="6" class="text-center font-bold tracking-widest fs-4" style="letter-spacing: 0.5em !important;">
+                        <label for="otpCode" data-en="Verification Code (Try 123456)" data-ar="رمز التحقق (جرب 123456)">Verification Code (Try 123456)</label>
+                      </div>
+                      @error('otp')
+                        <div class="text-danger text-sm mb-4 font-medium">{{ $message }}</div>
+                      @enderror
+                      
+                      <button type="submit" class="btn btn-luxury w-100 py-3 rounded-lg text-lg font-bold">
+                        <span data-en="Confirm & Login" data-ar="تأكيد ودخول">Confirm & Login</span>
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <script>
+              document.addEventListener('DOMContentLoaded', () => {
+                const otpModalEl = document.getElementById('otpModal');
+                if (otpModalEl) {
+                  const otpModal = new bootstrap.Modal(otpModalEl);
+                  otpModal.show();
+                }
+              });
+            </script>
           @endif
 
           <div class="glass-panel p-6 md:p-12">
