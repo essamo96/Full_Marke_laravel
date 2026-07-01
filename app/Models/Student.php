@@ -26,6 +26,7 @@ class Student extends Authenticatable
         'gender',
         'address',
         'branch_id',
+        'study_branch_id',
         'major_profession',
         'health_information',
         'password',
@@ -57,6 +58,11 @@ class Student extends Authenticatable
     public function branch()
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function studyBranch()
+    {
+        return $this->belongsTo(StudyBranch::class);
     }
 
     public function guardian()

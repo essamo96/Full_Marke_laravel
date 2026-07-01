@@ -74,7 +74,17 @@
                                                 @endfor
                                             </i>
                                         </span>
-                                        <span class="menu-title">{{ app()->getLocale() === 'ar' ? ($child->name_ar ?? $child->name) : ($child->name_en ?? $child->name) }}</span>
+                                        @if ($child->name === 'approvals')
+                                            <span class="menu-title d-flex align-items-center justify-content-between flex-grow-1">
+                                                <span>{{ app()->getLocale() === 'ar' ? ($child->name_ar ?? $child->name) : ($child->name_en ?? $child->name) }}</span>
+                                                <span id="sidebar-badge-approvals" class="badge badge-light-danger badge-circle fs-9 ms-2"
+                                                      style="{{ $pending_applications_count > 0 ? 'display: inline-block;' : 'display: none;' }}">
+                                                    {{ $pending_applications_count }}
+                                                </span>
+                                            </span>
+                                        @else
+                                            <span class="menu-title">{{ app()->getLocale() === 'ar' ? ($child->name_ar ?? $child->name) : ($child->name_en ?? $child->name) }}</span>
+                                        @endif
                                     </a>
                                 </div>
                             @endif

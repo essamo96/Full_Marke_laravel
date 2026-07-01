@@ -17,8 +17,9 @@
                         <th>{{ __('app.name') }}</th>
                         <th>{{ __('app.email') }}</th>
                         <th>{{ __('app.phone') }}</th>
-                        <th>{{ __('app.branches') }}</th>
-                        <th>{{ app()->getLocale() === 'ar' ? 'عدد التسجيلات' : 'Registrations' }}</th>
+                        <th>{{ app()->getLocale() === 'ar' ? 'المنطقة' : 'Region' }}</th>
+                        <th>{{ app()->getLocale() === 'ar' ? 'الفرع الدراسي' : 'Study Branch' }}</th>
+                        <th>{{ app()->getLocale() === 'ar' ? 'التخصص / المهنة' : 'Major / Profession' }}</th>
                         <th>{{ __('app.status') }}</th>
                         <th class="text-end">{{ __('app.actions') }}</th>
                     </tr>
@@ -33,11 +34,12 @@
                                     <span class="symbol symbol-40px"><span class="symbol-label bg-light-primary text-primary fw-bold">{{ mb_substr($student->full_name_en, 0, 1) }}</span></span>
                                 @endif
                             </td>
-                            <td>{{ $student->full_name_en }}</td>
+                            <td>{{ $student->full_name_ar ?: $student->full_name_en }}</td>
                             <td>{{ $student->email }}</td>
                             <td>{{ $student->phone }}</td>
-                            <td>{{ $student->branch?->name }}</td>
-                            <td>{{ $student->registrations_count }}</td>
+                            <td>{{ $student->branch?->name ?: '-' }}</td>
+                            <td>{{ $student->studyBranch?->name ?: '-' }}</td>
+                            <td>{{ $student->major_profession ?: '-' }}</td>
                             <td>
                                 <form action="{{ route('students.status') }}" method="POST" class="d-inline ajax-status-form">
                                     @csrf

@@ -45,8 +45,6 @@ class SiteController extends Controller
             'study_branch_id' => 'nullable|exists:study_branches,id',
             'major_profession' => 'nullable|string|max:255',
             'health_information' => 'nullable|string',
-            'program_id' => 'nullable|exists:programs,id',
-            'subject_id' => 'nullable|exists:subjects,id',
             'message' => 'nullable|string',
         ]);
 
@@ -57,6 +55,25 @@ class SiteController extends Controller
         $application = Application::create($data);
 
         session(['pending_application_id' => $application->id]);
+
+        // Trigger real-time Pusher event for the admin dashboard
+        try {
+            $msg = app()->getLocale() === 'ar'
+                ? "طلب جديد من الطالب: " . $application->full_name_ar
+                : "New application from student: " . $application->full_name_en;
+
+            $eventData = [
+                'message' => $msg,
+                'name' => app()->getLocale() === 'ar' ? $application->full_name_ar : $application->full_name_en,
+                'branch' => $application->branch?->name ?? '',
+                'study_branch' => $application->studyBranch?->name ?? '',
+                'created_at' => now()->diffForHumans(),
+            ];
+
+            event(new \App\Events\MyEvent($eventData));
+        } catch (\Exception $e) {
+            logger()->error("Pusher broadcast failed: " . $e->getMessage());
+        }
 
         return redirect()
             ->route('apply.create')
@@ -99,6 +116,7 @@ class SiteController extends Controller
                 'gender' => $application->gender,
                 'address' => $application->address,
                 'branch_id' => $application->branch_id,
+                'study_branch_id' => $application->study_branch_id,
                 'major_profession' => $application->major_profession,
                 'health_information' => $application->health_information,
                 'password' => bcrypt('password'),

@@ -368,12 +368,28 @@
 .floating-input-group textarea:focus ~ label,
 .floating-input-group textarea:not(:placeholder-shown) ~ label,
 .floating-input-group select:focus ~ label,
-.floating-input-group select:valid ~ label {
-  top: 0;
-  transform: translateY(-50%) scale(0.85);
-  background: var(--bg-secondary);
-  color: var(--accent-color);
-  left: 12px;
+.floating-input-group select:valid ~ label,
+.floating-input-group input[type="date"] ~ label,
+.floating-input-group select ~ label {
+  top: 0 !important;
+  transform: translateY(-50%) scale(0.85) !important;
+  background: var(--bg-secondary) !important;
+  color: var(--accent-color) !important;
+  left: 12px !important;
+  font-size: 0.85rem !important;
+  opacity: 1 !important;
+}
+
+.theme-light .floating-input-group input[type="date"] ~ label,
+.theme-light .floating-input-group select ~ label {
+  background: #ffffff !important;
+}
+
+/* RTL Arrow Fix for Dropdowns */
+[dir="rtl"] .floating-input-group select {
+  background-position: left 16px center !important;
+  padding-left: 40px !important;
+  padding-right: 16px !important;
 }
 
 /* Mobile Menu Drawer */

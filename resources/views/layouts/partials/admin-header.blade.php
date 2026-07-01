@@ -46,6 +46,49 @@
                     </div>
                 </div>
 
+                {{-- Notifications Button & Dropdown --}}
+                <div class="app-navbar-item ms-1 ms-md-3">
+                    <a href="#" class="btn btn-icon btn-custom btn-icon-muted btn-active-light btn-active-color-primary w-30px h-30px w-md-40px h-md-40px position-relative"
+                       data-kt-menu-trigger="{default:'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
+                        <i class="ki-duotone ki-notification-status fs-2 fs-lg-1">
+                            <span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span>
+                        </i>
+                        <span id="unreadNotificationsCount" class="position-absolute top-0 start-100 translate-middle badge badge-circle badge-danger fs-9"
+                              style="{{ $pending_applications_count > 0 ? 'display: inline-block;' : 'display: none;' }} width: 18px; height: 18px; line-height: 18px; padding: 0;">
+                            {{ $pending_applications_count }}
+                        </span>
+                    </a>
+                    
+                    <div class="menu menu-sub menu-sub-dropdown menu-column w-350px w-lg-375px" data-kt-menu="true">
+                        <div class="d-flex flex-column bgi-no-repeat rounded-top" style="background-image:url('{{ asset('assets/media/misc/menu-header-bg.jpg') }}'); background-size: cover;">
+                            <h3 class="text-white fw-semibold px-9 mt-10 mb-6">
+                                {{ app()->getLocale() === 'ar' ? 'الإشعارات' : 'Notifications' }}
+                                <span id="unreadNotificationsHeaderBadge" class="fs-8 opacity-75 ms-3">{{ $pending_applications_count }} {{ app()->getLocale() === 'ar' ? 'جديد' : 'new' }}</span>
+                            </h3>
+                        </div>
+                        
+                        <div class="scroll-y mh-325px my-5 px-8" id="notificationsDropdownList">
+                            @forelse($pending_applications as $app)
+                                <div class="d-flex align-items-center mb-5 bg-light-warning p-3 rounded">
+                                    <div class="symbol symbol-35px me-4">
+                                        <span class="symbol-label bg-light-danger">
+                                            <i class="ki-duotone ki-profile-user fs-3 text-danger"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span></i>
+                                        </span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <span class="text-gray-800 fw-bold fs-7">{{ $app->full_name_ar ?: $app->full_name_en }}</span>
+                                        <span class="text-muted d-block fs-8">{{ $app->created_at->diffForHumans() }}</span>
+                                    </div>
+                                </div>
+                            @empty
+                                <div id="noNotificationsPlaceholder" class="text-center text-muted py-10">
+                                    {{ app()->getLocale() === 'ar' ? 'لا توجد إشعارات جديدة' : 'No new notifications' }}
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Theme mode (light / dark) --}}
                 <div class="app-navbar-item ms-1 ms-md-3">
                     <a href="#" class="btn btn-icon btn-custom btn-icon-muted btn-active-light btn-active-color-primary w-30px h-30px w-md-40px h-md-40px"

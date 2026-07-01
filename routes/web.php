@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SiteLocaleController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Language is switched server-side via session (no /ar or /en prefix in the
@@ -19,13 +18,8 @@ Route::middleware('site.locale')->group(function () {
     Route::post('/apply-now', [SiteController::class, 'storeApplication'])->name('apply.store');
     Route::post('/apply-now/verify', [SiteController::class, 'verifyApplication'])->name('apply.verify');
 
-    Auth::routes();
-
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
-    Route::middleware('auth')->group(function () {
-        Route::resource('roles', App\Http\Controllers\RoleController::class)->except(['show']);
-    });
+    // /login redirects to the admin panel login (no duplicate login page needed)
+    Route::redirect('/login', '/admin/login', 301)->name('login');
 
     require __DIR__.'/student.php';
     require __DIR__.'/teacher.php';

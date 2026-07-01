@@ -224,6 +224,93 @@
         </script>
     @endif
 
+    <!-- Pusher Realtime Notifications Script -->
+    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+    <script>
+        // Enable pusher logging - don't include this in production
+        Pusher.logToConsole = true;
+
+        var pusher = new Pusher('f2c59e4bbe8eaf821e44', {
+            cluster: 'ap2'
+        });
+
+        var channel = pusher.subscribe('my-channel');
+        channel.bind('my-event', function(data) {
+            // Find counts elements
+            var countEl = document.getElementById('unreadNotificationsCount');
+            var headerBadgeEl = document.getElementById('unreadNotificationsHeaderBadge');
+            var sidebarBadgeEl = document.getElementById('sidebar-badge-approvals');
+
+            var currentCount = parseInt(countEl ? countEl.textContent.trim() : '0') + 1;
+
+            // Update header button badge
+            if (countEl) {
+                countEl.textContent = currentCount;
+                countEl.style.display = 'inline-block';
+            }
+
+            // Update dropdown header badge
+            if (headerBadgeEl) {
+                var newText = currentCount + ' ' + (document.documentElement.lang === 'ar' ? 'جديد' : 'new');
+                headerBadgeEl.textContent = newText;
+            }
+
+            // Update sidebar badge
+            if (sidebarBadgeEl) {
+                sidebarBadgeEl.textContent = currentCount;
+                sidebarBadgeEl.style.display = 'inline-block';
+            }
+
+            // Add new notification element to list
+            var listEl = document.getElementById('notificationsDropdownList');
+            var placeholderEl = document.getElementById('noNotificationsPlaceholder');
+            if (placeholderEl) {
+                placeholderEl.remove();
+            }
+
+            if (listEl) {
+                var message = data.message;
+                if (typeof data.message === 'object') {
+                    message = data.message.message;
+                }
+                var itemHtml = `
+                    <div class="d-flex align-items-center mb-5 bg-light-warning p-3 rounded animated pulse">
+                        <div class="symbol symbol-35px me-4">
+                            <span class="symbol-label bg-light-danger">
+                                <i class="ki-duotone ki-profile-user fs-3 text-danger"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <span class="text-gray-800 fw-bold fs-7">${message}</span>
+                            <span class="text-muted d-block fs-8">${document.documentElement.lang === 'ar' ? 'الآن' : 'just now'}</span>
+                        </div>
+                    </div>
+                `;
+                listEl.insertAdjacentHTML('afterbegin', itemHtml);
+            }
+
+            // Display floating sweet alert notification
+            var titleText = document.documentElement.lang === 'ar' ? 'إشعار جديد' : 'New Notification';
+            var msgText = typeof data.message === 'object' ? data.message.message : data.message;
+            Swal.fire({
+                title: titleText,
+                text: msgText,
+                icon: 'info',
+                toast: true,
+                position: document.documentElement.lang === 'ar' ? 'top-start' : 'top-end',
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true
+            });
+
+            // If we are on the dashboard, increment the statistic widget!
+            var dashCountEl = document.getElementById('applicationsPendingCountWidget');
+            if (dashCountEl) {
+                dashCountEl.textContent = currentCount;
+            }
+        });
+    </script>
+
     @stack('scripts')
 </body>
 </html>

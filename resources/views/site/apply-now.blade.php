@@ -103,7 +103,7 @@
               <div class="row">
                 <div class="col-md-6">
                   <div class="floating-input-group">
-                    <input type="date" name="date_of_birth" id="applyDob" placeholder=" " value="{{ old('date_of_birth') }}">
+                    <input type="date" name="date_of_birth" id="applyDob" placeholder=" " value="{{ old('date_of_birth') }}" onclick="this.showPicker()">
                     <label for="applyDob" data-en="Date of Birth" data-ar="تاريخ الميلاد">Date of Birth</label>
                   </div>
                   @error('date_of_birth') <small class="text-danger">{{ $message }}</small> @enderror
@@ -127,19 +127,7 @@
               </div>
 
               <div class="row">
-                <div class="col-md-6">
-                  <div class="floating-input-group">
-                    <select name="branch_id" id="applyBranch">
-                      <option value="" selected data-en="No preference" data-ar="بدون تفضيل">No preference</option>
-                      @foreach ($branches as $branch)
-                        <option value="{{ $branch->id }}" @selected(old('branch_id') == $branch->id)>{{ $branch->name }}</option>
-                      @endforeach
-                    </select>
-                    <label for="applyBranch" data-en="Preferred Branch" data-ar="الفرع المفضل">Preferred Branch</label>
-                  </div>
-                  @error('branch_id') <small class="text-danger">{{ $message }}</small> @enderror
-                </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <div class="floating-input-group">
                     <select name="study_branch_id" id="applyStudyBranch">
                       <option value="" selected data-en="No preference" data-ar="بدون تفضيل">No preference</option>
@@ -151,10 +139,19 @@
                   </div>
                   @error('study_branch_id') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
+                  <div class="floating-input-group">
+                    <select name="branch_id" id="applyBranch">
+                      <option value="" selected data-en="No preference" data-ar="بدون تفضيل">No preference</option>
+                      @foreach ($branches as $branch)
+                        <option value="{{ $branch->id }}" @selected(old('branch_id') == $branch->id)>{{ $branch->name }}</option>
+                      @endforeach
+                    </select>
+                    <label for="applyBranch" data-en="Select Region" data-ar="حدد المنطقة">Select Region</label>
+                  </div>
+                  @error('branch_id') <small class="text-danger">{{ $message }}</small> @enderror
+                </div>
+                <div class="col-md-4">
                   <div class="floating-input-group">
                     <input type="text" name="major_profession" id="applyProfession" placeholder=" " value="{{ old('major_profession') }}">
                     <label for="applyProfession" data-en="Major / Profession" data-ar="التخصص / المهنة">Major / Profession</label>
@@ -163,59 +160,20 @@
                 </div>
               </div>
 
-              <div class="floating-input-group">
-                <textarea name="health_information" id="applyHealth" rows="2" placeholder=" ">{{ old('health_information') }}</textarea>
-                <label for="applyHealth" data-en="Health Information (optional)" data-ar="معلومات صحية (اختياري)">Health Information (optional)</label>
-              </div>
-
               <div class="mb-4">
                 <label for="applyImage" class="d-block text-sm font-bold mb-2" style="color: var(--text-primary);" data-en="Personal Photo (optional)" data-ar="صورة شخصية (اختياري)">Personal Photo (optional)</label>
                 <input type="file" name="image" id="applyImage" accept="image/*" class="form-control">
                 @error('image') <small class="text-danger">{{ $message }}</small> @enderror
               </div>
 
-              <h5 class="text-gold font-bold tracking-widest text-xs uppercase mb-4 mt-6" data-en="Program Selection" data-ar="اختيار البرنامج">Program Selection</h5>
-
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="floating-input-group">
-                    <select name="program_id" id="applyProgram">
-                      <option value="" disabled {{ old('program_id') ? '' : 'selected' }} hidden></option>
-                      @foreach ($programs as $p)
-                        <option value="{{ $p->id }}"
-                                data-en="{{ $p->title_en }}" data-ar="{{ $p->title_ar }}"
-                                @selected(old('program_id', $selectedProgram) == $p->id || old('program_id', $selectedProgram) === $p->slug)>
-                          {{ $p->title }}
-                        </option>
-                      @endforeach
-                    </select>
-                    <label for="applyProgram" data-en="Program" data-ar="البرنامج">Program</label>
-                  </div>
-                  @error('program_id') <small class="text-danger">{{ $message }}</small> @enderror
-                </div>
-                <div class="col-md-6">
-                  <div class="floating-input-group">
-                    <select name="subject_id" id="applySubject">
-                      <option value="" selected data-en="No specific subject" data-ar="بدون مادة محددة">No specific subject</option>
-                      @foreach ($programs as $p)
-                        @foreach ($p->subjects as $s)
-                          <option value="{{ $s->id }}" data-program="{{ $p->id }}"
-                                  data-en="{{ $s->name_en }}" data-ar="{{ $s->name_ar }}"
-                                  @selected(request('subject') == $s->id)>
-                            {{ $p->title }} — {{ $s->name }}
-                          </option>
-                        @endforeach
-                      @endforeach
-                    </select>
-                    <label for="applySubject" data-en="Subject (optional)" data-ar="المادة (اختياري)">Subject (optional)</label>
-                  </div>
-                  @error('subject_id') <small class="text-danger">{{ $message }}</small> @enderror
-                </div>
-              </div>
-
               <div class="floating-input-group">
                 <textarea name="message" id="applyMessage" rows="4" placeholder=" ">{{ old('message') }}</textarea>
                 <label for="applyMessage" data-en="Additional Notes" data-ar="ملاحظات إضافية">Additional Notes</label>
+              </div>
+
+              <div class="floating-input-group">
+                <textarea name="health_information" id="applyHealth" rows="2" placeholder=" ">{{ old('health_information') }}</textarea>
+                <label for="applyHealth" data-en="Health Information (optional)" data-ar="معلومات صحية (اختياري)">Health Information (optional)</label>
               </div>
 
               <button type="submit" class="btn btn-luxury w-100 py-3 rounded-lg text-lg d-flex align-items-center justify-content-center">

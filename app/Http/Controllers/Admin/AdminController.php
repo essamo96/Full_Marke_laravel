@@ -26,6 +26,8 @@ class AdminController extends BaseController {
 public function __construct() {
     $permission_group = new PermissionsGroup();
     self::$data['sidebar'] = $permission_group->getAllParentPermissionGroup();
+    self::$data['pending_applications_count'] = \App\Models\Application::where('status', 'new')->count();
+    self::$data['pending_applications'] = \App\Models\Application::where('status', 'new')->latest()->take(5)->get();
 
     // الحصول على اسم الراوت الحالي
     $route_name = Route::currentRouteName();

@@ -184,9 +184,9 @@
                   Comprehensive preparation for high school students with elite teachers to ensure top scores and academic excellence.
                 </p>
               </div>
-              <div class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
+              <a href="{{ route('programs.show', 'tawjihi') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3 position-relative z-10 text-decoration-none" data-en="Join Program" data-ar="الانضمام للبرنامج">
                 Join Program
-              </div>
+              </a>
             </div>
           </div>
         </div>
@@ -208,9 +208,9 @@
                   Fun, interactive language learning designed to build a strong foundation for young learners using modern tools.
                 </p>
               </div>
-              <div class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
+              <a href="{{ route('programs.show', 'children') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3 position-relative z-10 text-decoration-none" data-en="Join Program" data-ar="الانضمام للبرنامج">
                 Join Program
-              </div>
+              </a>
             </div>
           </div>
         </div>
@@ -232,9 +232,9 @@
                   Specialized therapy sessions to resolve speech difficulties and enhance articulation for children and adults.
                 </p>
               </div>
-              <div class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
+              <a href="{{ route('programs.show', 'speech') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3 position-relative z-10 text-decoration-none" data-en="Join Program" data-ar="الانضمام للبرنامج">
                 Join Program
-              </div>
+              </a>
             </div>
           </div>
         </div>
@@ -256,9 +256,9 @@
                   Intensive training designed to build key academic skills and prepare students for integration into standard tracks.
                 </p>
               </div>
-              <div class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3" data-en="Join Program" data-ar="الانضمام للبرنامج">
+              <a href="{{ route('programs.show', 'rehab') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3 position-relative z-10 text-decoration-none" data-en="Join Program" data-ar="الانضمام للبرنامج">
                 Join Program
-              </div>
+              </a>
             </div>
           </div>
         </div>

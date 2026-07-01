@@ -150,7 +150,7 @@
                                         </span>
                                     </div>
                                     <div class="m-0">
-                                        <span class="text-gray-700 fw-bolder d-block fs-2qx lh-1 ls-n1 mb-1">{{ $stats['applications_pending'] }}</span>
+                                        <span id="applicationsPendingCountWidget" class="text-gray-700 fw-bolder d-block fs-2qx lh-1 ls-n1 mb-1">{{ $stats['applications_pending'] }}</span>
                                         <span class="text-gray-500 fw-semibold fs-6">{{ __('app.pending') }} {{ __('app.applications') }}</span>
                                     </div>
                                 </div>
@@ -291,7 +291,11 @@
                             </div>
                             <div class="flex-grow-1">
                                 <span class="text-gray-800 text-hover-primary fw-bold d-block fs-6">{{ $application->full_name_ar ?: $application->full_name_en }}</span>
-                                <span class="text-muted fw-semibold d-block fs-7">{{ $application->program?->title }} @if($application->subject) &middot; {{ $application->subject->name }} @endif</span>
+                                <span class="text-muted fw-semibold d-block fs-7">
+                                    {{ $application->studyBranch?->name ?: (app()->getLocale() === 'ar' ? 'بدون فرع دراسي' : 'No Study Branch') }} &middot;
+                                    {{ $application->branch?->name ?: (app()->getLocale() === 'ar' ? 'بدون منطقة' : 'No Region') }}
+                                    @if($application->major_profession) &middot; {{ $application->major_profession }} @endif
+                                </span>
                             </div>
                             <span class="badge badge-light-{{ $application->status === 'pending' ? 'warning' : ($application->status === 'approved' ? 'success' : 'danger') }}">
                                 {{ __('app.application_status_'.$application->status) }}
