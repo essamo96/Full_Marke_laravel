@@ -15,8 +15,15 @@ use App\Models\Subject;
 use App\Models\Teacher;
 use Spatie\Permission\Models\Role;
 
+
+
 class DashboardController extends AdminController
 {
+
+    public function __construct() {
+        parent::__construct();
+        parent::$data['active_menu'] = 'dashboard';
+    }
     public function index()
     {
         $stats = [
@@ -71,7 +78,7 @@ class DashboardController extends AdminController
             ];
         });
 
-        return view('admin.dashboard.index', self::$data + [
+        return view('admin.dashboard.view', self::$data + [
             'stats' => $stats,
             'topPrograms' => $topPrograms,
             'topGroups' => $topGroups,

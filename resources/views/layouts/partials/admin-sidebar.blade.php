@@ -27,7 +27,7 @@
             <div class="menu menu-column menu-rounded menu-sub-indention px-3" id="kt_app_sidebar_menu"
                  data-kt-menu="true" data-kt-menu-expand="false">
 
-                <div class="menu-item">
+                {{-- <div class="menu-item">
                     <a class="menu-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
                         <span class="menu-icon">
                             <i class="ki-duotone ki-element-11 fs-2">
@@ -37,7 +37,7 @@
                         </span>
                         <span class="menu-title">Dashboard</span>
                     </a>
-                </div>
+                </div> --}}
 
                 @foreach (($sidebar ?? []) as $menu)
                     @if ($menu->children->isEmpty())

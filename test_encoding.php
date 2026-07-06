@@ -1,0 +1,1 @@
+﻿<?php require 'vendor/autoload.php'; $app = require_once 'bootstrap/app.php'; $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class); $users = App\Models\Admin::all(); foreach($users as $u) { json_encode($u->toArray()); if(json_last_error() !== JSON_ERROR_NONE) echo 'Error in ID ' . $u->id . '\n'; }

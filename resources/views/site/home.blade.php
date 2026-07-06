@@ -5,60 +5,75 @@
 @section('content')
   <!-- Hero Section -->
   <section id="hero" class="hero-section">
-    <!-- Two-stage video background: video1 -> crossfade -> video2 -> crossfade -> still -->
-    <div class="hero-frame-stage" aria-hidden="true">
-      <video id="hero-bg-video-1"
-             class="hero-frame-stage__media hero-frame-stage__video is-active"
-             src="{{ asset('site/images/slider1.mp4') }}"
-             muted
-             playsinline
-             preload="auto"></video>
-      <video id="hero-bg-video-2"
-             class="hero-frame-stage__media hero-frame-stage__video"
-             src="{{ asset('site/images/slider1.mp4') }}"
-             muted
-             playsinline
-             preload="auto"></video>
-      <img id="hero-bg-still"
-           class="hero-frame-stage__media hero-frame-stage__still"
-           src="{{ asset('site/images/bg-main.jpg') }}"
-           alt="">
-    </div>
+    @php
+        $firstSlider = $sliders->first();
+        $hasMedia = $firstSlider && ($firstSlider->video1 || $firstSlider->video2 || $firstSlider->image);
+    @endphp
 
-    <div class="hero-overlay"></div>
-    <canvas id="particles-canvas" class="particles-canvas-class"></canvas>
-
-    <!-- Floating Background Shapes -->
-    <div class="absolute top-1/4 left-10 w-24 h-24 bg-gold opacity-10 rounded-full blur-xl float-slow parallax-layer" data-parallax-speed="0.03"></div>
-    <div class="absolute bottom-1/4 right-20 w-36 h-36 bg-cyan-400 opacity-10 rounded-full blur-2xl float-medium parallax-layer" data-parallax-speed="-0.02"></div>
-    <div class="absolute top-1/3 right-1/4 w-16 h-16 bg-purple-500 opacity-5 rounded-full blur-lg float-fast parallax-layer" data-parallax-speed="0.05"></div>
-
-    <div id="hero-content-overlay" class="hero-content hero-content-overlay container px-4">
-      <div class="reveal-scale">
-        <h1 class="hero-stagger text-4xl md:text-6xl font-extrabold tracking-tight mb-4 uppercase" data-stagger="1" style="color: var(--text-primary);">
-          <span class="bg-clip-text text-transparent bg-gradient-to-r from-gold via-gold-light to-gold-dark" data-en="FULL MARKS ACADEMY" data-ar="أكاديمية العلامة الكاملة">FULL MARKS ACADEMY</span>
-        </h1>
-        <p class="hero-stagger text-lg md:text-2xl text-secondary-class mb-8 max-w-2xl mx-auto leading-relaxed" data-stagger="2" style="color: var(--text-secondary);"
-           data-en="Step Into Professional Excellence. Approved Full Mark Test Center & Global Academic Preparation."
-           data-ar="بوابتك للتميز الأكاديمي والمهني. مركز اختبارات العلامة الكاملة المعتمد والتدريب اللغوي الدولي.">
-          Step Into Professional Excellence. Approved Full Mark Test Center & Global Academic Preparation.
-        </p>
-
-        <!-- CTA Buttons -->
-        <div class="hero-stagger d-flex flex-column flex-sm-row justify-content-center align-items-center gap-4" data-stagger="3">
-          <a href="#actions" class="btn btn-luxury px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
-             data-en="Placement Test Booking" data-ar="حجز تحديد المستوى">
-            Placement Test Booking
-          </a>
-          <a href="#contact" class="btn btn-glass px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
-             data-en="Book A Course" data-ar="حجز مقعد دراسي">
-            Book A Course
-          </a>
+    @if($sliders->count() > 0 && !$hasMedia)
+      <!-- Moving Slider (Swiper) when no media is present -->
+      <div class="swiper hero-moving-swiper w-100 h-100">
+        <div class="swiper-wrapper">
+          @foreach($sliders as $slider)
+          <div class="swiper-slide d-flex align-items-center justify-content-center" style="background: var(--bg-primary);">
+            <div id="hero-content-overlay-{{ $slider->id }}" class="hero-content container px-4 text-center">
+              <div class="reveal-scale">
+                <h1 class="hero-stagger text-4xl md:text-6xl font-extrabold tracking-tight mb-4 uppercase" style="color: var(--text-primary);">
+                  <span class="bg-clip-text text-transparent bg-gradient-to-r from-gold via-gold-light to-gold-dark" data-en="{{ $slider->title_en }}" data-ar="{{ $slider->title_ar }}">
+                    {{ app()->getLocale() == 'ar' ? $slider->title_ar : $slider->title_en }}
+                  </span>
+                </h1>
+                <p class="hero-stagger text-lg md:text-2xl text-secondary-class mb-8 max-w-2xl mx-auto leading-relaxed" style="color: var(--text-secondary);"
+                   data-en="{{ $slider->desc_en }}" data-ar="{{ $slider->desc_ar }}">
+                   {{ app()->getLocale() == 'ar' ? $slider->desc_ar : $slider->desc_en }}
+                </p>
+                <div class="hero-stagger d-flex flex-column flex-sm-row justify-content-center align-items-center gap-4">
+                  @if($slider->btn1_text_ar || $slider->btn1_text_en)
+                  <a href="{{ $slider->btn1_link }}" class="btn btn-luxury px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                     data-en="{{ $slider->btn1_text_en }}" data-ar="{{ $slider->btn1_text_ar }}">
+                    {{ app()->getLocale() == 'ar' ? $slider->btn1_text_ar : $slider->btn1_text_en }}
+                  </a>
+                  @endif
+                  @if($slider->btn2_text_ar || $slider->btn2_text_en)
+                  <a href="{{ $slider->btn2_link }}" class="btn btn-glass px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                     data-en="{{ $slider->btn2_text_en }}" data-ar="{{ $slider->btn2_text_ar }}">
+                    {{ app()->getLocale() == 'ar' ? $slider->btn2_text_ar : $slider->btn2_text_en }}
+                  </a>
+                  @endif
+                </div>
+              </div>
+            </div>
+          </div>
+          @endforeach
         </div>
+        <div class="swiper-button-prev hero-swiper-prev"></div>
+        <div class="swiper-button-next hero-swiper-next"></div>
       </div>
+     //HMMM 
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          if (document.querySelector('.hero-moving-swiper')) {
+            new Swiper('.hero-moving-swiper', {
+              loop: true,
+              autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+              },
+              navigation: {
+                nextEl: '.hero-swiper-next',
+                prevEl: '.hero-swiper-prev',
+              },
+              effect: 'fade',
+              fadeEffect: {
+                crossFade: true
+              }
+            });
+          }
+        });
+      </script>
 
-      <!-- Symmetrical Floating 3D Cards -->
-      <div class="hero-stagger hidden md:grid grid-cols-3 gap-4 mt-16 max-w-4xl mx-auto" data-stagger="4">
+      <!-- Symmetrical Floating 3D Cards (Static underneath) -->
+      <div class="hero-stagger hidden md:grid grid-cols-3 gap-4 mt-16 max-w-4xl mx-auto position-absolute bottom-10 start-50 translate-middle-x z-3" style="width: 100%;">
         <div class="glass-panel tilt-card p-4 text-center cursor-pointer float-slow">
           <i class="bi bi-shield-check text-3xl mb-2 text-gold"></i>
           <h4 class="font-bold text-sm mb-1" data-en="Approved OTE Center" data-ar="مركز اختبار معتمد">Approved OTE Center</h4>
@@ -76,7 +91,111 @@
         </div>
       </div>
 
-    </div>
+    @else
+      <!-- Static Hero (either has media from db or original fallback) -->
+      <div class="hero-frame-stage" aria-hidden="true">
+        @if($hasMedia)
+            @if($firstSlider->video1)
+            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('storage/' . $firstSlider->video1) }}" muted playsinline preload="auto"></video>
+            @endif
+            @if($firstSlider->video2)
+            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video {{ !$firstSlider->video1 ? 'is-active' : '' }}" src="{{ asset('storage/' . $firstSlider->video2) }}" muted playsinline preload="auto"></video>
+            @endif
+            @if($firstSlider->image)
+            <img id="hero-bg-still" class="hero-frame-stage__media hero-frame-stage__still {{ (!$firstSlider->video1 && !$firstSlider->video2) ? 'is-active' : '' }}" src="{{ asset('storage/' . $firstSlider->image) }}" alt="">
+            @endif
+        @else
+            <!-- Fallback to original backgrounds -->
+            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('site/images/slider1.mp4') }}" muted playsinline preload="auto"></video>
+            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video" src="{{ asset('site/images/slider1.mp4') }}" muted playsinline preload="auto"></video>
+            <img id="hero-bg-still" class="hero-frame-stage__media hero-frame-stage__still" src="{{ asset('site/images/bg-main.jpg') }}" alt="">
+        @endif
+      </div>
+
+      <div class="hero-overlay"></div>
+      <canvas id="particles-canvas" class="particles-canvas-class"></canvas>
+
+      <!-- Floating Background Shapes -->
+      <div class="absolute top-1/4 left-10 w-24 h-24 bg-gold opacity-10 rounded-full blur-xl float-slow parallax-layer" data-parallax-speed="0.03"></div>
+      <div class="absolute bottom-1/4 right-20 w-36 h-36 bg-cyan-400 opacity-10 rounded-full blur-2xl float-medium parallax-layer" data-parallax-speed="-0.02"></div>
+      <div class="absolute top-1/3 right-1/4 w-16 h-16 bg-purple-500 opacity-5 rounded-full blur-lg float-fast parallax-layer" data-parallax-speed="0.05"></div>
+
+      <div id="hero-content-overlay" class="hero-content hero-content-overlay container px-4">
+        <div class="reveal-scale">
+          <h1 class="hero-stagger text-4xl md:text-6xl font-extrabold tracking-tight mb-4 uppercase" data-stagger="1" style="color: var(--text-primary);">
+            @if($firstSlider)
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-gold via-gold-light to-gold-dark" data-en="{{ $firstSlider->title_en }}" data-ar="{{ $firstSlider->title_ar }}">
+                    {{ app()->getLocale() == 'ar' ? $firstSlider->title_ar : $firstSlider->title_en }}
+                </span>
+            @else
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-gold via-gold-light to-gold-dark" data-en="FULL MARKS ACADEMY" data-ar="أكاديمية العلامة الكاملة">FULL MARKS ACADEMY</span>
+            @endif
+          </h1>
+          
+          <p class="hero-stagger text-lg md:text-2xl text-secondary-class mb-8 max-w-2xl mx-auto leading-relaxed" data-stagger="2" style="color: var(--text-secondary);"
+             @if($firstSlider)
+             data-en="{{ $firstSlider->desc_en }}" data-ar="{{ $firstSlider->desc_ar }}"
+             @else
+             data-en="Step Into Professional Excellence. Approved Full Mark Test Center & Global Academic Preparation."
+             data-ar="بوابتك للتميز الأكاديمي والمهني. مركز اختبارات العلامة الكاملة المعتمد والتدريب اللغوي الدولي."
+             @endif
+             >
+            @if($firstSlider)
+                {{ app()->getLocale() == 'ar' ? $firstSlider->desc_ar : $firstSlider->desc_en }}
+            @else
+                {{ app()->getLocale() == 'ar' ? 'بوابتك للتميز الأكاديمي والمهني. مركز اختبارات العلامة الكاملة المعتمد والتدريب اللغوي الدولي.' : 'Step Into Professional Excellence. Approved Full Mark Test Center & Global Academic Preparation.' }}
+            @endif
+          </p>
+
+          <!-- CTA Buttons -->
+          <div class="hero-stagger d-flex flex-column flex-sm-row justify-content-center align-items-center gap-4" data-stagger="3">
+            @if($firstSlider)
+                @if($firstSlider->btn1_text_ar || $firstSlider->btn1_text_en)
+                <a href="{{ $firstSlider->btn1_link }}" class="btn btn-luxury px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                   data-en="{{ $firstSlider->btn1_text_en }}" data-ar="{{ $firstSlider->btn1_text_ar }}">
+                  {{ app()->getLocale() == 'ar' ? $firstSlider->btn1_text_ar : $firstSlider->btn1_text_en }}
+                </a>
+                @endif
+                @if($firstSlider->btn2_text_ar || $firstSlider->btn2_text_en)
+                <a href="{{ $firstSlider->btn2_link }}" class="btn btn-glass px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                   data-en="{{ $firstSlider->btn2_text_en }}" data-ar="{{ $firstSlider->btn2_text_ar }}">
+                  {{ app()->getLocale() == 'ar' ? $firstSlider->btn2_text_ar : $firstSlider->btn2_text_en }}
+                </a>
+                @endif
+            @else
+                <a href="#actions" class="btn btn-luxury px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                   data-en="Placement Test Booking" data-ar="حجز تحديد المستوى">
+                  Placement Test Booking
+                </a>
+                <a href="#contact" class="btn btn-glass px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                   data-en="Book A Course" data-ar="حجز مقعد دراسي">
+                  Book A Course
+                </a>
+            @endif
+          </div>
+        </div>
+
+        <!-- Symmetrical Floating 3D Cards -->
+        <div class="hero-stagger hidden md:grid grid-cols-3 gap-4 mt-16 max-w-4xl mx-auto" data-stagger="4">
+          <div class="glass-panel tilt-card p-4 text-center cursor-pointer float-slow">
+            <i class="bi bi-shield-check text-3xl mb-2 text-gold"></i>
+            <h4 class="font-bold text-sm mb-1" data-en="Approved OTE Center" data-ar="مركز اختبار معتمد">Approved OTE Center</h4>
+            <p class="text-xs opacity-75" data-en="Direct licensing from Full Mark University Press" data-ar="ترخيص مباشر من مطبعة جامعة العلامة الكاملة">Direct licensing from Full Mark University Press</p>
+          </div>
+          <div class="glass-panel tilt-card p-4 text-center cursor-pointer float-medium">
+            <i class="bi bi-person-workspace text-3xl mb-2 text-gold"></i>
+            <h4 class="font-bold text-sm mb-1" data-en="Expert Instructors" data-ar="مدربون ذوو خبرة">Expert Instructors</h4>
+            <p class="text-xs opacity-75" data-en="Certified ESL trainers with global experience" data-ar="مدربون لغة معتمدون ذوو خبرة عالمية">Certified ESL trainers with global experience</p>
+          </div>
+          <div class="glass-panel tilt-card p-4 text-center cursor-pointer float-fast">
+            <i class="bi bi-clock-history text-3xl mb-2 text-gold"></i>
+            <h4 class="font-bold text-sm mb-1" data-en="Flexible Hours" data-ar="أوقات مرنة">Flexible Hours</h4>
+            <p class="text-xs opacity-75" data-en="Morning & evening schedules fit for work and school" data-ar="مواعيد صباحية ومسائية تناسب العمل والدراسة">Morning & evening schedules fit for work and school</p>
+          </div>
+        </div>
+
+      </div>
+    @endif
     <!-- Scroll Indicator (outside overlay so it positions relative to #hero) -->
     <div id="hero-scroll-indicator" class="hero-stagger" data-stagger="5">
         <a href="#about" class="text-decoration-none" style="color: var(--text-primary);">

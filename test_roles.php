@@ -1,0 +1,1 @@
+﻿<?php require 'vendor/autoload.php'; $app = require_once 'bootstrap/app.php'; $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class); print_r(App\Models\Admin::first()->roles->pluck('name')->toArray());

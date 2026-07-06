@@ -14,7 +14,7 @@ class PermissionsGroup extends Model
      * Standard CRUD actions auto-generated as `admin.{module}.{action}` permissions
      * for every module-level group (same logic as yabous_org's AdminPermissionsSeeder).
      */
-    public const ACTIONS = ['view', 'add', 'edit', 'delete', 'status'];
+    public const ACTIONS = ['view', 'add', 'edit', 'delete', 'status', 'import', 'export'];
 
     protected $table = 'permissions_groups';
 
@@ -39,6 +39,11 @@ class PermissionsGroup extends Model
         return $this->hasMany(PermissionsGroup::class, 'parent_id');
     }
 
+    public function mychild()
+    {
+        return $this->hasMany(PermissionsGroup::class, 'parent_id');
+    }
+
     public function permissions()
     {
         return $this->hasMany(Permission::class, 'group_id');
@@ -54,19 +59,25 @@ class PermissionsGroup extends Model
         return static::active()
             ->where('parent_id', 0)
             ->orderBy('sort')
-            ->with(['children' => function ($query) {
+            ->with(['mychild' => function ($query) {
                 $query->active()->orderBy('sort');
             }])
             ->get();
     }
 
+    public function getAllPermissionGroup()
+    {
+        return self::active()->with('permissions')->orderBy('sort')->get();
+    }
+
     /**
-     * Ensure the view/add/edit/delete/status permissions exist for this module group,
+     * Ensure the view/add/edit/delete/status/import/export permissions exist for this module group,
      * named `admin.{name}.{action}`, guard `admin`.
      */
-    public function generateCrudPermissions(): void
+    public function generateCrudPermissions(array $actions = []): void
     {
-        foreach (self::ACTIONS as $action) {
+        $actions = empty($actions) ? self::ACTIONS : $actions;
+        foreach ($actions as $action) {
             Permission::firstOrCreate(
                 ['name' => "admin.{$this->name}.{$action}", 'guard_name' => 'admin'],
                 ['group_id' => $this->id]

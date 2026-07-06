@@ -14,13 +14,21 @@ class UserRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('id');
+        $encryptedId = $this->route('id');
+        $id = null;
+        if ($encryptedId) {
+            try {
+                $id = \Illuminate\Support\Facades\Crypt::decrypt($encryptedId);
+            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+                // Ignore or handle
+            }
+        }
 
         return [
             'name' => 'required|string|min:3|max:191',
             'email' => ['required', 'email', Rule::unique('admins', 'email')->ignore($id)],
-            'password' => $id ? 'nullable|string|min:8' : 'required|string|min:8',
-            'role' => 'required|string|exists:roles,name',
+            'password' => $id ? 'nullable|required_with:password_confirmation|string|min:6|confirmed' : 'required|string|min:6|confirmed',
+            'role' => 'required|integer|exists:roles,id',
             'photo' => 'nullable|image|max:2048',
             'status' => 'nullable|boolean',
         ];

@@ -1,6 +1,10 @@
-<a href="{{ route('permissions.edit', \Illuminate\Support\Facades\Crypt::encrypt($role->id)) }}" class="btn btn-sm btn-light-primary">{{ __('app.edit') }}</a>
-<form action="{{ route('permissions.delete') }}" method="POST" class="d-inline dt-ajax-delete-form">
-    @csrf
-    <input type="hidden" name="id" value="{{ \Illuminate\Support\Facades\Crypt::encrypt($role->id) }}">
-    <button type="submit" class="btn btn-sm btn-light-danger">{{ __('app.delete') }}</button>
-</form>
+@can('admin.' . $active_menu . '.edit')
+<a href="{{ route($active_menu . '.edit', Crypt::encrypt($id)) }}" class="btn btn-icon btn-primary btn-sm">
+   <i class="bi bi-pencil-square fs-5"></i></a>
+@endcan
+
+@can('admin.' . $active_menu . '.delete')
+<a class="btn btn-icon btn-danger btn-sm" href="javascript:void(0)" data-href="{{ Crypt::encrypt($id) }}" data-bs-toggle="modal" data-bs-target="#confirm">
+    <i class="bi bi-trash3-fill fs-5"></i>
+</a>
+@endcan

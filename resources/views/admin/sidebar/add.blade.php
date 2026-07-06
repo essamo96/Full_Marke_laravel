@@ -1,87 +1,87 @@
-@extends('layouts.admin')
-
-@section('title', isset($info) ? __('app.edit') : __('app.add_new'))
-
-@php($pageTitle = isset($info) ? __('app.edit') : __('app.add_new'))
-
-@section('content')
+@extends('admin.layout.mainLayouts.master')
+@section('title')
+    {{ $current_route->{'name_' . \App\Helpers\translate('lang')} }}
+@stop
+@section('page-breadcrumb')
+    <li class="breadcrumb-item text-muted">
+        <a href="{{ url('/') }}" class="text-muted text-hover-primary">{{ \App\Helpers\translate('home') }}</a>
+    </li>
+    <li class="breadcrumb-item text-muted">- {{ $current_route->{'name_' . \App\Helpers\translate('lang')} }}</li>
+@stop
+@section('page-content')
     <div class="card">
-        <div class="card-body">
-            <form method="POST"
-                  action="{{ isset($info) ? route('sidebar.edit.submit', \Illuminate\Support\Facades\Crypt::encrypt($info->id)) : route('sidebar.add.submit') }}">
-                @csrf
+        <div class="card-body py-4">
+            @include('admin.layout.masterLayouts.error')
+             <form action="" method="POST">
+                <div class="row justify-content-center">
+                    <div class="col-9">
+                        <div class="form-floating mb-9 row ">
+                            <div class="col">
+                                <label class="p-2  required">{{ \App\Helpers\translate('name') }} </label>
+                                <input type="text" value="{{ $info ? $info->name : old('name') }}" name="name"
+                                    class="form-control" />
+                            </div>
+                            <div class="col">
+                                <label class="p-2  required"> {{ \App\Helpers\translate('icon') }} </label>
+                                <input type="text" value="{{ $info ? $info->icon : old('icon') }}" name="icon"
+                                    class="form-control" />
+                            </div>
 
-                @if ($errors->any())
-                    <div class="alert alert-danger">
-                        <ul class="mb-0">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                <div class="row">
-                    <div class="col-md-6 mb-5">
-                        <label class="form-label required">{{ __('app.route_name') }} (e.g. <code>users</code>)</label>
-                        <input type="text" name="name" value="{{ old('name', $info->name ?? '') }}" class="form-control" required>
-                    </div>
-
-                    <div class="col-md-6 mb-5">
-                        <label class="form-label">{{ __('app.parent_group') }}</label>
-                        <select name="parent_id" class="form-select">
-                            <option value="0">-- {{ __('app.parent_group') }} --</option>
-                            @foreach ($parents as $parent)
-                                <option value="{{ $parent->id }}" @selected(old('parent_id', $info->parent_id ?? 0) == $parent->id)>
-                                    {{ $parent->name_en ?? $parent->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-5">
-                        <label class="form-label">{{ __('app.name_ar') }}</label>
-                        <input type="text" name="name_ar" value="{{ old('name_ar', $info->name_ar ?? '') }}" class="form-control">
-                    </div>
-
-                    <div class="col-md-6 mb-5">
-                        <label class="form-label">{{ __('app.name_en') }}</label>
-                        <input type="text" name="name_en" value="{{ old('name_en', $info->name_en ?? '') }}" class="form-control">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-5">
-                        <label class="form-label">{{ __('app.icon') }}</label>
-                        <input type="text" name="icon" value="{{ old('icon', $info->icon ?? '') }}" class="form-control" placeholder="ki-duotone ki-element-11">
-                    </div>
-
-                    <div class="col-md-6 mb-5">
-                        <label class="form-label">{{ __('app.color') }}</label>
-                        <input type="text" name="color" value="{{ old('color', $info->color ?? '') }}" class="form-control" placeholder="#3699FF">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-5">
-                        <label class="form-label">{{ __('app.sort') }}</label>
-                        <input type="number" name="sort" value="{{ old('sort', $info->sort ?? 0) }}" class="form-control">
-                    </div>
-
-                    <div class="col-md-6 mb-5">
-                        <label class="form-label d-block">{{ __('app.status') }}</label>
-                        <div class="form-check form-switch">
-                            <input type="checkbox" name="status" class="form-check-input" value="1" {{ old('status', $info->status ?? true) ? 'checked' : '' }}>
-                            <label class="form-check-label">{{ __('app.active') }}</label>
+                        </div>
+                        <div class="form-floating mb-9 row ">
+                            <div class="col">
+                                <label class="p-2  required"> {{ \App\Helpers\translate('name_ar') }} </label>
+                                <input type="text" value="{{ $info ? $info->name_ar : old('name_ar') }}" name="name_ar"
+                                    class="form-control" />
+                            </div>
+                            <div class="col">
+                                <label class="p-2  required"> {{ \App\Helpers\translate('name_en') }} </label>
+                                <input type="text" value="{{ $info ? $info->name_en : old('name_en') }}" name="name_en"
+                                    class="form-control" />
+                            </div>
+                        </div>
+                        <div class="form-floating mb-9 row ">
+                            <div class="col">
+                                <label class="p-2  required"> {{ \App\Helpers\translate('sort') }} </label>
+                                <input type="numper" value="{{ $info ? $info->sort : old('sort') }}" name="sort"
+                                    class="form-control" />
+                            </div>
+                            <div class="col">
+                                <label class="p-2  required"> {{ \App\Helpers\translate('parent') }} </label>
+                                <select class="form-select" aria-label="Select example" name="parent_id">
+                                    <option value="0">{{ \App\Helpers\translate('choose') }}</option>
+                                    <?php $data = $info ? $info->parent_id : old('parent_id'); ?>
+                                    @foreach ($permissions as $item)
+                                        <option value="{{ $item->id }}" {{ $data == $item->id ? 'selected' : '' }}>
+                                            {{ $item->{'name_' . \App\Helpers\translate('lang')} }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-floating mb row">
+                            <div class="col">
+                                <label class="p-2  required"> {{ \App\Helpers\translate('color') }} </label>
+                                <input type="text" value="{{ $info ? $info->color : old('color') }}" name="color"
+                                    class="form-control" />
+                            </div>
+                            <div class="col">
+                                <label class="p-2  required">{{ \App\Helpers\translate('status') }}</label>
+                                <label class="form-check form-switch">
+                                    <?php $data = $info ? $info->status : old('status'); ?>
+                                    <input class="form-check-input" name="status" type="checkbox" value="1"
+                                        {{ $data == 1 ? 'checked="checked"' : '' }}>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <button type="submit" class="btn btn-primary">{{ __('app.save') }}</button>
-                <a href="{{ route('sidebar.view') }}" class="btn btn-light">{{ __('app.cancel') }}</a>
+                <div class="text-center pt-2">
+                    {{ csrf_field() }}
+                    <button type="submit" class="btn btn-primary">{{ \App\Helpers\translate('save') }} </button>
+                    <a type="reset" href="{{ route($active_menu . '.view') }}"
+                        class="btn btn-light me-3">{{ \App\Helpers\translate('cancel') }}</a>
+                </div>
             </form>
         </div>
     </div>
-@endsection
+@stop

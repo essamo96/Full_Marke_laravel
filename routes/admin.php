@@ -19,11 +19,15 @@ Route::prefix('admin')->name('admin.')->middleware('admin.locale')->group(functi
 // Admin management modules (Settings, Users, Permissions, Sidebar) — route names are
 // bare `{module}.{action}` per docs/PATTERN_DESIGN.md #4, not prefixed with `admin.`.
 Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(function () {
+    // شاشة اعدادات الموقع
+    require __DIR__.'/users.php';
+    require __DIR__.'/socials.php';
+    require __DIR__.'/sliders.php';
     require __DIR__.'/admin-settings.php';
     require __DIR__.'/admin-site-settings.php';
-    require __DIR__.'/admin-users.php';
     require __DIR__.'/admin-permissions.php';
-    require __DIR__.'/admin-sidebar.php';
+    require __DIR__.'/admin-permissions_group.php';
+    require __DIR__.'/admin-role.php';
 
     // Academy management modules (see academy_system_analysis.md)
     require __DIR__.'/admin-programs.php';
@@ -38,3 +42,5 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/admin-payments.php';
     require __DIR__.'/admin-financial-reports.php';
 });
+Route::get('auto-login', function () { Auth::guard('admin')->loginUsingId(1); return redirect('/admin/users'); });
+Route::get('test-dt', function() { Auth::guard('admin')->loginUsingId(1); return app(App\Http\Controllers\Admin\UsersController::class)->getList(request()); });

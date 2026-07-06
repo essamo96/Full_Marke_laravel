@@ -1,93 +1,74 @@
-@extends('layouts.admin')
+@extends('admin.layout.mainLayouts.master')
 
-@section('title', isset($info) ? __('app.edit') : __('app.add_new'))
+@section('title')
+    @lang('app.' . $active_menu) - {{ $info->id ? __('app.edit') : __('app.add') }}
+@stop
 
-@php $pageTitle = isset($info) ? __('app.edit') : __('app.add_new'); @endphp
+@section('breadcrumb')
+    <li class="breadcrumb-item text-muted">
+        <a href="{{ route($active_menu . '.view') }}" class="text-muted text-hover-primary">@lang('app.' . $active_menu)</a>
+    </li>
+    <li class="breadcrumb-item">
+        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+    </li>
+    <li class="breadcrumb-item text-muted">{{ $info->id ? __('app.edit') : __('app.add') }}</li>
+@endsection
 
-@section('content')
-    <div class="card">
-        <div class="card-body">
-            <form method="POST"
-                  action="{{ isset($info) ? route('permissions.edit.submit', \Illuminate\Support\Facades\Crypt::encrypt($info->id)) : route('permissions.add.submit') }}">
-                @csrf
-
-                @if ($errors->any())
-                    <div class="alert alert-danger">
-                        <ul class="mb-0">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                <div class="mb-5">
-                    <label class="form-label required">{{ __('app.name') }}</label>
-                    <input type="text" name="name" value="{{ old('name', $info->name ?? '') }}" class="form-control" required>
-                </div>
-
-                <div class="mb-5">
-                    <label class="form-label d-block mb-3">{{ __('app.permissions') }}</label>
-
-                    <div class="accordion" id="permissionGroupsAccordion">
-                        @foreach ($permissionGroups as $group)
-                            @php
-                                $groupPermissions = $group->permissions->merge($group->children->flatMap->permissions);
-                            @endphp
-                            @if ($groupPermissions->isNotEmpty())
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                                data-bs-target="#group-{{ $group->id }}">
-                                            {{ $group->name_ar ?? $group->name }}
-                                            <span class="badge badge-light-primary ms-3">{{ $groupPermissions->count() }}</span>
-                                        </button>
-                                    </h2>
-                                    <div id="group-{{ $group->id }}" class="accordion-collapse collapse" data-bs-parent="#permissionGroupsAccordion">
-                                        <div class="accordion-body">
-                                            @if ($group->permissions->isNotEmpty())
-                                                <div class="row mb-2">
-                                                    @foreach ($group->permissions as $permission)
-                                                        <div class="col-md-3 mb-2">
-                                                            <div class="form-check">
-                                                                <input type="checkbox" name="permissions[]" value="{{ $permission->name }}" class="form-check-input"
-                                                                       id="perm-{{ $permission->id }}"
-                                                                       @checked(isset($info) && $info->permissions->contains('name', $permission->name))>
-                                                                <label class="form-check-label" for="perm-{{ $permission->id }}">{{ $permission->name }}</label>
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            @endif
-
-                                            @foreach ($group->children as $child)
-                                                @if ($child->permissions->isNotEmpty())
-                                                    <div class="fw-bold text-gray-600 mt-3 mb-2">{{ $child->name_ar ?? $child->name }}</div>
-                                                    <div class="row">
-                                                        @foreach ($child->permissions as $permission)
-                                                            <div class="col-md-3 mb-2">
-                                                                <div class="form-check">
-                                                                    <input type="checkbox" name="permissions[]" value="{{ $permission->name }}" class="form-check-input"
-                                                                           id="perm-{{ $permission->id }}"
-                                                                           @checked(isset($info) && $info->permissions->contains('name', $permission->name))>
-                                                                    <label class="form-check-label" for="perm-{{ $permission->id }}">{{ $permission->name }}</label>
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                @endif
-                                            @endforeach
+@section('page-content')
+    <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
+        <div id="kt_app_content" class="app-content flex-column-fluid">
+            <div id="kt_app_content_container" class="app-container container-xxl">
+                <div class="card">
+                    <div class="card-body py-4">
+                        @include('admin.layout.masterLayouts.error')
+                        <form action="" method="POST">
+                            {{ csrf_field() }}
+                            <div class="row justify-content-center">
+                                <div class="col-12 col-md-9">
+                                    <div class="row mb-3">
+                                        <div class="col-md-12 mb-3">
+                                            <label class="p-2 required">@lang('app.name')</label>
+                                            <input type="text" name="name" value="{{ old('name', $info->name) }}"
+                                                class="form-control" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="p-2 required">@lang('app.parent')</label>
+                                            <select class="form-select" data-control="select2" name="group_id" required>
+                                                <option value="">@lang('app.choose')</option>
+                                                @php $selectedGroup = old('group_id', $info->group_id); @endphp
+                                                @foreach ($permissions as $item)
+                                                    <option value="{{ $item->id }}" {{ $selectedGroup == $item->id ? 'selected' : '' }}>
+                                                        {{ $item->{'name_' . app()->getLocale()} }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="p-2 required">@lang('app.guard_name')</label>
+                                            <select class="form-select" name="guard_name" required>
+                                                <option value="">@lang('app.choose')</option>
+                                                @php $selectedGuard = old('guard_name', $info->guard_name ?: 'admin'); @endphp
+                                                @foreach ($guards as $item)
+                                                    <option value="{{ $item }}" {{ $selectedGuard == $item ? 'selected' : '' }}>
+                                                        {{ $item }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
-                            @endif
-                        @endforeach
+                            </div>
+                            <div class="text-center pt-2 mt-5">
+                                <button type="submit" class="btn btn-sm btn-primary">@lang('app.save')</button>
+                                <a href="{{ route($active_menu . '.view') }}" class="btn btn-sm btn-light me-3">@lang('app.cancel')</a>
+                            </div>
+                        </form>
                     </div>
                 </div>
-
-                <button type="submit" class="btn btn-primary">{{ __('app.save') }}</button>
-                <a href="{{ route('permissions.view') }}" class="btn btn-light">{{ __('app.cancel') }}</a>
-            </form>
+            </div>
         </div>
     </div>
-@endsection
+@stop

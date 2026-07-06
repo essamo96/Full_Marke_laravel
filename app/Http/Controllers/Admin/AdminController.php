@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Company;
 use App\Models\Setting;
 use App\Models\PermissionsGroup;
-use App\Models\Contact;
 use Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -24,16 +22,16 @@ class AdminController extends BaseController {
         ValidatesRequests;
 
 public function __construct() {
+    
     $permission_group = new PermissionsGroup();
     self::$data['sidebar'] = $permission_group->getAllParentPermissionGroup();
-    self::$data['pending_applications_count'] = \App\Models\Application::where('status', 'new')->count();
-    self::$data['pending_applications'] = \App\Models\Application::where('status', 'new')->latest()->take(5)->get();
+    self::$data['settings'] = Setting::where('id', 1)->first() ?? "";
+    self::$data['companies'] = [];
 
     // الحصول على اسم الراوت الحالي
     $route_name = Route::currentRouteName();
     $route_data = explode('.', $route_name);
     $current_route = $route_data[0] ?? '';
-
     // قيمة افتراضية في حال عدم وجود تطابق
     $init_obj = new \stdClass();
     $init_obj->name = '';
@@ -46,13 +44,15 @@ public function __construct() {
     foreach (self::$data['sidebar'] as $menu_item) {
         // تحقق من الأب نفسه
         if ($current_route === $menu_item->name) {
+            
+
             self::$data['current_route'] = $menu_item;
             break;  // وجدنا التطابق نوقف البحث
         }
 
         // تحقق من الأبناء إن وجدوا (mychild قد تكون مصفوفة أو empty)
-        if (!empty($menu_item->children)) {
-            foreach ($menu_item->children as $child_item) {
+        if (!empty($menu_item->mychild)) {
+            foreach ($menu_item->mychild as $child_item) {
                 if ($current_route === $child_item->name) {
                     self::$data['current_route'] = $child_item;
                     break 2; // خروج من الحلقات كلها

@@ -10,3 +10,4 @@ Route::post('permissions/add', [PermissionsController::class, 'postAdd'])->name(
 Route::get('permissions/edit/{id}', [PermissionsController::class, 'getEdit'])->name('permissions.edit')->middleware('permission:admin.permissions.edit');
 Route::post('permissions/edit/{id}', [PermissionsController::class, 'postEdit'])->name('permissions.edit.submit')->middleware('permission:admin.permissions.edit');
 Route::post('permissions/delete', [PermissionsController::class, 'postDelete'])->name('permissions.delete')->middleware('permission:admin.permissions.delete');
+Route::post('permissions/status', [PermissionsController::class, 'postStatus'])->name('permissions.status')->middleware('permission:admin.permissions.status');

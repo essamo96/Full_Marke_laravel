@@ -1,0 +1,1 @@
+﻿<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Support\Facades\DB; return new class extends Migration { public function up() { DB::statement('ALTER TABLE admins MODIFY COLUMN role VARCHAR(255) NOT NULL DEFAULT "admin"'); } public function down() {} };
