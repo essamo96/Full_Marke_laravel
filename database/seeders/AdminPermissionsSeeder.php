@@ -15,19 +15,131 @@ class AdminPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Dashboard permission (Always needed)
+        // 1. Create or ensure Dashboard permission
         Permission::firstOrCreate(['name' => 'admin.dashboard.view', 'guard_name' => 'admin']);
 
-        // 2. Fetch all groups and assign permissions dynamically
-        $groups = PermissionsGroup::all();
+        // 2. Explicitly define and insert Permissions Groups
+        $groups = [
+            [
+                'name' => 'dashboard',
+                'name_ar' => 'الرئيسية',
+                'name_en' => 'Dashboard',
+                'color' => 'dark',
+                'icon' => 'bi-house-fill',
+                'sort' => 1,
+                'status' => 1,
+                'children' => []
+            ],
+            [
+                'name' => 'general_settings',
+                'name_ar' => 'ادارة الموقع',
+                'name_en' => 'Website Settings',
+                'color' => 'dark',
+                'icon' => 'bi-gear-fill',
+                'sort' => 1,
+                'status' => 1,
+                'children' => []
+            ],
+            [
+                'name' => 'outside_settings',
+                'name_ar' => 'التحكم بالموقع الخارجي',
+                'name_en' => 'Control Out Wibsite',
+                'color' => 'dark',
+                'icon' => 'bi-wrench',
+                'sort' => 29,
+                'status' => 1,
+                'children' => [
+                    [
+                        'name' => 'socials',
+                        'name_ar' => 'منصات التواصل',
+                        'name_en' => 'Socials',
+                        'color' => 'dark',
+                        'icon' => 'bi-pie-chart',
+                        'sort' => 1,
+                        'status' => 1,
+                    ],
+                    [
+                        'name' => 'sliders',
+                        'name_ar' => 'السلايدر',
+                        'name_en' => 'Sliders',
+                        'color' => 'dark',
+                        'icon' => 'bi-record-fill',
+                        'sort' => 2,
+                        'status' => 1,
+                    ]
+                ]
+            ],
+            [
+                'name' => 'dashboard_settings',
+                'name_ar' => 'اعدادات الموقع',
+                'name_en' => 'Dashboard Settings',
+                'color' => 'dark',
+                'icon' => 'bi-tools',
+                'sort' => 30,
+                'status' => 1,
+                'children' => [
+                    [
+                        'name' => 'users',
+                        'name_ar' => 'المستخدمين',
+                        'name_en' => 'Users',
+                        'color' => null,
+                        'icon' => 'ki-duotone ki-user',
+                        'sort' => 1,
+                        'status' => 1,
+                    ],
+                    [
+                        'name' => 'permissions_group',
+                        'name_ar' => 'القائمة الجانبية',
+                        'name_en' => 'Permissions group',
+                        'color' => null,
+                        'icon' => 'ki-duotone ki-burger-menu-2',
+                        'sort' => 2,
+                        'status' => 1,
+                    ],
+                    [
+                        'name' => 'permissions',
+                        'name_ar' => 'الصلاحيات',
+                        'name_en' => 'Permissions',
+                        'color' => null,
+                        'icon' => 'ki-duotone ki-shield-tick',
+                        'sort' => 3,
+                        'status' => 1,
+                    ],
+                    [
+                        'name' => 'role',
+                        'name_ar' => 'الادوار',
+                        'name_en' => 'Role',
+                        'color' => null,
+                        'icon' => 'ki-duotone ki-key',
+                        'sort' => 4,
+                        'status' => 1,
+                    ],
+                ]
+            ]
+        ];
 
-        foreach ($groups as $group) {
-            if ($group->parent_id == 0 || $group->parent_id === null) {
-                // Parent group -> only 'view'
-                $group->generateCrudPermissions(['view']);
-            } else {
-                // Child group -> 7 permissions
-                $group->generateCrudPermissions(['view', 'add', 'edit', 'delete', 'status', 'import', 'export']);
+        foreach ($groups as $groupData) {
+            $children = $groupData['children'] ?? [];
+            unset($groupData['children']);
+            $groupData['parent_id'] = 0;
+
+            $parentGroup = PermissionsGroup::updateOrCreate(
+                ['name' => $groupData['name']],
+                $groupData
+            );
+
+            // Generate view permission for parent
+            $parentGroup->generateCrudPermissions(['view']);
+
+            foreach ($children as $childData) {
+                $childData['parent_id'] = $parentGroup->id;
+                $childGroup = PermissionsGroup::updateOrCreate(
+                    ['name' => $childData['name']],
+                    $childData
+                );
+
+                // Generate full CRUD permissions for child
+                $childGroup->generateCrudPermissions(['view', 'add', 'edit', 'delete', 'status', 'import', 'export']);
             }
         }
 
@@ -35,10 +147,10 @@ class AdminPermissionsSeeder extends Seeder
         $superAdmin = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'admin']);
         $superAdmin->syncPermissions(Permission::where('guard_name', 'admin')->get());
 
-        // Assign Super Admin role to the main admin user
-        $admin = Admin::firstOrCreate(
-            ['email' => 'admin@fullmarkacademy.test'],
-            ['name' => 'Super Admin', 'password' => Hash::make('password'), 'status' => 1]
+        // 4. Assign Super Admin role to the main admin user (essam@hotmail.com)
+        $admin = Admin::updateOrCreate(
+            ['email' => 'essam@hotmail.com'],
+            ['name' => 'Essam', 'password' => Hash::make('123456789'), 'status' => 1]
         );
         
         if (!$admin->hasRole('Super Admin')) {
