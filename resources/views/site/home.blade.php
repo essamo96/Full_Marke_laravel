@@ -1,11 +1,27 @@
 @extends('layouts.site')
 
-@section('title', 'FULL MARKS ACADEMY | Premium Landing Page')
+@section('title', \App\Models\SiteSetting::current()->translation->seo_title ?? 'FULL MARKS ACADEMY')
 
 @section('content')
   <!-- Hero Section -->
   <section id="hero" class="hero-section">
     @php
+        $about = $pages['about_us'] ?? null;
+        $aboutAr = $about?->translations->where('locale', 'ar')->first();
+        $aboutEn = $about?->translations->where('locale', 'en')->first();
+
+        $features = $pages['features'] ?? null;
+        $featuresAr = $features?->translations->where('locale', 'ar')->first();
+        $featuresEn = $features?->translations->where('locale', 'en')->first();
+
+        $services = $pages['services'] ?? null;
+        $servicesAr = $services?->translations->where('locale', 'ar')->first();
+        $servicesEn = $services?->translations->where('locale', 'en')->first();
+
+        $training = $pages['training_hours'] ?? null;
+        $trainingAr = $training?->translations->where('locale', 'ar')->first();
+        $trainingEn = $training?->translations->where('locale', 'en')->first();
+
         $firstSlider = $sliders->first();
         $hasMedia = $firstSlider && ($firstSlider->video1 || $firstSlider->video2 || $firstSlider->image);
     @endphp
@@ -212,13 +228,17 @@
         <!-- Text Column -->
         <div class="col-lg-6 reveal-left">
           <h5 class="section-subtitle" data-en="DISCOVER FULL MARK" data-ar="اكتشف العلامة الكاملة">DISCOVER FULL MARK</h5>
-          <h2 class="section-title" data-en="Leading Academic Training Institution" data-ar="المؤسسة الأكاديمية الرائدة للتدريب">Leading Academic Training Institution</h2>
+          <h2 class="section-title" data-en="{{ $aboutEn?->title ?? 'Leading Academic Training Institution' }}" data-ar="{{ $aboutAr?->title ?? 'المؤسسة الأكاديمية الرائدة للتدريب' }}">
+            {{ app()->getLocale() == 'ar' ? ($aboutAr?->title ?? 'المؤسسة الأكاديمية الرائدة للتدريب') : ($aboutEn?->title ?? 'Leading Academic Training Institution') }}
+          </h2>
           <div class="section-divider"></div>
-          <p class="text-lg leading-relaxed mb-6" style="color: var(--text-secondary);"
-             data-en="FULL MARKS ACADEMY stands at the forefront of language education and testing. As an approved Full Mark Test of English (OTE) center, we deliver globally recognized certifications alongside premier academic instruction tailored for IELTS preparation, general levels, and corporate business communication."
-             data-ar="تقف أكاديمية العلامة الكاملة في طليعة تعليم اللغات والتقييم الدولي. بصفتنا مركزًا معتمدًا لاختبار Full Mark Test of English (OTE)، نقدم شهادات معترف بها عالميًا إلى جانب تدريب أكاديمي متميز مُعد خصيصًا لاجتياز اختبار آيلتس، المستويات العامة، والمحادثة المهنية للمؤسسات.">
-            FULL MARKS ACADEMY stands at the forefront of language education and testing. As an approved Full Mark Test of English (OTE) center, we deliver globally recognized certifications alongside premier academic instruction tailored for IELTS preparation, general levels, and corporate business communication.
-          </p>
+          <div class="text-lg leading-relaxed mb-6" style="color: var(--text-secondary);">
+             @if(app()->getLocale() == 'ar')
+                 {!! $aboutAr?->details ?? 'تقف أكاديمية العلامة الكاملة في طليعة تعليم اللغات والتقييم الدولي. بصفتنا مركزًا معتمدًا لاختبار Full Mark Test of English (OTE)، نقدم شهادات معترف بها عالميًا إلى جانب تدريب أكاديمي متميز مُعد خصيصًا لاجتياز اختبار آيلتس، المستويات العامة، والمحادثة المهنية للمؤسسات.' !!}
+             @else
+                 {!! $aboutEn?->details ?? 'FULL MARKS ACADEMY stands at the forefront of language education and testing. As an approved Full Mark Test of English (OTE) center, we deliver globally recognized certifications alongside premier academic instruction tailored for IELTS preparation, general levels, and corporate business communication.' !!}
+             @endif
+          </div>
           <div class="row g-4 mb-8">
             <div class="col-6 d-flex align-items-start">
               <i class="bi bi-patch-check-fill text-gold text-2xl me-3"></i>
@@ -244,7 +264,7 @@
             <div class="about-video-wrapper relative overflow-hidden rounded-lg h-80 md:h-[450px]">
               <video id="about-video"
                      class="about-video"
-                     src="{{ asset('site/images/aboutUs.mp4') }}"
+                     src="{{ $about && $about->video ? asset('storage/' . $about->video) : asset('site/images/aboutUs.mp4') }}"
                      muted
                      loop
                      playsinline
@@ -394,72 +414,87 @@
   <section id="strengths" style="background: var(--bg-primary);">
     <div class="container px-4">
       <div class="text-center max-w-2xl mx-auto mb-16 reveal">
-        <h5 class="section-subtitle" data-en="WHY FULL MARK?" data-ar="لماذا العلامة الكاملة؟">WHY FULL MARK?</h5>
-        <h2 class="section-title" data-en="Core Pillars of Academic Success" data-ar="الركائز الأساسية للنجاح الأكاديمي">Core Pillars of Academic Success</h2>
+        @php 
+            $featSubtitleEn = $featuresEn?->subtitle ?? 'WHY FULL MARK?';
+            $featSubtitleAr = $featuresAr?->subtitle ?? 'لماذا العلامة الكاملة؟';
+        @endphp
+        <h5 class="section-subtitle" data-en="{{ $featSubtitleEn }}" data-ar="{{ $featSubtitleAr }}">
+            {{ app()->getLocale() == 'ar' ? $featSubtitleAr : $featSubtitleEn }}
+        </h5>
+        <h2 class="section-title" data-en="{{ $featuresEn?->title ?? 'Core Pillars of Academic Success' }}" data-ar="{{ $featuresAr?->title ?? 'الركائز الأساسية للنجاح الأكاديمي' }}">
+            {{ app()->getLocale() == 'ar' ? ($featuresAr?->title ?? 'الركائز الأساسية للنجاح الأكاديمي') : ($featuresEn?->title ?? 'Core Pillars of Academic Success') }}
+        </h2>
         <div class="section-divider mx-auto"></div>
       </div>
 
-      <div class="hexagon-grid reveal">
-        <!-- Timetable -->
-        <div class="glass-panel hexagon-card">
-          <div class="hexagon-wrapper">
-            <div class="hexagon-wrapper-inner">
-              <i class="fa-solid fa-clock"></i>
-            </div>
+      @php $featDetails = app()->getLocale() == 'ar' ? $featuresAr?->details : $featuresEn?->details; @endphp
+      @if(!empty(trim(strip_tags($featDetails))))
+          <div class="reveal mt-4">
+              {!! $featDetails !!}
           </div>
-          <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Timetable" data-ar="جدول مرن">Timetable</h4>
-          <p class="text-sm leading-relaxed" style="color: var(--text-secondary);"
-             data-en="Structured scheduling designed to adapt to school, university, and employment constraints."
-             data-ar="جداول زمنية منظمة ومصممة بدقة لتناسب مواعيد المدارس والجامعات وساعات العمل.">
-            Structured scheduling designed to adapt to school, university, and employment constraints.
-          </p>
-        </div>
+      @else
+          <div class="hexagon-grid reveal">
+            <!-- Timetable -->
+            <div class="glass-panel hexagon-card">
+              <div class="hexagon-wrapper">
+                <div class="hexagon-wrapper-inner">
+                  <i class="fa-solid fa-clock"></i>
+                </div>
+              </div>
+              <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Timetable" data-ar="جدول مرن">Timetable</h4>
+              <p class="text-sm leading-relaxed" style="color: var(--text-secondary);"
+                 data-en="Structured scheduling designed to adapt to school, university, and employment constraints."
+                 data-ar="جداول زمنية منظمة ومصممة بدقة لتناسب مواعيد المدارس والجامعات وساعات العمل.">
+                Structured scheduling designed to adapt to school, university, and employment constraints.
+              </p>
+            </div>
 
-        <!-- Teachers -->
-        <div class="glass-panel hexagon-card">
-          <div class="hexagon-wrapper">
-            <div class="hexagon-wrapper-inner">
-              <i class="fa-solid fa-users-line"></i>
+            <!-- Teachers -->
+            <div class="glass-panel hexagon-card">
+              <div class="hexagon-wrapper">
+                <div class="hexagon-wrapper-inner">
+                  <i class="fa-solid fa-users-line"></i>
+                </div>
+              </div>
+              <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Instructors" data-ar="طاقم التدريس">Instructors</h4>
+              <p class="text-sm leading-relaxed" style="color: var(--text-secondary);"
+                 data-en="Certified, highly experienced teachers employing advanced immersion educational methodologies."
+                 data-ar="طاقم تدريس مؤهل دوليًا ومصنف لتطبيق أحدث مناهج التعليم التفاعلي المباشر.">
+                Certified, highly experienced teachers employing advanced immersion educational methodologies.
+              </p>
             </div>
-          </div>
-          <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Instructors" data-ar="طاقم التدريس">Instructors</h4>
-          <p class="text-sm leading-relaxed" style="color: var(--text-secondary);"
-             data-en="Certified, highly experienced teachers employing advanced immersion educational methodologies."
-             data-ar="طاقم تدريس مؤهل دوليًا ومصنف لتطبيق أحدث مناهج التعليم التفاعلي المباشر.">
-            Certified, highly experienced teachers employing advanced immersion educational methodologies.
-          </p>
-        </div>
 
-        <!-- Value -->
-        <div class="glass-panel hexagon-card">
-          <div class="hexagon-wrapper">
-            <div class="hexagon-wrapper-inner">
-              <i class="fa-solid fa-chart-line"></i>
+            <!-- Value -->
+            <div class="glass-panel hexagon-card">
+              <div class="hexagon-wrapper">
+                <div class="hexagon-wrapper-inner">
+                  <i class="fa-solid fa-chart-line"></i>
+                </div>
+              </div>
+              <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Academic Value" data-ar="القيمة الأكاديمية">Academic Value</h4>
+              <p class="text-sm leading-relaxed" style="color: var(--text-secondary);"
+                 data-en="High educational standards providing students with tangible, competitive market skills."
+                 data-ar="معايير تعليمية رفيعة المستوى تمكن الطلاب من اكتساب مهارات تنافسية حقيقية في سوق العمل.">
+                High educational standards providing students with tangible, competitive market skills.
+              </p>
             </div>
-          </div>
-          <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Academic Value" data-ar="القيمة الأكاديمية">Academic Value</h4>
-          <p class="text-sm leading-relaxed" style="color: var(--text-secondary);"
-             data-en="High educational standards providing students with tangible, competitive market skills."
-             data-ar="معايير تعليمية رفيعة المستوى تمكن الطلاب من اكتساب مهارات تنافسية حقيقية في سوق العمل.">
-            High educational standards providing students with tangible, competitive market skills.
-          </p>
-        </div>
 
-        <!-- Students -->
-        <div class="glass-panel hexagon-card">
-          <div class="hexagon-wrapper">
-            <div class="hexagon-wrapper-inner">
-              <i class="fa-regular fa-face-smile"></i>
+            <!-- Students -->
+            <div class="glass-panel hexagon-card">
+              <div class="hexagon-wrapper">
+                <div class="hexagon-wrapper-inner">
+                  <i class="fa-regular fa-face-smile"></i>
+                </div>
+              </div>
+              <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Student Growth" data-ar="تطوير الطالب">Student Growth</h4>
+              <p class="text-sm leading-relaxed" style="color: var(--text-secondary);"
+                 data-en="Fostering student confidence through continuous language workshops and support resources."
+                 data-ar="تعزيز ثقة الطلاب بأنفسهم من خلال ورش العمل اللغوية المتخصصة ومصادر التعلم الإضافية.">
+                Fostering student confidence through continuous language workshops and support resources.
+              </p>
             </div>
           </div>
-          <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Student Growth" data-ar="تطوير الطالب">Student Growth</h4>
-          <p class="text-sm leading-relaxed" style="color: var(--text-secondary);"
-             data-en="Fostering student confidence through continuous language workshops and support resources."
-             data-ar="تعزيز ثقة الطلاب بأنفسهم من خلال ورش العمل اللغوية المتخصصة ومصادر التعلم الإضافية.">
-            Fostering student confidence through continuous language workshops and support resources.
-          </p>
-        </div>
-      </div>
+      @endif
     </div>
   </section>
 
@@ -473,8 +508,16 @@
     <div class="container px-4">
       <div class="text-center max-w-2xl mx-auto mb-16 reveal">
         <h5 class="section-subtitle" data-en="EASY NAVIGATION" data-ar="وصول سريع">EASY NAVIGATION</h5>
-        <h2 class="section-title" data-en="Enroll and Booking Gateways" data-ar="بوابات التسجيل والحجز الفوري">Enroll and Booking Gateways</h2>
+        <h2 class="section-title" data-en="{{ $servicesEn?->title ?? 'Enroll and Booking Gateways' }}" data-ar="{{ $servicesAr?->title ?? 'بوابات التسجيل والحجز الفوري' }}">
+            {{ app()->getLocale() == 'ar' ? ($servicesAr?->title ?? 'بوابات التسجيل والحجز الفوري') : ($servicesEn?->title ?? 'Enroll and Booking Gateways') }}
+        </h2>
         <div class="section-divider mx-auto"></div>
+        @php $servDetails = app()->getLocale() == 'ar' ? $servicesAr?->details : $servicesEn?->details; @endphp
+        @if(!empty(trim(strip_tags($servDetails))))
+        <div class="text-center mt-4 mb-8">
+            {!! $servDetails !!}
+        </div>
+        @endif
       </div>
 
       <div class="row g-4 reveal">
@@ -542,12 +585,28 @@
   <section class="counter-section" style="background-image: url('{{ asset('site/images/img/banner/nos.jpg') }}');">
     <div class="counter-overlay"></div>
     <div class="container relative z-2 px-4">
+      @php 
+         $trainTitle = app()->getLocale() == 'ar' ? $trainingAr?->title : $trainingEn?->title;
+         $trainDetails = app()->getLocale() == 'ar' ? $trainingAr?->details : $trainingEn?->details;
+      @endphp
+      @if(!empty(trim($trainTitle)) || !empty(trim(strip_tags($trainDetails))))
+      <div class="text-center mb-8">
+         @if(!empty(trim($trainTitle)))
+         <h2 class="text-white text-3xl font-bold mb-4">{{ $trainTitle }}</h2>
+         @endif
+         @if(!empty(trim(strip_tags($trainDetails))))
+         <div class="text-white opacity-75">
+             {!! $trainDetails !!}
+         </div>
+         @endif
+      </div>
+      @endif
       <div class="row g-4 text-center">
         <!-- Stat 1 -->
         <div class="col-md-4 reveal">
           <div class="glass-panel stat-card p-5">
             <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
-            <h2 class="text-5xl font-extrabold mb-3 counter-number" data-target="15000">0</h2>
+            <h2 class="text-5xl font-extrabold mb-3 counter-number" data-target="{{ \App\Models\SiteSetting::current()->training_hours_count ?? 15000 }}">0</h2>
             <p class="text-lg font-bold uppercase tracking-wider mb-0" style="color: var(--text-primary);" data-en="Training Hours" data-ar="ساعات تدريبية">Training Hours</p>
           </div>
         </div>
@@ -555,7 +614,7 @@
         <div class="col-md-4 reveal delay-2">
           <div class="glass-panel stat-card p-5">
             <div class="stat-icon"><i class="bi bi-mortarboard-fill"></i></div>
-            <h2 class="text-5xl font-extrabold mb-3 counter-number" data-target="320">0</h2>
+            <h2 class="text-5xl font-extrabold mb-3 counter-number" data-target="{{ \App\Models\SiteSetting::current()->completed_courses_count ?? 320 }}">0</h2>
             <p class="text-lg font-bold uppercase tracking-wider mb-0" style="color: var(--text-primary);" data-en="Total Courses" data-ar="الدورات المنجزة">Total Courses</p>
           </div>
         </div>
@@ -563,7 +622,7 @@
         <div class="col-md-4 reveal delay-4">
           <div class="glass-panel stat-card p-5">
             <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-            <h2 class="text-5xl font-extrabold mb-3 counter-number" data-target="8700">0</h2>
+            <h2 class="text-5xl font-extrabold mb-3 counter-number" data-target="{{ \App\Models\SiteSetting::current()->registered_students_count ?? 8700 }}">0</h2>
             <p class="text-lg font-bold uppercase tracking-wider mb-0" style="color: var(--text-primary);" data-en="Enrolled Students" data-ar="الطلاب المسجلين">Enrolled Students</p>
           </div>
         </div>
@@ -686,117 +745,35 @@
       <!-- Teachers Swiper -->
       <div class="swiper teachers-swiper reveal position-relative overflow-hidden">
         <div class="swiper-wrapper">
-          <!-- Teacher 1 -->
+          @foreach($teams as $team)
           <div class="swiper-slide h-auto">
             <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
               <div class="teacher-image-wrapper">
-                <img src="{{ asset('site/images/img/students/teacher_1.png') }}" alt="Ahmad Al-Saeed" class="teacher-image">
+                <img src="{{ Str::startsWith($team->image, ['http', 'site/']) ? asset($team->image) : asset('storage/' . $team->image) }}" alt="{{ $team->translation->name ?? '' }}" class="teacher-image">
                 <div class="teacher-overlay">
                   <button class="teacher-links-trigger btn btn-luxury rounded-full p-0 d-flex align-items-center justify-content-center" aria-label="Toggle links">
                     <i class="bi bi-plus-lg fs-4"></i>
                   </button>
                   <div class="teacher-links-menu">
-                    <a href="#" class="teacher-social-link"><i class="bi bi-linkedin"></i></a>
-                    <a href="#" class="teacher-social-link"><i class="bi bi-twitter-x"></i></a>
-                    <a href="#" class="teacher-social-link"><i class="bi bi-envelope-fill"></i></a>
+                    @php
+                        $socials = $team->socials ? json_decode($team->socials, true) : [];
+                    @endphp
+                    @foreach($socials as $social)
+                        <a href="{{ $social['link'] ?? '#' }}" class="teacher-social-link"><i class="bi bi-{{ $social['platform'] ?? 'link' }}"></i></a>
+                    @endforeach
                   </div>
                 </div>
               </div>
-              <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
-                <div>
-                  <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Ahmad Al-Saeed</h4>
-                  <p class="text-sm font-bold text-gold mb-3" data-en="IELTS Expert" data-ar="خبير آيلتس">IELTS Expert</p>
-                  <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary);" data-en="Certified British Council trainer." data-ar="مدرب معتمد من المجلس الثقافي البريطاني.">
-                    Certified British Council trainer.
+              <div class="card-content-wrapper text-center">
+                  <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">{{ $team->translation->name ?? '' }}</h4>
+                  <p class="text-sm font-bold mb-2" style="color: var(--accent-primary);">{{ $team->translation->address1 ?? '' }}</p>
+                  <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary); line-height: 1.6;">
+                    {{ \Illuminate\Support\Str::limit(strip_tags($team->translation->description ?? ''), 120) }}
                   </p>
-                </div>
               </div>
             </div>
           </div>
-
-          <!-- Teacher 2 -->
-          <div class="swiper-slide h-auto">
-            <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
-              <div class="teacher-image-wrapper">
-                <img src="{{ asset('site/images/img/students/teacher_2.png') }}" alt="Mariam Naser" class="teacher-image">
-                <div class="teacher-overlay">
-                  <button class="teacher-links-trigger btn btn-luxury rounded-full p-0 d-flex align-items-center justify-content-center" aria-label="Toggle links">
-                    <i class="bi bi-plus-lg fs-4"></i>
-                  </button>
-                  <div class="teacher-links-menu">
-                    <a href="#" class="teacher-social-link"><i class="bi bi-linkedin"></i></a>
-                    <a href="#" class="teacher-social-link"><i class="bi bi-twitter-x"></i></a>
-                    <a href="#" class="teacher-social-link"><i class="bi bi-envelope-fill"></i></a>
-                  </div>
-                </div>
-              </div>
-              <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
-                <div>
-                  <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Mariam Naser</h4>
-                  <p class="text-sm font-bold text-gold mb-3" data-en="General English" data-ar="لغة إنجليزية عامة">General English</p>
-                  <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary);" data-en="Specialist in communicative language." data-ar="متخصصة في مهارات التواصل والمحادثة.">
-                    Specialist in communicative language.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Teacher 3 -->
-          <div class="swiper-slide h-auto">
-            <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
-              <div class="teacher-image-wrapper">
-                <img src="{{ asset('site/images/img/students/teacher_3.png') }}" alt="Dr. Omar Fayed" class="teacher-image">
-                <div class="teacher-overlay">
-                  <button class="teacher-links-trigger btn btn-luxury rounded-full p-0 d-flex align-items-center justify-content-center" aria-label="Toggle links">
-                    <i class="bi bi-plus-lg fs-4"></i>
-                  </button>
-                  <div class="teacher-links-menu">
-                    <a href="#" class="teacher-social-link"><i class="bi bi-linkedin"></i></a>
-                    <a href="#" class="teacher-social-link"><i class="bi bi-twitter-x"></i></a>
-                    <a href="#" class="teacher-social-link"><i class="bi bi-envelope-fill"></i></a>
-                  </div>
-                </div>
-              </div>
-              <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
-                <div>
-                  <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Dr. Omar Fayed</h4>
-                  <p class="text-sm font-bold text-gold mb-3" data-en="Tawjihi Coordinator" data-ar="منسق التوجيهي">Tawjihi Coordinator</p>
-                  <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary);" data-en="Ensuring top academic scores." data-ar="ضمان الحصول على أعلى العلامات الأكاديمية.">
-                    Ensuring top academic scores.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Teacher 4 -->
-          <div class="swiper-slide h-auto">
-            <div class="glass-panel teacher-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
-              <div class="teacher-image-wrapper">
-                <img src="{{ asset('site/images/img/students/teacher_4.png') }}" alt="Sarah Jones" class="teacher-image">
-                <div class="teacher-overlay">
-                  <button class="teacher-links-trigger btn btn-luxury rounded-full p-0 d-flex align-items-center justify-content-center" aria-label="Toggle links">
-                    <i class="bi bi-plus-lg fs-4"></i>
-                  </button>
-                  <div class="teacher-links-menu">
-                    <a href="#" class="teacher-social-link"><i class="bi bi-linkedin"></i></a>
-                    <a href="#" class="teacher-social-link"><i class="bi bi-twitter-x"></i></a>
-                    <a href="#" class="teacher-social-link"><i class="bi bi-envelope-fill"></i></a>
-                  </div>
-                </div>
-              </div>
-              <div class="card-content-wrapper text-center flex-grow d-flex flex-column justify-content-between">
-                <div>
-                  <h4 class="text-xl font-bold mb-1 hover-text-accent" style="color: var(--text-primary);">Sarah Jones</h4>
-                  <p class="text-sm font-bold text-gold mb-3" data-en="Native Speaker" data-ar="متحدثة أصلية">Native Speaker</p>
-                  <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary);" data-en="Focus on advanced conversation." data-ar="التركيز على مهارات المحادثة المتقدمة.">
-                    Focus on advanced conversation.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          @endforeach
         </div>
 
         <!-- Navigation buttons -->
@@ -958,59 +935,20 @@
         <div class="col-lg-8">
           <div class="accordion faq-accordion" id="faqAccordion">
 
-            <!-- Item 1 -->
+            @foreach($faqs as $index => $faq)
             <div class="accordion-item border-0">
-              <h2 class="accordion-header" id="headingOne">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne"
-                        data-en="What is the Full Mark Test of English (OTE)?"
-                        data-ar="ما هو اختبار العلامة الكاملة للغة الإنجليزية (OTE)؟">
-                  What is the Full Mark Test of English (OTE)?
+              <h2 class="accordion-header" id="heading{{ $index }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $index }}" aria-expanded="false" aria-controls="collapse{{ $index }}">
+                  {{ $faq->translation->question ?? '' }}
                 </button>
               </h2>
-              <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
-                <div class="accordion-body"
-                     data-en="The Full Mark Test of English (OTE) is a multi-level general English proficiency test certified by the Full Mark University. It assesses Listening, Speaking, Reading, and Writing skills at levels A2, B1, and B2 of the CEFR."
-                     data-ar="اختبار العلامة الكاملة للغة الإنجليزية (OTE) هو اختبار كفاءة لغوي متعدد المستويات معتمد من جامعة العلامة الكاملة. يقيم مهارات الاستماع والمحادثة والقراءة والكتابة للمستويات A2 و B1 و B2 في الإطار الأوروبي المشترك.">
-                  The Full Mark Test of English (OTE) is a multi-level general English proficiency test certified by the Full Mark University. It assesses Listening, Speaking, Reading, and Writing skills at levels A2, B1, and B2 of the CEFR.
+              <div id="collapse{{ $index }}" class="accordion-collapse collapse" aria-labelledby="heading{{ $index }}" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  {{ $faq->translation->answer ?? '' }}
                 </div>
               </div>
             </div>
-
-            <!-- Item 2 -->
-            <div class="accordion-item border-0">
-              <h2 class="accordion-header" id="headingTwo">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"
-                        data-en="How can I book a placement test?"
-                        data-ar="كيف يمكنني حجز اختبار تحديد المستوى؟">
-                  How can I book a placement test?
-                </button>
-              </h2>
-              <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
-                <div class="accordion-body"
-                     data-en="You can easily book a placement test online by filling out our quick contact form, choosing 'Placement Test' in the Contact Type dropdown, or contacting us via our direct phone line."
-                     data-ar="يمكنك حجز موعد اختبار تحديد المستوى مباشرة عبر الإنترنت من خلال ملء نموذج الاتصال بنا وتحديد 'تحديد المستوى' من قائمة نوع الطلب، أو من خلال الاتصال المباشر بخدمة العملاء.">
-                  You can easily book a placement test online by filling out our quick contact form, choosing 'Placement Test' in the Contact Type dropdown, or contacting us via our direct phone line.
-                </div>
-              </div>
-            </div>
-
-            <!-- Item 3 -->
-            <div class="accordion-item border-0">
-              <h2 class="accordion-header" id="headingThree">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree"
-                        data-en="Are your certificates internationally recognized?"
-                        data-ar="هل الشهادات الصادرة معترف بها دولياً؟">
-                  Are your certificates internationally recognized?
-                </button>
-              </h2>
-              <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
-                <div class="accordion-body"
-                     data-en="Yes, FULL MARKS ACADEMY is a registered test centre. The Full Mark Test of English certificate is officially approved by embassies, universities, and international organizations globally."
-                     data-ar="نعم، أكاديمية العلامة الكاملة هي مركز اختبارات مسجل ومعتمد رسميًا. شهادة اختبار العلامة الكاملة معترف بها ومصادق عليها من قبل السفارات والجامعات والمؤسسات الدولية حول العالم.">
-                  Yes, FULL MARKS ACADEMY is a registered test centre. The Full Mark Test of English certificate is officially approved by embassies, universities, and international organizations globally.
-                </div>
-              </div>
-            </div>
+            @endforeach
 
           </div>
         </div>
@@ -1069,17 +1007,23 @@
         <!-- Contact Form -->
         <div class="col-lg-7">
           <div class="glass-panel p-6 md:p-12">
-            <form onsubmit="handleFormSubmit(event)">
+            <form id="contactForm" action="{{ route('contact.store') }}" method="POST">
+              @csrf
+              <!-- Spam Honeypot -->
+              <div style="display:none;">
+                  <input type="text" name="website_url" id="website_url">
+              </div>
+
               <div class="row">
                 <div class="col-md-6">
                   <div class="floating-input-group">
-                    <input type="text" id="contactName" placeholder=" " required>
+                    <input type="text" name="name" id="contactName" placeholder=" " required>
                     <label for="contactName" data-en="Full Name" data-ar="الاسم الكامل">Full Name</label>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="floating-input-group">
-                    <input type="email" id="contactEmail" placeholder=" " required>
+                    <input type="email" name="email" id="contactEmail" placeholder=" " required>
                     <label for="contactEmail" data-en="Email Address" data-ar="البريد الإلكتروني">Email Address</label>
                   </div>
                 </div>
@@ -1088,7 +1032,7 @@
               <div class="row">
                 <div class="col-md-6">
                   <div class="floating-input-group">
-                    <select id="contactType" required>
+                    <select name="subject" id="contactType" required>
                       <option value="" disabled selected hidden></option>
                       <option value="placement" data-en="Placement Test Booking" data-ar="حجز تحديد المستوى">Placement Test Booking</option>
                       <option value="course" data-en="IELTS / General Course" data-ar="دورة آيلتس / لغة عامة">IELTS / General Course</option>
@@ -1099,18 +1043,20 @@
                 </div>
                 <div class="col-md-6">
                   <div class="floating-input-group">
-                    <input type="text" id="contactPhone" placeholder=" ">
+                    <input type="text" name="phone" id="contactPhone" placeholder=" ">
                     <label for="contactPhone" data-en="Phone Number" data-ar="رقم الهاتف">Phone Number</label>
                   </div>
                 </div>
               </div>
 
               <div class="floating-input-group">
-                <textarea id="contactMessage" rows="5" placeholder=" " required></textarea>
+                <textarea name="message" id="contactMessage" rows="5" placeholder=" " required></textarea>
                 <label for="contactMessage" data-en="Your Message" data-ar="رسالتك">Your Message</label>
               </div>
 
-              <button type="submit" class="btn btn-luxury w-100 py-3 rounded-lg text-lg d-flex align-items-center justify-content-center">
+              <div id="contactFormMessage" class="mb-3 text-center" style="display:none; font-weight:bold;"></div>
+
+              <button type="submit" id="contactSubmitBtn" class="btn btn-luxury w-100 py-3 rounded-lg text-lg d-flex align-items-center justify-content-center">
                 <span data-en="Send Message" data-ar="إرسال الرسالة">Send Message</span>
                 <i class="bi bi-arrow-right ms-2 rtl:rotate-180"></i>
               </button>
@@ -1140,3 +1086,42 @@
 
   <!-- Footer -->
 @endsection
+
+@push('scripts')
+<script>
+  document.getElementById('contactForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      let form = this;
+      let btn = document.getElementById('contactSubmitBtn');
+      let msgDiv = document.getElementById('contactFormMessage');
+      
+      let formData = new FormData(form);
+      btn.disabled = true;
+      msgDiv.style.display = 'none';
+      
+      fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+          }
+      })
+      .then(response => response.json())
+      .then(data => {
+          btn.disabled = false;
+          msgDiv.style.display = 'block';
+          msgDiv.className = 'mb-3 text-center ' + (data.success ? 'text-success' : 'text-danger');
+          msgDiv.textContent = data.message;
+          if (data.success) {
+              form.reset();
+          }
+      })
+      .catch(error => {
+          btn.disabled = false;
+          msgDiv.style.display = 'block';
+          msgDiv.className = 'mb-3 text-center text-danger';
+          msgDiv.textContent = document.documentElement.lang === 'ar' ? 'حدث خطأ. يرجى المحاولة لاحقاً.' : 'An error occurred. Please try again later.';
+      });
+  });
+</script>
+@endpush

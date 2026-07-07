@@ -1,8 +1,18 @@
 @extends('admin.layout.mainLayouts.master')
 
 @section('title')
-    {{ $current_route->{'name_' . \App\Helpers\translate('lang')} }}
+    @lang('app.' . $active_menu) - {{ isset($info) && $info->id ? __('app.edit') : __('app.add') }}
 @stop
+
+@section('breadcrumb')
+    <li class="breadcrumb-item text-muted">
+        <a href="{{ route($active_menu . '.view') }}" class="text-muted text-hover-primary">@lang('app.' . $active_menu)</a>
+    </li>
+    <li class="breadcrumb-item">
+        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+    </li>
+    <li class="breadcrumb-item text-muted">{{ isset($info) && $info->id ? __('app.edit') : __('app.add') }}</li>
+@endsection
 
 @section('page-content')
     <div class="card">
@@ -12,27 +22,7 @@
                 <div class="row justify-content-center">
                     <div class="col-9">
                         <div class="row mb-5">
-                                @if ($company_id == 0)
-                                    <div class="col-md-6 fv-row fv-plugins-icon-container">
-                                        <label class="p-2 required fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('company_id') }}</label>
-
-                                        <select class="form-select form-select-solid" data-control="select2" name="company_id">
-                                            <option value="0">{{ \App\Helpers\translate('choose') }}</option>
-
-                                            @php
-                                                $data = $info ? $info->company_id : old('company_id');
-                                            @endphp
-
-                                            @foreach ($companies as $item)
-                                                <option value="{{ $item->id }}" {{ $data == $item->id ? 'selected' : '' }}>
-                                                    {{ $item->translation?->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                @else
-                                    <input type="hidden" name="company_id" value="{{ $company_id }}">
-                                @endif
+                                
                             <div class="col-md-6 fv-row fv-plugins-icon-container">
                                 <label class="required fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('full_name') }}</label>
                                 <input type="text" class="form-control form-control-solid" name="full_name"

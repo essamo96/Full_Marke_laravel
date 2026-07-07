@@ -1,8 +1,18 @@
 @extends('admin.layout.mainLayouts.master')
 
 @section('title')
-    @lang('app.' . $active_menu) - {{ $info->id ? __('app.edit') : __('app.add') }}
+    @lang('app.' . $active_menu) - {{ isset($info) && $info->id ? __('app.edit') : __('app.add') }}
 @stop
+
+@section('breadcrumb')
+    <li class="breadcrumb-item text-muted">
+        <a href="{{ route($active_menu . '.view') }}" class="text-muted text-hover-primary">@lang('app.' . $active_menu)</a>
+    </li>
+    <li class="breadcrumb-item">
+        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+    </li>
+    <li class="breadcrumb-item text-muted">{{ isset($info) && $info->id ? __('app.edit') : __('app.add') }}</li>
+@endsection
 
 @section('breadcrumb')
     <li class="breadcrumb-item text-muted">

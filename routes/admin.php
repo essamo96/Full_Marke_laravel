@@ -14,6 +14,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin.locale')->group(functi
     Route::middleware('auth:admin')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     });
+    
+    Route::get('/clear-cache', [\App\Http\Controllers\Admin\AdminController::class, 'clearCache'])->name('clear-cache');
 });
 
 // Admin management modules (Settings, Users, Permissions, Sidebar) — route names are
@@ -30,6 +32,11 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/admin-role.php';
 
     // Academy management modules (see academy_system_analysis.md)
+    require __DIR__.'/pages.php';
+    require __DIR__.'/faqs.php';
+    require __DIR__.'/teams.php';
+    require __DIR__.'/news.php';
+    require __DIR__.'/contacts.php';
     require __DIR__.'/admin-programs.php';
     require __DIR__.'/admin-study-branches.php';
     require __DIR__.'/admin-subjects.php';

@@ -1,7 +1,17 @@
 @extends('admin.layout.mainLayouts.master')
 @section('title')
-    {{ $current_route->{'name_' . \App\Helpers\translate('lang')} }}
+    @lang('app.' . $active_menu) - {{ isset($info) && $info->id ? __('app.edit') : __('app.add') }}
 @stop
+
+@section('breadcrumb')
+    <li class="breadcrumb-item text-muted">
+        <a href="{{ route($active_menu . '.view') }}" class="text-muted text-hover-primary">@lang('app.' . $active_menu)</a>
+    </li>
+    <li class="breadcrumb-item">
+        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+    </li>
+    <li class="breadcrumb-item text-muted">{{ isset($info) && $info->id ? __('app.edit') : __('app.add') }}</li>
+@endsection
 
 @section('page-content')
 <div class="card">
@@ -14,16 +24,19 @@
                 <div class="col-9">
 
                     {{-- Tabs Navigation --}}
-                    <ul class="nav nav-tabs nav-pills border-2 flex-column flex-md-row me-5 mb-5 mb-md-0 fs-6" id="pageTab" role="tablist">
-                        <li class="nav-item mb-3" role="presentation">
-                            <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">{{ \App\Helpers\translate('basic_settings') }}</button>
+                    <ul class="nav nav-tabs nav-line-tabs nav-line-tabs-2x mb-5 fs-5 fw-bold" id="pageTab" role="tablist">
+                        <li class="nav-item me-3" role="presentation">
+                            <button class="nav-link active d-flex align-items-center text-active-primary pb-4" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">
+                                <i class="bi bi-gear-fill fs-2 me-2"></i> {{ \App\Helpers\translate('basic_settings') }}
+                            </button>
                         </li>
 
-                        {{-- Dynamic Tabs for Languages --}}
                         @foreach ($languages as $lang)
-                            <li class="nav-item mb-3" role="presentation">
-                                <button class="nav-link" id="lang-{{ $lang->prefix }}-tab" data-bs-toggle="tab"
-                                        data-bs-target="#lang-{{ $lang->prefix }}" type="button" role="tab">{{ $lang->name }}</button>
+                            <li class="nav-item me-3" role="presentation">
+                                <button class="nav-link d-flex align-items-center text-active-success pb-4" id="lang-{{ $lang->prefix }}-tab" data-bs-toggle="tab"
+                                        data-bs-target="#lang-{{ $lang->prefix }}" type="button" role="tab">
+                                    <i class="bi bi-globe fs-2 me-2"></i> {{ $lang->name }}
+                                </button>
                             </li>
                         @endforeach
                     </ul>
@@ -34,32 +47,21 @@
                         {{-- Basic Tab --}}
                         <div class="tab-pane fade show active" id="basic" role="tabpanel">
                             <div class="row mb-5">
-                                @if (isset($company_id) && $company_id == 0)
-                                    <div class="col-md-6 fv-row fv-plugins-icon-container">
-                                        <label class="p-2 required">@lang('app.company_id')</label>
-
-                                        <select class="form-select form-select-solid" data-control="select2" name="company_id">
-                                            <option value="0">{{ \App\Helpers\translate('choose') }}</option>
-
-                                            @php
-                                                $data = $info ? $info->company_id : old('company_id');
-                                            @endphp
-
-                                            @foreach ($companies as $item)
-                                                <option value="{{ $item->id }}" {{ $data == $item->id ? 'selected' : '' }}>
-                                                    {{ $item->translation?->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                @else
-                                    <input type="hidden" name="company_id" value="{{ $company_id ?? 0 }}">
-                                @endif
+                                
 
                                 <div class="col-md-6 fv-row">
                                     <label class="required fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('slug') }}</label>
-                                    <input type="text" class="form-control form-control-solid" name="slug"
-                                           value="{{ $info?->slug ?? old('slug') }}">
+                                    @php $currentSlug = $info?->slug ?? old('slug'); @endphp
+                                    <select class="form-select form-select-solid" data-control="select2" data-tags="true" name="slug" data-placeholder="اختر أو اكتب الرابط المختصر">
+                                        <option value=""></option>
+                                        <option value="about_us" {{ $currentSlug == 'about_us' ? 'selected' : '' }}>من نحن (about_us)</option>
+                                        <option value="features" {{ $currentSlug == 'features' ? 'selected' : '' }}>مميزاتنا (features)</option>
+                                        <option value="services" {{ $currentSlug == 'services' ? 'selected' : '' }}>خدماتنا والوصول السريع (services)</option>
+                                        <option value="training_hours" {{ $currentSlug == 'training_hours' ? 'selected' : '' }}>ساعات تدريبية (training_hours)</option>
+                                        @if($currentSlug && !in_array($currentSlug, ['about_us', 'features', 'services', 'training_hours']))
+                                            <option value="{{ $currentSlug }}" selected>{{ $currentSlug }}</option>
+                                        @endif
+                                    </select>
                                 </div>
                             </div>
 
@@ -67,29 +69,39 @@
                                 {{-- Image --}}
                                 <div class="col-md-6 fv-row">
                                     <label class="fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('image') }}</label>
-                                    <div class="mb-3">
+                                    <input type="file" name="image" class="form-control file-Input" accept="image/*">
+                                    <div class="mt-3">
                                         @if ($info && $info->image)
                                             <img src="{{ asset('storage/' . $info->image) }}" alt="Image"
                                                  class="img-thumbnail mb-2" style="max-height: 100px;">
                                         @endif
                                     </div>
-                                    <input type="file" name="image" class="form-control file-Input">
                                 </div>
 
+                                {{-- Video --}}
+                                <div class="col-md-6 fv-row">
+                                    <label class="fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('video') }} (MP4)</label>
+                                    <input type="file" name="video" class="form-control file-Input" accept="video/*">
+                                    <div class="mt-3">
+                                        @if ($info && $info->video)
+                                            <video src="{{ asset('storage/' . $info->video) }}" class="img-thumbnail mb-2" style="max-height: 100px;" controls></video>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-5">
                                 {{-- Tags --}}
                                 <div class="col-md-6 fv-row">
                                     <label class="fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('tags') }}</label>
                                     <input class="form-control form-control-solid" name="tags" id="kt_tagify_4"
                                            value="{{ $info?->tags ?? old('tags') }}" placeholder="Enter tags" />
                                 </div>
-                            </div>
-
-                            <div class="row mb-5">
-                                <div class="col">
+                                <div class="col-md-6 fv-row">
                                     <label class="p-2">{{ \App\Helpers\translate('status') }}</label>
-                                    <label class="form-check form-switch">
+                                    <label class="form-check form-switch mt-2">
                                         <input class="form-check-input" name="status" type="checkbox" value="1"
-                                               {{ ($info?->status ?? old('status')) == 1 ? 'checked' : '' }}>
+                                               {{ ($info?->status ?? old('status', 1)) == 1 ? 'checked' : '' }}>
                                     </label>
                                 </div>
                             </div>
@@ -113,6 +125,12 @@
                                         <input type="text" class="form-control form-control-solid"
                                                name="{{ $lang->prefix }}[title]"
                                                value="{{ old($lang->prefix . '.title', $trans?->title ?? '') }}">
+                                    </div>
+                                    <div class="col-md-6 fv-row">
+                                        <label class="fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('subtitle') ?? 'الوصف الخاص بالعنوان' }} - ({{ $lang->prefix }})</label>
+                                        <input type="text" class="form-control form-control-solid"
+                                               name="{{ $lang->prefix }}[subtitle]"
+                                               value="{{ old($lang->prefix . '.subtitle', $trans?->subtitle ?? '') }}">
                                     </div>
                                 </div>
 

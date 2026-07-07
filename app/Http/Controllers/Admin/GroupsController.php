@@ -32,15 +32,13 @@ class GroupsController extends AdminController
         return view('admin.groups.add', self::$data + [
             'info' => null,
             'subjects' => Subject::active()->orderBy('order')->get(),
-            'teachers' => Teacher::active()->orderBy('name')->get(),
-        ]);
+            'teachers' => Teacher::active()->orderBy('name')->get()]);
     }
 
     public function postAdd(GroupRequest $request)
     {
         Group::create($request->validated() + [
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+            'is_active' => $request->boolean('is_active', true)]);
 
         return redirect()->route('groups.view')->with('success', __('app.insert_success'));
     }
@@ -56,8 +54,7 @@ class GroupsController extends AdminController
         return view('admin.groups.add', self::$data + [
             'info' => $group,
             'subjects' => Subject::active()->orderBy('order')->get(),
-            'teachers' => Teacher::active()->orderBy('name')->get(),
-        ]);
+            'teachers' => Teacher::active()->orderBy('name')->get()]);
     }
 
     public function postEdit(GroupRequest $request, $id)
@@ -69,8 +66,7 @@ class GroupsController extends AdminController
         }
 
         $group->update($request->validated() + [
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+            'is_active' => $request->boolean('is_active', true)]);
 
         return redirect()->route('groups.view')->with('success', __('app.update_success'));
     }

@@ -31,16 +31,14 @@ class TeachersController extends AdminController
     {
         return view('admin.teachers.add', self::$data + [
             'info' => null,
-            'subjects' => Subject::active()->orderBy('order')->get(),
-        ]);
+            'subjects' => Subject::active()->orderBy('order')->get()]);
     }
 
     public function postAdd(TeacherRequest $request)
     {
         $teacher = Teacher::create($request->safe()->except(['photo', 'subject_ids', 'password']) + [
             'password' => Hash::make($request->password),
-            'status' => $request->boolean('status', true),
-        ]);
+            'status' => $request->boolean('status', true)]);
 
         if ($request->hasFile('photo')) {
             $teacher->update(['photo' => $request->file('photo')->store('teachers', 'public')]);
@@ -61,8 +59,7 @@ class TeachersController extends AdminController
 
         return view('admin.teachers.add', self::$data + [
             'info' => $teacher,
-            'subjects' => Subject::active()->orderBy('order')->get(),
-        ]);
+            'subjects' => Subject::active()->orderBy('order')->get()]);
     }
 
     public function postEdit(TeacherRequest $request, $id)
@@ -74,8 +71,7 @@ class TeachersController extends AdminController
         }
 
         $data = $request->safe()->except(['photo', 'subject_ids', 'password']) + [
-            'status' => $request->boolean('status', true),
-        ];
+            'status' => $request->boolean('status', true)];
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);

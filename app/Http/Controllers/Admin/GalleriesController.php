@@ -34,7 +34,7 @@ class GalleriesController extends AdminController {
     public function getList(Request $request) {
         $model = new Gallery;
         // Eager load company relation
-        $info = $model->query()->with('company')->select('galleries.*'); 
+        $info = $model->query()->select('galleries.*'); 
         
         if($request->has('name') && $request->name != ''){
             $info->where('title', 'like', "%{$request->name}%");
@@ -58,10 +58,7 @@ class GalleriesController extends AdminController {
         });
 
         // Company Column
-        $datatable->editColumn('company_id', function ($row) {
-             // Access translation via the relation. If not found, fallback to name, then ID.
-             return $row->company ? ($row->company->translation->name ?? $row->company->name) : $row->company_id;
-        });
+        $datatable;
 
         // Actions Column
         $datatable->addColumn('actions', function ($row) {

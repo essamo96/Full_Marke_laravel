@@ -96,16 +96,8 @@
                                         <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0">
                                             <!--begin::Item-->
                                             <li class="breadcrumb-item text-muted">
-                                                <a href="#" class="text-muted text-hover-primary">@lang('app.home')</a>
+                                                <a href="{{ url('admin/dashboard') }}" class="text-muted text-hover-primary">{{ \App\Helpers\translate('home') }}</a>
                                             </li>
-                                            <!--end::Item-->
-                                            <!--begin::Item-->
-                                            <li class="breadcrumb-item">
-                                                <span class="bullet bg-gray-400 w-5px h-2px"></span>
-                                            </li>
-                                            <!--end::Item-->
-                                            <!--begin::Item-->
-                                            <li class="breadcrumb-item text-muted">@lang('app.pages')</li>
                                             <!--end::Item-->
                                             <!--begin::Item-->
                                             <li class="breadcrumb-item">
@@ -115,6 +107,14 @@
                                             @hasSection('breadcrumb')
                                                 @yield('breadcrumb')
                                             @else
+                                                <!--begin::Item-->
+                                                <li class="breadcrumb-item text-muted">{{ \App\Helpers\translate($active_menu ?? 'pages') }}</li>
+                                                <!--end::Item-->
+                                                <!--begin::Item-->
+                                                <li class="breadcrumb-item">
+                                                    <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                                                </li>
+                                                <!--end::Item-->
                                                 <!--begin::Item-->
                                                 <li class="breadcrumb-item text-muted">@yield('title', 'Dashboard')</li>
                                                 <!--end::Item-->
@@ -169,10 +169,12 @@
                 tinymce.init({
                     selector: 'textarea',
                     plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking table directionality emoticons template',
-                    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
+                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | ltr rtl | bullist numlist outdent indent | link image media table | removeformat | charmap emoticons | fullscreen preview code',
                     directionality: document.documentElement.dir || 'ltr',
                     menubar: false,
-                    promotion: false
+                    promotion: false,
+                    extended_valid_elements: 'i[class|id|style|data-*],span[class|id|style|data-*],div[*]',
+                    verify_html: false
                 });
             }
         });

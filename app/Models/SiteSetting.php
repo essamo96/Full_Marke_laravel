@@ -15,14 +15,25 @@ class SiteSetting extends Model
         'about_video_mobile',
         'hero_still_image',
         'social_links',
-        'seo_title',
-        'seo_description',
-        'seo_keywords',
         'maintenance_mode',
-        'maintenance_title',
-        'maintenance_message',
         'show_translation_button',
+        'completed_courses_count',
+        'registered_students_count',
+        'training_hours_count',
+        'site_email',
+        'site_phone',
+        'options',
     ];
+
+    public function translations()
+    {
+        return $this->hasMany(SiteSettingTranslation::class, 'site_setting_id');
+    }
+
+    public function translation()
+    {
+        return $this->hasOne(SiteSettingTranslation::class, 'site_setting_id')->where('locale', app()->getLocale());
+    }
 
     protected function casts(): array
     {
@@ -39,16 +50,18 @@ class SiteSetting extends Model
      */
     public static function current(): self
     {
-        return static::first() ?? new static([
+        return static::find(1) ?? new static([
             'hero_video_1' => 'site/images/slider1.mp4',
             'hero_video_2' => 'site/images/slider2.mp4',
             'about_video' => 'site/images/aboutUs.mp4',
             'hero_still_image' => 'site/images/hero-animation-img/bg-main.jpg',
             'social_links' => [],
             'show_translation_button' => true,
-            'seo_title' => 'أكاديمية العلامة الكاملة | Full Mark Academy',
-            'seo_description' => 'أكاديمية العلامة الكاملة تقدم أفضل البرامج التعليمية التفاعلية والدورات الشاملة التي تضمن تفوقك الدراسي وتأهيلك لمستقبل مشرق.',
-            'seo_keywords' => 'أكاديمية العلامة الكاملة, تعليم, دورات, توجيهي, تقوية, Full Mark Academy, Education',
+            'completed_courses_count' => 320,
+            'registered_students_count' => 8700,
+            'training_hours_count' => 1500,
+            'site_email' => 'info@fullmark.com',
+            'site_phone' => '+123456789',
         ]);
     }
 }

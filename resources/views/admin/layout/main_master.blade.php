@@ -1609,11 +1609,15 @@
                             skin_url: '{{ asset("admin/tinymce/js/tinymce/skins/ui/oxide") }}',
                             content_css: '{{ asset("admin/tinymce/js/tinymce/skins/content/default/content.min.css") }}',
                             plugins: [
-                                'link', 'image', 'lists', 'code', 'directionality',
-                                'table', 'fullscreen', 'paste', 'autoresize'
+                                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 
+                                'pagebreak', 'searchreplace', 'wordcount', 'visualblocks', 'visualchars', 'code', 
+                                'fullscreen', 'insertdatetime', 'media', 'nonbreaking', 'table', 'directionality', 
+                                'emoticons', 'template', 'paste', 'autoresize'
                             ],
-                            toolbar: 'undo redo | styles | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | link image | ltr rtl | code',
+                            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | ltr rtl | bullist numlist outdent indent | link image media table | removeformat | charmap emoticons | fullscreen preview code',
                             directionality: document.documentElement.dir || 'ltr',
+                            extended_valid_elements: 'i[class|id|style|data-*],span[class|id|style|data-*],div[*]',
+                            verify_html: false,
                             setup: function(editor) {
                                 console.log('TinyMCE setup called for:', textarea.id);
                                 editor.on('change', function() {

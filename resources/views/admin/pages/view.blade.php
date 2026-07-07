@@ -1,17 +1,32 @@
 @extends('admin.layout.mainLayouts.master')
 
 @section('title')
-    {{ $current_route->{'name_' . \App\Helpers\translate('lang')} }}
+    @lang('app.' . $active_menu)
 @stop
 
+@section('breadcrumb')
+    <li class="breadcrumb-item text-muted">
+        <a href="{{ route($active_menu . '.view') }}" class="text-muted text-hover-primary">@lang('app.' . $active_menu)</a>
+    </li>
+    <li class="breadcrumb-item">
+        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+    </li>
+    <li class="breadcrumb-item text-muted">@lang('app.view')</li>
+@endsection
+
 @section('page-content')
+@section('toolbar-actions')
+    <a href="{{ route($active_menu . '.add') }}" class="btn btn-flex btn-primary h-40px fs-7 fw-bold">
+        <i class="bi bi-plus-lg"></i>@lang('app.add')
+    </a>
+@endsection
     <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
         <div id="kt_app_content" class="app-content flex-column-fluid">
             <div id="kt_app_content_container" class="app-container container-xxl">
                 <div class="card">
                     <div class="card-header border-0 pt-6">
-                        <div class="card-title">
-                            <div class="col-lg-6 col-md-6 col-sm-12 mb-3 mx-2">
+                        <div class="card-title w-100 mb-0 row">
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                                 <label for="generalSearch" class="form-label">{{ \App\Helpers\translate('generalSearch') }}</label>
                                 <div class="d-flex align-items-center position-relative">
                                     <i class="bi bi-search-heart fs-3 position-absolute ms-5"></i>
@@ -20,35 +35,22 @@
                                         placeholder="{{ \App\Helpers\translate('search') }}" />
                                 </div>
                             </div>
-                            <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
-                                <label for="companies" class="form-label">{{ \App\Helpers\translate('selectCompany') }}</label>
-                                <select id="companies" class="form-select" data-control="select2">
-                                    <option value="">{{ \App\Helpers\translate('selectCompany') }}</option>
-                                    @foreach ($companies as $item)
-                                        <option value="{{ $item->id }}">
-                                            {{ $item->translation?->name }}
-                                        </option>
-                                    @endforeach
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <label for="status" class="form-label"> @lang('app.status')</label>
+                                <select id="status" name="status" class="form-select form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="الكل">
+                                    <option value="">الكل</option>
+                                    <option value="1">مفعل</option>
+                                    <option value="0">معطل</option>
                                 </select>
-                            </div>
-                        </div>
-                        <div class="card-toolbar">
-                            <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
-                                <div class="menu menu-sub menu-sub-dropdown w-300px w-md-325px" data-kt-menu="true"></div>
-                                <a href="{{ route($active_menu . '.add') }}"
-                                    class="btn btn-outline btn-outline-solid btn-outline-primary btn-active-light-primary btn-sm">
-                                    <i class="bi bi-plus-lg"></i>{{ \App\Helpers\translate('add') }}
-                                </a>
                             </div>
                         </div>
                     </div>
                     <div class="card-body py-4">
                         @include('admin.layout.masterLayouts.error')
-                        <table id="pages" class="table table-row-bordered gy-5">
+                        <table id="pages" class="table table-striped table-row-bordered gy-5 gs-7">
                             <thead>
-                                <tr class="fw-semibold fs-6 text-muted">
+                                <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
                                     <th>#</th>
-                                    <th>{{ \App\Helpers\translate('company_id') }}</th>
                                     <th>{{ \App\Helpers\translate('title') }}</th>
                                     <th>{{ \App\Helpers\translate('slug') }}</th>
                                     <th>{{ \App\Helpers\translate('status') }}</th>
@@ -74,9 +76,6 @@
                 data: 'DT_RowIndex'
             },
             {
-                data: "company_id"
-            },
-            {
                 data: "title"
             },
             {
@@ -90,6 +89,11 @@
                 data: 'actions',
                 responsivePriority: -1
             }
+        ];
+
+        var filterFields = [
+            '#generalSearch',
+            '#status'
         ];
 
         @include('admin.layout.masterLayouts.datatableMaster')

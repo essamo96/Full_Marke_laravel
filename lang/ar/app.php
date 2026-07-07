@@ -14,6 +14,8 @@ return [
     'sidebar' => 'إدارة القائمة الجانبية',
     'roles' => 'مجموعات الصلاحيات',
     'modules' => 'وحدات النظام',
+    'news' => 'الأخبار',
+    'contacts' => 'تواصل معنا',
     'students' => 'الطلاب',
     'teachers' => 'المعلمين',
     'branches' => 'الفروع',
@@ -484,4 +486,17 @@ return [
     'placeholder_btn_link' => '#actions أو https://...',
     'placeholder_btn2_ar' => 'مثال: حجز مقعد دراسي',
     'placeholder_btn2_en' => 'e.g: Book A Course',
+    'teams' => 'فريق العمل',
+    'faqs' => 'الأسئلة الشائعة',
+
+    // New Site Settings Keys
+    'Basic Data' => 'البيانات الأساسية',
+    'Contact Info' => 'معلومات الاتصال',
+    'Statistics' => 'الإحصائيات',
+    'Completed Courses Count' => 'عدد الدورات المنجزة',
+    'Registered Students Count' => 'عدد الطلاب المسجلين',
+    'Training Hours Count' => 'عدد ساعات التدريب',
+    'General Options' => 'إعدادات عامة',
+    'Maintenance Message Text' => 'نص رسالة الصيانة',
+    'Show Contact Form' => 'إظهار نموذج الاتصال',
 ];

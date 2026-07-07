@@ -53,8 +53,7 @@ class ProgramsController extends AdminController
     public function postAdd(ProgramRequest $request)
     {
         $program = Program::create($request->safe()->except('image') + [
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+            'is_active' => $request->boolean('is_active', true)]);
 
         if ($request->hasFile('image')) {
             $program->update(['image' => $request->file('image')->store('programs', 'public')]);
@@ -83,8 +82,7 @@ class ProgramsController extends AdminController
         }
 
         $data = $request->safe()->except('image') + [
-            'is_active' => $request->boolean('is_active', true),
-        ];
+            'is_active' => $request->boolean('is_active', true)];
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('programs', 'public');

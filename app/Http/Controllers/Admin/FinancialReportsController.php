@@ -60,7 +60,6 @@ class FinancialReportsController extends AdminController
             'revenueByProgram' => $revenueByProgram,
             'revenueByMethod' => $revenueByMethod,
             'monthlyRevenue' => $monthlyRevenue,
-            'debtors' => $debtors,
-        ]);
+            'debtors' => $debtors]);
     }
 }

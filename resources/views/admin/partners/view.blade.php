@@ -1,8 +1,18 @@
 @extends('admin.layout.mainLayouts.master')
 
 @section('title')
-    {{ $current_route->{'name_' . \App\Helpers\translate('lang')} }}
+    @lang('app.' . $active_menu)
 @stop
+
+@section('breadcrumb')
+    <li class="breadcrumb-item text-muted">
+        <a href="{{ route($active_menu . '.view') }}" class="text-muted text-hover-primary">@lang('app.' . $active_menu)</a>
+    </li>
+    <li class="breadcrumb-item">
+        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+    </li>
+    <li class="breadcrumb-item text-muted">@lang('app.view')</li>
+@endsection
 
 @section('page-content')
     <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
@@ -20,17 +30,7 @@
                                         placeholder="{{ \App\Helpers\translate('search') }}" />
                                 </div>
                             </div>
-                            <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
-                                <label for="companies" class="form-label">{{ \App\Helpers\translate('selectCompany') }}</label>
-                                <select id="companies" class="form-select" data-control="select2">
-                                    <option value="">{{ \App\Helpers\translate('selectCompany') }}</option>
-                                    @foreach ($companies as $item)
-                                        <option value="{{ $item->id }}">
-                                            {{ $item->translation?->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                            
                         </div>
                         <div class="card-toolbar">
                             <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
@@ -48,7 +48,7 @@
                                 <tr class="fw-semibold fs-6 text-muted">
                                     <th>#</th>
                                     <th>{{ \App\Helpers\translate('name') }}</th>
-                                    <th>{{ \App\Helpers\translate('company_id') }}</th>
+                                    
                                     <th>{{ \App\Helpers\translate('image') }}</th>
 
                                     <th>{{ \App\Helpers\translate('status') }}</th>
@@ -76,9 +76,6 @@
             },
             {
                 data: "partner_name"
-            },
-            {
-                data: "company_id"
             },
             {
                 data: "image"

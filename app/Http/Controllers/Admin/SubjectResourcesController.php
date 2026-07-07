@@ -34,8 +34,7 @@ class SubjectResourcesController extends AdminController
     public function postAdd(SubjectResourceRequest $request, Subject $subject)
     {
         $subject->resources()->create($request->validated() + [
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+            'is_active' => $request->boolean('is_active', true)]);
 
         return redirect()->route('subject_resources.view', $subject)->with('success', __('app.insert_success'));
     }
@@ -60,8 +59,7 @@ class SubjectResourcesController extends AdminController
         }
 
         $resource->update($request->validated() + [
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+            'is_active' => $request->boolean('is_active', true)]);
 
         return redirect()->route('subject_resources.view', $subject)->with('success', __('app.update_success'));
     }

@@ -14,6 +14,8 @@ return [
     'sidebar' => 'Sidebar Management',
     'roles' => 'Roles',
     'modules' => 'System Modules',
+    'news' => 'News',
+    'contacts' => 'Contacts',
     'students' => 'Students',
     'teachers' => 'Teachers',
     'branches' => 'Branches',
@@ -468,4 +470,17 @@ return [
     'placeholder_btn_link' => '#actions or https://...',
     'placeholder_btn2_ar' => 'e.g: حجز مقعد دراسي',
     'placeholder_btn2_en' => 'e.g: Book A Course',
+    'teams' => 'فريق العمل',
+    'faqs' => 'الأسئلة الشائعة',
+
+    // New Site Settings Keys
+    'Basic Data' => 'Basic Data',
+    'Contact Info' => 'Contact Info',
+    'Statistics' => 'Statistics',
+    'Completed Courses Count' => 'Completed Courses Count',
+    'Registered Students Count' => 'Registered Students Count',
+    'Training Hours Count' => 'Training Hours Count',
+    'General Options' => 'General Options',
+    'Maintenance Message Text' => 'Maintenance Message Text',
+    'Show Contact Form' => 'Show Contact Form',
 ];

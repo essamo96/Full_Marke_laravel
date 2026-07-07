@@ -29,8 +29,7 @@ class SettingsController extends AdminController
             'site_name' => 'nullable|string|max:191',
             'site_email' => 'nullable|email|max:191',
             'site_phone' => 'nullable|string|max:50',
-            'site_address' => 'nullable|string|max:500',
-        ]);
+            'site_address' => 'nullable|string|max:500']);
 
         collect($request->except('_token'))->each(function ($value, $key) {
             Setting::updateOrCreate(['key' => $key], ['value' => $value, 'group' => 'general']);

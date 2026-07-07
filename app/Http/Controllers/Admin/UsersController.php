@@ -98,8 +98,7 @@ class UsersController extends AdminController
         $filters = [
             'search_value' => $request->get('generalSearch') ?? $request->get('search_value'),
             'status' => $request->get('status'),
-            'role' => $request->get('role'),
-        ];
+            'role' => $request->get('role')];
         
         $query = Admin::with(['roles', 'creator'])->latest();
         $query = Admin::applyFilters($query, $filters);
@@ -289,8 +288,7 @@ class UsersController extends AdminController
         }
 
         $validator = Validator::make($request->all(), [
-            'password' => 'required|min:6|confirmed',
-        ]);
+            'password' => 'required|min:6|confirmed']);
 
         if ($validator->fails()) {
             return response()->json([

@@ -50,8 +50,7 @@ class StudyBranchesController extends AdminController
     public function postAdd(StudyBranchRequest $request)
     {
         StudyBranch::create($request->safe()->all() + [
-            'status' => $request->boolean('status', true),
-        ]);
+            'status' => $request->boolean('status', true)]);
 
         return redirect()->route('study_branches.view')->with('success', __('app.insert_success'));
     }
@@ -76,8 +75,7 @@ class StudyBranchesController extends AdminController
         }
 
         $studyBranch->update($request->safe()->all() + [
-            'status' => $request->boolean('status', true),
-        ]);
+            'status' => $request->boolean('status', true)]);
 
         return redirect()->route('study_branches.view')->with('success', __('app.update_success'));
     }

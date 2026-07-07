@@ -29,13 +29,11 @@ class LoginController extends AdminController
             $request->all(),
             [
                 'username' => 'required|string',
-                'password' => 'required|string|min:6',
-            ],
+                'password' => 'required|string|min:6'],
             [
                 'username.required' => 'يرجى إدخال البريد الإلكتروني أو اسم المستخدم.',
                 'password.required' => 'يرجى إدخال كلمة المرور.',
-                'password.min' => 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.',
-            ]
+                'password.min' => 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.']
         );
 
         if ($validator->fails()) {
@@ -52,8 +50,7 @@ class LoginController extends AdminController
         $credentials = [
             $field     => $request->username,
             'password' => $request->password,
-            'status'   => 1,
-        ];
+            'status'   => 1];
 
         // محاولة تسجيل الدخول
         if (Auth::guard('admin')->attempt($credentials)) {

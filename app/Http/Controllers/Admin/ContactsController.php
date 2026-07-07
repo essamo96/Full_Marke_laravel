@@ -2,200 +2,90 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Contact;
-use App\Models\Company;
 use Illuminate\Http\Request;
+use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
-use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Facades\Cache;
-use App\Http\Requests\Admin\ContactRequest;
-use Illuminate\Support\Facades\Auth;
 
 class ContactsController extends AdminController
 {
-    protected $path;
-
     public function __construct()
     {
         parent::__construct();
         parent::$data['active_menu'] = 'contacts';
-        $this->path = 'contacts';
     }
 
     public function getIndex()
     {
-        parent::$data['companies'] = Company::all();
-
-        return view('admin.' . $this->path . '.view', parent::$data);
+        return view('admin.contacts.view', parent::$data);
     }
 
     public function getList(Request $request)
     {
-        $records = Contact::get();
+        $name = $request->get('name') ?? '';
+        
+        $obj = new Contact();
+        $info = $obj->getSearch($name, $request->get('is_read'));
 
-        return Datatables::of($records)
-            ->editColumn('status', function ($row) {
-                $data['id'] = $row->id;
-                $data['status'] = $row->status;
-                $data['active_menu'] = $this->path;
-                return view('admin.' . $this->path . '.parts.status', $data)->render();
+        return Datatables::of($info)
+            ->editColumn('is_read', function ($row) {
+                if ($row->is_read) {
+                    return '<span class="badge badge-light-success">' . \App\Helpers\translate('read') . '</span>';
+                } else {
+                    return '<span class="badge badge-light-danger">' . \App\Helpers\translate('unread') . '</span>';
+                }
             })
-            ->editColumn('contact_type', function ($row) {
-                return $row->contact_type == 'government'
-                ? \App\Helpers\translate('government')
-                : \App\Helpers\translate('person');
-
+            ->editColumn('created_at', function ($row) {
+                return $row->created_at ? $row->created_at->format('Y-m-d H:i') : '-';
             })
-            ->addColumn('company_id', function ($row) {
-                $data['active_menu'] = $this->path;
-                $data['id'] = $row->id;
-                $data['x'] = 3;
-                $data['name'] = $row->company ? $row->company->translation->name : '';
-                return view('admin.' . $this->path . '.parts.general', $data)->render();
-            })
-            ->editColumn('message', function ($row) {
-                // تحويل علامات الاقتباس فقط لحماية الجافاسكربت
-                $message = htmlspecialchars($row->message, ENT_QUOTES, 'UTF-8');
-
-                // زر مع SweetAlert2
-                return '<button type="button" class="btn btn-info btn-sm" onclick="Swal.fire({
-        title: \'Message\',
-        html: \'' . $message . '\',
-        icon: \'info\',
-        width: 600,
-        confirmButtonText: \'Close\'
-    });">عرض الرسالة</button>';
-            })
-
-
             ->addColumn('actions', function ($row) {
-                $data['active_menu'] = $this->path;
-                $data['id'] = $row->id;
-                return view('admin.' . $this->path . '.parts.actions', $data)->render();
+                $encryptedId = Crypt::encrypt($row->id);
+                $viewUrl = route('contacts.show', $encryptedId);
+                return '
+                    <a href="' . $viewUrl . '" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="' . \App\Helpers\translate('view') . '">
+                        <i class="ki-duotone ki-eye fs-2"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                    </a>
+                    <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" onclick="deleteItem(\'' . $encryptedId . '\')" title="' . \App\Helpers\translate('delete') . '">
+                        <i class="ki-duotone ki-trash fs-2"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i>
+                    </button>
+                ';
             })
-            ->rawColumns(['status', 'actions', 'company_id', 'message'])
+            ->rawColumns(['is_read', 'actions'])
             ->addIndexColumn()
             ->make(true);
     }
 
-    public function getAdd()
-    {
-        parent::$data['info'] = NULL;
-        parent::$data['companies'] = Company::all();
-        parent::$data['company_id'] = Auth::guard('admin')->user()->role->is_user != 1 ? 0 : Auth::guard('admin')->user()->company_id;
-
-        return view('admin.' . $this->path . '.add', parent::$data);
-    }
-
-    public function postAdd(ContactRequest $request)
-    {
-        $data = $request->validated();
-        if (isset($data['status'])) {
-            $data['status'] = $request->input('status') == '1' ? 1 : 0;
-        }
-
-        $record = Contact::create($data);
-
-        if ($record) {
-            Cache::forget('spatie.permission.cache');
-            $request->session()->flash('success', \App\Helpers\translate('insert_success'));
-            return redirect(route($this->path . '.view'));
-        } else {
-            $request->session()->flash('danger', __('app.execution_error'));
-            return redirect(route($this->path . '.add'))->withInput();
-        }
-    }
-
-    public function getEdit(Request $request, $id)
+    public function getShow($id)
     {
         try {
-            $decryptedId = Crypt::decrypt($id);
+            $id = Crypt::decrypt($id);
         } catch (DecryptException $e) {
-            $request->session()->flash('danger', __('app.not_found'));
-            return redirect(route($this->path . '.view'));
+            return redirect()->route('contacts.view')->with('danger', \App\Helpers\translate('error'));
         }
-
-        $record = Contact::findOrFail($decryptedId);
-        parent::$data['info'] = $record;
-        parent::$data['companies'] = Company::all();
-        parent::$data['company_id'] = Auth::guard('admin')->user()->role->is_user != 1 ? 0 : Auth::guard('admin')->user()->company_id;
-
-        return view('admin.' . $this->path . '.add', parent::$data);
-    }
-
-    public function postEdit(ContactRequest $request, $id)
-    {
-        try {
-            $decryptedId = Crypt::decrypt($id);
-        } catch (DecryptException $e) {
-            $request->session()->flash('danger', __('app.not_found'));
-            return redirect(route($this->path . '.view'));
+        parent::$data['contact'] = Contact::findOrFail($id);
+        if (!parent::$data['contact']->is_read) {
+            parent::$data['contact']->is_read = 1;
+            parent::$data['contact']->save();
         }
-
-        $record = Contact::findOrFail($decryptedId);
-
-        $validatedData = $request->validated();
-        if (isset($validatedData['status'])) {
-            $validatedData['status'] = $request->input('status') == '1' ? 1 : 0;
-        }
-
-        $update = $record->update($validatedData);
-
-        if ($update) {
-            Cache::forget('spatie.permission.cache');
-            $request->session()->flash('success', __('app.update_success'));
-            return redirect(route($this->path . '.view'));
-        } else {
-            $request->session()->flash('danger', __('app.execution_error'));
-            return redirect(route($this->path . '.edit', ['id' => $id]))->withInput();
-        }
-    }
-
-    public function postStatus(Request $request)
-    {
-        $id = $request->get('id');
-        try {
-            $decryptedId = Crypt::decrypt($id);
-        } catch (DecryptException $e) {
-            return response()->json(['status' => 'error', 'message' => __('app.execution_error')]);
-        }
-
-        $record = Contact::findOrFail($decryptedId);
-
-        $newStatus = $record->status == 1 ? 0 : 1;
-        $update = $record->update(['status' => $newStatus]);
-
-        if ($update) {
-            Cache::forget('spatie.permission.cache');
-            return response()->json([
-                'status' => 'success',
-                'message' => $newStatus ? __('app.activation_success') : __('app.disable_success'),
-                'type' => $newStatus ? 'yes' : 'no'
-            ]);
-        } else {
-            return response()->json(['status' => 'error', 'message' => __('app.execution_error')]);
-        }
+        return view('admin.contacts.show', parent::$data);
     }
 
     public function postDelete(Request $request)
     {
         try {
-            $decryptedId = Crypt::decrypt($request->input('id'));
+            $id = Crypt::decrypt($request->id);
         } catch (DecryptException $e) {
-            return response()->json(['status' => 'error', 'message' => __('app.execution_error')]);
+            return response()->json(['status' => 0]);
         }
+        $contact = Contact::findOrFail($id);
+        $contact->delete();
+        return response()->json(['status' => 1]);
+    }
 
-        try {
-            $record = Contact::findOrFail($decryptedId);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json(['status' => 'error', 'message' => __('app.not_found')]);
-        }
-        if ($record->delete()) {
-            Cache::forget('spatie.permission.cache');
-            return response()->json(['status' => 'success', 'message' => __('app.delete_success')]);
-        } else {
-            return response()->json(['status' => 'error', 'message' => __('app.execution_error')]);
-        }
+    public function postStatus(Request $request)
+    {
+        return response()->json(['status' => 1]);
     }
 }

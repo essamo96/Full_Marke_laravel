@@ -62,4 +62,9 @@ public function __construct() {
     }
 }
 
+    public function clearCache() {
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        return back()->with('success_message', \App\Helpers\translate('cache_cleared') ?? 'تم مسح الكاش بنجاح!');
+    }
+
 }

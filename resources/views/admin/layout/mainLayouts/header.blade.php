@@ -635,6 +635,13 @@
 								</div>
 								<!--end::Search-->
 							</div>
+							<!--begin::Clear Cache-->
+							<div class="app-navbar-item ms-2 ms-lg-6">
+								<a href="{{ route('admin.clear-cache') }}" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px" data-bs-toggle="tooltip" title="Clear Cache">
+									<i class="ki-outline ki-arrows-circle fs-1"></i>
+								</a>
+							</div>
+							<!--end::Clear Cache-->
 							<!--begin::Notifications-->
 							<div class="app-navbar-item ms-2 ms-lg-6">
 								<!--begin::Menu- wrapper-->

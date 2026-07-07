@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin.locale' => \App\Http\Middleware\SetAdminLocale::class,
             'site.locale' => \App\Http\Middleware\SetSiteLocale::class,
+            'site.maintenance' => \App\Http\Middleware\CheckSiteMaintenance::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,

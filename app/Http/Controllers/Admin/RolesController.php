@@ -192,7 +192,8 @@ class RolesController extends AdminController
 
         $role = Role::find($id);
         if ($role) {
-            $role->syncPermissions($permissions);
+            $permissionNames = \Spatie\Permission\Models\Permission::whereIn('id', $permissions)->pluck('name')->toArray();
+            $role->syncPermissions($permissionNames);
         }
 
         Cache::forget('spatie.permission.cache');

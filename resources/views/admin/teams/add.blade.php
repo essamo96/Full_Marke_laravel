@@ -1,7 +1,17 @@
 @extends('admin.layout.mainLayouts.master')
 @section('title')
-    {{ $current_route->{'name_' . \App\Helpers\translate('lang')} }}
+    @lang('app.' . $active_menu) - {{ isset($info) && $info->id ? __('app.edit') : __('app.add') }}
 @stop
+
+@section('breadcrumb')
+    <li class="breadcrumb-item text-muted">
+        <a href="{{ route($active_menu . '.view') }}" class="text-muted text-hover-primary">@lang('app.' . $active_menu)</a>
+    </li>
+    <li class="breadcrumb-item">
+        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+    </li>
+    <li class="breadcrumb-item text-muted">{{ isset($info) && $info->id ? __('app.edit') : __('app.add') }}</li>
+@endsection
 
 @section('page-content')
 <div class="card">
@@ -13,16 +23,19 @@
                 <div class="col-9">
 
                     {{-- Tabs Navigation --}}
-                    <ul class="nav nav-tabs nav-pills border-2 flex-column flex-md-row me-5 mb-5 mb-md-0 fs-6" id="pageTab" role="tablist">
-                        <li class="nav-item mb-3" role="presentation">
-                            <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">{{ \App\Helpers\translate('basic_settings') }}</button>
+                    <ul class="nav nav-tabs nav-line-tabs nav-line-tabs-2x mb-5 fs-5 fw-bold" id="pageTab" role="tablist">
+                        <li class="nav-item me-3" role="presentation">
+                            <button class="nav-link active d-flex align-items-center text-active-primary pb-4" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">
+                                <i class="bi bi-gear-fill fs-2 me-2"></i> {{ \App\Helpers\translate('basic_settings') }}
+                            </button>
                         </li>
 
-                        {{-- Dynamic Tabs for Languages --}}
                         @foreach ($languages as $lang)
-                            <li class="nav-item mb-3" role="presentation">
-                                <button class="nav-link" id="lang-{{ $lang->prefix }}-tab" data-bs-toggle="tab"
-                                        data-bs-target="#lang-{{ $lang->prefix }}" type="button" role="tab">{{ $lang->name }}</button>
+                            <li class="nav-item me-3" role="presentation">
+                                <button class="nav-link d-flex align-items-center text-active-success pb-4" id="lang-{{ $lang->prefix }}-tab" data-bs-toggle="tab"
+                                        data-bs-target="#lang-{{ $lang->prefix }}" type="button" role="tab">
+                                    <i class="bi bi-globe fs-2 me-2"></i> {{ $lang->name }}
+                                </button>
                             </li>
                         @endforeach
                     </ul>
@@ -35,27 +48,7 @@
 
                             <div class="row mb-5">
                                 {{-- الشركة --}}
-                                @if ($company_id == 0)
-                                    <div class="col-md-6 fv-row fv-plugins-icon-container">
-                                        <label class="p-2 required">@lang('app.company_id')</label>
-
-                                        <select class="form-select form-select-solid" data-control="select2" name="company_id">
-                                            <option value="0">{{ \App\Helpers\translate('choose') }}</option>
-
-                                            @php
-                                                $data = $info ? $info->company_id : old('company_id');
-                                            @endphp
-
-                                            @foreach ($companies as $item)
-                                                <option value="{{ $item->id }}" {{ $data == $item->id ? 'selected' : '' }}>
-                                                    {{ $item->translation?->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                @else
-                                    <input type="hidden" name="company_id" value="{{ $company_id }}">
-                                @endif
+                                
 
                                 {{-- المسمى الوظيفي --}}
                                 <div class="col-md-6 fv-row">
@@ -71,13 +64,14 @@
                                 {{-- صورة العضو --}}
                                 <div class="col-md-6 fv-row">
                                     <label class="fs-5 fw-semibold mb-2 required">{{ \App\Helpers\translate('image') }}</label>
-                                    @if ($info && $info->image)
-                                        <div class="mb-2">
-                                            <img src="{{ asset('storage/' . $info->image) }}" alt="Image"
-                                                 class="img-thumbnail" style="max-height: 100px;">
-                                        </div>
-                                    @endif
-                                    <input type="file" name="image" class="form-control file-Input">
+                                    <div class="mb-2">
+                                        <img id="imagePreview" 
+                                             src="{{ $info && $info->image ? (Str::startsWith($info->image, ['http', 'site/']) ? asset($info->image) : asset('storage/' . $info->image)) : '#' }}" 
+                                             alt="Image Preview"
+                                             class="img-thumbnail" 
+                                             style="max-height: 100px; display: {{ $info && $info->image ? 'block' : 'none' }};">
+                                    </div>
+                                    <input type="file" name="image" id="imageInput" class="form-control file-Input" accept="image/*">
                                 </div>
 
                                 {{-- نوع العضوية --}}
@@ -125,10 +119,15 @@
                                             @foreach($socials as $social)
                                                 <div data-repeater-item class="row mb-3 align-items-center">
                                                     <div class="col-md-5">
-                                                        <input type="text" class="form-control form-control-solid"
-                                                               name="platform"
-                                                               placeholder="{{ \App\Helpers\translate('platform') }}"
-                                                               value="{{ $social['platform'] ?? '' }}">
+                                                        <select class="form-select form-select-solid" name="platform">
+                                                            <option value="" disabled>{{ \App\Helpers\translate('platform') }}</option>
+                                                            <option value="facebook" {{ ($social['platform'] ?? '') == 'facebook' ? 'selected' : '' }}>Facebook</option>
+                                                            <option value="twitter-x" {{ ($social['platform'] ?? '') == 'twitter-x' ? 'selected' : '' }}>X (Twitter)</option>
+                                                            <option value="instagram" {{ ($social['platform'] ?? '') == 'instagram' ? 'selected' : '' }}>Instagram</option>
+                                                            <option value="linkedin" {{ ($social['platform'] ?? '') == 'linkedin' ? 'selected' : '' }}>LinkedIn</option>
+                                                            <option value="envelope-fill" {{ ($social['platform'] ?? '') == 'envelope-fill' ? 'selected' : '' }}>Email</option>
+                                                            <option value="youtube" {{ ($social['platform'] ?? '') == 'youtube' ? 'selected' : '' }}>YouTube</option>
+                                                        </select>
                                                     </div>
                                                     <div class="col-md-5">
                                                         <input type="url" class="form-control form-control-solid"
@@ -147,9 +146,15 @@
                                         @else
                                             <div data-repeater-item class="row mb-3 align-items-center">
                                                 <div class="col-md-5">
-                                                    <input type="text" class="form-control form-control-solid"
-                                                           name="platform"
-                                                           placeholder="{{ \App\Helpers\translate('platform') }}">
+                                                    <select class="form-select form-select-solid" name="platform">
+                                                        <option value="" disabled selected>{{ \App\Helpers\translate('platform') }}</option>
+                                                        <option value="facebook">Facebook</option>
+                                                        <option value="twitter-x">X (Twitter)</option>
+                                                        <option value="instagram">Instagram</option>
+                                                        <option value="linkedin">LinkedIn</option>
+                                                        <option value="envelope-fill">Email</option>
+                                                        <option value="youtube">YouTube</option>
+                                                    </select>
                                                 </div>
                                                 <div class="col-md-5">
                                                     <input type="url" class="form-control form-control-solid"
@@ -301,6 +306,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Trigger change on load to set initial state
     $('#memberTypeSelect').trigger('change');
+
+    // Image preview
+    $('#imageInput').on('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#imagePreview').attr('src', e.target.result).show();
+            }
+            reader.readAsDataURL(file);
+        }
+    });
 });
 </script>
 @stop

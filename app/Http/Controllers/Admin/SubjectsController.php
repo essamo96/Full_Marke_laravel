@@ -32,15 +32,13 @@ class SubjectsController extends AdminController
         return view('admin.subjects.add', self::$data + [
             'info' => null,
             'programs' => Program::orderBy('order')->get(),
-            'teachers' => Teacher::active()->orderBy('name')->get(),
-        ]);
+            'teachers' => Teacher::active()->orderBy('name')->get()]);
     }
 
     public function postAdd(SubjectRequest $request)
     {
         $subject = Subject::create($request->safe()->except(['image', 'teacher_ids']) + [
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+            'is_active' => $request->boolean('is_active', true)]);
 
         if ($request->hasFile('image')) {
             $subject->update(['image' => $request->file('image')->store('subjects', 'public')]);
@@ -62,8 +60,7 @@ class SubjectsController extends AdminController
         return view('admin.subjects.add', self::$data + [
             'info' => $subject,
             'programs' => Program::orderBy('order')->get(),
-            'teachers' => Teacher::active()->orderBy('name')->get(),
-        ]);
+            'teachers' => Teacher::active()->orderBy('name')->get()]);
     }
 
     public function postEdit(SubjectRequest $request, $id)
@@ -75,8 +72,7 @@ class SubjectsController extends AdminController
         }
 
         $data = $request->safe()->except(['image', 'teacher_ids']) + [
-            'is_active' => $request->boolean('is_active', true),
-        ];
+            'is_active' => $request->boolean('is_active', true)];
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('subjects', 'public');

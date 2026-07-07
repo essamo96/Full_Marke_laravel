@@ -7,6 +7,11 @@ use App\Models\Branch;
 use App\Models\Program;
 use App\Models\StudyBranch;
 use App\Models\Student;
+use App\Models\News;
+use App\Models\Contact;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -143,5 +148,96 @@ class SiteController extends Controller
         return redirect()
             ->route('site.home')
             ->with('welcome_student', app()->getLocale() === 'ar' ? $student->full_name_ar : $student->full_name_en);
+    }
+
+    public function storeContact(Request $request)
+    {
+        // 1. Spam Prevention (Honeypot)
+        if ($request->filled('website_url')) {
+            return response()->json(['success' => false, 'message' => 'Spam detected.']);
+        }
+
+        // 2. Session Limit: Check if they already sent a message in this session
+        if ($request->session()->has('contact_sent_time')) {
+            return response()->json([
+                'success' => false,
+                'message' => app()->getLocale() === 'ar' 
+                    ? 'لقد قمت بإرسال رسالة مسبقاً في هذه الجلسة. شكراً لك.' 
+                    : 'You have already sent a message in this session. Thank you.'
+            ]);
+        }
+
+        // 3. Rate Limiting: 1 message per 2 hours (7200 seconds) per IP
+        $executed = RateLimiter::attempt(
+            'contact-form:' . $request->ip(),
+            1,
+            function() use ($request) {
+                $data = $request->validate([
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|email|max:255',
+                    'phone' => 'nullable|string|max:30',
+                    'subject' => 'required|string|max:255',
+                    'message' => 'required|string',
+                ]);
+
+                $data['is_read'] = 0;
+                $contact = Contact::create($data);
+
+                $request->session()->put('contact_sent_time', now());
+
+                // Optional: Pusher event for Admin Notification
+                try {
+                    event(new \App\Events\MyEvent([
+                        'message' => 'New contact message from: ' . $contact->name,
+                        'name' => $contact->name,
+                        'branch' => 'Contact Us',
+                        'study_branch' => $contact->subject,
+                        'created_at' => now()->diffForHumans(),
+                    ]));
+                } catch (\Exception $e) {}
+            },
+            7200 // 2 hours
+        );
+
+        if (! $executed) {
+            $seconds = RateLimiter::availableIn('contact-form:' . $request->ip());
+            $hours = ceil($seconds / 3600);
+            return response()->json([
+                'success' => false,
+                'message' => app()->getLocale() === 'ar' 
+                    ? "عذراً، يرجى الانتظار لمدة {$hours} ساعة/ساعات قبل إرسال رسالة أخرى." 
+                    : "Please wait {$hours} hour(s) before sending another message."
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => app()->getLocale() === 'ar' 
+                ? 'تم إرسال رسالتك بنجاح. سنتواصل معك قريباً!' 
+                : 'Your message has been sent successfully. We will contact you soon!'
+        ]);
+    }
+
+    public function newsDetails($id)
+    {
+        try {
+            $decryptedId = Crypt::decrypt($id);
+        } catch (DecryptException $e) {
+            abort(404);
+        }
+
+        $news = News::where('status', 1)->with('translations')->findOrFail($decryptedId);
+        
+        $similarNews = News::where('status', 1)
+            ->where('id', '!=', $decryptedId)
+            ->with('translations')
+            ->orderBy('id', 'desc')
+            ->take(3)
+            ->get();
+
+        $page_title = $news->translation ? $news->translation->title : __('app.news');
+        $page_description = $news->translation ? strip_tags($news->translation->description) : '';
+
+        return view('site.news.show', compact('news', 'similarNews', 'page_title', 'page_description'));
     }
 }

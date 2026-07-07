@@ -23,7 +23,10 @@ class DatabaseSeeder extends Seeder
         ]);
         */
 
-        $this->call(AdminPermissionsSeeder::class);
+        $this->call([
+            AdminPermissionsSeeder::class,
+            SiteSettingsSeeder::class,
+        ]);
         
         // Commented out for production to avoid dummy data and Faker errors
         // $this->call(StudentSeeder::class);

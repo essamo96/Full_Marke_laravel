@@ -1,7 +1,17 @@
 @extends('admin.layout.mainLayouts.master')
 @section('title')
-    {{ $current_route->{'name_' . \App\Helpers\translate('lang')} }}
+    @lang('app.' . $active_menu)
 @stop
+
+@section('breadcrumb')
+    <li class="breadcrumb-item text-muted">
+        <a href="{{ route($active_menu . '.view') }}" class="text-muted text-hover-primary">@lang('app.' . $active_menu)</a>
+    </li>
+    <li class="breadcrumb-item">
+        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+    </li>
+    <li class="breadcrumb-item text-muted">@lang('app.view')</li>
+@endsection
 @section('page-content')
     <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
         <div id="kt_app_content" class="app-content flex-column-fluid">

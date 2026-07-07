@@ -19,7 +19,7 @@ class SiteSettingRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'hero_video_1' => 'nullable|file|mimetypes:video/mp4|max:51200',
             'hero_video_2' => 'nullable|file|mimetypes:video/mp4|max:51200',
             'hero_video_1_mobile' => 'nullable|file|mimetypes:video/mp4|max:51200',
@@ -33,14 +33,31 @@ class SiteSettingRequest extends FormRequest
             'social_links.*.url' => 'required_with:social_links|url',
             'social_links.*.icon' => 'nullable|image|max:2048',
 
-            'seo_title' => 'nullable|string|max:255',
-            'seo_description' => 'nullable|string|max:500',
-            'seo_keywords' => 'nullable|string|max:1000',
-
             'maintenance_mode' => 'nullable|boolean',
-            'maintenance_title' => 'nullable|string|max:255',
-            'maintenance_message' => 'nullable|string|max:2000',
             'show_translation_button' => 'nullable|boolean',
+            'completed_courses_count' => 'nullable|integer|min:0',
+            'registered_students_count' => 'nullable|integer|min:0',
+            'training_hours_count' => 'nullable|integer|min:0',
+
+            // Fields from general_settings
+            'site_email' => 'nullable|email|max:255',
+            'site_phone' => 'nullable|string|max:255',
+            'show_contact_form' => 'nullable|boolean',
+            'enable_newsletter' => 'nullable|boolean',
+            'enable_live_chat' => 'nullable|boolean',
+            'show_registration_button' => 'nullable|boolean',
         ];
+
+        $locales = ['ar', 'en'];
+        foreach ($locales as $locale) {
+            $rules["{$locale}.seo_title"] = 'nullable|string|max:255';
+            $rules["{$locale}.seo_description"] = 'nullable|string|max:1000';
+            $rules["{$locale}.seo_keywords"] = 'nullable|string|max:1000';
+            $rules["{$locale}.maintenance_title"] = 'nullable|string|max:255';
+            $rules["{$locale}.maintenance_message"] = 'nullable|string|max:2000';
+            $rules["{$locale}.site_address"] = 'nullable|string|max:500';
+        }
+
+        return $rules;
     }
 }

@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Partner;
 use App\Models\PartnerTranslation;
-use App\Models\Company;
-use App\Models\Language;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -28,7 +26,7 @@ class PartnersController extends AdminController
 
     public function getIndex()
     {
-        parent::$data['companies'] = Company::all();
+        parent::$data['companies'] = [];
         return view('admin.' . $this->path . '.view', parent::$data);
     }
 
@@ -36,9 +34,9 @@ class PartnersController extends AdminController
     {
         $name = $request->get('name') ?? '';
         $companies = $request->get('companies') ?? '';
-        $emp_id = Auth::guard('admin')->user()->role->is_user != 1 ? 0 : Auth::guard('admin')->user()->company_id;
+        
         $obj = new Partner();
-        $info = $obj->getSearch($name, $companies, $emp_id);
+        $info = $obj->getSearch($name, $companies, 0);
         return DataTables::of($info)
             ->editColumn('status', function ($row) {
                 $data['id'] = $row->id;
@@ -46,13 +44,7 @@ class PartnersController extends AdminController
                 $data['active_menu'] = $this->path;
                 return view('admin.' . $this->path . '.parts.status', $data)->render();
             })
-            ->addColumn('company_id', function ($row) {
-                $data['active_menu'] = $this->path;
-                $data['id'] = $row->id;
-                $data['x'] = 3;
-                $data['name'] = $row->company ? $row->company->translation->name : '';
-                return view('admin.' . $this->path . '.parts.general', $data)->render();
-            })
+            
             ->addColumn('partner_name', function ($row) {
             $data['active_menu'] = $this->path;
             $data['id'] = $row->id;
@@ -72,7 +64,7 @@ class PartnersController extends AdminController
                 $data['id'] = $row->id;
                 return view('admin.' . $this->path . '.parts.actions', $data)->render();
             })
-            ->rawColumns(['status', 'actions', 'company_id', 'image','partner_name'])
+            ->rawColumns(['status', 'actions', 'image','partner_name'])
             ->addIndexColumn()
             ->make(true);
     }
@@ -80,9 +72,9 @@ class PartnersController extends AdminController
     public function getAdd()
     {
         parent::$data['info'] = NULL;
-        parent::$data['companies'] = Company::all();
-        parent::$data['languages'] = Language::where('status', 1)->get();
-        parent::$data['company_id'] = Auth::guard('admin')->user()->role->is_user != 1 ? 0 : Auth::guard('admin')->user()->company_id;
+        parent::$data['companies'] = [];
+        parent::$data['languages'] = collect([(object)['prefix'=>'ar','name'=>'العربية'],(object)['prefix'=>'en','name'=>'English']]);
+        
 
         return view('admin.' . $this->path . '.add', parent::$data);
     }
@@ -101,7 +93,7 @@ class PartnersController extends AdminController
         $partner = Partner::create($data);
 
         // إنشاء الترجمات
-        $languages = Language::where('status', 1)->pluck('prefix');
+        $languages = ['ar', 'en'];
         foreach ($languages as $locale) {
             $translationData = $request->input($locale, []);
             if (!empty($translationData['name'])) {
@@ -110,8 +102,7 @@ class PartnersController extends AdminController
                     'locale'     => $locale,
                     'name'       => $translationData['name'],
                     'address'    => $translationData['address'] ?? null,
-                    'details'    => $translationData['details'] ?? null,
-                ]);
+                    'details'    => $translationData['details'] ?? null]);
             }
         }
 
@@ -137,10 +128,10 @@ class PartnersController extends AdminController
         }
 
         parent::$data['info'] = $record;
-        parent::$data['companies'] = Company::all();
-        parent::$data['languages'] = Language::where('status', 1)->get();
+        parent::$data['companies'] = [];
+        parent::$data['languages'] = collect([(object)['prefix'=>'ar','name'=>'العربية'],(object)['prefix'=>'en','name'=>'English']]);
         parent::$data['translations'] = $translations;
-        parent::$data['company_id'] = Auth::guard('admin')->user()->role->is_user != 1 ? 0 : Auth::guard('admin')->user()->company_id;
+        
 
         return view('admin.' . $this->path . '.add', parent::$data);
     }
@@ -173,7 +164,7 @@ class PartnersController extends AdminController
         $partner->update($data);
 
         // تحديث الترجمات
-        $languages = Language::where('status', 1)->pluck('prefix');
+        $languages = ['ar', 'en'];
         foreach ($languages as $locale) {
             $translationData = $request->input($locale, []);
             if (!empty($translationData['name'])) {
@@ -182,8 +173,7 @@ class PartnersController extends AdminController
                     [
                         'name'    => $translationData['name'],
                         'address' => $translationData['address'] ?? null,
-                        'details' => $translationData['details'] ?? null,
-                    ]
+                        'details' => $translationData['details'] ?? null]
                 );
             }
         }
@@ -241,3 +231,5 @@ class PartnersController extends AdminController
         }
     }
 }
+
+

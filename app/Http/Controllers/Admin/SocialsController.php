@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Social;
-use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -25,7 +24,7 @@ class SocialsController extends AdminController
 
     public function getIndex()
     {
-        parent::$data['companies'] = Company::all();
+        parent::$data['companies'] = [];
 
         return view('admin.' . $this->path . '.view', parent::$data);
     }
@@ -79,8 +78,8 @@ class SocialsController extends AdminController
     public function getAdd()
     {
         parent::$data['info'] = NULL;
-        parent::$data['companies'] = Company::all();
-        parent::$data['company_id'] = 0;
+        parent::$data['companies'] = [];
+        
 
         return view('admin.' . $this->path . '.add', parent::$data);
     }
@@ -94,8 +93,7 @@ class SocialsController extends AdminController
                     'name_en' => $item['name_en'],
                     'link' => $item['link'],
                     'icon' => $item['icon'],
-                    'status' => isset($item['status']) ? 1 : 0,
-                ];
+                    'status' => isset($item['status']) ? 1 : 0];
 
                 if ($request->hasFile("socials.$index.image")) {
                     $file = $request->file("socials.$index.image");
@@ -126,8 +124,8 @@ class SocialsController extends AdminController
 
         $record = Social::findOrFail($decryptedId);
         parent::$data['info'] = $record;
-        parent::$data['companies'] = Company::all();
-        parent::$data['company_id'] = 0;
+        parent::$data['companies'] = [];
+        
 
         return view('admin.' . $this->path . '.add', parent::$data);
     }
@@ -148,8 +146,7 @@ class SocialsController extends AdminController
             'name_en' => $request->name_en,
             'link' => $request->link,
             'icon' => $request->icon,
-            'status' => $request->has('status') ? 1 : 0,
-        ];
+            'status' => $request->has('status') ? 1 : 0];
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');

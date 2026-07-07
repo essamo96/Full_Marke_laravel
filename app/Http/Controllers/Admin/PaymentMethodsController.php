@@ -33,8 +33,7 @@ class PaymentMethodsController extends AdminController
     public function postAdd(PaymentMethodRequest $request)
     {
         PaymentMethod::create($request->validated() + [
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+            'is_active' => $request->boolean('is_active', true)]);
 
         return redirect()->route('payment_methods.view')->with('success', __('app.insert_success'));
     }
@@ -59,8 +58,7 @@ class PaymentMethodsController extends AdminController
         }
 
         $method->update($request->validated() + [
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+            'is_active' => $request->boolean('is_active', true)]);
 
         return redirect()->route('payment_methods.view')->with('success', __('app.update_success'));
     }

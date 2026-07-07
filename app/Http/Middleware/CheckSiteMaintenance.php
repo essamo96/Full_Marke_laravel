@@ -20,8 +20,8 @@ class CheckSiteMaintenance
 
         if ($settings->maintenance_mode) {
             return response()->view('site.maintenance', [
-                'title' => $settings->maintenance_title,
-                'message' => $settings->maintenance_message,
+                'title' => $settings->translation->maintenance_title ?? null,
+                'message' => $settings->translation->maintenance_message ?? null,
             ], 503);
         }
 

@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Faq;
 use App\Models\FaqTranslation;
-use App\Models\Company;
-use App\Models\Language;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -27,7 +25,7 @@ class FaqsController extends AdminController
 
     public function getIndex()
     {
-        parent::$data['companies'] = Company::all();
+        parent::$data['companies'] = [];
         return view('admin.' . $this->path . '.view', parent::$data);
     }
 
@@ -35,9 +33,13 @@ class FaqsController extends AdminController
     {
         $name = $request->get('name') ?? '';
         $companies = $request->get('companies') ?? '';
-        $emp_id = Auth::guard('admin')->user()->role->is_user != 1 ? 0 : Auth::guard('admin')->user()->id;
+        
         $obj = new Faq();
-        $info = $obj->getSearch($name, $companies, $emp_id);
+        $info = $obj->getSearch($name, $companies, 0);
+
+        if ($request->has('status') && $request->get('status') !== null) {
+            $info->where('faqs.status', $request->get('status'));
+        }
 
         return Datatables::of($info)
             ->editColumn('status', function ($row) {
@@ -46,13 +48,7 @@ class FaqsController extends AdminController
                 $data['active_menu'] = $this->path;
                 return view('admin.' . $this->path . '.parts.status', $data)->render();
             })
-            ->addColumn('company_id', function ($row) {
-                $data['active_menu'] = $this->path;
-                $data['id'] = $row->id;
-                $data['x'] = 3;
-                $data['name'] = $row->company ? $row->company->translation->name : '';
-                return view('admin.' . $this->path . '.parts.general', $data)->render();
-            })
+            
             ->addColumn('question', function ($row) {
                 $data['active_menu'] = $this->path;
                 $data['id'] = $row->id;
@@ -65,7 +61,7 @@ class FaqsController extends AdminController
                 $data['id'] = $row->id;
                 return view('admin.' . $this->path . '.parts.actions', $data)->render();
             })
-            ->rawColumns(['status', 'actions', 'company_id', 'question'])
+            ->rawColumns(['status', 'actions', 'question'])
             ->addIndexColumn()
             ->make(true);
     }
@@ -73,34 +69,67 @@ class FaqsController extends AdminController
     public function getAdd()
     {
         parent::$data['info'] = null;
-        parent::$data['companies'] = Company::all();
-        parent::$data['languages'] = Language::where('status', 1)->get();
-        parent::$data['company_id'] = Auth::guard('admin')->user()->role->is_user != 1 ? 0 : Auth::guard('admin')->user()->company_id;
+        parent::$data['companies'] = [];
+        parent::$data['languages'] = collect([(object)['prefix'=>'ar','name'=>'العربية'],(object)['prefix'=>'en','name'=>'English']]);
+        
 
         return view('admin.' . $this->path . '.add', parent::$data);
     }
 
     public function postAdd(FaqRequest $request)
     {
-        $data = $request->validated();
-        $data['status'] = $request->has('status') ? 1 : 0;
+        $status = $request->has('status') ? 1 : 0;
+        $sort = $request->input('sort', 0);
+        $link = $request->input('link');
+        $icon = $request->input('icon');
 
-        // إنشاء FAQ
-        $faq = Faq::create($data);
+        $ar_faqs = $request->input('ar_faqs', []);
+        $en_faqs = $request->input('en_faqs', []);
+        
+        $count = max(is_array($ar_faqs) ? count($ar_faqs) : 0, is_array($en_faqs) ? count($en_faqs) : 0);
 
-        // الترجمات
-        $languages = Language::where('status', 1)->pluck('prefix');
-        foreach ($languages as $locale) {
-            $translationData = $request->input($locale, []);
-            if (!empty($translationData['question']) && !empty($translationData['answer'])) {
-                FaqTranslation::create([
-                    'faq_id'      => $faq->id,
-                    'locale'      => $locale,
-                    'question'    => $translationData['question'],
-                    'answer'      => $translationData['answer'],
-                    'title'       => $translationData['title'] ?? null,
-                    'description' => $translationData['description'] ?? null,
+        if ($count > 0) {
+            for ($i = 0; $i < $count; $i++) {
+                // إنشاء FAQ
+                $faq = Faq::create([
+                    'status' => $status,
+                    'sort' => $sort,
+                    'link' => $link,
+                    'icon' => $icon,
                 ]);
+
+                // الترجمات
+                $languages = ['ar', 'en'];
+                foreach ($languages as $locale) {
+                    $translationData = $request->input("{$locale}_faqs.{$i}");
+                    $commonTrans = $request->input($locale, []);
+                    if ($translationData && (!empty($translationData['question']) || !empty($translationData['answer']))) {
+                        FaqTranslation::create([
+                            'faq_id'      => $faq->id,
+                            'locale'      => $locale,
+                            'question'    => $translationData['question'] ?? '',
+                            'answer'      => $translationData['answer'] ?? '',
+                            'title'       => $commonTrans['title'] ?? null,
+                            'description' => $commonTrans['description'] ?? null
+                        ]);
+                    }
+                }
+            }
+        } else {
+            // Fallback for single insertion (just in case)
+            $faq = Faq::create(['status' => $status, 'sort' => $sort, 'link' => $link, 'icon' => $icon]);
+            foreach (['ar', 'en'] as $locale) {
+                $translationData = $request->input($locale, []);
+                if (!empty($translationData['question']) || !empty($translationData['answer'])) {
+                    FaqTranslation::create([
+                        'faq_id'      => $faq->id,
+                        'locale'      => $locale,
+                        'question'    => $translationData['question'] ?? '',
+                        'answer'      => $translationData['answer'] ?? '',
+                        'title'       => $translationData['title'] ?? null,
+                        'description' => $translationData['description'] ?? null
+                    ]);
+                }
             }
         }
 
@@ -126,10 +155,10 @@ class FaqsController extends AdminController
         }
 
         parent::$data['info'] = $record;
-        parent::$data['companies'] = Company::all();
-        parent::$data['languages'] = Language::where('status', 1)->get();
+        parent::$data['companies'] = [];
+        parent::$data['languages'] = collect([(object)['prefix'=>'ar','name'=>'العربية'],(object)['prefix'=>'en','name'=>'English']]);
         parent::$data['translations'] = $translations;
-        parent::$data['company_id'] = Auth::guard('admin')->user()->role->is_user != 1 ? 0 : Auth::guard('admin')->user()->company_id;
+        
 
         return view('admin.' . $this->path . '.add', parent::$data);
     }
@@ -152,18 +181,17 @@ class FaqsController extends AdminController
         $faq->update($data);
 
         // تحديث الترجمات
-        $languages = Language::where('status', 1)->pluck('prefix');
+        $languages = ['ar', 'en'];
         foreach ($languages as $locale) {
             $translationData = $request->input($locale, []);
-            if (!empty($translationData['question']) && !empty($translationData['answer'])) {
+            if (!empty($translationData['question']) || !empty($translationData['answer'])) {
                 FaqTranslation::updateOrCreate(
                     ['faq_id' => $faq->id, 'locale' => $locale],
                     [
-                        'question'    => $translationData['question'],
-                        'answer'      => $translationData['answer'],
+                        'question'    => $translationData['question'] ?? '',
+                        'answer'      => $translationData['answer'] ?? '',
                         'title'       => $translationData['title'] ?? null,
-                        'description' => $translationData['description'] ?? null,
-                    ]
+                        'description' => $translationData['description'] ?? null]
                 );
             }
         }
@@ -221,3 +249,5 @@ class FaqsController extends AdminController
         }
     }
 }
+
+

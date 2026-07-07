@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Page;
-use App\Models\Company;
-use App\Models\Language;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
@@ -28,7 +26,7 @@ class PagesController extends AdminController
 
     public function getIndex()
     {
-        parent::$data['companies'] = Company::all();
+        parent::$data['companies'] = [];
 
         return view('admin.' . $this->path . '.view', parent::$data);
     }
@@ -37,9 +35,14 @@ class PagesController extends AdminController
     {
         $name = $request->get('name') ?? '';
         $companies = $request->get('companies') ?? '';
-        $emp_id = Auth::guard('admin')->user()->role->is_user != 1 ? 0 : Auth::guard('admin')->user()->company_id;
+        
         $obj = new Page();
-        $info = $obj->getSearch($name, $companies, $emp_id);
+        $info = $obj->getSearch($name, $companies, 0);
+
+        if ($request->has('status') && $request->get('status') !== null) {
+            $info->where('pages.status', $request->get('status'));
+        }
+
         return Datatables::of($info)
             ->editColumn('status', function ($row) {
                 $data['id'] = $row->id;
@@ -47,13 +50,7 @@ class PagesController extends AdminController
                 $data['active_menu'] = $this->path;
                 return view('admin.' . $this->path . '.parts.status', $data)->render();
             })
-            ->addColumn('company_id', function ($row) {
-                $data['active_menu'] = $this->path;
-                $data['id'] = $row->id;
-                $data['x'] = 3;
-                $data['name'] = $row->company ? $row->company->translation?->name : '';
-                return view('admin.' . $this->path . '.parts.general', $data)->render();
-            })
+            
             ->addColumn('title', function ($row) {
             $data['active_menu'] = $this->path;
             $data['id'] = $row->id;
@@ -66,7 +63,7 @@ class PagesController extends AdminController
                 $data['id'] = $row->id;
                 return view('admin.' . $this->path . '.parts.actions', $data)->render();
             })
-            ->rawColumns(['status', 'actions', 'company_id','title'])
+            ->rawColumns(['status', 'actions', 'title'])
             ->addIndexColumn()
             ->make(true);
     }
@@ -74,9 +71,9 @@ class PagesController extends AdminController
     public function getAdd()
     {
         parent::$data['info'] = NULL;
-        parent::$data['companies'] = Company::all();
-        parent::$data['company_id'] = Auth::guard('admin')->user()->role->is_user != 1 ? 0 : Auth::guard('admin')->user()->company_id;
-        parent::$data['languages'] = Language::where('status', 1)->get();
+        parent::$data['companies'] = [];
+        
+        parent::$data['languages'] = collect([(object)['prefix'=>'ar','name'=>'العربية'],(object)['prefix'=>'en','name'=>'English']]);
 
         return view('admin.' . $this->path . '.add', parent::$data);
     }
@@ -100,9 +97,9 @@ class PagesController extends AdminController
         }
 
         parent::$data['info'] = $record;
-        parent::$data['companies'] = Company::all();
-        parent::$data['company_id'] = Auth::guard('admin')->user()->role->is_user != 1 ? 0 : Auth::guard('admin')->user()->company_id;
-        parent::$data['languages'] = Language::where('status', 1)->get();
+        parent::$data['companies'] = [];
+        
+        parent::$data['languages'] = collect([(object)['prefix'=>'ar','name'=>'العربية'],(object)['prefix'=>'en','name'=>'English']]);
         parent::$data['translations'] = $translations;
 
         return view('admin.' . $this->path . '.add', parent::$data);
@@ -123,29 +120,34 @@ public function postEdit(PageRequest $request, $id)
 
     // Handle image upload
     if ($request->hasFile('image')) {
-        // حذف الصورة القديمة إذا وجدت (لاحظ هنا نمرر المسار المخزن مباشرة)
         if ($page->image && Storage::disk('public')->exists($page->image)) {
             Storage::disk('public')->delete($page->image);
         }
-        
-        // تخزين الصورة والحصول على المسار النسبي فقط
-        $imagePath = $request->file('image')->store('uploads/pages', 'public');
-        $data['image'] = $imagePath; // سيخزن مثل: uploads/pages/name.png
+        $data['image'] = $request->file('image')->store('uploads/pages', 'public');
     } else {
         $data['image'] = $page->image;
     }
 
+    // Handle video upload
+    if ($request->hasFile('video')) {
+        if ($page->video && Storage::disk('public')->exists($page->video)) {
+            Storage::disk('public')->delete($page->video);
+        }
+        $data['video'] = $request->file('video')->store('uploads/pages/videos', 'public');
+    } else {
+        $data['video'] = $page->video;
+    }
+
     // تحديث البيانات الأساسية
     $page->update([
-        'company_id' => $request->company_id,
         'slug'       => $request->slug,
         'tags'       => $request->tags,
         'status'     => $data['status'],
         'image'      => $data['image'],
-    ]);
+        'video'      => $data['video']]);
 
     // ===== translations =====
-    $languages = Language::where('status', 1)->pluck('prefix');
+    $languages = ['ar', 'en'];
 
     foreach ($languages as $locale) {
         $translationData = $request->$locale ?? null;
@@ -153,12 +155,10 @@ public function postEdit(PageRequest $request, $id)
             PagesTranslations::updateOrCreate(
                 [
                     'page_id' => $page->id,
-                    'locale'  => $locale,
-                ],
+                    'locale'  => $locale],
                 [
                     'title'   => $translationData['title'] ?? null,
-                    'details' => $translationData['details'] ?? null,
-                ]
+                    'details' => $translationData['details'] ?? null]
             );
         }
     }
@@ -173,25 +173,28 @@ public function postAdd(PageRequest $request)
 {
     $data['status'] = $request->has('status') ? 1 : 0;
     $data['image'] = null;
+    $data['video'] = null;
 
     // Handle image upload
     if ($request->hasFile('image')) {
-        // تخزين الصورة والحصول على المسار النسبي فقط
-        $imagePath = $request->file('image')->store('uploads/pages', 'public');
-        $data['image'] = $imagePath; // سيخزن المسار بدون كلمة storage
+        $data['image'] = $request->file('image')->store('uploads/pages', 'public');
+    }
+
+    // Handle video upload
+    if ($request->hasFile('video')) {
+        $data['video'] = $request->file('video')->store('uploads/pages/videos', 'public');
     }
 
     // إنشاء الصفحة الأساسية
     $page = Page::create([
-        'company_id' => $request->company_id,
         'slug'       => $request->slug,
         'tags'       => $request->tags,
         'status'     => $data['status'],
         'image'      => $data['image'],
-    ]);
+        'video'      => $data['video']]);
 
     // ===== translations =====
-    $languages = Language::where('status', 1)->pluck('prefix');
+    $languages = ['ar', 'en'];
 
     foreach ($languages as $locale) {
         if ($request->filled("$locale.title") || $request->filled("$locale.details")) {
@@ -199,8 +202,7 @@ public function postAdd(PageRequest $request)
                 'page_id' => $page->id,
                 'locale'  => $locale,
                 'title'   => $request->$locale['title'] ?? null,
-                'details' => $request->$locale['details'] ?? null,
-            ]);
+                'details' => $request->$locale['details'] ?? null]);
         }
     }
 
@@ -257,3 +259,5 @@ public function postAdd(PageRequest $request)
         }
     }
 }
+
+

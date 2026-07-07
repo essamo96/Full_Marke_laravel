@@ -1,7 +1,17 @@
 @extends('admin.layout.mainLayouts.master')
 @section('title')
-{{ $current_route->name_ar ?? null }}
+    @lang('app.' . $active_menu)
 @stop
+
+@section('breadcrumb')
+    <li class="breadcrumb-item text-muted">
+        <a href="{{ route($active_menu . '.view') }}" class="text-muted text-hover-primary">@lang('app.' . $active_menu)</a>
+    </li>
+    <li class="breadcrumb-item">
+        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+    </li>
+    <li class="breadcrumb-item text-muted">@lang('app.view')</li>
+@endsection
 @section('page-breadcrumb')
 <li class="breadcrumb-item text-muted">
     <a href="{{ url('/') }}" class="text-muted text-hover-primary">الرئيسية</a>
@@ -41,7 +51,7 @@
                             <tr class="fw-semibold fs-6 text-muted">
                                 <th> # </th>
                                 <!-- <th>{{ \App\Helpers\translate('title') }}</th> -->
-                               <th>{{ \App\Helpers\translate('company_id') }}</th>
+                               
                                <th>{{ \App\Helpers\translate('image') }}</th>
                                <th>{{ \App\Helpers\translate('section') }}</th>
                                <th>{{ \App\Helpers\translate('status') }}</th>
@@ -74,7 +84,6 @@
                 }
             },
             columns: [{data: 'DT_RowIndex'},
-            {data: "company_id"},
             {data: "image"},
             {data: "section"},
             {data: "status"},

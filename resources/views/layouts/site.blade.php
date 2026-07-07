@@ -8,7 +8,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>@yield('title', $siteSettings->seo_title ?? 'FULL MARKS ACADEMY')</title>
-  <meta name="description" content="{{ $siteSettings->seo_description ?? '' }}">
+  <meta name="description" content="@yield('meta_description', $siteSettings->seo_description ?? '')">
   <meta name="keywords" content="{{ $siteSettings->seo_keywords ?? '' }}">
   
   <!-- Favicons -->

@@ -41,8 +41,7 @@ class DashboardController extends AdminController
             'groups' => Group::active()->count(),
             'study_branches' => StudyBranch::active()->count(),
             'applications_pending' => Application::where('status', 'new')->count(),
-            'registrations_active' => Registration::where('registration_status', 'active')->count(),
-        ];
+            'registrations_active' => Registration::where('registration_status', 'active')->count()];
 
         $topPrograms = Program::query()
             ->withCount('subjects')
@@ -74,8 +73,7 @@ class DashboardController extends AdminController
 
             return [
                 'label' => $date->translatedFormat('D'),
-                'count' => Student::whereDate('created_at', $date->toDateString())->count(),
-            ];
+                'count' => Student::whereDate('created_at', $date->toDateString())->count()];
         });
 
         return view('admin.dashboard.view', self::$data + [
@@ -83,7 +81,6 @@ class DashboardController extends AdminController
             'topPrograms' => $topPrograms,
             'topGroups' => $topGroups,
             'recentApplications' => $recentApplications,
-            'registrationsTrend' => $registrationsTrend,
-        ]);
+            'registrationsTrend' => $registrationsTrend]);
     }
 }
