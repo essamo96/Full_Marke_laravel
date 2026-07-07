@@ -61,7 +61,9 @@ jobs:
           shell: bash
           command: |
             lftp -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" 92.113.19.218 <<'EOF'
-            set ftp:ssl-allow no
+            set ssl:verify-certificate no
+            set ftp:ssl-allow true
+            set ftp:ssl-force true
             set net:max-retries 5
             set net:timeout 30
             set net:reconnect-interval-base 10
