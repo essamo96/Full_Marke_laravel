@@ -31,9 +31,9 @@ class AdminPermissionsSeeder extends Seeder
                 'children' => []
             ],
             [
-                'name' => 'general_settings',
-                'name_ar' => 'ادارة الموقع',
-                'name_en' => 'Website Settings',
+                'name' => 'site_settings',
+                'name_ar' => 'إعدادات الموقع',
+                'name_en' => 'Site Settings',
                 'color' => 'dark',
                 'icon' => 'bi-gear-fill',
                 'sort' => 1,
