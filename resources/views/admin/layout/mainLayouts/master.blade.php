@@ -160,6 +160,23 @@
     
     <!-- datatables js -->
     <script src="{{ asset('assets/admin/plugins/custom/datatables/datatables.bundle.js?v=7.2.9') }}"></script>
+
+    <!-- tinymce js -->
+    <script src="{{ asset('assets/plugins/custom/tinymce/tinymce.bundle.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof tinymce !== 'undefined') {
+                tinymce.init({
+                    selector: 'textarea',
+                    plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking table directionality emoticons template',
+                    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
+                    directionality: document.documentElement.dir || 'ltr',
+                    menubar: false,
+                    promotion: false
+                });
+            }
+        });
+    </script>
     
     @stack('scripts')
     @yield('js')
