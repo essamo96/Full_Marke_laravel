@@ -13,15 +13,6 @@ Route::middleware('site.locale')->group(function () {
     })->name('site.home');
 
     Route::get('/lang/{locale}', [SiteLocaleController::class, 'switch'])->name('site.lang');
-    Route::get('/create-storage-link', function () {
-        $targetFolder = storage_path('app/public');
-        $linkFolder = public_path('storage');
-        
-        if (symlink($targetFolder, $linkFolder)) {
-            return 'Symlink created successfully!';
-        }
-        return 'Failed to create symlink.';
-    });
     Route::get('/programs/{program:slug}', [SiteController::class, 'programDetails'])->name('programs.show');
     Route::get('/apply-now', [SiteController::class, 'applyNow'])->name('apply.create');
     Route::post('/apply-now', [SiteController::class, 'storeApplication'])->name('apply.store');
