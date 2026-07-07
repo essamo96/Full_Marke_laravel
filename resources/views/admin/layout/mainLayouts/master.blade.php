@@ -162,7 +162,7 @@
     <script src="{{ asset('assets/admin/plugins/custom/datatables/datatables.bundle.js?v=7.2.9') }}"></script>
 
     <!-- tinymce js -->
-    <script src="{{ asset('assets/plugins/custom/tinymce/tinymce.bundle.js') }}"></script>
+    <script src="{{ asset('assets/admin/plugins/custom/tinymce/tinymce.bundle.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof tinymce !== 'undefined') {
