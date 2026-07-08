@@ -503,4 +503,7 @@ return [
     'permissions_group' => 'مجموعات الصلاحيات',
     'approvals' => 'الطلبات',
     'galleries' => 'المعارض',
+    'notifications' => 'الإشعارات',
+    'academy_management' => 'إدارة الأكاديمية',
+    'pending_requests' => 'الطلبات العالقة',
 ];

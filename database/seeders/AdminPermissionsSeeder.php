@@ -169,6 +169,36 @@ class AdminPermissionsSeeder extends Seeder
                         'status' => 1,
                     ],
                 ]
+            ],
+            [
+                'name' => 'notifications',
+                'name_ar' => 'الاشعارات',
+                'name_en' => 'Notifications',
+                'color' => 'dark',
+                'icon' => 'bi-bell-fill',
+                'sort' => 2,
+                'status' => 1,
+                'children' => []
+            ],
+            [
+                'name' => 'academy_management',
+                'name_ar' => 'ادارة الاكاديمية',
+                'name_en' => 'Academy Management',
+                'color' => 'dark',
+                'icon' => 'bi-buildings',
+                'sort' => 4,
+                'status' => 1,
+                'children' => [
+                    [
+                        'name' => 'pending_requests',
+                        'name_ar' => 'الطلبات العالقة',
+                        'name_en' => 'Pending Requests',
+                        'color' => 'dark',
+                        'icon' => 'bi-clock-fill',
+                        'sort' => 1,
+                        'status' => 1,
+                    ]
+                ]
             ]
         ];
 

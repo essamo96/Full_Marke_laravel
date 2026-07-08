@@ -500,4 +500,7 @@ return [
     'permissions_group' => 'Permissions Groups',
     'approvals' => 'Approvals',
     'galleries' => 'Galleries',
+    'notifications' => 'Notifications',
+    'academy_management' => 'Academy Management',
+    'pending_requests' => 'Pending Requests',
 ];
