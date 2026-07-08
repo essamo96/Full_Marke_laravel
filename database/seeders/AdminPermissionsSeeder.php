@@ -75,6 +75,51 @@ class AdminPermissionsSeeder extends Seeder
                         'icon' => 'bi-chat-quote-fill',
                         'sort' => 3,
                         'status' => 1,
+                    ],
+                    [
+                        'name' => 'teams',
+                        'name_ar' => 'الفريق',
+                        'name_en' => 'Teams',
+                        'color' => 'dark',
+                        'icon' => 'bi-people-fill',
+                        'sort' => 4,
+                        'status' => 1,
+                    ],
+                    [
+                        'name' => 'faqs',
+                        'name_ar' => 'الأسئلة الشائعة',
+                        'name_en' => 'FAQs',
+                        'color' => 'dark',
+                        'icon' => 'bi-question-circle-fill',
+                        'sort' => 5,
+                        'status' => 1,
+                    ],
+                    [
+                        'name' => 'news',
+                        'name_ar' => 'الأخبار',
+                        'name_en' => 'News',
+                        'color' => 'dark',
+                        'icon' => 'bi-newspaper',
+                        'sort' => 6,
+                        'status' => 1,
+                    ],
+                    [
+                        'name' => 'contacts',
+                        'name_ar' => 'إدارة جهات الاتصال',
+                        'name_en' => 'Contacts',
+                        'color' => 'dark',
+                        'icon' => 'bi-envelope-fill',
+                        'sort' => 7,
+                        'status' => 1,
+                    ],
+                    [
+                        'name' => 'pages',
+                        'name_ar' => 'الصفحات الثابتة',
+                        'name_en' => 'Static Pages',
+                        'color' => 'dark',
+                        'icon' => 'bi-file-earmark-text-fill',
+                        'sort' => 8,
+                        'status' => 1,
                     ]
                 ]
             ],
@@ -138,7 +183,11 @@ class AdminPermissionsSeeder extends Seeder
             );
 
             // Generate view permission for parent
-            $parentGroup->generateCrudPermissions(['view']);
+            if ($groupData['name'] === 'site_settings') {
+                $parentGroup->generateCrudPermissions(['view', 'edit']);
+            } else {
+                $parentGroup->generateCrudPermissions(['view']);
+            }
 
             foreach ($children as $childData) {
                 $childData['parent_id'] = $parentGroup->id;

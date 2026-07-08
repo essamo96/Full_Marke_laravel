@@ -7,48 +7,53 @@
     <div class="container d-flex align-items-center justify-content-between">
       <!-- Logo -->
       <a href="{{ route('site.home') }}" class="d-flex align-items-center text-decoration-none">
-        <img id="navbar-logo" src="{{ asset('site/images/logo_v2_gold.png') }}" alt="Full Mark Logo" class="object-contain py-1 me-3">
+        <img id="navbar-logo" src="{{ asset('site/images/logo_v2_gold.png') }}" alt="Full Mark Logo" class="object-contain py-1 me-3" style="max-height: 80px; width: auto;">
       </a>
 
       <!-- Primary nav — exactly 7 items, all always inline (no "More" dropdown
            needed). News and FAQ sections still exist on the page but are
            intentionally not linked from the navbar. -->
-      <nav id="primary-nav" class="primary-nav d-flex align-items-center">
-        <a href="#hero" class="desktop-nav-link nav-item-primary text-decoration-none font-medium active" style="color: var(--text-primary);" data-en="Home" data-ar="الرئيسية">Home</a>
-        <a href="#about" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="About" data-ar="عن الأكاديمية">About</a>
-        <a href="#programs" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Programs" data-ar="البرامج">Programs</a>
-        <a href="#strengths" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Strengths" data-ar="مميزاتنا">Strengths</a>
-        <a href="#actions" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Services" data-ar="خدماتنا">Services</a>
-        <a href="#testimonials" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Testimonials" data-ar="التقييمات">Testimonials</a>
-        <a href="#contact" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary);" data-en="Contact" data-ar="اتصل بنا">Contact</a>
+      @php
+          $navFontSize = app()->getLocale() == 'ar' ? '15px' : '13.5px';
+          $btnFontSize = app()->getLocale() == 'ar' ? '14.5px' : '13px';
+          $navGap = app()->getLocale() == 'ar' ? 'gap-3' : 'gap-2';
+      @endphp
+      <nav id="primary-nav" class="primary-nav d-flex align-items-center {{ $navGap }}">
+        <a href="#hero" class="desktop-nav-link nav-item-primary text-decoration-none font-medium active" style="color: var(--text-primary); font-size: {{ $navFontSize }};" data-en="Home" data-ar="الرئيسية">Home</a>
+        <a href="#about" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary); font-size: {{ $navFontSize }};" data-en="About" data-ar="عن الأكاديمية">About</a>
+        <a href="#programs" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary); font-size: {{ $navFontSize }};" data-en="Programs" data-ar="البرامج">Programs</a>
+        <a href="#strengths" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary); font-size: {{ $navFontSize }};" data-en="Strengths" data-ar="مميزاتنا">Strengths</a>
+        <a href="#actions" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary); font-size: {{ $navFontSize }};" data-en="Services" data-ar="خدماتنا">Services</a>
+        <a href="#testimonials" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary); font-size: {{ $navFontSize }};" data-en="Testimonials" data-ar="التقييمات">Testimonials</a>
+        <a href="#contact" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary); font-size: {{ $navFontSize }};" data-en="Contact" data-ar="اتصل بنا">Contact</a>
       </nav>
 
       <!-- Action Buttons — visible from tablet up -->
-      <div class="header-actions d-flex align-items-center">
+      <div class="header-actions d-flex align-items-center gap-1">
         <!-- Language Switcher (icon-only) — session-based, no /ar or /en in the URL -->
         @if(\App\Models\SiteSetting::current()->show_translation_button)
         <a href="{{ route('site.lang', app()->getLocale() === 'ar' ? 'en' : 'ar') }}"
-           id="langToggleBtn" class="btn btn-glass icon-btn" aria-label="Toggle language" title="Toggle language">
-          <i class="bi bi-globe2"></i>
+           id="langToggleBtn" class="btn btn-glass icon-btn px-2 py-1" aria-label="Toggle language" title="Toggle language">
+          <i class="bi bi-globe2" style="font-size: 15px;"></i>
         </a>
         @endif
 
         <!-- Theme Cycle (icon-only, cycles on click) -->
-        <button id="themeCycleBtn" class="btn btn-glass icon-btn" type="button" aria-label="Switch theme" title="Switch theme">
-          <i class="bi bi-award-fill"></i>
+        <button id="themeCycleBtn" class="btn btn-glass icon-btn px-2 py-1" type="button" aria-label="Switch theme" title="Switch theme">
+          <i class="bi bi-award-fill" style="font-size: 15px;"></i>
         </button>
 
         <!-- Student Cart Button -->
-        <button id="cartBtn" class="btn btn-glass icon-btn position-relative" onclick="toggleCartModal()" aria-label="Open cart" title="Open cart">
-          <i class="bi bi-bag-fill"></i>
+        <button id="cartBtn" class="btn btn-glass icon-btn position-relative px-2 py-1" onclick="toggleCartModal()" aria-label="Open cart" title="Open cart">
+          <i class="bi bi-bag-fill" style="font-size: 15px;"></i>
           <span id="cartCountBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.65rem;">0</span>
         </button>
 
         @auth('student')
           <div class="dropdown">
-            <button class="btn btn-glass d-flex align-items-center gap-2 px-2 py-1 rounded-lg" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-glass d-flex align-items-center gap-1 px-2 py-1 rounded-lg" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: {{ $btnFontSize }};">
               <img src="{{ Auth::guard('student')->user()->image ? asset('storage/'.Auth::guard('student')->user()->image) : asset('site/images/img/logo_backup.png') }}"
-                   alt="{{ Auth::guard('student')->user()->full_name_en }}" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
+                   alt="{{ Auth::guard('student')->user()->full_name_en }}" class="rounded-circle" style="width: 24px; height: 24px; object-fit: cover;">
               <span class="d-none d-sm-inline font-medium" style="color: var(--text-primary);">{{ Auth::guard('student')->user()->full_name_en }}</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
@@ -64,13 +69,13 @@
             </ul>
           </div>
         @else
-          <a href="{{ route('student.login') }}" class="btn btn-glass student-gate-link px-3 py-2 rounded-lg" data-en="Student Login" data-ar="دخول الطالب">Student Login</a>
+          <a href="{{ route('student.login') }}" class="btn btn-glass student-gate-link px-2 py-1 rounded-lg ms-1" style="font-size: {{ $btnFontSize }};" data-en="Student Login" data-ar="دخول الطالب">Student Login</a>
         @endauth
 
         <!-- Teacher Login grouped with Apply Now (separated from Student Login) -->
-        <div class="d-flex align-items-center gap-2 ms-2">
-            <a href="{{ route('teacher.login') }}" class="btn btn-glass teacher-gate-link px-3 py-2 rounded-lg" data-en="Teacher Login" data-ar="دخول المعلم">Teacher Login</a>
-            <a href="{{ route('apply.create') }}" class="btn btn-luxury px-4 py-2 rounded-lg" data-en="Apply Now" data-ar="سجل الآن">Apply Now</a>
+        <div class="d-flex align-items-center gap-1 ms-1">
+            <a href="{{ route('teacher.login') }}" class="btn btn-glass teacher-gate-link px-2 py-1 rounded-lg" style="font-size: {{ $btnFontSize }};" data-en="Teacher Login" data-ar="دخول المعلم">Teacher Login</a>
+            <a href="{{ route('apply.create') }}" class="btn btn-luxury px-3 py-1 rounded-lg" style="font-size: {{ $btnFontSize }};" data-en="Apply Now" data-ar="سجل الآن">Apply Now</a>
         </div>
       </div>
 

@@ -8,8 +8,8 @@ Route::prefix('testimonials')->name('testimonials.')->group(function () {
     Route::get('/list', [TestimonialsController::class, 'getList'])->name('list');
     Route::get('/add', [TestimonialsController::class, 'getAdd'])->name('add');
     Route::post('/add', [TestimonialsController::class, 'postAdd']);
-    Route::get('/edit/{id}', [TestimonialsController::class, 'getEdit'])->name('edit');
-    Route::post('/edit/{id}', [TestimonialsController::class, 'postEdit']);
+    Route::get('/edit/{id}', [TestimonialsController::class, 'getEdit'])->name('edit')->where('id', '.*');
+    Route::post('/edit/{id}', [TestimonialsController::class, 'postEdit'])->where('id', '.*');
     Route::post('/status', [TestimonialsController::class, 'postStatus'])->name('status');
     Route::post('/delete', [TestimonialsController::class, 'postDelete'])->name('delete');
 });

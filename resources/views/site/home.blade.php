@@ -34,24 +34,24 @@
           <div class="swiper-slide d-flex align-items-center justify-content-center" style="background: var(--bg-primary);">
             <div id="hero-content-overlay-{{ $slider->id }}" class="hero-content container px-4 text-center">
               <div class="reveal-scale">
-                <h1 class="hero-stagger text-4xl md:text-6xl font-extrabold tracking-tight mb-4 uppercase" style="color: var(--text-primary);">
+                <h1 class="hero-stagger text-3xl md:text-5xl font-extrabold tracking-tight mb-3 uppercase" style="color: var(--text-primary);">
                   <span class="bg-clip-text text-transparent bg-gradient-to-r from-gold via-gold-light to-gold-dark" data-en="{{ $slider->title_en }}" data-ar="{{ $slider->title_ar }}">
                     {{ app()->getLocale() == 'ar' ? $slider->title_ar : $slider->title_en }}
                   </span>
                 </h1>
-                <p class="hero-stagger text-lg md:text-2xl text-secondary-class mb-8 max-w-2xl mx-auto leading-relaxed" style="color: var(--text-secondary);"
+                <p class="hero-stagger text-base md:text-xl text-secondary-class mb-6 max-w-2xl mx-auto leading-relaxed" style="color: var(--text-secondary);"
                    data-en="{{ $slider->desc_en }}" data-ar="{{ $slider->desc_ar }}">
                    {{ app()->getLocale() == 'ar' ? $slider->desc_ar : $slider->desc_en }}
                 </p>
-                <div class="hero-stagger d-flex flex-column flex-sm-row justify-content-center align-items-center gap-4">
+                <div class="hero-stagger d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3">
                   @if($slider->btn1_text_ar || $slider->btn1_text_en)
-                  <a href="{{ $slider->btn1_link }}" class="btn btn-luxury px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                  <a href="{{ $slider->btn1_link }}" class="btn btn-luxury px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center"
                      data-en="{{ $slider->btn1_text_en }}" data-ar="{{ $slider->btn1_text_ar }}">
                     {{ app()->getLocale() == 'ar' ? $slider->btn1_text_ar : $slider->btn1_text_en }}
                   </a>
                   @endif
                   @if($slider->btn2_text_ar || $slider->btn2_text_en)
-                  <a href="{{ $slider->btn2_link }}" class="btn btn-glass px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                  <a href="{{ $slider->btn2_link }}" class="btn btn-glass px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center"
                      data-en="{{ $slider->btn2_text_en }}" data-ar="{{ $slider->btn2_text_ar }}">
                     {{ app()->getLocale() == 'ar' ? $slider->btn2_text_ar : $slider->btn2_text_en }}
                   </a>
@@ -112,18 +112,18 @@
       <div class="hero-frame-stage" aria-hidden="true">
         @if($hasMedia)
             @if($firstSlider->video1)
-            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('storage/' . $firstSlider->video1) }}" muted playsinline preload="auto"></video>
+            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('storage/' . $firstSlider->video1) }}" autoplay loop muted playsinline preload="auto"></video>
             @endif
             @if($firstSlider->video2)
-            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video {{ !$firstSlider->video1 ? 'is-active' : '' }}" src="{{ asset('storage/' . $firstSlider->video2) }}" muted playsinline preload="auto"></video>
+            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video {{ !$firstSlider->video1 ? 'is-active' : '' }}" src="{{ asset('storage/' . $firstSlider->video2) }}" autoplay loop muted playsinline preload="auto"></video>
             @endif
             @if($firstSlider->image)
             <img id="hero-bg-still" class="hero-frame-stage__media hero-frame-stage__still {{ (!$firstSlider->video1 && !$firstSlider->video2) ? 'is-active' : '' }}" src="{{ asset('storage/' . $firstSlider->image) }}" alt="">
             @endif
         @else
             <!-- Fallback to original backgrounds -->
-            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('site/images/slider1.mp4') }}" muted playsinline preload="auto"></video>
-            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video" src="{{ asset('site/images/slider1.mp4') }}" muted playsinline preload="auto"></video>
+            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('site/images/slider1.mp4') }}" autoplay loop muted playsinline preload="auto"></video>
+            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video" src="{{ asset('site/images/slider1.mp4') }}" autoplay loop muted playsinline preload="auto"></video>
             <img id="hero-bg-still" class="hero-frame-stage__media hero-frame-stage__still" src="{{ asset('site/images/bg-main.jpg') }}" alt="">
         @endif
       </div>
@@ -138,7 +138,7 @@
 
       <div id="hero-content-overlay" class="hero-content hero-content-overlay container px-4">
         <div class="reveal-scale">
-          <h1 class="hero-stagger text-4xl md:text-6xl font-extrabold tracking-tight mb-4 uppercase" data-stagger="1" style="color: var(--text-primary);">
+          <h1 class="hero-stagger text-3xl md:text-5xl font-extrabold tracking-tight mb-3 uppercase" data-stagger="1" style="color: var(--text-primary);">
             @if($firstSlider)
                 <span class="bg-clip-text text-transparent bg-gradient-to-r from-gold via-gold-light to-gold-dark" data-en="{{ $firstSlider->title_en }}" data-ar="{{ $firstSlider->title_ar }}">
                     {{ app()->getLocale() == 'ar' ? $firstSlider->title_ar : $firstSlider->title_en }}
@@ -148,7 +148,7 @@
             @endif
           </h1>
           
-          <p class="hero-stagger text-lg md:text-2xl text-secondary-class mb-8 max-w-2xl mx-auto leading-relaxed" data-stagger="2" style="color: var(--text-secondary);"
+          <p class="hero-stagger text-base md:text-xl text-secondary-class mb-6 max-w-2xl mx-auto leading-relaxed" data-stagger="2" style="color: var(--text-secondary);"
              @if($firstSlider)
              data-en="{{ $firstSlider->desc_en }}" data-ar="{{ $firstSlider->desc_ar }}"
              @else
@@ -164,26 +164,26 @@
           </p>
 
           <!-- CTA Buttons -->
-          <div class="hero-stagger d-flex flex-column flex-sm-row justify-content-center align-items-center gap-4" data-stagger="3">
+          <div class="hero-stagger d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3" data-stagger="3">
             @if($firstSlider)
                 @if($firstSlider->btn1_text_ar || $firstSlider->btn1_text_en)
-                <a href="{{ $firstSlider->btn1_link }}" class="btn btn-luxury px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                <a href="{{ $firstSlider->btn1_link }}" class="btn btn-luxury px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center"
                    data-en="{{ $firstSlider->btn1_text_en }}" data-ar="{{ $firstSlider->btn1_text_ar }}">
                   {{ app()->getLocale() == 'ar' ? $firstSlider->btn1_text_ar : $firstSlider->btn1_text_en }}
                 </a>
                 @endif
                 @if($firstSlider->btn2_text_ar || $firstSlider->btn2_text_en)
-                <a href="{{ $firstSlider->btn2_link }}" class="btn btn-glass px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                <a href="{{ $firstSlider->btn2_link }}" class="btn btn-glass px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center"
                    data-en="{{ $firstSlider->btn2_text_en }}" data-ar="{{ $firstSlider->btn2_text_ar }}">
                   {{ app()->getLocale() == 'ar' ? $firstSlider->btn2_text_ar : $firstSlider->btn2_text_en }}
                 </a>
                 @endif
             @else
-                <a href="#actions" class="btn btn-luxury px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                <a href="#actions" class="btn btn-luxury px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center"
                    data-en="Placement Test Booking" data-ar="حجز تحديد المستوى">
                   Placement Test Booking
                 </a>
-                <a href="#contact" class="btn btn-glass px-5 py-3 rounded-xl w-60 sm:w-auto text-lg d-flex align-items-center justify-content-center"
+                <a href="#contact" class="btn btn-glass px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center"
                    data-en="Book A Course" data-ar="حجز مقعد دراسي">
                   Book A Course
                 </a>
