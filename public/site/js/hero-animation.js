@@ -111,7 +111,7 @@
 
       let safetyTimeout = null;
 
-      // ----- Video1 -> Video2 crossfade -----
+      // ----- Video1 -> Video2 -----
       let v1HandedOff = false;
       const handoffToV2 = () => {
         if (v1HandedOff) return;
@@ -123,22 +123,26 @@
         try { v2.currentTime = 0; } catch (_) { }
         const p = v2.play();
         if (p && p.catch) p.catch(() => { });
-        v2.classList.add('is-active');
-        v1.classList.remove('is-active');
-        scheduleStillReveal();   // arm the early still fade
+        
+        // Wait for v2 to actually be playing before hiding v1 to avoid black screen
+        let v2Started = false;
+        const completeHandoff = () => {
+          if (v2Started) return;
+          v2Started = true;
+          v2.classList.add('is-active');
+          v1.classList.remove('is-active');
+        };
+
+        v2.addEventListener('playing', completeHandoff, { once: true });
+        // Fallback if event fails
+        setTimeout(completeHandoff, 500);
+
+        scheduleStillReveal();
       };
 
-      const onV1Time = () => {
-        if (!isFinite(v1.duration)) return;
-        if (v1.duration - v1.currentTime <= CROSSFADE_LEAD_SEC) {
-          v1.removeEventListener('timeupdate', onV1Time);
-          handoffToV2();
-        }
-      };
-      v1.addEventListener('timeupdate', onV1Time);
       v1.addEventListener('ended', handoffToV2, { once: true });
 
-      // ----- Show still ~2 frames before video2 ends -----
+      // ----- Show still when video2 ends -----
       let stillShown = false;
       const showStill = () => {
         if (stillShown) return;
@@ -146,28 +150,19 @@
         still.classList.add('is-active');
         v2.classList.remove('is-active');
       };
-      const STILL_LEAD_SEC = STILL_LEAD_FRAMES / ASSUMED_FPS; // ≈0.067s
+
       const scheduleStillReveal = () => {
-        const onV2Time = () => {
-          if (!isFinite(v2.duration)) return;
-          if (v2.duration - v2.currentTime <= STILL_LEAD_SEC) {
-            v2.removeEventListener('timeupdate', onV2Time);
-            showStill();
-          }
-        };
-        v2.addEventListener('timeupdate', onV2Time);
-        // Backstop: even if 'timeupdate' resolution is too coarse, swap on 'ended'.
         v2.addEventListener('ended', () => {
           showStill();
-          // Give the CSS transition a beat to finish, then resolve the cycle.
           setTimeout(resolve, 700);
         }, { once: true });
+        
         // Hard safety net (e.g. tab throttled).
         setTimeout(() => { showStill(); resolve(); },
-          (isFinite(v2.duration) ? v2.duration * 1000 + 2000 : 10000));
+          (isFinite(v2.duration) && v2.duration > 0 ? v2.duration * 1000 + 2000 : 10000));
       };
 
-      // Start video1 (autoplay attribute may already have started it).
+      // Start video1
       const p1 = v1.play();
       if (p1 && p1.catch) {
         p1.catch((err) => {
@@ -186,11 +181,13 @@
         });
       }
 
-      // Hard safety net: if video 1 is blocked/frozen, force handoff after 8 seconds
+      // Hard safety net: if video 1 is blocked/frozen for a very long time
       safetyTimeout = setTimeout(() => {
-        console.warn("Video 1 safety timeout reached. Skipping to next layer.");
-        handoffToV2();
-      }, 8000);
+        if (!v1HandedOff && v1.paused) {
+          console.warn("Video 1 safety timeout reached. Skipping to next layer.");
+          handoffToV2();
+        }
+      }, 15000); // give it plenty of time
     });
   }
 
@@ -336,7 +333,16 @@
       return;
     }
 
-    loopForever();
+    const startLoop = () => {
+      loopForever();
+    };
+
+    const splashContainer = document.getElementById('hero-preloader');
+    if (splashContainer && !splashContainer.classList.contains('is-hidden')) {
+      window.addEventListener('splash:complete', startLoop, { once: true });
+    } else {
+      startLoop();
+    }
   }
 
   if (document.readyState === 'loading') {

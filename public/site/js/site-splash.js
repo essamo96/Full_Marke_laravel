@@ -19,6 +19,7 @@
   
   if (isInternal) {
     splashContainer.remove();
+    setTimeout(() => window.dispatchEvent(new CustomEvent('splash:complete')), 50);
     return;
   }
 
@@ -66,7 +67,10 @@
       splashContainer.classList.add('is-hidden');
       
       // Remove from DOM after fade out transition completes
-      setTimeout(() => splashContainer.remove(), 900);
+      setTimeout(() => {
+        splashContainer.remove();
+        window.dispatchEvent(new CustomEvent('splash:complete'));
+      }, 900);
     }, TOTAL_SPLASH_TIME_MS);
   }
 
@@ -79,7 +83,10 @@
     setTimeout(() => {
       if (!splashContainer.classList.contains('is-hidden')) {
         splashContainer.classList.add('is-hidden');
-        setTimeout(() => splashContainer.remove(), 900);
+        setTimeout(() => {
+            splashContainer.remove();
+            window.dispatchEvent(new CustomEvent('splash:complete'));
+        }, 900);
       }
     }, (3 * WORD_DURATION_MS) + LOGO_DURATION_MS + 1000);
   }

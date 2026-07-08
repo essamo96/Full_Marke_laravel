@@ -500,4 +500,7 @@ return [
     'Maintenance Message Text' => 'نص رسالة الصيانة',
     'Show Contact Form' => 'إظهار نموذج الاتصال',
     'testimonials' => 'قالوا عنا',
+    'permissions_group' => 'مجموعات الصلاحيات',
+    'approvals' => 'الطلبات',
+    'galleries' => 'المعارض',
 ];

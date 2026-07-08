@@ -20,7 +20,7 @@ class SidebarRequest extends FormRequest
             'icon' => 'nullable|string|max:191',
             'color' => 'nullable|string|max:50',
             'sort' => 'nullable|integer',
-            'parent_id' => 'nullable|integer|exists:permissions_groups,id',
+            'parent_id' => 'nullable|integer',
             'status' => 'nullable|boolean',
         ];
     }

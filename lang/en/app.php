@@ -441,6 +441,19 @@ return [
     'upload_custom' => 'Upload Custom Image',
     'preset_logo' => 'Preset Logo',
     
+    // Admin Login Layout Translations
+    'Sign In' => 'Sign In',
+    'Admin Panel' => 'Admin Panel',
+    'Email_Placeholder' => 'Email',
+    'Password_Placeholder' => 'Password',
+    'Remember me' => 'Remember me',
+    'Forgot Password ?' => 'Forgot Password ?',
+    'Theme' => 'Theme',
+    'Light' => 'Light',
+    'Dark' => 'Dark',
+    'System' => 'System',
+    'Terms' => 'Terms',
+
     // Sliders
     'sliders' => 'Sliders',
     'media_and_backgrounds' => 'Media & Backgrounds',
@@ -484,4 +497,7 @@ return [
     'Maintenance Message Text' => 'Maintenance Message Text',
     'Show Contact Form' => 'Show Contact Form',
     'testimonials' => 'Testimonials',
+    'permissions_group' => 'Permissions Groups',
+    'approvals' => 'Approvals',
+    'galleries' => 'Galleries',
 ];
