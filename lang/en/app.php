@@ -483,4 +483,5 @@ return [
     'General Options' => 'General Options',
     'Maintenance Message Text' => 'Maintenance Message Text',
     'Show Contact Form' => 'Show Contact Form',
+    'testimonials' => 'Testimonials',
 ];

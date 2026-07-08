@@ -58,7 +58,7 @@
         </div>
     </div>
 
-    @include('admin.layout.masterLayouts.modal')
+    @include('admin.' . $active_menu . '.parts.modal')
 @stop
 
 @section('js')
