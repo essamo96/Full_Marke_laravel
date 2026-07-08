@@ -66,6 +66,15 @@ class AdminPermissionsSeeder extends Seeder
                         'icon' => 'bi-record-fill',
                         'sort' => 2,
                         'status' => 1,
+                    ],
+                    [
+                        'name' => 'testimonials',
+                        'name_ar' => 'قالوا عنا',
+                        'name_en' => 'Testimonials',
+                        'color' => 'dark',
+                        'icon' => 'bi-chat-quote-fill',
+                        'sort' => 3,
+                        'status' => 1,
                     ]
                 ]
             ],

@@ -2,199 +2,164 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Requests\Admin\TestimonialRequest;
 use App\Models\Testimonial;
 use App\Models\TestimonialTranslation;
 use Illuminate\Http\Request;
+use Yajra\DataTables\DataTables;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
-use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Facades\Cache;
-use App\Http\Requests\Admin\TestimonialRequest; // هتعمله زي FaqRequest للتحقق
-use Auth;
 
 class TestimonialsController extends AdminController
 {
-    protected $path;
-
     public function __construct()
     {
         parent::__construct();
         parent::$data['active_menu'] = 'testimonials';
-        $this->path = 'testimonials';
     }
 
     public function getIndex()
     {
-        parent::$data['companies'] = [];
-        return view('admin.' . $this->path . '.view', parent::$data);
+        return view('admin.testimonials.view', parent::$data);
     }
 
     public function getList(Request $request)
     {
         $name = $request->get('name') ?? '';
-        $companies = $request->get('companies') ?? '';
         
         $obj = new Testimonial();
-        $info = $obj->getSearch($name, $companies, 0);
-        return DataTables::of($info)
-            ->editColumn('status', function ($row) {
-                $data['id'] = $row->id;
-                $data['status'] = $row->status;
-                $data['active_menu'] = $this->path;
-                return view('admin.' . $this->path . '.parts.status', $data)->render();
-            })
-                        ->addColumn('image', function ($row) {
+        $info = $obj->getSearch($name);
+
+        return Datatables::of($info)
+            ->editColumn('image', function ($row) {
                 if ($row->image) {
+                    $imagePath = Str::startsWith($row->image, ['http', 'site/']) 
+                        ? asset($row->image) 
+                        : asset('storage/' . $row->image);
                     return '<div class="symbol symbol-50px symbol-circle me-5">
-                            <img src="' . asset('storage/' . $row->image) . '" alt="image" class="symbol-label">
+                            <img src="' . $imagePath . '" alt="image" class="symbol-label">
                         </div>';
                 }
                 return '-';
             })
-            
             ->addColumn('name', function ($row) {
-                $data['x'] = 3;
-                $data['active_menu'] = $this->path;
-                $data['id'] = $row->id;
-                $data['name'] = $row->translation ? $row->translation->name : '';
-                return view('admin.' . $this->path . '.parts.general', $data)->render();
+                return $row->translation ? $row->translation->name : '-';
+            })
+            ->editColumn('status', function ($row) {
+                $data['id'] = Crypt::encrypt($row->id);
+                $data['status'] = $row->status;
+                $data['active_menu'] = 'testimonials';
+                return view('admin.layout.masterLayouts.status', $data)->render();
             })
             ->addColumn('actions', function ($row) {
-                $data['active_menu'] = $this->path;
-                $data['id'] = $row->id;
-                return view('admin.' . $this->path . '.parts.actions', $data)->render();
+                $data['id'] = Crypt::encrypt($row->id);
+                $data['active_menu'] = 'testimonials';
+                return view('admin.layout.masterLayouts.actions', $data)->render();
             })
-            ->rawColumns(['status', 'actions', 'name','image'])
+            ->rawColumns(['image', 'status', 'actions'])
             ->addIndexColumn()
             ->make(true);
     }
 
     public function getAdd()
     {
-        parent::$data['info'] = null;
-        parent::$data['companies'] = [];
-        parent::$data['languages'] = collect([(object)['prefix'=>'ar','name'=>'العربية'],(object)['prefix'=>'en','name'=>'English']]);
-        
-
-        return view('admin.' . $this->path . '.add', parent::$data);
+        return view('admin.testimonials.add', parent::$data);
     }
 
     public function postAdd(TestimonialRequest $request)
     {
-        $data = $request->validated();
-        $data['status'] = $request->has('status') ? 1 : 0;
-
+        $status = $request->get('status') ? 1 : 0;
+        
+        $imagePath = null;
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('testimonials', 'public');
+            $imagePath = $request->file('image')->store('testimonials', 'public');
         }
 
-        $testimonial = Testimonial::create($data);
+        $testimonial = Testimonial::create([
+            'image' => $imagePath,
+            'status' => $status,
+            'display_order' => $request->get('display_order', 0)
+        ]);
 
-        // الترجمات
-        $languages = ['ar', 'en'];
-        foreach ($languages as $locale) {
-            $translationData = $request->input($locale, []);
-            if (!empty($translationData['name'])) {
-                TestimonialTranslation::create([
-                    'testimonials_id' => $testimonial->id,
-                    'locale'         => $locale,
-                    'name'           => $translationData['name'],
-                    'title'          => $translationData['title'] ?? null,
-                    'descs'          => $translationData['descs'] ?? null]);
-            }
+        $locales = ['ar', 'en'];
+        foreach ($locales as $locale) {
+            TestimonialTranslation::create([
+                'testimonial_id' => $testimonial->id,
+                'locale' => $locale,
+                'name' => $request->get("name_{$locale}"),
+                'position' => $request->get("position_{$locale}"),
+                'message' => $request->get("message_{$locale}"),
+            ]);
         }
 
-        Cache::forget('testimonials_cache');
-        $request->session()->flash('success', __('app.insert_success'));
-        return redirect(route($this->path . '.view'));
+        return redirect()->route('testimonials.view')->with('success', \App\Helpers\translate('added_successfully'));
     }
 
-    public function getEdit(Request $request, $id)
+    public function getEdit($id)
     {
         try {
-            $decryptedId = Crypt::decrypt($id);
+            $id = Crypt::decrypt($id);
         } catch (DecryptException $e) {
-            $request->session()->flash('danger', __('app.not_found'));
-            return redirect(route($this->path . '.view'));
+            return redirect()->route('testimonials.view')->with('danger', \App\Helpers\translate('error'));
         }
-
-        $record = Testimonial::with('translations')->findOrFail($decryptedId);
-
-        $translations = [];
-        foreach ($record->translations as $trans) {
-            $translations[$trans->locale] = $trans;
-        }
-
-        parent::$data['info'] = $record;
-        parent::$data['translations'] = $translations;
-        parent::$data['companies'] = [];
-        parent::$data['languages'] = collect([(object)['prefix'=>'ar','name'=>'العربية'],(object)['prefix'=>'en','name'=>'English']]);
-        
-
-        return view('admin.' . $this->path . '.add', parent::$data);
+        parent::$data['info'] = Testimonial::with('translations')->findOrFail($id);
+        return view('admin.testimonials.add', parent::$data);
     }
 
     public function postEdit(TestimonialRequest $request, $id)
     {
         try {
-            $decryptedId = Crypt::decrypt($id);
+            $id = Crypt::decrypt($id);
         } catch (DecryptException $e) {
-            $request->session()->flash('danger', __('app.not_found'));
-            return redirect(route($this->path . '.view'));
+            return redirect()->route('testimonials.view')->with('danger', \App\Helpers\translate('error'));
         }
-
-        $testimonial = Testimonial::findOrFail($decryptedId);
-        $data = $request->validated();
-        $data['status'] = $request->has('status') ? 1 : 0;
+        $testimonial = Testimonial::findOrFail($id);
+        $testimonial->status = $request->get('status') ? 1 : 0;
+        $testimonial->display_order = $request->get('display_order', $testimonial->display_order);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('testimonials', 'public');
+            $testimonial->image = $request->file('image')->store('testimonials', 'public');
+        }
+        $testimonial->save();
+
+        $locales = ['ar', 'en'];
+        foreach ($locales as $locale) {
+            TestimonialTranslation::updateOrCreate(
+                ['testimonial_id' => $testimonial->id, 'locale' => $locale],
+                [
+                    'name' => $request->get("name_{$locale}"),
+                    'position' => $request->get("position_{$locale}"),
+                    'message' => $request->get("message_{$locale}"),
+                ]
+            );
         }
 
-        $testimonial->update($data);
-
-        // الترجمات
-        $languages = ['ar', 'en'];
-        foreach ($languages as $locale) {
-            $translationData = $request->input($locale, []);
-            if (!empty($translationData['name'])) {
-                TestimonialTranslation::updateOrCreate(
-                    [
-                        'testimonials_id' => $testimonial->id,
-                        'locale'         => $locale],
-                    [
-                        'name'  => $translationData['name'],
-                        'title' => $translationData['title'] ?? null,
-                        'descs' => $translationData['descs'] ?? null]
-                );
-            }
-        }
-
-        Cache::forget('testimonials_cache');
-        $request->session()->flash('success', __('app.edit_success'));
-        return redirect(route($this->path . '.view'));
+        return redirect()->route('testimonials.view')->with('success', \App\Helpers\translate('edited_successfully'));
     }
 
-    public function getDelete(Request $request, $id)
+    public function postStatus(Request $request)
     {
         try {
-            $decryptedId = Crypt::decrypt($id);
+            $id = Crypt::decrypt($request->id);
         } catch (DecryptException $e) {
-            $request->session()->flash('danger', __('app.not_found'));
-            return redirect(route($this->path . '.view'));
+            return response()->json(['status' => 0]);
         }
+        $testimonial = Testimonial::findOrFail($id);
+        $testimonial->status = $request->status;
+        $testimonial->save();
+        return response()->json(['status' => 1]);
+    }
 
-        $record = Testimonial::find($decryptedId);
-        if (!$record) {
-            $request->session()->flash('danger', __('app.not_found'));
-            return redirect(route($this->path . '.view'));
+    public function postDelete(Request $request)
+    {
+        try {
+            $id = Crypt::decrypt($request->id);
+        } catch (DecryptException $e) {
+            return response()->json(['status' => 0]);
         }
-
-        $record->delete();
-        Cache::forget('testimonials_cache');
-        $request->session()->flash('success', __('app.delete_success'));
-        return redirect(route($this->path . '.view'));
+        $testimonial = Testimonial::findOrFail($id);
+        $testimonial->delete();
+        return response()->json(['status' => 1]);
     }
 }
-
-

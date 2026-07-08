@@ -1,7 +1,7 @@
 @extends('admin.layout.mainLayouts.master')
 
 @section('title')
-    @lang('app.' . $active_menu) - {{ isset($info) && $info->id ? __('app.edit') : __('app.add') }}
+    @lang('app.' . $active_menu)
 @stop
 
 @section('breadcrumb')
@@ -11,169 +11,149 @@
     <li class="breadcrumb-item">
         <span class="bullet bg-gray-400 w-5px h-2px"></span>
     </li>
-    <li class="breadcrumb-item text-muted">{{ isset($info) && $info->id ? __('app.edit') : __('app.add') }}</li>
+    <li class="breadcrumb-item text-muted">
+        @if (isset($info))
+            @lang('app.edit')
+        @else
+            @lang('app.add')
+        @endif
+    </li>
 @endsection
 
 @section('page-content')
-    <div class="card">
-        <div class="card-body py-4">
-            @include('admin.layout.masterLayouts.error')
+    <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
+        <div id="kt_app_content" class="app-content flex-column-fluid">
+            <div id="kt_app_content_container" class="app-container container-xxl">
+                <form
+                    action="{{ isset($info) ? route($active_menu . '.edit', \Illuminate\Support\Facades\Crypt::encrypt($info->id)) : route($active_menu . '.add') }}"
+                    method="post" enctype="multipart/form-data">
+                    @csrf
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card mb-5">
+                                <div class="card-body">
+                                    <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" data-bs-toggle="tab" href="#kt_tab_pane_ar">
+                                                العربية <img src="{{ asset('admin_assets/media/flags/saudi-arabia.svg') }}"
+                                                    alt="Arabic" class="w-15px ms-2">
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_en">
+                                                English <img src="{{ asset('admin_assets/media/flags/united-states.svg') }}"
+                                                    alt="English" class="w-15px ms-2">
+                                            </a>
+                                        </li>
+                                    </ul>
 
-            <form action="" method="POST" enctype="multipart/form-data">
-                <div class="row justify-content-center">
-                    <div class="col-9">
-
-                        {{-- Tabs Navigation --}}
-                        <ul class="nav nav-tabs nav-pills border-2 flex-column flex-md-row me-5 mb-5 mb-md-0 fs-6"
-                            id="pageTab" role="tablist">
-                            <li class="nav-item mb-3" role="presentation">
-                                <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic"
-                                    type="button" role="tab">{{ \App\Helpers\translate('basic_settings') }}</button>
-                            </li>
-
-                            {{-- Language Tabs --}}
-                            @foreach ($languages as $lang)
-                                <li class="nav-item mb-3" role="presentation">
-                                    <button class="nav-link" id="lang-{{ $lang->prefix }}-tab" data-bs-toggle="tab"
-                                        data-bs-target="#lang-{{ $lang->prefix }}" type="button"
-                                        role="tab">{{ $lang->name }}</button>
-                                </li>
-                            @endforeach
-                        </ul>
-
-                        {{-- Tabs Content --}}
-                        <div class="tab-content mt-5" id="pageTabContent">
-
-                            {{-- Basic Tab --}}
-                            <div class="tab-pane fade show active" id="basic" role="tabpanel">
-                                <div class="row mb-5">
-                                    {{-- Company --}}
-                                
-
-                                    {{-- Order --}}
-                                    <div class="col-md-6 fv-row fv-plugins-icon-container">
-                                        <label class="required fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('order') }}</label>
-                                        <input type="number" class="form-control form-control-solid" name="p_order"
-                                            value="{{ $info ? $info->p_order : old('p_order') }}">
-                                    </div>
-                                </div>
-
-                                <div class="row mb-5">
-                                    {{-- Image --}}
-                                    <div class="col-md-6 fv-row fv-plugins-icon-container">
-                                        <label class="required fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('image') }}</label>
-                                        <input type="file" class="form-control form-control-solid" name="image">
-                                        @if ($info && $info->image)
-                                            <img src="{{ Storage::url($info->image) }}" alt="image" class="mt-3" height="80">
-                                        @endif
-                                    </div>
-
-                                    {{-- Status --}}
-                                    <div class="col-md-6 fv-row fv-plugins-icon-container">
-                                        <label class="p-2">{{ \App\Helpers\translate('status') }}</label>
-                                        <label class="form-check form-switch">
-                                            <?php $data = $info ? $info->status : old('status'); ?>
-                                            <input class="form-check-input" name="status" type="checkbox" value="1"
-                                                {{ $data == 1 ? 'checked' : '' }}>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {{-- Navigation Buttons --}}
-                                <div class="text-center pt-2">
-                                    <a href="{{ route($active_menu . '.view') }}"
-                                        class="btn btn-light btn-sm">{{ \App\Helpers\translate('cancel') }}</a>
-                                    <button type="button"
-                                        class="btn btn-outline btn-outline-dashed btn-outline-primary btn-active-light-primary ms-2 btn-sm next-tab">{{ \App\Helpers\translate('next') }}</button>
-                                </div>
-                            </div>
-
-                            {{-- Language Tabs --}}
-                            @foreach ($languages as $lang)
-                                @php
-                                    $trans = $translations[$lang->prefix] ?? null;
-                                @endphp
-                                <div class="tab-pane fade" id="lang-{{ $lang->prefix }}" role="tabpanel">
-                                    <div class="row mb-5">
-                                        {{-- Name --}}
-                                        <div class="col-md-6 fv-row fv-plugins-icon-container">
-                                            <label class="fs-5 fw-semibold mb-2 required">{{ \App\Helpers\translate('name') }}
-                                                ({{ $lang->prefix }})</label>
-                                            <input type="text" class="form-control form-control-solid"
-                                                name="{{ $lang->prefix }}[name]"
-                                                value="{{ old($lang->prefix . '.name', $trans?->name ?? '') }}">
+                                    <div class="tab-content" id="myTabContent">
+                                        <!-- Arabic Tab -->
+                                        <div class="tab-pane fade show active" id="kt_tab_pane_ar" role="tabpanel">
+                                            <div class="mb-5">
+                                                <label class="form-label">الاسم <span class="text-danger">*</span></label>
+                                                <input type="text" name="name_ar" class="form-control"
+                                                    value="{{ old('name_ar', isset($info) ? $info->translations->where('locale', 'ar')->first()?->name : '') }}">
+                                            </div>
+                                            <div class="mb-5">
+                                                <label class="form-label">المنصب (اختياري)</label>
+                                                <input type="text" name="position_ar" class="form-control"
+                                                    value="{{ old('position_ar', isset($info) ? $info->translations->where('locale', 'ar')->first()?->position : '') }}">
+                                            </div>
+                                            <div class="mb-5">
+                                                <label class="form-label">الرسالة <span class="text-danger">*</span></label>
+                                                <textarea name="message_ar" class="form-control" rows="4">{{ old('message_ar', isset($info) ? $info->translations->where('locale', 'ar')->first()?->message : '') }}</textarea>
+                                            </div>
                                         </div>
 
-                                        {{-- Title --}}
-                                        <div class="col-md-6 fv-row fv-plugins-icon-container">
-                                            <label class="fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('title') }}
-                                                ({{ $lang->prefix }})</label>
-                                            <input type="text" class="form-control form-control-solid"
-                                                name="{{ $lang->prefix }}[title]"
-                                                value="{{ old($lang->prefix . '.title', $trans?->title ?? '') }}">
-                                        </div>
-                                    </div>
-
-                                    {{-- Description --}}
-                                    <div class="row mb-5">
-                                        <div class="form-floating mb-9 row">
-                                            <div class="fv-row mb-10 col-12">
-                                                <label class="fw-semibold fs-6 mb-2"
-                                                    for="description-{{ $lang->prefix }}">{{ \App\Helpers\translate('description') }}
-                                                    ({{ $lang->prefix }})</label>
-                                                <textarea name="{{ $lang->prefix }}[descs]" id="description-{{ $lang->prefix }}" class="form-control form-control-solid">{{ old($lang->prefix . '.descs', $trans?->descs ?? '') }}</textarea>
+                                        <!-- English Tab -->
+                                        <div class="tab-pane fade" id="kt_tab_pane_en" role="tabpanel">
+                                            <div class="mb-5">
+                                                <label class="form-label">Name <span class="text-danger">*</span></label>
+                                                <input type="text" name="name_en" class="form-control"
+                                                    value="{{ old('name_en', isset($info) ? $info->translations->where('locale', 'en')->first()?->name : '') }}">
+                                            </div>
+                                            <div class="mb-5">
+                                                <label class="form-label">Position (Optional)</label>
+                                                <input type="text" name="position_en" class="form-control"
+                                                    value="{{ old('position_en', isset($info) ? $info->translations->where('locale', 'en')->first()?->position : '') }}">
+                                            </div>
+                                            <div class="mb-5">
+                                                <label class="form-label">Message <span class="text-danger">*</span></label>
+                                                <textarea name="message_en" class="form-control" rows="4">{{ old('message_en', isset($info) ? $info->translations->where('locale', 'en')->first()?->message : '') }}</textarea>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
 
-                                    <div class="text-center pt-2">
-                                        <a href="{{ route($active_menu . '.view') }}"
-                                            class="btn btn-light btn-sm">{{ \App\Helpers\translate('cancel') }}</a>
-                                        <button type="button"
-                                            class="btn btn-outline btn-outline-dashed btn-outline-success btn-active-light-success ms-2 btn-sm prev-tab">{{ \App\Helpers\translate('previous') }}</button>
+                        <div class="col-md-4">
+                            <div class="card mb-5">
+                                <div class="card-body">
+                                    <div class="mb-5 text-center">
+                                        <label class="form-label d-block">{{ \App\Helpers\translate('image') }}</label>
+                                        <style>
+                                            .image-input-placeholder {
+                                                background-image: url('{{ asset('admin_assets/media/svg/avatars/blank.svg') }}');
+                                            }
+                                        </style>
+                                        <div class="image-input image-input-outline image-input-placeholder"
+                                            data-kt-image-input="true">
+                                            <div class="image-input-wrapper w-125px h-125px"
+                                                style="background-image: url('{{ isset($info) && $info->image ? asset('storage/' . $info->image) : asset('admin_assets/media/svg/avatars/blank.svg') }}');">
+                                            </div>
+                                            <label
+                                                class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
+                                                data-kt-image-input-action="change" data-bs-toggle="tooltip"
+                                                title="Change avatar">
+                                                <i class="bi bi-pencil-fill fs-7"></i>
+                                                <input type="file" name="image" accept=".png, .jpg, .jpeg, .webp" />
+                                                <input type="hidden" name="avatar_remove" />
+                                            </label>
+                                            <span
+                                                class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
+                                                data-kt-image-input-action="cancel" data-bs-toggle="tooltip"
+                                                title="Cancel avatar">
+                                                <i class="bi bi-x fs-2"></i>
+                                            </span>
+                                            <span
+                                                class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
+                                                data-kt-image-input-action="remove" data-bs-toggle="tooltip"
+                                                title="Remove avatar">
+                                                <i class="bi bi-x fs-2"></i>
+                                            </span>
+                                        </div>
+                                    </div>
 
-                                        @if ($loop->last)
-                                            <button type="submit"
-                                                class="btn btn-primary ms-2 btn-sm">{{ \App\Helpers\translate('save') }}</button>
-                                        @else
-                                            <button type="button"
-                                                class="btn btn-outline btn-outline-dashed btn-outline-primary btn-active-light-primary ms-2 btn-sm next-tab">{{ \App\Helpers\translate('next') }}</button>
-                                        @endif
+                                    <div class="mb-5">
+                                        <label class="form-label">{{ \App\Helpers\translate('display_order') }}</label>
+                                        <input type="number" name="display_order" class="form-control"
+                                            value="{{ old('display_order', isset($info) ? $info->display_order : 0) }}">
+                                    </div>
+
+                                    <div class="mb-5">
+                                        <label
+                                            class="form-check form-switch form-switch-sm form-check-custom form-check-solid flex-stack">
+                                            <span class="form-check-label ms-0 fw-bold fs-6 text-gray-700">
+                                                {{ \App\Helpers\translate('status') }}
+                                            </span>
+                                            <input class="form-check-input" type="checkbox" name="status" value="1"
+                                                {{ old('status', isset($info) ? $info->status : 1) ? 'checked' : '' }} />
+                                        </label>
+                                    </div>
+
+                                    <div class="mt-8 text-center">
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <span class="indicator-label">@lang('app.save')</span>
+                                        </button>
                                     </div>
                                 </div>
-                            @endforeach
-
+                            </div>
                         </div>
                     </div>
-                </div>
-                {{ csrf_field() }}
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-@stop
-
-@section('js')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabButtons = Array.from(document.querySelectorAll('#pageTab button'));
-
-            // Next button
-            document.querySelectorAll('.next-tab').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const activeIndex = tabButtons.findIndex(tab => tab.classList.contains('active'));
-                    if (activeIndex < tabButtons.length - 1)
-                        new bootstrap.Tab(tabButtons[activeIndex + 1]).show();
-                });
-            });
-
-            // Previous button
-            document.querySelectorAll('.prev-tab').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const activeIndex = tabButtons.findIndex(tab => tab.classList.contains('active'));
-                    if (activeIndex > 0)
-                        new bootstrap.Tab(tabButtons[activeIndex - 1]).show();
-                });
-            });
-        });
-    </script>
 @stop
