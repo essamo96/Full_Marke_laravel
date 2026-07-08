@@ -72,7 +72,8 @@
                 data: "image"
             },
             {
-                data: "name"
+                data: "name",
+                className: 'text-center'
             },
             {
                 data: "status"

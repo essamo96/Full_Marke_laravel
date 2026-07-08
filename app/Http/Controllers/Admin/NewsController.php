@@ -48,15 +48,15 @@ class NewsController extends AdminController
                 return $row->translation ? $row->translation->title : '-';
             })
             ->editColumn('status', function ($row) {
-                $data['id'] = Crypt::encrypt($row->id);
+                $data['id'] = $row->id;
                 $data['status'] = $row->status;
                 $data['active_menu'] = 'news';
-                return view('admin.layout.masterLayouts.status', $data)->render();
+                return view('admin.' . $data['active_menu'] . '.parts.status', $data)->render();
             })
             ->addColumn('actions', function ($row) {
-                $data['id'] = Crypt::encrypt($row->id);
+                $data['id'] = $row->id;
                 $data['active_menu'] = 'news';
-                return view('admin.layout.masterLayouts.actions', $data)->render();
+                return view('admin.' . $data['active_menu'] . '.parts.actions', $data)->render();
             })
             ->rawColumns(['image', 'status', 'actions'])
             ->addIndexColumn()

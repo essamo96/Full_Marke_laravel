@@ -640,85 +640,45 @@
       </div>
 
       <!-- News Swiper -->
-      <div class="swiper news-swiper reveal position-relative overflow-hidden">
+      <div class="swiper news-swiper reveal position-relative overflow-hidden px-4 px-md-5">
         <div class="swiper-wrapper">
-          <!-- News item 1 -->
-          <div class="swiper-slide h-auto">
-            <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
-              <div class="news-img-wrapper">
-                <img src="{{ asset('site/images/img/banner/ote_hall.png') }}" alt="News" class="news-img">
-                <div class="news-date-badge">
-                  <span class="block">28</span>
-                  <span class="text-xs font-bold uppercase">MAY</span>
+          @foreach($latestNews as $newsItem)
+            @php
+                $newsEn = $newsItem->translations->where('locale', 'en')->first();
+                $newsAr = $newsItem->translations->where('locale', 'ar')->first();
+                $day = $newsItem->created_at->format('d');
+                $month = strtoupper($newsItem->created_at->format('M'));
+            @endphp
+            <div class="swiper-slide h-auto">
+              <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
+                <div class="news-img-wrapper">
+                  <img src="{{ Str::startsWith($newsItem->image, ['http', 'site/']) ? asset($newsItem->image) : asset('storage/' . $newsItem->image) }}" alt="{{ app()->getLocale() == 'ar' ? ($newsAr->title ?? '') : ($newsEn->title ?? '') }}" class="news-img">
+                  <div class="news-date-badge">
+                    <span class="block">{{ $day }}</span>
+                    <span class="text-xs font-bold uppercase">{{ $month }}</span>
+                  </div>
                 </div>
-              </div>
-              <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
-                <div>
-                  <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="New OTE Placement Sessions" data-ar="جلسات اختبار OTE جديدة">New OTE Placement Sessions</h4>
-                  <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                     data-en="Approved dates for the upcoming Full Mark Test of English assessment are now open for registration."
-                     data-ar="المواعيد المعتمدة لجلسات تقييم اختبار العلامة الكاملة للغة الإنجليزية القادمة مفتوحة للتسجيل الآن.">
-                    Approved dates for the upcoming Full Mark Test of English assessment are now open for registration.
-                  </p>
+                <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
+                  <div>
+                    <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="{{ strip_tags(str_replace('&nbsp;', ' ', html_entity_decode($newsEn->title ?? ''))) }}" data-ar="{{ strip_tags(str_replace('&nbsp;', ' ', html_entity_decode($newsAr->title ?? ''))) }}">
+                        {{ app()->getLocale() == 'ar' ? ($newsAr->title ?? '') : ($newsEn->title ?? '') }}
+                    </h4>
+                    <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
+                       data-en="{{ \Illuminate\Support\Str::limit(strip_tags(str_replace('&nbsp;', ' ', html_entity_decode($newsEn->description ?? ''))), 120) }}"
+                       data-ar="{{ \Illuminate\Support\Str::limit(strip_tags(str_replace('&nbsp;', ' ', html_entity_decode($newsAr->description ?? ''))), 120) }}">
+                      {!! \Illuminate\Support\Str::limit(strip_tags(str_replace('&nbsp;', ' ', html_entity_decode(app()->getLocale() == 'ar' ? ($newsAr->description ?? '') : ($newsEn->description ?? '')))), 120) !!}
+                    </p>
+                  </div>
+                  @php
+                      $encryptedId = \Illuminate\Support\Facades\Crypt::encrypt($newsItem->id);
+                  @endphp
+                  <a href="{{ route('site.news.show', $encryptedId) }}" class="text-gold font-bold text-decoration-none d-flex align-items-center mt-3" data-en="Read More" data-ar="اقرأ المزيد">
+                    {{ app()->getLocale() == 'ar' ? 'اقرأ المزيد' : 'Read More' }} <i class="bi bi-arrow-right ms-2"></i>
+                  </a>
                 </div>
-                <a href="#contact" class="text-gold font-bold text-decoration-none d-flex align-items-center mt-3" data-en="Read More" data-ar="اقرأ المزيد">
-                  Read More <i class="bi bi-arrow-right ms-2"></i>
-                </a>
               </div>
             </div>
-          </div>
-
-          <!-- News item 2 -->
-          <div class="swiper-slide h-auto">
-            <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
-              <div class="news-img-wrapper">
-                <img src="{{ asset('site/images/img/news/news2.png') }}" alt="News" class="news-img">
-                <div class="news-date-badge">
-                  <span class="block">12</span>
-                  <span class="text-xs font-bold uppercase">JUN</span>
-                </div>
-              </div>
-              <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
-                <div>
-                  <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="IELTS Prep Program Starting" data-ar="بدء التسجيل لدورة الآيلتس المكثفة">IELTS Prep Program Starting</h4>
-                  <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                     data-en="Register for our academic IELTS training cohort led by certified British trainers with mock testing."
-                     data-ar="سجل الآن في المجموعة الأكاديمية الجديدة للتحضير لاختبار آيلتس بإشراف مدربين مؤهلين واختبارات تجريبية.">
-                    Register for our academic IELTS training cohort led by certified British trainers with mock testing.
-                  </p>
-                </div>
-                <a href="#contact" class="text-gold font-bold text-decoration-none d-flex align-items-center mt-3" data-en="Read More" data-ar="اقرأ المزيد">
-                  Read More <i class="bi bi-arrow-right ms-2"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- News item 3 -->
-          <div class="swiper-slide h-auto">
-            <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
-              <div class="news-img-wrapper">
-                <img src="{{ asset('site/images/img/news/news3.png') }}" alt="News" class="news-img">
-                <div class="news-date-badge">
-                  <span class="block">05</span>
-                  <span class="text-xs font-bold uppercase">JUL</span>
-                </div>
-              </div>
-              <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
-                <div>
-                  <h4 class="text-xl font-bold mb-3 hover-text-accent" style="color: var(--text-primary);" data-en="Academic Speaking & Writing" data-ar="ورشة عمل المحادثة الأكاديمية">Academic Speaking & Writing</h4>
-                  <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                     data-en="Improve your essay structures and academic speaking fluency with our intensive workshops."
-                     data-ar="قم بتحسين صياغة المقالات الأكاديمية وطلاقة المحادثة العلمية من خلال ورشنا التدريبية المركزة.">
-                    Improve your essay structures and academic speaking fluency with our intensive workshops.
-                  </p>
-                </div>
-                <a href="#contact" class="text-gold font-bold text-decoration-none d-flex align-items-center mt-3" data-en="Read More" data-ar="اقرأ المزيد">
-                  Read More <i class="bi bi-arrow-right ms-2"></i>
-                </a>
-              </div>
-            </div>
-          </div>
+          @endforeach
         </div>
 
         <!-- Navigation buttons -->
@@ -743,7 +703,7 @@
       </div>
 
       <!-- Teachers Swiper -->
-      <div class="swiper teachers-swiper reveal position-relative overflow-hidden">
+      <div class="swiper teachers-swiper reveal position-relative overflow-hidden px-4 px-md-5">
         <div class="swiper-wrapper">
           @foreach($teams as $team)
           <div class="swiper-slide h-auto">
@@ -831,85 +791,45 @@
         <div class="section-divider mx-auto"></div>
       </div>
 
-      <div class="swiper testimonials-swiper reveal">
+      <div class="swiper testimonials-swiper reveal px-4 px-md-5">
         <div class="swiper-wrapper">
-          <!-- Slide 1 -->
-          <div class="swiper-slide">
-            <div class="glass-panel testimonial-card-swiper">
-              <div class="d-flex align-items-center mb-4">
-                <div class="testimonial-avatar">
-                  <img src="{{ asset('site/images/img/students/student1.jpg') }}" alt="Ahmad Al-Saeed" loading="lazy">
-                </div>
-                <div>
-                  <h5 class="font-bold mb-1" style="color: var(--text-primary);">Ahmad Al-Saeed</h5>
-                  <div class="rating-stars">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
+          @foreach($testimonials as $testimonial)
+            @php
+                $testEn = $testimonial->translations->where('locale', 'en')->first();
+                $testAr = $testimonial->translations->where('locale', 'ar')->first();
+            @endphp
+            <div class="swiper-slide">
+              <div class="glass-panel testimonial-card-swiper">
+                <div class="d-flex align-items-center mb-4">
+                  <div class="testimonial-avatar">
+                    <img src="{{ Str::startsWith($testimonial->image, ['http', 'site/']) ? asset($testimonial->image) : asset('storage/' . $testimonial->image) }}" alt="{{ app()->getLocale() == 'ar' ? ($testAr->name ?? '') : ($testEn->name ?? '') }}" loading="lazy">
+                  </div>
+                  <div>
+                    <h5 class="font-bold mb-1" style="color: var(--text-primary);" data-en="{{ $testEn->name ?? '' }}" data-ar="{{ $testAr->name ?? '' }}">
+                      {{ app()->getLocale() == 'ar' ? ($testAr->name ?? '') : ($testEn->name ?? '') }}
+                    </h5>
+                    @if(($testEn && $testEn->position) || ($testAr && $testAr->position))
+                    <span class="d-block text-xs mb-1" style="color: var(--accent-primary);" data-en="{{ $testEn->position ?? '' }}" data-ar="{{ $testAr->position ?? '' }}">
+                      {{ app()->getLocale() == 'ar' ? ($testAr->position ?? '') : ($testEn->position ?? '') }}
+                    </span>
+                    @endif
+                    <div class="rating-stars">
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                    </div>
                   </div>
                 </div>
+                <p class="opacity-75 italic text-sm leading-relaxed"
+                   data-en="&ldquo;{{ strip_tags(str_replace('&nbsp;', ' ', html_entity_decode($testEn->message ?? ''))) }}&rdquo;"
+                   data-ar="&ldquo;{{ strip_tags(str_replace('&nbsp;', ' ', html_entity_decode($testAr->message ?? ''))) }}&rdquo;">
+                  &ldquo;{!! str_replace('&nbsp;', ' ', html_entity_decode(app()->getLocale() == 'ar' ? ($testAr->message ?? '') : ($testEn->message ?? ''))) !!}&rdquo;
+                </p>
               </div>
-              <p class="opacity-75 italic text-sm leading-relaxed"
-                 data-en="&ldquo;I passed my academic IELTS test with a score of 7.5 thanks to the intensive courses at Full Mark. The native instructors understand testing methodologies perfectly.&rdquo;"
-                 data-ar="&ldquo;اجتزت اختبار آيلتس الأكاديمي بنتيجة 7.5 بفضل الدورة المكثفة في الأكاديمية. المدربون على دراية كاملة بمنهجية الاختبار الدقيقة.&rdquo;">
-                "I passed my academic IELTS test with a score of 7.5 thanks to the intensive courses at Full Mark. The native instructors understand testing methodologies perfectly."
-              </p>
             </div>
-          </div>
-
-          <!-- Slide 2 -->
-          <div class="swiper-slide">
-            <div class="glass-panel testimonial-card-swiper">
-              <div class="d-flex align-items-center mb-4">
-                <div class="testimonial-avatar">
-                  <img src="{{ asset('site/images/img/students/student2.jpg') }}" alt="Mariam Naser" loading="lazy">
-                </div>
-                <div>
-                  <h5 class="font-bold mb-1" style="color: var(--text-primary);">Mariam Naser</h5>
-                  <div class="rating-stars">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                  </div>
-                </div>
-              </div>
-              <p class="opacity-75 italic text-sm leading-relaxed"
-                 data-en="&ldquo;The flexible timings were crucial for me as a working pharmacist. The educational platforms and level assessments are exceptionally professional.&rdquo;"
-                 data-ar="&ldquo;كانت الأوقات المرنة حاسمة بالنسبة لي كصيدلانية عاملة. المنصات التعليمية وتقييمات المستويات تفوق التوقعات احترافية.&rdquo;">
-                "The flexible timings were crucial for me as a working pharmacist. The educational platforms and level assessments are exceptionally professional."
-              </p>
-            </div>
-          </div>
-
-          <!-- Slide 3 -->
-          <div class="swiper-slide">
-            <div class="glass-panel testimonial-card-swiper">
-              <div class="d-flex align-items-center mb-4">
-                <div class="testimonial-avatar">
-                  <img src="{{ asset('site/images/img/students/student3_new.png') }}" alt="Samer Kabbani" loading="lazy">
-                </div>
-                <div>
-                  <h5 class="font-bold mb-1" style="color: var(--text-primary);">Samer Kabbani</h5>
-                  <div class="rating-stars">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                  </div>
-                </div>
-              </div>
-              <p class="opacity-75 italic text-sm leading-relaxed"
-                 data-en="&ldquo;Full Mark Test of English (OTE) at their center was a seamless experience. They provided pre-test mock software which built my confidence.&rdquo;"
-                 data-ar="&ldquo;كان خوض اختبار العلامة الكاملة (OTE) في المركز تجربة سلسة للغاية. وفروا لنا اختبارًا تجريبيًا مسبقًا ساعدني على كسب الثقة.&rdquo;">
-                "Full Mark Test of English (OTE) at their center was a seamless experience. They provided pre-test mock software which built my confidence."
-              </p>
-            </div>
-          </div>
+          @endforeach
         </div>
 
         <!-- Navigation bullets -->

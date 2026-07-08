@@ -57,17 +57,21 @@
                                                 <div class="row mb-5">
                                                     <div class="col-md-4 fv-row">
                                                         <label class="form-label">{{ \App\Helpers\translate('image') }}</label>
-                                                        <div class="d-flex align-items-center mb-3">
-                                                            @php
-                                                                $imageSrc = '';
-                                                                if (isset($info) && $info->image) {
-                                                                    $imageSrc = \Illuminate\Support\Str::startsWith($info->image, ['http', 'site/']) ? asset($info->image) : asset('storage/' . $info->image);
-                                                                }
-                                                            @endphp
-                                                            <div class="symbol symbol-100px me-5" id="imagePreviewContainer" style="{{ $imageSrc ? '' : 'display: none;' }}">
-                                                                <img src="{{ $imageSrc }}" alt="Preview" id="imagePreview" style="object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
+                                                        @php
+                                                            $imageSrc = '';
+                                                            if (isset($info) && $info->image) {
+                                                                $imageSrc = \Illuminate\Support\Str::startsWith($info->image, ['http', 'site/']) ? asset($info->image) : asset('storage/' . $info->image);
+                                                            }
+                                                        @endphp
+                                                        <input type="file" name="image" id="imageInput" class="form-control form-control-solid mb-4" accept="image/*">
+                                                        
+                                                        <div class="text-center" id="imagePreviewContainer" style="{{ $imageSrc ? '' : 'display: none;' }}">
+                                                            <div class="d-inline-block position-relative shadow-sm rounded border border-gray-300 p-2 bg-light">
+                                                                <img src="{{ $imageSrc }}" alt="Preview" id="imagePreview" class="rounded" style="max-width: 100%; max-height: 150px; object-fit: cover;">
+                                                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary shadow-sm" style="font-size: 0.75rem;">
+                                                                    <i class="bi bi-eye-fill text-white ms-1"></i>معاينة
+                                                                </span>
                                                             </div>
-                                                            <input type="file" name="image" id="imageInput" class="form-control" accept="image/*">
                                                         </div>
                                                     </div>
 

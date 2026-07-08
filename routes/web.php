@@ -11,8 +11,10 @@ Route::middleware(['site.locale', 'site.maintenance'])->group(function () {
         $sliders = \App\Models\Slider::active()->orderBy('sort')->get();
         $pages = \App\Models\Page::active()->with('translations')->get()->keyBy('slug');
         $teams = \App\Models\Team::where('status', 1)->with('translations')->orderBy('display_order')->get();
-        $faqs = \App\Models\Faq::where('status', 1)->with('translations')->get();
-        return view('site.home', compact('sliders', 'pages', 'teams', 'faqs'));
+        $faqs = \App\Models\Faq::where('status', 1)->with('translations')->orderBy('id')->get();
+        $testimonials = \App\Models\Testimonial::where('status', 1)->with('translations')->orderBy('display_order')->get();
+        $latestNews = \App\Models\News::where('status', 1)->with('translations')->latest()->take(6)->get();
+        return view('site.home', compact('sliders', 'pages', 'teams', 'faqs', 'testimonials', 'latestNews'));
     })->name('site.home');
 
     Route::get('/lang/{locale}', [SiteLocaleController::class, 'switch'])->name('site.lang');

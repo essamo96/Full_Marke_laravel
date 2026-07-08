@@ -138,7 +138,11 @@
       });
 
       window.newsSwiperInstance = new Swiper('.news-swiper', {
-        loop: false,
+        loop: true,
+        autoplay: {
+          delay: 4000,
+          disableOnInteraction: false,
+        },
         slidesPerView: 1,
         spaceBetween: 24,
         navigation: {
@@ -158,7 +162,11 @@
       });
 
       window.teachersSwiperInstance = new Swiper('.teachers-swiper', {
-        loop: false,
+        loop: true,
+        autoplay: {
+          delay: 4000,
+          disableOnInteraction: false,
+        },
         slidesPerView: 1,
         spaceBetween: 24,
         navigation: {

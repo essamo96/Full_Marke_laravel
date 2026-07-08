@@ -47,15 +47,15 @@ class TestimonialsController extends AdminController
                 return $row->translation ? $row->translation->name : '-';
             })
             ->editColumn('status', function ($row) {
-                $data['id'] = Crypt::encrypt($row->id);
+                $data['id'] = $row->id;
                 $data['status'] = $row->status;
                 $data['active_menu'] = 'testimonials';
-                return view('admin.layout.masterLayouts.status', $data)->render();
+                return view('admin.' . $data['active_menu'] . '.parts.status', $data)->render();
             })
             ->addColumn('actions', function ($row) {
-                $data['id'] = Crypt::encrypt($row->id);
+                $data['id'] = $row->id;
                 $data['active_menu'] = 'testimonials';
-                return view('admin.layout.masterLayouts.actions', $data)->render();
+                return view('admin.' . $data['active_menu'] . '.parts.actions', $data)->render();
             })
             ->rawColumns(['image', 'status', 'actions'])
             ->addIndexColumn()
@@ -93,7 +93,7 @@ class TestimonialsController extends AdminController
             ]);
         }
 
-        return redirect()->route('testimonials.view')->with('success', \App\Helpers\translate('added_successfully'));
+        return redirect()->route('testimonials.view')->with('success', __('app.insert_success'));
     }
 
     public function getEdit($id)
@@ -135,7 +135,7 @@ class TestimonialsController extends AdminController
             );
         }
 
-        return redirect()->route('testimonials.view')->with('success', \App\Helpers\translate('edited_successfully'));
+        return redirect()->route('testimonials.view')->with('success', __('app.update_success'));
     }
 
     public function postStatus(Request $request)
