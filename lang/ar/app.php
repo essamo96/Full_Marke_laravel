@@ -82,7 +82,17 @@ return [
     'subject_resources' => 'الموارد التعليمية',
     'applications' => 'الطلبات',
     'registrations' => 'التسجيلات',
-    'study_branch' => 'الفرع الدراسي',
+    'study_branch' => 'التخصص الدراسي',
+    
+    // Custom added translations
+    'student_name' => 'اسم الطالب',
+    'region' => 'المنطقة',
+    'branch' => 'الفرع',
+    'created_at' => 'تاريخ التسجيل',
+    'status' => 'الحالة',
+    'new' => 'جديد',
+    'approved' => 'معتمد',
+    'rejected' => 'مرفوض',
     'group' => 'المجموعة',
     'top_programs' => 'أفضل البرامج',
     'top_programs_desc' => 'مرتبة حسب عدد المواد الفعّالة',
@@ -507,4 +517,7 @@ return [
     'notifications' => 'الإشعارات',
     'academy_management' => 'إدارة الأكاديمية',
     'pending_requests' => 'الطلبات العالقة',
+    'new_student_registered' => 'طالب جديد قام بالتسجيل',
+    'new' => 'جديد',
+    'now' => 'الآن',
 ];

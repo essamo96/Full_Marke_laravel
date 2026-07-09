@@ -13,6 +13,23 @@ Route::prefix('admin')->name('admin.')->middleware('admin.locale')->group(functi
 
     Route::middleware('auth:admin')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        
+        Route::get('/test-broadcast', function() {
+            $student = \App\Models\Student::first();
+            if(!$student) {
+                $student = new \App\Models\Student();
+                $student->id = 999;
+                $student->full_name_ar = 'طالب تجريبي';
+            }
+            
+            // Broadcast to admins
+            \Illuminate\Support\Facades\Notification::send(
+                \App\Models\Admin::all(), 
+                new \App\Notifications\NewStudentRegisteredNotification($student)
+            );
+            
+            return 'Broadcast sent successfully. Check your admin dashboard for notifications!';
+        });
     });
     
     Route::get('/clear-cache', [\App\Http\Controllers\Admin\AdminController::class, 'clearCache'])->name('clear-cache');

@@ -83,22 +83,14 @@ class SiteController extends Controller
 
         // Trigger real-time Pusher event for the admin dashboard
         try {
-            $msg = app()->getLocale() === 'ar'
-                ? "طلب جديد من الطالب: " . $application->full_name_ar
-                : "New application from student: " . $application->full_name_en;
-
-            $eventData = [
-                'message' => $msg,
-                'name' => app()->getLocale() === 'ar' ? $application->full_name_ar : $application->full_name_en,
-                'region' => $application->region?->name ?? '',
-                'branch' => $application->branch?->name ?? '',
-                'created_at' => now()->diffForHumans(),
-            ];
-
-            event(new \App\Events\MyEvent($eventData));
+            \Illuminate\Support\Facades\Notification::send(
+                \App\Models\Admin::all(), 
+                new \App\Notifications\NewStudentRegisteredNotification($student)
+            );
         } catch (\Exception $e) {
             logger()->error("Pusher broadcast failed: " . $e->getMessage());
         }
+
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -146,16 +138,15 @@ class SiteController extends Controller
 
                 $request->session()->put('contact_sent_time', now());
 
-                // Optional: Pusher event for Admin Notification
+                // Send Notification
                 try {
-                    event(new \App\Events\MyEvent([
-                        'message' => 'New contact message from: ' . $contact->name,
-                        'name' => $contact->name,
-                        'branch' => 'Contact Us',
-                        'study_branch' => $contact->subject,
-                        'created_at' => now()->diffForHumans(),
-                    ]));
-                } catch (\Exception $e) {}
+                    \Illuminate\Support\Facades\Notification::send(
+                        \App\Models\Admin::all(), 
+                        new \App\Notifications\NewContactMessageNotification($contact)
+                    );
+                } catch (\Exception $e) {
+                    logger()->error("Contact Us Notification failed: " . $e->getMessage());
+                }
             },
             7200 // 2 hours
         );

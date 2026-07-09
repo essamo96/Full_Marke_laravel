@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Reverb Test</title>
+</head>
+<body style="font-family: monospace; padding: 20px;">
+    <h2>Reverb Connection Test</h2>
+    <div id="log" style="background: #f4f4f4; padding: 15px; border: 1px solid #ccc; min-height: 200px;"></div>
+    <script>
+        function log(msg) {
+            document.getElementById('log').innerHTML += msg + '<br>';
+            console.log(msg);
+        }
+        
+        var appKey = 'lmxws4i9diy32cfn658d';
+        var wsUrl = 'ws://127.0.0.1:8081/app/' + appKey + '?protocol=7&client=js&version=8.2.0&flash=false';
+        log('Connecting to ' + wsUrl + ' ...');
+        
+        try {
+            var ws = new WebSocket(wsUrl);
+            ws.onopen = function() { 
+                log('<strong style="color:green">Connected successfully to Reverb!</strong>'); 
+                // Subscribe to channel
+                var subscribeMsg = JSON.stringify({
+                    event: 'pusher:subscribe',
+                    data: { channel: 'admin-notifications' }
+                });
+                ws.send(subscribeMsg);
+                log('Sent subscription request for admin-notifications');
+            };
+            ws.onmessage = function(e) { 
+                log('<span style="color:blue">Message received:</span> ' + e.data); 
+            };
+            ws.onerror = function(e) { 
+                log('<strong style="color:red">WebSocket Error! Check if php artisan reverb:start is running.</strong>'); 
+            };
+            ws.onclose = function(e) { 
+                log('Connection closed. Code: ' + e.code + ' Reason: ' + e.reason); 
+            };
+        } catch (err) {
+            log('Exception: ' + err.message);
+        }
+    </script>
+</body>
+</html>

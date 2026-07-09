@@ -49,6 +49,13 @@
         'bi-arrow-up','bi-arrow-down','bi-arrow-left','bi-arrow-right','bi-arrow-clockwise','bi-arrow-counterclockwise',
         'bi-play','bi-play-fill','bi-pause','bi-pause-fill','bi-stop-fill','bi-record-fill',
         'bi-printer','bi-printer-fill','bi-display','bi-laptop','bi-phone-fill','bi-tablet',
+        // KeenIcons (ki-outline)
+        'ki-outline ki-home', 'ki-outline ki-user', 'ki-outline ki-users', 'ki-outline ki-setting-2',
+        'ki-outline ki-abstract-28', 'ki-outline ki-abstract-26', 'ki-outline ki-plus', 'ki-outline ki-minus',
+        'ki-outline ki-check', 'ki-outline ki-cross', 'ki-outline ki-calendar', 'ki-outline ki-time',
+        'ki-outline ki-message-text-2', 'ki-outline ki-notification-on', 'ki-outline ki-document',
+        'ki-outline ki-folder', 'ki-outline ki-picture', 'ki-outline ki-chart-pie-4', 'ki-outline ki-bank',
+        'ki-outline ki-category', 'ki-outline ki-book', 'ki-outline ki-monitor-mobile', 'ki-outline ki-shield-tick'
     ];
 
     $metronicColors = ['primary','success','info','warning','danger','dark','muted','secondary'];
@@ -184,7 +191,8 @@ $(document).ready(function() {
     // ============ Icon picker with preview ============
     function formatIcon(state) {
         if (!state.id) return state.text;
-        return $('<span class="select2-icon-option"><i class="bi ' + state.id + '"></i>' + state.text + '</span>');
+        var iconClass = state.id.startsWith('ki-') ? state.id : 'bi ' + state.id;
+        return $('<span class="select2-icon-option"><i class="' + iconClass + '"></i>' + state.text + '</span>');
     }
 
     $('#icon_picker').select2({
@@ -217,7 +225,8 @@ $(document).ready(function() {
     function updatePreview() {
         const icon = $('#icon_picker').val() || 'bi-question-circle';
         const color = $('#color_picker').val() || 'primary';
-        $('#preview_icon').attr('class', 'bi ' + icon + ' fs-2 text-' + color);
+        var iconClass = icon.startsWith('ki-') ? icon : 'bi ' + icon;
+        $('#preview_icon').attr('class', iconClass + ' fs-2 text-' + color);
     }
 
     function updateNamePreview() {

@@ -87,7 +87,8 @@
                             <li class="group-item border rounded mb-3 p-3 bg-body" data-id="{{ $group->id }}">
                                 <div class="d-flex align-items-center">
                                     <i class="bi bi-grip-vertical fs-2 text-muted me-3 drag-handle" style="cursor:grab;"></i>
-                                    <i class="bi {{ $group->icon }} fs-2 me-3 text-{{ $group->color ?: 'primary' }} group-icon"></i>
+                                    @php $groupIconClass = str_starts_with($group->icon, 'ki-') ? $group->icon : 'bi ' . $group->icon; @endphp
+                                    <i class="{{ $groupIconClass }} fs-2 me-3 text-{{ $group->color ?: 'primary' }} group-icon"></i>
                                     <div class="flex-grow-1">
                                         <strong class="fs-5">{{ $group->{'name_' . app()->getLocale()} ?? ($group->name ?? '') }}</strong>
                                         <span class="text-muted fs-7 ms-2">({{ $group->mychild->count() }} {{ \App\Helpers\translate('sub_items') }})</span>
@@ -127,7 +128,8 @@
                                             <li class="child-item border rounded mb-2 p-2 bg-body" data-id="{{ $child->id }}">
                                                 <div class="d-flex align-items-center">
                                                     <i class="bi bi-grip-vertical fs-4 text-muted me-2 drag-handle" style="cursor:grab;"></i>
-                                                    <i class="bi {{ $child->icon }} fs-5 me-2 text-{{ $child->color ?: 'muted' }}"></i>
+                                                    @php $childIconClass = str_starts_with($child->icon, 'ki-') ? $child->icon : 'bi ' . $child->icon; @endphp
+                                                    <i class="{{ $childIconClass }} fs-5 me-2 text-{{ $child->color ?: 'muted' }}"></i>
                                                     <span class="flex-grow-1">{{ $child->{'name_' . app()->getLocale()} ?? ($child->name ?? '') }}</span>
                                                     <a href="{{ route('permissions_group.edit', \Crypt::encrypt($child->id)) }}" class="btn btn-xs btn-icon btn-light-primary me-1">
                                                         <i class="bi bi-pencil fs-7"></i>

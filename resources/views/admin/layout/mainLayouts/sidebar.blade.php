@@ -10,13 +10,20 @@
             @if(isset($sidebar))
                 @foreach ($sidebar as $parent_item)
                     <?php
-                    $parentPermission = 'admin.' . $parent_item->name . '.view';
-                    $parentRoute = $parent_item->name . '.view';
+                    if ($parent_item->name == 'dashboard') {
+                        $parentPermission = 'admin.' . $parent_item->name . '.view';
+                        $parentRoute = 'admin.dashboard';
+                    } else {
+                        $parentPermission = 'admin.' . $parent_item->name . '.view';
+                        $parentRoute = $parent_item->name . '.view';
+                    }
                     
                     $lang = app()->getLocale();
                     $parentTitle = $parent_item->{'name_' . $lang} ?? $parent_item->name;
                     $parentColor = $parent_item->color ? 'text-' . $parent_item->color : 'text-primary';
-                    $parentIcon = ($parent_item->icon ?: 'bi-circle') . ' fs-2 ' . $parentColor;
+                    $rawIcon = $parent_item->icon ?: 'bi-circle';
+                    $baseIconClass = str_starts_with($rawIcon, 'ki-') ? $rawIcon : 'bi ' . $rawIcon;
+                    $parentIcon = $baseIconClass . ' fs-2 ' . $parentColor;
                     
                     $parentActive = isset($active_menu) && $active_menu == $parent_item->name;
                     ?>
@@ -36,6 +43,15 @@
                                     $childActive = isset($active_menu) && $active_menu == $child_item->name;
                                     
                                     $childUrl = Route::has($childRoute) ? route($childRoute) : '#';
+
+                                    if ($childRoute == 'pending_requests.view') {
+                                        $pendingCount = auth('admin')->check() ? auth('admin')->user()->unreadNotifications->where('type', 'App\Notifications\NewStudentRegisteredNotification')->count() : 0;
+                                        if($pendingCount > 0) {
+                                            $childTitle .= ' <span class="badge badge-danger ms-2" id="sidebar_pending_badge">' . $pendingCount . '</span>';
+                                        } else {
+                                            $childTitle .= ' <span class="badge badge-danger ms-2 d-none" id="sidebar_pending_badge">0</span>';
+                                        }
+                                    }
                                     ?>
                                     @can($childPermission)
                                         <x-admin.sidebar-item 

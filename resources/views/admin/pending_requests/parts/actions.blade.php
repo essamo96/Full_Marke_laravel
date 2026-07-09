@@ -11,7 +11,7 @@
         <!-- We can add view/edit later -->
         @if(auth('admin')->user()->hasPermissionTo('admin.pending_requests.delete'))
         <li class="menu-item px-3">
-            <a href="javascript:void(0)" class="menu-link px-3 text-danger delete-btn" data-id="{{ \Illuminate\Support\Facades\Crypt::encrypt($application->id) }}">
+            <a href="javascript:void(0)" class="menu-link px-3 text-danger delete-btn" data-id="{{ \Illuminate\Support\Facades\Crypt::encrypt($student->id) }}">
                 {{ \App\Helpers\translate('delete') }}
             </a>
         </li>

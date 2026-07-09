@@ -19,6 +19,6 @@
                 <span class="bullet bullet-dot"></span>
             </span>
         @endif
-        <span class="menu-title {{ $textSize }}" style="{{ $textColor ? 'color: ' . $textColor . ';' : '' }}">{{ $title }}</span>
+        <span class="menu-title {{ $textSize }}" style="{{ $textColor ? 'color: ' . $textColor . ';' : '' }}">{!! $title !!}</span>
     </a>
 </div>

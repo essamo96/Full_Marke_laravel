@@ -27,4 +27,9 @@ class Branch extends Model
     {
         return app()->getLocale() === 'ar' ? $this->name_ar : $this->name_en;
     }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
 }

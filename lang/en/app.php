@@ -83,6 +83,16 @@ return [
     'applications' => 'Applications',
     'registrations' => 'Registrations',
     'study_branch' => 'Study Branch',
+    
+    // Custom added translations
+    'student_name' => 'Student Name',
+    'region' => 'Region',
+    'branch' => 'Branch',
+    'created_at' => 'Registration Date',
+    'status' => 'Status',
+    'new' => 'New',
+    'approved' => 'Approved',
+    'rejected' => 'Rejected',
     'group' => 'Group',
     'top_programs' => 'Top Programs',
     'top_programs_desc' => 'Sorted by number of active subjects',
@@ -504,4 +514,7 @@ return [
     'notifications' => 'Notifications',
     'academy_management' => 'Academy Management',
     'pending_requests' => 'Pending Requests',
+    'new_student_registered' => 'New student registered',
+    'new' => 'New',
+    'now' => 'Now',
 ];

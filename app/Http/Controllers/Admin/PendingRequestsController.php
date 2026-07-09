@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Application;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Crypt;
@@ -21,19 +21,26 @@ class PendingRequestsController extends AdminController
 
     public function getIndex()
     {
+        // Mark notifications as read
+        if (auth('admin')->check()) {
+            auth('admin')->user()->unreadNotifications
+                ->where('type', \App\Notifications\NewStudentRegisteredNotification::class)
+                ->markAsRead();
+        }
+
         return view('admin.' . $this->path . '.view', parent::$data);
     }
 
     public function getList(Request $request)
     {
-        $query = Application::with(['branch', 'studyBranch', 'program', 'subject'])->latest();
+        $query = Student::with(['region', 'branch'])->latest();
 
         if ($request->has('status') && $request->status != '') {
             $query->where('status', $request->status);
         }
 
-        if ($request->has('search_value') && $request->search_value != '') {
-            $search = $request->search_value;
+        $search = $request->get('generalSearch') ?? $request->get('search_value') ?? $request->input('search.value');
+        if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('full_name_ar', 'like', "%{$search}%")
                   ->orWhere('full_name_en', 'like', "%{$search}%")
@@ -49,32 +56,30 @@ class PendingRequestsController extends AdminController
             return '<div class="fw-bold">'.$name.'</div><div class="text-muted small">'.$row->email.'</div>';
         });
 
+        $datatable->addColumn('region', function ($row) {
+            return $row->region ? $row->region->name : '-';
+        });
+
         $datatable->addColumn('branch', function ($row) {
             return $row->branch ? $row->branch->name : '-';
         });
 
-        $datatable->addColumn('study_branch', function ($row) {
-            return $row->studyBranch ? $row->studyBranch->name : '-';
-        });
-
         $datatable->editColumn('status', function ($row) {
-            $badge = $row->status == 'new' ? 'primary' : ($row->status == 'approved' ? 'success' : 'danger');
-            $statusText = __('app.' . $row->status);
-            if($statusText == 'app.' . $row->status) {
-                $statusText = $row->status == 'new' ? 'جديد' : ($row->status == 'approved' ? 'معتمد' : 'مرفوض');
-            }
+            // Status: 0 = Pending/Inactive, 1 = Active
+            $badge = $row->status == 1 ? 'success' : 'warning';
+            $statusText = $row->status == 1 ? 'مفعل' : 'معلق / غير مفعل';
             return '<span class="badge badge-light-'.$badge.'">'.$statusText.'</span>';
         });
 
-        $datatable->addColumn('created_at', function ($row) {
+        $datatable->editColumn('created_at', function ($row) {
             return $row->created_at ? $row->created_at->format('Y-m-d H:i') : '-';
         });
 
         $path = $this->path;
         $datatable->addColumn('actions', function ($row) use ($path) {
             $data['active_menu'] = $path;
-            $data['id'] = $row->id;
-            return view('admin.' . $this->path . '.parts.actions', ['application' => $row] + $data)->render();
+            $data['student'] = $row;
+            return view('admin.' . $this->path . '.parts.actions', $data)->render();
         });
 
         $datatable->escapeColumns(['*']);
@@ -94,7 +99,7 @@ class PendingRequestsController extends AdminController
             ]);
         }
 
-        $info = Application::find($id);
+        $info = Student::find($id);
 
         if (!$info) {
             return response()->json([

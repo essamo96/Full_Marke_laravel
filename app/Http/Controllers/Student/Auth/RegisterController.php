@@ -7,6 +7,9 @@ use App\Models\Student;
 use App\Services\OtpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+use App\Models\Admin;
+use App\Notifications\NewStudentRegisteredNotification;
 
 class RegisterController extends Controller
 {
@@ -61,6 +64,9 @@ class RegisterController extends Controller
         ]);
 
         $sendCodeAction->execute($student);
+
+        // Notify admins
+        Notification::send(Admin::all(), new NewStudentRegisteredNotification($student));
 
         // Store email in session in case page is reloaded or for traditional submit
         $request->session()->put('otp.student.email', $student->email);

@@ -9,8 +9,8 @@ use App\Models\Group;
 use App\Models\PermissionsGroup;
 use App\Models\Program;
 use App\Models\Registration;
+use App\Models\Region;
 use App\Models\Student;
-use App\Models\StudyBranch;
 use App\Models\Subject;
 use App\Models\Teacher;
 use Spatie\Permission\Models\Role;
@@ -31,7 +31,7 @@ class DashboardController extends AdminController
             'students_active' => Student::active()->count(),
             'teachers' => Teacher::count(),
             'teachers_active' => Teacher::active()->count(),
-            'branches' => Branch::active()->count(),
+            'branches' => Region::active()->count(),
             'admins' => Admin::active()->count(),
             'roles' => Role::where('guard_name', 'admin')->count(),
             'permission_groups' => PermissionsGroup::active()->where('parent_id', '!=', 0)->count(),
@@ -39,7 +39,7 @@ class DashboardController extends AdminController
             'programs' => Program::where('is_active', true)->count(),
             'subjects' => Subject::active()->count(),
             'groups' => Group::active()->count(),
-            'study_branches' => StudyBranch::active()->count(),
+            'study_branches' => Branch::active()->count(),
             'applications_pending' => Application::where('status', 'new')->count(),
             'registrations_active' => Registration::where('registration_status', 'active')->count()];
 

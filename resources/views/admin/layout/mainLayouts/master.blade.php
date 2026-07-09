@@ -182,6 +182,216 @@
     
     @stack('scripts')
     @yield('js')
+    
+    @if(auth('admin')->check())
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if Pusher is available
+            if (typeof Pusher !== 'undefined') {
+                var connection = '{{ env("BROADCAST_CONNECTION", "pusher") }}';
+                var isReverb = connection === 'reverb';
+                var appKey = isReverb ? '{{ env("REVERB_APP_KEY") }}' : '{{ env("PUSHER_APP_KEY") }}';
+
+                if(appKey) {
+                    var pusherOptions = {
+                        cluster: '{{ env("PUSHER_APP_CLUSTER", "mt1") }}',
+                        forceTLS: true
+                    };
+
+                    if (isReverb) {
+                        pusherOptions.wsHost = window.location.hostname;
+                        pusherOptions.wsPort = {{ env('REVERB_SERVER_PORT', 8080) }};
+                        pusherOptions.forceTLS = false;
+                        pusherOptions.disableStats = true;
+                        pusherOptions.enabledTransports = ['ws', 'wss'];
+                    }
+
+                    var pusher = new Pusher(appKey, pusherOptions);
+
+                    var channel = pusher.subscribe('admin-notifications');
+                    channel.bind('NewStudentEvent', function(data) {
+                        // Play sound
+                        var audio = new Audio('{{ asset("assets/sounds/notification.mp3") }}');
+                        var playPromise = audio.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(function(error) {
+                                console.log('Audio play failed: ', error);
+                            });
+                        }
+
+                        // Configure Toastr
+                        if (typeof toastr !== 'undefined') {
+                            toastr.options = {
+                                "closeButton": true,
+                                "debug": false,
+                                "newestOnTop": true,
+                                "progressBar": true,
+                                "rtl": {{ app()->getLocale() == 'ar' ? 'true' : 'false' }},
+                                "positionClass": "toast-top-right",
+                                "preventDuplicates": false,
+                                "onclick": null,
+                                "showDuration": "300",
+                                "hideDuration": "1000",
+                                "timeOut": "6000",
+                                "extendedTimeOut": "1000",
+                                "showEasing": "swing",
+                                "hideEasing": "linear",
+                                "showMethod": "fadeIn",
+                                "hideMethod": "fadeOut",
+                                "escapeHtml": false
+                            };
+
+                            var imageUrl = data.student_image ? data.student_image : '{{ asset("assets/admin/media/avatars/blank.png") }}';
+                            var messageHtml = `
+                            <div class="d-flex align-items-center mt-2">
+                                <div class="symbol symbol-40px me-3">
+                                    <img src="${imageUrl}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" alt=""/>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold fs-6 text-white">${data.student_name}</span>
+                                    <span class="text-white-50 fs-7">تم التسجيل حديثاً</span>
+                                </div>
+                            </div>
+                            `;
+                            toastr.success(messageHtml, '{{ __("app.new_student_registered") }}');
+                        }
+
+                        // Update Notification Badge
+                        var badge = document.getElementById('notification_count_badge');
+                        if (badge) {
+                            badge.classList.remove('d-none');
+                            badge.innerText = parseInt(badge.innerText || 0) + 1;
+                        }
+
+                        var textCount = document.getElementById('notification_count_text');
+                        if (textCount) {
+                            textCount.innerText = (parseInt(textCount.innerText || 0) + 1) + ' {{ __("app.new") }}';
+                        }
+
+                        // Update Sidebar Badge
+                        var sidebarBadge = document.getElementById('sidebar_pending_badge');
+                        if (sidebarBadge) {
+                            sidebarBadge.classList.remove('d-none');
+                            sidebarBadge.innerText = parseInt(sidebarBadge.innerText || 0) + 1;
+                        }
+
+                        // Add new notification item to the top of the list
+                        var list = document.getElementById('notifications_list');
+                        var noMsg = document.getElementById('no_notifications_msg');
+                        if (noMsg) {
+                            noMsg.remove();
+                        }
+
+                        if (list) {
+                            var itemHtml = `
+                            <div class="d-flex flex-stack py-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="symbol symbol-35px me-4">
+                                        <img src="${data.student_image ?? '{{ asset("assets/admin/media/avatars/blank.png") }}'}" alt="image" style="border-radius: 50%; width: 35px; height: 35px; object-fit: cover;" />
+                                    </div>
+                                    <div class="mb-0 me-2">
+                                        <a href="${data.url ?? '#'}" class="fs-6 text-gray-800 text-hover-primary fw-bold">{{ __('app.new_student_registered') }}</a>
+                                        <div class="text-gray-400 fs-7">${data.student_name}</div>
+                                    </div>
+                                </div>
+                                <span class="badge badge-light fs-8">{{ __('app.now') }}</span>
+                            </div>`;
+                            list.insertAdjacentHTML('afterbegin', itemHtml);
+                        }
+                    });
+
+                    // Handle Contact Us Event
+                    channel.bind('NewContactEvent', function(data) {
+                        // Play sound
+                        var audio = new Audio('{{ asset("assets/sounds/notification.mp3") }}');
+                        var playPromise = audio.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(function(error) {
+                                console.log('Audio play failed: ', error);
+                            });
+                        }
+
+                        // Configure Toastr
+                        if (typeof toastr !== 'undefined') {
+                            toastr.options = {
+                                "closeButton": true,
+                                "debug": false,
+                                "newestOnTop": true,
+                                "progressBar": true,
+                                "rtl": {{ app()->getLocale() == 'ar' ? 'true' : 'false' }},
+                                "positionClass": "toast-top-right",
+                                "preventDuplicates": false,
+                                "onclick": null,
+                                "showDuration": "300",
+                                "hideDuration": "1000",
+                                "timeOut": "6000",
+                                "extendedTimeOut": "1000",
+                                "showEasing": "swing",
+                                "hideEasing": "linear",
+                                "showMethod": "fadeIn",
+                                "hideMethod": "fadeOut",
+                                "escapeHtml": false
+                            };
+
+                            var messageHtmlContact = `
+                            <div class="d-flex align-items-center mt-2">
+                                <div class="symbol symbol-40px me-3">
+                                    <span class="symbol-label bg-light-primary text-primary fs-3 rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-envelope-fill"></i>
+                                    </span>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold fs-6 text-white">${data.name}</span>
+                                    <span class="text-white-50 fs-7">رسالة تواصل جديدة</span>
+                                </div>
+                            </div>
+                            `;
+                            toastr.info(messageHtmlContact, 'New Contact Message');
+                        }
+
+                        // Update Notification Badge
+                        var badge = document.getElementById('notification_count_badge');
+                        if (badge) {
+                            badge.classList.remove('d-none');
+                            badge.innerText = parseInt(badge.innerText || 0) + 1;
+                        }
+
+                        var textCount = document.getElementById('notification_count_text');
+                        if (textCount) {
+                            textCount.innerText = (parseInt(textCount.innerText || 0) + 1) + ' {{ __("app.new") }}';
+                        }
+                        
+                        var list = document.getElementById('notifications_list');
+                        var noMsg = document.getElementById('no_notifications_msg');
+                        if (noMsg) {
+                            noMsg.remove();
+                        }
+
+                        if (list) {
+                            var itemHtml = `
+                            <div class="d-flex flex-stack py-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="symbol symbol-35px me-4">
+                                        <span class="symbol-label bg-light-success">
+                                            <i class="ki-outline ki-sms fs-2 text-success"></i>
+                                        </span>
+                                    </div>
+                                    <div class="mb-0 me-2">
+                                        <a href="#" class="fs-6 text-gray-800 text-hover-primary fw-bold">New Contact Message</a>
+                                        <div class="text-gray-400 fs-7">${data.name}</div>
+                                    </div>
+                                </div>
+                                <span class="badge badge-light fs-8">{{ __('app.now') }}</span>
+                            </div>`;
+                            list.insertAdjacentHTML('afterbegin', itemHtml);
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+    @endif
     <!--end::Javascript-->
 </body>
 <!--end::Body-->
