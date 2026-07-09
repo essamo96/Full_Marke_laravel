@@ -4,7 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StudyBranchRequest extends FormRequest
+class RegionRequest extends FormRequest
 {
     public function authorize(): bool
     {

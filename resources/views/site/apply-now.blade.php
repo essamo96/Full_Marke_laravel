@@ -14,54 +14,9 @@
       <div class="row justify-content-center">
         <div class="col-lg-8">
 
-          @if (session('applied'))
-            <!-- OTP Verification Modal -->
-            <div class="modal fade" id="otpModal" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true" data-bs-backdrop="static">
-              <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content glass-panel p-6 md:p-8" style="border: 1px solid var(--accent-color); background: var(--bg-secondary);">
-                  <div class="modal-header border-0 justify-content-between p-0 mb-4">
-                    <h5 class="modal-title font-bold text-2xl text-gold" id="otpModalLabel" data-en="Verify Your Email" data-ar="تحقق من بريدك الإلكتروني">Verify Your Email</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body border-0 p-0">
-                    <p style="color: var(--text-secondary);" class="text-sm mb-6 leading-relaxed"
-                       data-en="We have sent a 6-digit verification code to your email. Please enter it below to complete your registration."
-                       data-ar="لقد أرسلنا رمز تحقق مكون من 6 أرقام إلى بريدك الإلكتروني. يرجى إدخاله أدناه لإكمال عملية التسجيل.">
-                      We have sent a 6-digit verification code to your email. Please enter it below to complete your registration.
-                    </p>
-                    
-                    <form method="POST" action="{{ route('apply.verify') }}">
-                      @csrf
-                      <div class="floating-input-group mb-4">
-                        <input type="text" name="otp" id="otpCode" placeholder=" " required maxlength="6" class="text-center font-bold tracking-widest fs-4" style="letter-spacing: 0.5em !important;">
-                        <label for="otpCode" data-en="Verification Code (Try 123456)" data-ar="رمز التحقق (جرب 123456)">Verification Code (Try 123456)</label>
-                      </div>
-                      @error('otp')
-                        <div class="text-danger text-sm mb-4 font-medium">{{ $message }}</div>
-                      @enderror
-                      
-                      <button type="submit" class="btn btn-luxury w-100 py-3 rounded-lg text-lg font-bold">
-                        <span data-en="Confirm & Login" data-ar="تأكيد ودخول">Confirm & Login</span>
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <script>
-              document.addEventListener('DOMContentLoaded', () => {
-                const otpModalEl = document.getElementById('otpModal');
-                if (otpModalEl) {
-                  const otpModal = new bootstrap.Modal(otpModalEl);
-                  otpModal.show();
-                }
-              });
-            </script>
-          @endif
 
           <div class="glass-panel p-6 md:p-12">
-            <form method="POST" action="{{ route('apply.store') }}" enctype="multipart/form-data">
+            <form id="registrationForm" method="POST" action="{{ route('apply.store') }}" enctype="multipart/form-data">
               @csrf
 
               <h5 class="text-gold font-bold tracking-widest text-xs uppercase mb-4" data-en="Personal Information" data-ar="البيانات الشخصية">Personal Information</h5>
@@ -129,27 +84,27 @@
               <div class="row">
                 <div class="col-md-4">
                   <div class="floating-input-group">
-                    <select name="study_branch_id" id="applyStudyBranch">
-                      <option value="" selected data-en="No preference" data-ar="بدون تفضيل">No preference</option>
-                      @foreach ($studyBranches as $studyBranch)
-                        <option value="{{ $studyBranch->id }}" @selected(old('study_branch_id') == $studyBranch->id) data-en="{{ $studyBranch->name_en }}" data-ar="{{ $studyBranch->name_ar }}">{{ $studyBranch->name }}</option>
-                      @endforeach
-                    </select>
-                    <label for="applyStudyBranch" data-en="Study Branch" data-ar="الفرع الدراسي">Study Branch</label>
-                  </div>
-                  @error('study_branch_id') <small class="text-danger">{{ $message }}</small> @enderror
-                </div>
-                <div class="col-md-4">
-                  <div class="floating-input-group">
                     <select name="branch_id" id="applyBranch">
                       <option value="" selected data-en="No preference" data-ar="بدون تفضيل">No preference</option>
                       @foreach ($branches as $branch)
-                        <option value="{{ $branch->id }}" @selected(old('branch_id') == $branch->id)>{{ $branch->name }}</option>
+                        <option value="{{ $branch->id }}" @selected(old('branch_id') == $branch->id) data-en="{{ $branch->name_en }}" data-ar="{{ $branch->name_ar }}">{{ $branch->name }}</option>
                       @endforeach
                     </select>
-                    <label for="applyBranch" data-en="Select Region" data-ar="حدد المنطقة">Select Region</label>
+                    <label for="applyBranch" data-en="Study Branch" data-ar="الفرع الدراسي">Study Branch</label>
                   </div>
                   @error('branch_id') <small class="text-danger">{{ $message }}</small> @enderror
+                </div>
+                <div class="col-md-4">
+                  <div class="floating-input-group">
+                    <select name="region_id" id="applyRegion">
+                      <option value="" selected data-en="No preference" data-ar="بدون تفضيل">No preference</option>
+                      @foreach ($regions as $region)
+                        <option value="{{ $region->id }}" @selected(old('region_id') == $region->id) data-en="{{ $region->name_en }}" data-ar="{{ $region->name_ar }}">{{ $region->name }}</option>
+                      @endforeach
+                    </select>
+                    <label for="applyRegion" data-en="Select Region" data-ar="حدد المنطقة">Select Region</label>
+                  </div>
+                  @error('region_id') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
                 <div class="col-md-4">
                   <div class="floating-input-group">
@@ -176,7 +131,7 @@
                 <label for="applyHealth" data-en="Health Information (optional)" data-ar="معلومات صحية (اختياري)">Health Information (optional)</label>
               </div>
 
-              <button type="submit" class="btn btn-luxury w-100 py-3 rounded-lg text-lg d-flex align-items-center justify-content-center">
+              <button type="submit" id="submitBtn" class="btn btn-luxury w-100 py-3 rounded-lg text-lg d-flex align-items-center justify-content-center">
                 <span data-en="Submit Application" data-ar="إرسال الطلب">Submit Application</span>
                 <i class="bi bi-arrow-right ms-2 rtl:rotate-180"></i>
               </button>
@@ -186,4 +141,277 @@
       </div>
     </div>
   </section>
+
+  <!-- OTP Verification Modal -->
+  <div class="modal fade" id="otpVerificationModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content glass-panel p-6 md:p-8" style="border: 1px solid var(--accent-color); background: var(--bg-secondary);">
+        <div class="modal-header border-0 justify-content-between p-0 mb-4">
+          <h5 class="modal-title font-bold text-2xl text-gold" id="otpModalLabel" data-en="Verify Your Email" data-ar="تحقق من بريدك الإلكتروني">Verify Your Email</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="display:none;"></button>
+        </div>
+        <div class="modal-body text-center pt-0 px-2 pb-2">
+          <div class="mb-4">
+            <i class="bi bi-envelope-check text-success" style="font-size: 3rem;"></i>
+          </div>
+          <p style="color: var(--text-secondary);" class="text-sm mb-4 leading-relaxed">
+            <span data-en="A verification code has been sent to:" data-ar="تم إرسال رمز التحقق إلى:">A verification code has been sent to:</span><br>
+            <strong id="sentEmailAddress" style="color: var(--text-primary);"></strong>
+          </p>
+          
+          <div id="otpErrorMsg" class="alert alert-danger d-none" style="font-size: 0.9rem;"></div>
+
+          <form id="verifyOtpForm">
+            @csrf
+            <input type="hidden" id="verifyEmailInput" name="email">
+            
+            <div class="d-flex justify-content-center gap-2 mb-4" dir="ltr">
+              <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+              <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+              <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+              <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+              <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+              <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+            </div>
+
+            <button type="submit" class="btn btn-luxury w-100 py-3 rounded-lg fw-bold mb-3" id="verifyBtn">
+              <span data-en="Verify My Account" data-ar="تحقق من حسابي">Verify My Account</span>
+            </button>
+          </form>
+
+          <div class="mt-3 text-center">
+            <span style="color: var(--text-secondary);" data-en="Didn't receive the code?" data-ar="لم تستلم الرمز؟">Didn't receive the code?</span>
+            <button type="button" class="btn btn-link p-0 text-decoration-none fw-bold ms-1 text-gold" id="resendCodeBtn" disabled>
+              <span data-en="Resend" data-ar="إعادة الإرسال">Resend</span> <span id="resendTimer">(00:59)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const regForm = document.getElementById('registrationForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const otpModalEl = document.getElementById('otpVerificationModal');
+    let otpModal;
+    if (otpModalEl) {
+        otpModal = new bootstrap.Modal(otpModalEl);
+    }
+    const verifyForm = document.getElementById('verifyOtpForm');
+    const otpInputs = document.querySelectorAll('.otp-input');
+    let resendInterval;
+
+    // Auto-focus OTP inputs logic
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('keyup', function(e) {
+            if (e.key >= 0 && e.key <= 9) {
+                this.value = e.key;
+                if (index < otpInputs.length - 1) otpInputs[index + 1].focus();
+            } else if (e.key === 'Backspace') {
+                this.value = '';
+                if (index > 0) otpInputs[index - 1].focus();
+            } else {
+                this.value = ''; // ignore non-numeric
+            }
+        });
+        
+        // Handle paste event
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+            if(pastedData.length > 0) {
+                pastedData.split('').forEach((char, i) => {
+                    if (otpInputs[i]) {
+                        otpInputs[i].value = char;
+                        if (i < 5) otpInputs[i+1].focus();
+                    }
+                });
+            }
+        });
+    });
+
+    // Handle Registration Form via AJAX
+    if (regForm) {
+        regForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const originalContent = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> <span data-en="Processing..." data-ar="جاري المعالجة...">Processing...</span>';
+            
+            const formData = new FormData(regForm);
+            fetch('{{ route("apply.store") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok && response.status !== 422) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Show modal
+                    document.getElementById('sentEmailAddress').textContent = data.email;
+                    document.getElementById('verifyEmailInput').value = data.email;
+                    if(otpModal) otpModal.show();
+                    startResendTimer();
+                } else if (data.errors) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: document.documentElement.lang === 'ar' ? 'خطأ' : 'Error',
+                        text: Object.values(data.errors).flat().join('\n'),
+                    });
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalContent;
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: document.documentElement.lang === 'ar' ? 'خطأ' : 'Error',
+                        text: data.message || 'An error occurred.',
+                    });
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalContent;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire({
+                    icon: 'error',
+                    title: document.documentElement.lang === 'ar' ? 'خطأ' : 'Error',
+                    text: document.documentElement.lang === 'ar' ? 'حدث خطأ ما. يرجى التحقق من المدخلات والمحاولة مرة أخرى.' : 'Something went wrong. Please check your inputs and try again.',
+                });
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalContent;
+            });
+        });
+    }
+
+    // Handle Verify Form via AJAX
+    if (verifyForm) {
+        verifyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let code = Array.from(otpInputs).map(i => i.value).join('');
+            if (code.length !== 6) return;
+
+            const verifyBtn = document.getElementById('verifyBtn');
+            const originalText = verifyBtn.innerHTML;
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            
+            const formData = new FormData(verifyForm);
+            formData.append('code', code);
+
+            fetch('{{ route("student.verify.submit") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = data.redirect;
+                } else {
+                    showOtpError(data.message || 'Invalid code.');
+                    verifyBtn.disabled = false;
+                    verifyBtn.innerHTML = originalText;
+                    otpInputs.forEach(i => i.value = '');
+                    otpInputs[0].focus();
+                }
+            })
+            .catch(err => {
+                showOtpError('An error occurred during verification.');
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = originalText;
+            });
+        });
+    }
+
+    // Handle Resend Request
+    const resendBtn = document.getElementById('resendCodeBtn');
+    if (resendBtn) {
+        resendBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            
+            const email = document.getElementById('verifyEmailInput').value;
+            const formData = new FormData();
+            formData.append('_token', document.querySelector('input[name="_token"]').value);
+            formData.append('email', email);
+
+            fetch('{{ route("student.verify.resend") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if(response.status === 429) {
+                    showOtpError('يرجى الانتظار دقيقة قبل طلب كود جديد.');
+                    startResendTimer(60);
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if(data && data.status === 'success') {
+                    showOtpError('تم إرسال الكود بنجاح!', 'success');
+                    startResendTimer();
+                } else if (data) {
+                    showOtpError(data.message || 'فشل في إعادة الإرسال.');
+                }
+            });
+        });
+    }
+
+    function showOtpError(msg, type = 'danger') {
+        const errDiv = document.getElementById('otpErrorMsg');
+        errDiv.className = `alert alert-${type} d-block`;
+        errDiv.textContent = msg;
+    }
+
+    function startResendTimer(seconds = 59) {
+        const timerSpan = document.getElementById('resendTimer');
+        resendBtn.disabled = true;
+        
+        clearInterval(resendInterval);
+        
+        resendInterval = setInterval(() => {
+            if (seconds <= 0) {
+                clearInterval(resendInterval);
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<span data-en="Resend" data-ar="إعادة الإرسال">Resend</span>';
+            } else {
+                let secStr = seconds < 10 ? '0' + seconds : seconds;
+                resendBtn.innerHTML = `<span data-en="Resend" data-ar="إعادة الإرسال">Resend</span> <span class="text-muted">(00:${secStr})</span>`;
+                seconds--;
+            }
+        }, 1000);
+    }
+    
+    @if(session('show_otp_modal'))
+        const sessionEmail = '{{ session("email") }}';
+        if(sessionEmail) {
+            document.getElementById('sentEmailAddress').textContent = sessionEmail;
+            document.getElementById('verifyEmailInput').value = sessionEmail;
+            if (otpModal) otpModal.show();
+            startResendTimer();
+        }
+    @endif
+});
+</script>
+@endpush

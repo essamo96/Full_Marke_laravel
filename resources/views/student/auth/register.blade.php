@@ -109,18 +109,30 @@
                     <i class="bi bi-briefcase fi-icon"></i>
                   </div>
                 </div>
-                <!-- Academy Branch -->
+                <!-- Region -->
                 <div class="col-md-6">
                   <div class="floating-input-group">
-                    <select class="fi-select" id="branch" name="branch" required>
-                      <option value="" disabled {{ old('branch') ? '' : 'selected' }}></option>
-                      <option value="amman" {{ old('branch') === 'amman' ? 'selected' : '' }} data-en="Amman Branch" data-ar="فرع عمّان">Amman Branch</option>
-                      <option value="zarqa" {{ old('branch') === 'zarqa' ? 'selected' : '' }} data-en="Zarqa Branch" data-ar="فرع الزرقاء">Zarqa Branch</option>
-                      <option value="irbid" {{ old('branch') === 'irbid' ? 'selected' : '' }} data-en="Irbid Branch" data-ar="فرع إربد">Irbid Branch</option>
-                      <option value="online" {{ old('branch') === 'online' ? 'selected' : '' }} data-en="Online Learning" data-ar="التعلم عن بُعد">Online Learning</option>
+                    <select class="fi-select" id="region_id" name="region_id" required>
+                      <option value="" disabled {{ old('region_id') ? '' : 'selected' }}></option>
+                      @foreach($regions as $region)
+                      <option value="{{ $region->id }}" {{ old('region_id') == $region->id ? 'selected' : '' }} data-en="{{ $region->name_en }}" data-ar="{{ $region->name_ar }}">{{ $region->name }}</option>
+                      @endforeach
                     </select>
-                    <label class="fi-label" for="branch" data-en="Academy Branch" data-ar="فرع الأكاديمية">Academy Branch</label>
+                    <label class="fi-label" for="region_id" data-en="Region" data-ar="المنطقة">Region</label>
                     <i class="bi bi-geo-alt fi-icon"></i>
+                  </div>
+                </div>
+                <!-- Study Branch -->
+                <div class="col-12">
+                  <div class="floating-input-group">
+                    <select class="fi-select" id="branch_id" name="branch_id" required>
+                      <option value="" disabled {{ old('branch_id') ? '' : 'selected' }}></option>
+                      @foreach($branches as $branch)
+                      <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }} data-en="{{ $branch->name_en }}" data-ar="{{ $branch->name_ar }}">{{ $branch->name }}</option>
+                      @endforeach
+                    </select>
+                    <label class="fi-label" for="branch_id" data-en="Study Branch" data-ar="الفرع الدراسي">Study Branch</label>
+                    <i class="bi bi-diagram-3 fi-icon"></i>
                   </div>
                 </div>
                 <!-- Program -->
@@ -202,4 +214,265 @@
 
             </form>
           </div><!-- /form-body -->
+
+          <!-- OTP Verification Modal -->
+          <div class="modal fade" id="otpVerificationModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="display:none;"></button>
+                </div>
+                <div class="modal-body text-center pt-0 px-4 pb-5">
+                  <div class="mb-4">
+                    <i class="bi bi-envelope-check text-success" style="font-size: 3rem;"></i>
+                  </div>
+                  <h4 class="mb-3" id="otpModalLabel" data-en="Verify Your Email" data-ar="تحقق من بريدك الإلكتروني">Verify Your Email</h4>
+                  <p class="text-muted mb-4">
+                    <span data-en="A verification code has been sent to:" data-ar="تم إرسال رمز التحقق إلى:">A verification code has been sent to:</span><br>
+                    <strong id="sentEmailAddress" class="text-dark"></strong>
+                  </p>
+                  
+                  <div id="otpErrorMsg" class="alert alert-danger d-none" style="font-size: 0.9rem;"></div>
+
+                  <form id="verifyOtpForm">
+                    @csrf
+                    <input type="hidden" id="verifyEmailInput" name="email">
+                    
+                    <div class="d-flex justify-content-center gap-2 mb-4" dir="ltr">
+                      <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+                      <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+                      <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+                      <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+                      <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+                      <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-luxury w-100 py-3 rounded-lg fw-bold mb-3" id="verifyBtn">
+                      <span data-en="Verify My Account" data-ar="تحقق من حسابي">Verify My Account</span>
+                    </button>
+                  </form>
+
+                  <div class="mt-3">
+                    <span class="text-muted" data-en="Didn't receive the code?" data-ar="لم تستلم الرمز؟">Didn't receive the code?</span>
+                    <button type="button" class="btn btn-link p-0 text-decoration-none fw-bold ms-1" id="resendCodeBtn" disabled>
+                      <span data-en="Resend" data-ar="إعادة الإرسال">Resend</span> <span id="resendTimer">(00:59)</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const regForm = document.getElementById('registrationForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const otpModal = new bootstrap.Modal(document.getElementById('otpVerificationModal'));
+    const verifyForm = document.getElementById('verifyOtpForm');
+    const otpInputs = document.querySelectorAll('.otp-input');
+    let resendInterval;
+
+    // Auto-focus OTP inputs logic
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('keyup', function(e) {
+            if (e.key >= 0 && e.key <= 9) {
+                this.value = e.key;
+                if (index < otpInputs.length - 1) otpInputs[index + 1].focus();
+            } else if (e.key === 'Backspace') {
+                this.value = '';
+                if (index > 0) otpInputs[index - 1].focus();
+            } else {
+                this.value = ''; // ignore non-numeric
+            }
+        });
+        
+        // Handle paste event
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+            if(pastedData.length > 0) {
+                pastedData.split('').forEach((char, i) => {
+                    if (otpInputs[i]) {
+                        otpInputs[i].value = char;
+                        if (i < 5) otpInputs[i+1].focus();
+                    }
+                });
+            }
+        });
+    });
+
+    // Handle Registration Form via AJAX
+    regForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> <span data-en="Processing..." data-ar="جاري المعالجة...">Processing...</span>';
+        
+        const formData = new FormData(regForm);
+        fetch('{{ route("student.register.submit") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Show modal
+                document.getElementById('sentEmailAddress').textContent = data.email;
+                document.getElementById('verifyEmailInput').value = data.email;
+                otpModal.show();
+                startResendTimer();
+            } else if (data.errors) {
+                Swal.fire({
+                    icon: 'error',
+                    title: document.documentElement.lang === 'ar' ? 'خطأ' : 'Error',
+                    text: Object.values(data.errors).flat().join('\n'),
+                });
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-person-plus-fill"></i> <span data-en="Create My Account" data-ar="إنشاء حساب جديد">Create My Account</span>';
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: document.documentElement.lang === 'ar' ? 'خطأ' : 'Error',
+                    text: data.message || 'An error occurred.',
+                });
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-person-plus-fill"></i> <span data-en="Create My Account" data-ar="إنشاء حساب جديد">Create My Account</span>';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire({
+                icon: 'error',
+                title: document.documentElement.lang === 'ar' ? 'خطأ' : 'Error',
+                text: document.documentElement.lang === 'ar' ? 'حدث خطأ ما. يرجى التحقق من المدخلات والمحاولة مرة أخرى.' : 'Something went wrong. Please check your inputs and try again.',
+            });
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-person-plus-fill"></i> <span data-en="Create My Account" data-ar="إنشاء حساب جديد">Create My Account</span>';
+        });
+    });
+
+    // Handle Verify Form via AJAX
+    verifyForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let code = Array.from(otpInputs).map(i => i.value).join('');
+        if (code.length !== 6) return;
+
+        const verifyBtn = document.getElementById('verifyBtn');
+        const originalText = verifyBtn.innerHTML;
+        verifyBtn.disabled = true;
+        verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        
+        const formData = new FormData(verifyForm);
+        formData.append('code', code);
+
+        fetch('{{ route("student.verify.submit") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = data.redirect;
+            } else {
+                showOtpError(data.message || 'Invalid code.');
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = originalText;
+                otpInputs.forEach(i => i.value = '');
+                otpInputs[0].focus();
+            }
+        })
+        .catch(err => {
+            showOtpError('An error occurred during verification.');
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = originalText;
+        });
+    });
+
+    // Handle Resend Request
+    document.getElementById('resendCodeBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        
+        const email = document.getElementById('verifyEmailInput').value;
+        const formData = new FormData();
+        formData.append('_token', document.querySelector('input[name="_token"]').value);
+        formData.append('email', email);
+
+        fetch('{{ route("student.verify.resend") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if(response.status === 429) {
+                showOtpError('يرجى الانتظار دقيقة قبل طلب كود جديد.');
+                startResendTimer(60);
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if(data && data.status === 'success') {
+                showOtpError('تم إرسال الكود بنجاح!', 'success');
+                startResendTimer();
+            } else if (data) {
+                showOtpError(data.message || 'فشل في إعادة الإرسال.');
+            }
+        });
+    });
+
+    function showOtpError(msg, type = 'danger') {
+        const errDiv = document.getElementById('otpErrorMsg');
+        errDiv.className = `alert alert-${type} d-block`;
+        errDiv.textContent = msg;
+    }
+
+    function startResendTimer(seconds = 59) {
+        const resendBtn = document.getElementById('resendCodeBtn');
+        const timerSpan = document.getElementById('resendTimer');
+        resendBtn.disabled = true;
+        
+        clearInterval(resendInterval);
+        
+        resendInterval = setInterval(() => {
+            if (seconds <= 0) {
+                clearInterval(resendInterval);
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<span data-en="Resend" data-ar="إعادة الإرسال">Resend</span>';
+            } else {
+                let secStr = seconds < 10 ? '0' + seconds : seconds;
+                resendBtn.innerHTML = `<span data-en="Resend" data-ar="إعادة الإرسال">Resend</span> <span class="text-muted">(00:${secStr})</span>`;
+                seconds--;
+            }
+        }, 1000);
+    }
+    
+    // Check if redirect flag exists (fallback)
+    @if(session('show_otp_modal'))
+        const sessionEmail = '{{ session("otp.student.email") }}';
+        if(sessionEmail) {
+            document.getElementById('sentEmailAddress').textContent = sessionEmail;
+            document.getElementById('verifyEmailInput').value = sessionEmail;
+            otpModal.show();
+            startResendTimer();
+        }
+    @endif
+});
+</script>
+@endpush

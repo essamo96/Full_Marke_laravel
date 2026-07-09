@@ -38,8 +38,9 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/news.php';
     require __DIR__.'/testimonials.php';
     require __DIR__.'/contacts.php';
+    require __DIR__.'/regions.php';
+    require __DIR__.'/branches.php';
     require __DIR__.'/admin-programs.php';
-    require __DIR__.'/admin-study-branches.php';
     require __DIR__.'/admin-subjects.php';
     require __DIR__.'/admin-subject-resources.php';
     require __DIR__.'/admin-groups.php';
@@ -47,6 +48,7 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/admin-students.php';
     require __DIR__.'/admin-payment-methods.php';
     require __DIR__.'/admin-approvals.php';
+    require __DIR__.'/pending_requests.php';
     require __DIR__.'/admin-payments.php';
     require __DIR__.'/admin-financial-reports.php';
 });

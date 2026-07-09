@@ -17,10 +17,13 @@ class RegisterController extends Controller
 
     public function showRegisterForm()
     {
-        return view('student.auth.register');
+        $regions = \App\Models\Region::where('status', 1)->get();
+        $branches = \App\Models\Branch::where('status', 1)->get();
+        
+        return view('student.auth.register', compact('regions', 'branches'));
     }
 
-    public function register(Request $request, OtpService $otp)
+    public function register(Request $request, \App\Actions\SendVerificationCodeAction $sendCodeAction)
     {
         $data = $request->validate([
             'fullnameAr' => 'required|string|max:255',
@@ -30,7 +33,8 @@ class RegisterController extends Controller
             'phone' => 'required|string|max:30',
             'dob' => 'required|date',
             'gender' => 'required|string',
-            'branch' => 'required|string',
+            'region_id' => 'required|string',
+            'branch_id' => 'required|string',
             'program' => 'required|string',
             'address' => 'nullable|string',
             'health' => 'nullable|string',
@@ -47,6 +51,8 @@ class RegisterController extends Controller
             'phone' => $data['phone'],
             'date_of_birth' => $data['dob'],
             'gender' => $data['gender'],
+            'region_id' => $data['region_id'],
+            'branch_id' => $data['branch_id'],
             'address' => $data['address'] ?? null,
             'health_information' => $data['health'] ?? null,
             'major_profession' => $data['profession'] ?? null,
@@ -54,10 +60,19 @@ class RegisterController extends Controller
             'status' => 0,
         ]);
 
-        $otp->generateAndSend($student->email, 'student');
+        $sendCodeAction->execute($student);
 
+        // Store email in session in case page is reloaded or for traditional submit
         $request->session()->put('otp.student.email', $student->email);
 
-        return redirect()->route('student.verify');
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Account created successfully. Please verify your email.',
+                'email' => $student->email
+            ]);
+        }
+
+        return redirect()->back()->with('show_otp_modal', true);
     }
 }

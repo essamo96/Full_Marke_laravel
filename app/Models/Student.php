@@ -25,8 +25,8 @@ class Student extends Authenticatable
         'date_of_birth',
         'gender',
         'address',
+        'region_id',
         'branch_id',
-        'study_branch_id',
         'major_profession',
         'health_information',
         'password',
@@ -55,14 +55,14 @@ class Student extends Authenticatable
         return StudentFactory::new();
     }
 
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
+
     public function branch()
     {
         return $this->belongsTo(Branch::class);
-    }
-
-    public function studyBranch()
-    {
-        return $this->belongsTo(StudyBranch::class);
     }
 
     public function guardian()
@@ -83,6 +83,16 @@ class Student extends Authenticatable
     public function cartItems()
     {
         return CartItem::query()->forUser($this->id, 'student');
+    }
+
+    public function emailVerificationCodes()
+    {
+        return $this->hasMany(EmailVerificationCode::class);
+    }
+
+    public function isEmailVerified(): bool
+    {
+        return !is_null($this->email_verified_at);
     }
 
     public function scopeActive($query)

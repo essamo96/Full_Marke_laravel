@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
+use App\Models\Region;
 use App\Models\Branch;
 use App\Models\Program;
-use App\Models\StudyBranch;
 use App\Models\Student;
 use App\Models\News;
 use App\Models\Contact;
@@ -28,26 +28,26 @@ class SiteController extends Controller
     public function applyNow(Request $request): View
     {
         $programs = Program::where('is_active', true)->orderBy('order')->with('subjects')->get();
-        $branches = Branch::active()->orderBy('name')->get();
-        $studyBranches = StudyBranch::active()->orderBy('name_en')->get();
+        $regions = Region::where('status', 1)->get();
+        $branches = Branch::where('status', 1)->get();
         $selectedProgram = $request->query('program');
 
-        return view('site.apply-now', compact('programs', 'branches', 'studyBranches', 'selectedProgram'));
+        return view('site.apply-now', compact('programs', 'regions', 'branches', 'selectedProgram'));
     }
 
-    public function storeApplication(Request $request): RedirectResponse
+    public function storeApplication(Request $request, \App\Actions\SendVerificationCodeAction $sendCodeAction)
     {
         $data = $request->validate([
             'full_name_en' => 'required|string|max:255',
             'full_name_ar' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'required|email|max:255|unique:students,email',
             'phone' => 'required|string|max:30',
             'image' => 'nullable|image|max:2048',
             'date_of_birth' => 'nullable|date',
             'gender' => 'nullable|in:male,female',
             'address' => 'nullable|string',
+            'region_id' => 'nullable|exists:regions,id',
             'branch_id' => 'nullable|exists:branches,id',
-            'study_branch_id' => 'nullable|exists:study_branches,id',
             'major_profession' => 'nullable|string|max:255',
             'health_information' => 'nullable|string',
             'message' => 'nullable|string',
@@ -57,18 +57,29 @@ class SiteController extends Controller
             $data['image'] = $request->file('image')->store('applications', 'public');
         }
 
-        $application = Application::create($data);
-
-        // Generate a random 6-digit OTP
-        $otp = (string) random_int(100000, 999999);
-        
-        session([
-            'pending_application_id' => $application->id,
-            'pending_application_otp' => $otp,
+        // Create the Student first (unverified)
+        $student = Student::create([
+            'full_name_ar' => $data['full_name_ar'],
+            'full_name_en' => $data['full_name_en'],
+            'email' => $data['email'],
+            'phone' => $data['phone'],
+            'image' => $data['image'] ?? null,
+            'date_of_birth' => $data['date_of_birth'] ?? null,
+            'gender' => $data['gender'] ?? null,
+            'address' => $data['address'] ?? null,
+            'region_id' => $data['region_id'] ?? null,
+            'branch_id' => $data['branch_id'] ?? null,
+            'major_profession' => $data['major_profession'] ?? null,
+            'health_information' => $data['health_information'] ?? null,
+            'password' => bcrypt('password'), // Will be prompted to change later or handled by profile
+            'status' => 1, // Active, but restricted by email_verified_at middleware
+            'email_verified_at' => null,
         ]);
 
-        // Send OTP email to student
-        \Illuminate\Support\Facades\Mail::to($application->email)->send(new \App\Mail\VerificationCodeMail($otp));
+        $application = Application::create($data);
+
+        // Send OTP via the new Action
+        $sendCodeAction->execute($student);
 
         // Trigger real-time Pusher event for the admin dashboard
         try {
@@ -79,8 +90,8 @@ class SiteController extends Controller
             $eventData = [
                 'message' => $msg,
                 'name' => app()->getLocale() === 'ar' ? $application->full_name_ar : $application->full_name_en,
+                'region' => $application->region?->name ?? '',
                 'branch' => $application->branch?->name ?? '',
-                'study_branch' => $application->studyBranch?->name ?? '',
                 'created_at' => now()->diffForHumans(),
             ];
 
@@ -89,65 +100,15 @@ class SiteController extends Controller
             logger()->error("Pusher broadcast failed: " . $e->getMessage());
         }
 
-        return redirect()
-            ->route('apply.create')
-            ->with('applied', true);
-    }
-
-    public function verifyApplication(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'otp' => 'required|string|size:6',
-        ]);
-
-        $expectedOtp = session('pending_application_otp');
-        $pendingId = session('pending_application_id');
-
-        if (!$pendingId || !$expectedOtp) {
-            return redirect()->route('apply.create')->withErrors(['otp' => app()->getLocale() === 'ar' ? 'انتهت الصلاحية. الرجاء التقديم مجدداً.' : 'Session expired. Please apply again.']);
-        }
-
-        if ($request->input('otp') !== $expectedOtp) {
-            return redirect()
-                ->route('apply.create')
-                ->with('applied', true)
-                ->withErrors(['otp' => app()->getLocale() === 'ar' ? 'رمز التحقق غير صحيح!' : 'Invalid verification code!']);
-        }
-
-        $application = Application::find($pendingId);
-        if (!$application) {
-            return redirect()->route('apply.create')->withErrors(['otp' => app()->getLocale() === 'ar' ? 'الطلب غير موجود.' : 'Application not found.']);
-        }
-
-        // Check if student email already exists
-        $student = Student::where('email', $application->email)->first();
-        if (!$student) {
-            $student = Student::create([
-                'full_name_ar' => $application->full_name_ar,
-                'full_name_en' => $application->full_name_en,
-                'email' => $application->email,
-                'phone' => $application->phone,
-                'image' => $application->image,
-                'date_of_birth' => $application->date_of_birth,
-                'gender' => $application->gender,
-                'address' => $application->address,
-                'branch_id' => $application->branch_id,
-                'study_branch_id' => $application->study_branch_id,
-                'major_profession' => $application->major_profession,
-                'health_information' => $application->health_information,
-                'password' => bcrypt('password'),
-                'status' => 1,
-                'email_verified_at' => now(),
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Application submitted successfully. Please verify your email.',
+                'email' => $student->email
             ]);
         }
 
-        session()->forget(['pending_application_id', 'pending_application_otp']);
-
-        auth('student')->login($student);
-
-        return redirect()
-            ->route('site.home')
-            ->with('welcome_student', app()->getLocale() === 'ar' ? $student->full_name_ar : $student->full_name_en);
+        return redirect()->back()->with('show_otp_modal', true)->with('email', $student->email);
     }
 
     public function storeContact(Request $request)

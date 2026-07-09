@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Student\Auth\LoginController;
 use App\Http\Controllers\Student\Auth\RegisterController;
+use App\Http\Controllers\Student\Auth\VerifyEmailController;
 use App\Http\Controllers\Student\CartController;
 use App\Http\Controllers\Student\CheckoutController;
 use App\Http\Controllers\Student\DashboardController;
@@ -17,11 +18,10 @@ Route::prefix('student')->name('student.')->group(function () {
     Route::get('register', [RegisterController::class, 'showRegisterForm'])->name('register');
     Route::post('register', [RegisterController::class, 'register'])->name('register.submit');
 
-    Route::get('verify', [EmailVerificationController::class, 'showForm'])->name('verify')->defaults('userType', 'student');
-    Route::post('verify', [EmailVerificationController::class, 'verify'])->name('verify.submit')->defaults('userType', 'student');
-    Route::post('verify/resend', [EmailVerificationController::class, 'resend'])->name('verify.resend')->defaults('userType', 'student');
+    Route::post('verify', [VerifyEmailController::class, 'verify'])->name('verify.submit');
+    Route::post('verify/resend', [VerifyEmailController::class, 'resend'])->name('verify.resend')->middleware('throttle:1,1');
 
-    Route::middleware('auth:student')->group(function () {
+    Route::middleware(['auth:student', 'student.verified'])->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('cart', [CartController::class, 'index'])->name('cart');

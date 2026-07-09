@@ -197,6 +197,24 @@ class AdminPermissionsSeeder extends Seeder
                         'icon' => 'bi-clock-fill',
                         'sort' => 1,
                         'status' => 1,
+                    ],
+                    [
+                        'name' => 'regions',
+                        'name_ar' => 'المناطق',
+                        'name_en' => 'Regions',
+                        'color' => 'dark',
+                        'icon' => 'bi-geo-alt-fill',
+                        'sort' => 2,
+                        'status' => 1,
+                    ],
+                    [
+                        'name' => 'branches',
+                        'name_ar' => 'الفروع الدراسية',
+                        'name_en' => 'Branches',
+                        'color' => 'dark',
+                        'icon' => 'bi-diagram-3-fill',
+                        'sort' => 3,
+                        'status' => 1,
                     ]
                 ]
             ]
