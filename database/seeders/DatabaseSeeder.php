@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminPermissionsSeeder::class,
             SiteSettingsSeeder::class,
+            RegionsAndBranchesSeeder::class,
         ]);
         
         // Commented out for production to avoid dummy data and Faker errors
