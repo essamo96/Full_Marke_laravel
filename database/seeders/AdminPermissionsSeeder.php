@@ -178,7 +178,17 @@ class AdminPermissionsSeeder extends Seeder
                 'icon' => 'bi-bell-fill',
                 'sort' => 2,
                 'status' => 1,
-                'children' => []
+                'children' => [
+                    [
+                        'name' => 'pending_requests',
+                        'name_ar' => 'الطلبات العالقة',
+                        'name_en' => 'Pending Requests',
+                        'color' => 'dark',
+                        'icon' => 'bi-clock-fill',
+                        'sort' => 1,
+                        'status' => 1,
+                    ]
+                ]
             ],
             [
                 'name' => 'academy_management',
@@ -189,15 +199,7 @@ class AdminPermissionsSeeder extends Seeder
                 'sort' => 4,
                 'status' => 1,
                 'children' => [
-                    [
-                        'name' => 'pending_requests',
-                        'name_ar' => 'الطلبات العالقة',
-                        'name_en' => 'Pending Requests',
-                        'color' => 'dark',
-                        'icon' => 'bi-clock-fill',
-                        'sort' => 1,
-                        'status' => 1,
-                    ],
+
                     [
                         'name' => 'regions',
                         'name_ar' => 'المناطق',
