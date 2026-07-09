@@ -16,7 +16,7 @@ class ContactsSeeder extends Seeder
                 'phone' => '0591234567',
                 'subject' => 'استفسار عن دورة الآيلتس',
                 'message' => 'مرحباً، أود الاستفسار عن مواعيد دورات الآيلتس القادمة والتكلفة الإجمالية. شكراً لكم.',
-                'status' => 0 // 0 means unread/pending
+                'is_read' => 0 // 0 means unread/pending
             ]
         ];
 
