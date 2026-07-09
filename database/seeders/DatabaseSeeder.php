@@ -36,5 +36,9 @@ class DatabaseSeeder extends Seeder
         $this->call(TeamTestimonialSeeder::class);
         $this->call(NewsSeeder::class);
         $this->call(FaqSeeder::class);
+        $this->call(PagesSeeder::class);
+        $this->call(SocialsSeeder::class);
+        $this->call(SlidersSeeder::class);
+        $this->call(ContactsSeeder::class);
     }
 }
