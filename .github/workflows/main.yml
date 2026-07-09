@@ -42,53 +42,27 @@ jobs:
           npm ci # أفضل من npm install في بيئات الـ CI/CD
           npm run build
 
-      - name: 🗑️ Remove excluded files before upload
-        run: |
-          rm -rf .git tests node_modules
-      - name: 📦 Prepare Zip and Unzip Script
-        run: |
-          zip -rq build.zip . -x "*.git*" "*node_modules*" "*tests*"
-          cat << 'EOF' > unzip.php
-          <?php
-          $zip = new ZipArchive;
-          if ($zip->open('build.zip') === TRUE) {
-              $zip->extractTo(__DIR__);
-              $zip->close();
-              unlink('build.zip');
-              unlink(__FILE__);
-              echo 'UNZIP_SUCCESS';
-          } else {
-              echo 'UNZIP_FAILED';
-          }
-          EOF
-
-      - name: 🛠️ Install lftp
-        run: sudo apt-get update -y || true; sudo apt-get install -y lftp
-
-      - name: 📂 Upload Zip to Server (via FTP)
-        uses: nick-fields/retry@v3
+      - name: 📂 Sync files to Server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 10
-          shell: bash
-          command: |
-            lftp -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" 92.113.19.218 <<'EOF'
-            set ssl:verify-certificate no
-            set ftp:ssl-allow true
-            set ftp:ssl-force true
-            cd /domains/fullmarkacademy.com/public_html/
-            put build.zip
-            put unzip.php
-            EOF
-
-      - name: 🚀 Extract on Server
-        run: |
-          RESPONSE=$(curl -sS -H "Host: fullmarkacademy.com" http://92.113.19.218/unzip.php || echo "CURL_ERROR")
-          echo "Server Response: $RESPONSE"
-          if [[ "$RESPONSE" == *"UNZIP_SUCCESS"* ]]; then
-            echo "✅ Successfully extracted on server!"
-          else
-            echo "❌ Failed to extract!"
-            exit 1
-          fi
+          server: 92.113.19.218
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftp
+          server-dir: /domains/fullmarkacademy.com/public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/vendor/**
+            **/tests/**
+            **/storage/*.key
+            .env
+            .env.example
+            phpunit.xml
+            README.md
+            docker-compose.yml
+            docker-compose.override.yml
+            .editorconfig
+            .styleci.yml
