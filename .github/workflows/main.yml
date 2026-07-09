@@ -59,7 +59,8 @@ jobs:
           retry_wait_seconds: 10
           shell: bash
           command: |
-            sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz \
+            export SSHPASS="${{ secrets.SSH_PASSWORD || secrets.FTP_PASSWORD }}"
+            sshpass -e rsync -avz \
               --exclude '.git/' \
               --exclude 'node_modules/' \
               --exclude 'tests/' \
