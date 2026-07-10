@@ -247,13 +247,20 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('{{ route("apply.store") }}', {
                 method: 'POST',
                 body: formData,
+                credentials: 'same-origin',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                 }
             })
             .then(response => {
-                if (!response.ok && response.status !== 422) throw new Error('Network response was not ok');
+                if (!response.ok && response.status !== 422) {
+                    if (response.status === 419) {
+                        window.location.reload();
+                    }
+                    throw new Error('Network response was not ok');
+                }
                 return response.json();
             })
             .then(data => {
@@ -313,9 +320,11 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('{{ route("student.verify.submit") }}', {
                 method: 'POST',
                 body: formData,
+                credentials: 'same-origin',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                 }
             })
             .then(response => response.json())
@@ -354,9 +363,11 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('{{ route("student.verify.resend") }}', {
                 method: 'POST',
                 body: formData,
+                credentials: 'same-origin',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                 }
             })
             .then(response => {
