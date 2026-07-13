@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -9,10 +10,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subject extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'program_id', 'name_en', 'name_ar', 'description_en', 'description_ar',
         'image', 'reg_start_date', 'reg_end_date', 'fee', 'min_payment', 'total_fee',
-        'discount_percent', 'google_tags', 'order', 'is_active',
+        'discount_percent', 'google_tags', 'sort_order', 'is_active',
     ];
 
     protected $casts = [

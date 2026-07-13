@@ -138,6 +138,38 @@
       margin: 0 auto;
       line-height: 1.6;
     }
+
+    /* Rotating motivational sentences (replaces the static subtitle) */
+    .motivation-rotator {
+      position: relative;
+      max-width: 560px;
+      margin: 0 auto;
+      min-height: 2.8em;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .motivation-line {
+      position: absolute;
+      inset-inline: 0;
+      top: 0;
+      color: var(--text-secondary, #d1c7bd);
+      font-size: 1rem;
+      line-height: 1.6;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.6s cubic-bezier(.22,.7,.2,1), transform 0.6s cubic-bezier(.22,.7,.2,1);
+      pointer-events: none;
+    }
+    .motivation-line.is-active {
+      position: relative;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .motivation-line { transition: none; }
+    }
     .gold-divider {
       width: 64px;
       height: 3px;
@@ -321,6 +353,10 @@
 
 @include('layouts.partials.site-footer')
   </div><!-- /page-wrapper -->
+
+  {{-- Modals must live outside .register-card-inner: its backdrop-filter + overflow:hidden
+       turns Bootstrap's position:fixed modal into a clipped, mispositioned element. --}}
+  @stack('modals')
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>window.currentLang = '{{ app()->getLocale() }}';</script>

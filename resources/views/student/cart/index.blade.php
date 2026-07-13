@@ -1,6 +1,8 @@
 @extends('layouts.student')
 
 @section('title', 'My Cart | FULL MARK ACADEMY')
+@section('page_title_en', 'My Cart')
+@section('page_title_ar', 'سلة التسجيل')
 
 @section('content')
   <h1 class="h3 fw-bold mb-4" style="color: var(--text-primary);" data-en="My Cart" data-ar="سلة التسجيل">My Cart</h1>

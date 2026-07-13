@@ -14,14 +14,17 @@ Route::middleware(['site.locale', 'site.maintenance'])->group(function () {
         $faqs = \App\Models\Faq::where('status', 1)->with('translations')->orderBy('id')->get();
         $testimonials = \App\Models\Testimonial::where('status', 1)->with('translations')->orderBy('display_order')->get();
         $latestNews = \App\Models\News::where('status', 1)->with('translations')->latest()->take(6)->get();
-        return view('site.home', compact('sliders', 'pages', 'teams', 'faqs', 'testimonials', 'latestNews'));
+        $programs = \App\Models\Program::where('is_active', true)->orderBy('sort_order')->get();
+        return view('site.home', compact('sliders', 'pages', 'teams', 'faqs', 'testimonials', 'latestNews', 'programs'));
     })->name('site.home');
 
     Route::get('/lang/{locale}', [SiteLocaleController::class, 'switch'])->name('site.lang');
-    Route::get('/programs/{program:slug}', [SiteController::class, 'programDetails'])->name('programs.show');
     Route::get('/news/{id}', [SiteController::class, 'newsDetails'])->name('site.news.show');
-    Route::get('/apply-now', [SiteController::class, 'applyNow'])->name('apply.create');
-    Route::post('/apply-now', [SiteController::class, 'storeApplication'])->name('apply.store');
+    Route::middleware(['student.verified'])->group(function () {
+        Route::get('/programs/{program:slug}', [SiteController::class, 'programDetails'])->name('programs.show');
+        Route::get('/apply-now', [SiteController::class, 'applyNow'])->name('apply.create');
+        Route::post('/apply-now', [SiteController::class, 'storeApplication'])->name('apply.store');
+    });
     Route::post('/apply-now/verify', [SiteController::class, 'verifyApplication'])->name('apply.verify');
     
     Route::post('/contact/submit', [SiteController::class, 'storeContact'])->name('contact.store');

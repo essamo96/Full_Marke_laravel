@@ -35,11 +35,15 @@ class PendingRequestsController extends AdminController
     {
         $query = Student::with(['region', 'branch'])->latest();
 
-        if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
+        if ($request->has('status') && $request->status !== null && $request->status !== '') {
+            if ($request->status == '0') {
+                $query->whereNull('email_verified_at');
+            } elseif ($request->status == '1') {
+                $query->whereNotNull('email_verified_at');
+            }
         }
 
-        $search = $request->get('generalSearch') ?? $request->get('search_value') ?? $request->input('search.value');
+        $search = $request->input('generalSearch') ?? $request->input('search_value') ?? $request->input('search.value');
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('full_name_ar', 'like', "%{$search}%")
@@ -53,21 +57,32 @@ class PendingRequestsController extends AdminController
         
         $datatable->editColumn('full_name_ar', function ($row) {
             $name = app()->getLocale() == 'ar' ? $row->full_name_ar : $row->full_name_en;
-            return '<div class="fw-bold">'.$name.'</div><div class="text-muted small">'.$row->email.'</div>';
+            $imgUrl = $row->image ? (str_starts_with($row->image, 'site/') ? asset($row->image) : asset('storage/' . $row->image)) : asset('assets/admin/media/svg/avatars/blank.svg');
+            
+            return '
+            <div class="d-flex align-items-center">
+                <div class="symbol symbol-50px me-3">
+                    <img src="'.$imgUrl.'" alt="" />
+                </div>
+                <div class="d-flex flex-column justify-content-center">
+                    <div class="text-gray-800 fw-bold text-start">'.$name.'</div>
+                    <span class="text-muted fs-7 text-start">'.$row->email.'</span>
+                </div>
+            </div>';
         });
 
         $datatable->addColumn('region', function ($row) {
-            return $row->region ? $row->region->name : '-';
+            return $row->region ? (app()->getLocale() == 'ar' ? $row->region->name_ar : $row->region->name_en) : '-';
         });
 
         $datatable->addColumn('branch', function ($row) {
-            return $row->branch ? $row->branch->name : '-';
+            return $row->branch ? (app()->getLocale() == 'ar' ? $row->branch->name_ar : $row->branch->name_en) : '-';
         });
 
         $datatable->editColumn('status', function ($row) {
-            // Status: 0 = Pending/Inactive, 1 = Active
-            $badge = $row->status == 1 ? 'success' : 'warning';
-            $statusText = $row->status == 1 ? 'مفعل' : 'معلق / غير مفعل';
+            $isVerified = !is_null($row->email_verified_at);
+            $badge = $isVerified ? 'success' : 'warning';
+            $statusText = $isVerified ? 'مفعل (بريد مؤكد)' : 'معلق / بريد غير مؤكد';
             return '<span class="badge badge-light-'.$badge.'">'.$statusText.'</span>';
         });
 
@@ -82,13 +97,13 @@ class PendingRequestsController extends AdminController
             return view('admin.' . $this->path . '.parts.actions', $data)->render();
         });
 
-        $datatable->escapeColumns(['*']);
+        $datatable->rawColumns(['full_name_ar', 'status', 'actions']);
         return $datatable->addIndexColumn()->make(true);
     }
 
     public function postDelete(Request $request)
     {
-        $id = $request->get('id');
+        $id = $request->input('id');
 
         try {
             $id = Crypt::decrypt($id);

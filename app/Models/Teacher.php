@@ -2,20 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Teacher extends Authenticatable
+class Teacher extends Model
 {
-    use Notifiable;
+    use HasFactory;
 
     protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'photo',
-        'password',
-        'status',
+        'name', 'email', 'photo', 'phone', 'email_verified_at', 'password', 'status'
     ];
 
     protected $hidden = [
@@ -23,26 +19,24 @@ class Teacher extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'status' => 'boolean',
+    ];
 
-    public function subjects()
-    {
-        return $this->belongsToMany(Subject::class, 'subject_teacher');
-    }
-
-    public function groups()
+    public function groups(): HasMany
     {
         return $this->hasMany(Group::class);
     }
 
+    public function subjects(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Subject::class, 'subject_teacher');
+    }
+
     public function scopeActive($query)
     {
-        return $query->where('status', 1);
+        return $query->where('status', true);
     }
 }

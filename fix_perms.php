@@ -1,25 +1,31 @@
 <?php
-
 require __DIR__.'/vendor/autoload.php';
 $app = require_once __DIR__.'/bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-$group = \App\Models\PermissionsGroup::where('name', 'general_settings')->first();
-if ($group) {
-    $group->generateCrudPermissions();
-    echo "Permissions generated for general_settings.\n";
-} else {
-    echo "Group general_settings not found.\n";
-}
+$actions = ['view', 'add', 'edit', 'delete', 'status', 'import', 'export'];
+$groups = App\Models\PermissionsGroup::where('parent_id', '!=', 0)->get();
 
-// Assign these permissions to the super admin role (usually ID 1)
-$role = \Spatie\Permission\Models\Role::first();
-if ($role) {
-    $permissions = \Spatie\Permission\Models\Permission::where('name', 'like', 'admin.general_settings.%')->get();
-    $role->givePermissionTo($permissions);
-    echo "Permissions assigned to admin role.\n";
+$missing = [];
+foreach($groups as $g) {
+    $perms = $g->permissions->pluck('name')->toArray();
+    $m = [];
+    foreach($actions as $a) {
+        $n = 'admin.'.$g->name.'.'.$a;
+        if(!in_array($n, $perms)) {
+            $m[] = $a;
+            
+            // create missing permissions right now as well
+            \Spatie\Permission\Models\Permission::create([
+                'name' => $n,
+                'guard_name' => 'admin',
+                'group_id' => $g->id
+            ]);
+        }
+    }
+    if(!empty($m)) {
+        $missing[$g->name] = $m;
+    }
 }
-
-app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-echo "Cache cleared.\n";
+echo json_encode($missing);

@@ -30,19 +30,21 @@ class ProgramsController extends AdminController
 
         $programs = Program::withCount('subjects')
             ->when($search, fn ($q) => $q->where(fn ($q2) => $q2
-                ->where('title_ar', 'like', "%{$search}%")
-                ->orWhere('title_en', 'like', "%{$search}%")))
-            ->orderBy('order');
+                ->where('name_ar', 'like', "%{$search}%")
+                ->orWhere('name_en', 'like', "%{$search}%")))
+            ->when($request->filled('type'), fn ($q) => $q->where('type', $request->type))
+            ->when($request->filled('is_active'), fn ($q) => $q->where('is_active', $request->is_active))
+            ->orderBy('sort_order');
 
         return DataTables::of($programs)
-            ->addColumn('image', fn ($program) => view('admin.programs.parts.image', ['program' => $program])->render())
+            ->editColumn('image', fn ($program) => view('admin.programs.parts.image', ['program' => $program])->render())
             ->addColumn('name', fn ($program) => view('admin.programs.parts.name', ['program' => $program])->render())
-            ->addColumn('type', fn ($program) => '<span class="badge badge-light-info">' . __('app.type_'.$program->type) . '</span>')
+            ->editColumn('type', fn ($program) => '<span class="badge badge-light-info">' . __('app.type_'.$program->type) . '</span>')
             ->addColumn('subjects_count', fn ($program) => $program->subjects_count)
             ->addColumn('status', fn ($program) => view('admin.programs.parts.status', ['program' => $program])->render())
             ->addColumn('actions', fn ($program) => view('admin.programs.parts.actions', ['program' => $program])->render())
             ->rawColumns(['image', 'name', 'type', 'status', 'actions'])
-            ->toJson();
+            ->make(true);
     }
 
     public function getAdd()

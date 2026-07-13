@@ -19,36 +19,36 @@ class FinancialReportsController extends AdminController
 
     public function getIndex()
     {
-        $totalRevenue = Payment::where('status', 'confirmed')->sum('total_amount');
+        $totalRevenue = Payment::where('status', 'confirmed')->sum('amount');
 
-        $totalOutstanding = Registration::where('registration_status', '!=', 'cancelled')
+        $totalOutstanding = Registration::where('status', '!=', 'cancelled')
             ->get()
             ->sum(fn (Registration $r) => $r->remaining_amount);
 
         $revenueByProgram = Registration::query()
             ->join('subjects', 'subjects.id', '=', 'registrations.subject_id')
             ->join('programs', 'programs.id', '=', 'subjects.program_id')
-            ->select('programs.title_ar', 'programs.title_en', DB::raw('SUM(registrations.amount_paid) as revenue'))
-            ->groupBy('programs.id', 'programs.title_ar', 'programs.title_en')
+            ->select('programs.name_ar', 'programs.name_en', DB::raw('SUM(registrations.amount_paid) as revenue'))
+            ->groupBy('programs.id', 'programs.name_ar', 'programs.name_en')
             ->get();
 
         $revenueByMethod = Payment::query()
             ->where('status', 'confirmed')
-            ->join('payment_methods', 'payment_methods.id', '=', 'payments.payment_method_id')
-            ->select('payment_methods.name_ar', 'payment_methods.name_en', DB::raw('SUM(payments.total_amount) as revenue'))
-            ->groupBy('payment_methods.id', 'payment_methods.name_ar', 'payment_methods.name_en')
+            ->select('method', DB::raw('SUM(amount) as revenue'), DB::raw('COUNT(*) as count'))
+            ->groupBy('method')
             ->get();
 
         $monthlyRevenue = Payment::query()
             ->where('status', 'confirmed')
-            ->where('confirmed_at', '>=', now()->subMonths(6))
-            ->select(DB::raw("DATE_FORMAT(confirmed_at, '%Y-%m') as month"), DB::raw('SUM(total_amount) as revenue'))
+            ->whereNotNull('reviewed_at')
+            ->where('reviewed_at', '>=', now()->subMonths(6))
+            ->select(DB::raw("DATE_FORMAT(reviewed_at, '%Y-%m') as month"), DB::raw('SUM(amount) as revenue'))
             ->groupBy('month')
             ->orderBy('month')
             ->get();
 
         $debtors = Registration::with('student', 'subject')
-            ->where('registration_status', '!=', 'cancelled')
+            ->where('status', '!=', 'cancelled')
             ->get()
             ->filter(fn (Registration $r) => $r->remaining_amount > 0)
             ->sortByDesc(fn (Registration $r) => $r->remaining_amount)

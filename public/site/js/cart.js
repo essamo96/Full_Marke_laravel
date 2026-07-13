@@ -77,9 +77,10 @@
     renderCartModalContent();
   }
 
-  // Parse price helper (e.g. "120 JOD" -> 120)
+  // Parse price helper (e.g. "120.50 JOD" -> 120.50)
   function parsePrice(priceStr) {
-    const num = parseInt(priceStr.replace(/[^0-9]/g, ''), 10);
+    if (typeof priceStr === 'number') return priceStr;
+    const num = parseFloat(String(priceStr).replace(/[^0-9.]/g, ''));
     return isNaN(num) ? 0 : num;
   }
 
@@ -147,6 +148,9 @@
   function injectModalMarkup() {
     if (document.getElementById('cartModal')) return;
 
+    const lang = getLang();
+    const closeBtnPos = lang === 'ar' ? 'left: 20px; right: auto;' : 'right: 20px; left: auto;';
+
     const modal = document.createElement('div');
     modal.id = 'cartModal';
     modal.style.cssText = `
@@ -184,7 +188,7 @@
         <button id="cartCloseBtn" onclick="toggleCartModal()" style="
           position: absolute;
           top: 20px;
-          right: 20px;
+          ${closeBtnPos}
           background: transparent;
           border: none;
           color: var(--text-primary);
@@ -287,6 +291,8 @@
     itemsHtml += `</div>`;
 
     const totalSaved = sumFee - sumTotal; // If positive, shows how much is saved (or we can summarize sumTotal directly)
+    const fmtFee = sumFee.toFixed(2);
+    const fmtTotal = sumTotal.toFixed(2);
     const summaryHtml = `
       <div class="p-3 mb-6" style="
         background: rgba(197, 168, 128, 0.05);
@@ -295,44 +301,33 @@
       ">
         <div class="d-flex justify-content-between mb-2">
           <span class="text-sm opacity-85">${lang === 'ar' ? 'مجموع الرسوم الأساسية:' : 'Base Registration Fee:'}</span>
-          <span class="text-sm font-semibold">${sumFee} JOD</span>
+          <span class="text-sm font-semibold">${fmtFee} JOD</span>
         </div>
         <div class="d-flex justify-content-between pt-2 border-t" style="border-color: var(--separator-color) !important;">
           <span class="text-base font-bold" style="color: var(--text-primary);">${lang === 'ar' ? 'المجموع النهائي المطلوب:' : 'Total Payable Registration:'}</span>
-          <span class="text-lg font-extrabold text-gold">${sumTotal} JOD</span>
+          <span class="text-lg font-extrabold text-gold">${fmtTotal} JOD</span>
         </div>
       </div>
     `;
 
     // Checkout Form
-    const formHtml = `
-      <h4 class="text-lg font-bold mb-3 border-b pb-2" style="color: var(--text-primary); border-color: var(--separator-color) !important;">
-        ${lang === 'ar' ? 'معلومات تأكيد حجز مقعدك' : 'Confirm Your Registration'}
-      </h4>
-      <form id="cartCheckoutForm" onsubmit="window.CartSystem.handleCheckout(event)">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="floating-input-group mb-4">
-              <input type="text" id="cartName" placeholder=" " required style="background: var(--input-bg); border-color: var(--input-border); color: var(--text-primary);">
-              <label for="cartName">${lang === 'ar' ? 'الاسم الكامل' : 'Full Name'}</label>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="floating-input-group mb-4">
-              <input type="email" id="cartEmail" placeholder=" " required style="background: var(--input-bg); border-color: var(--input-border); color: var(--text-primary);">
-              <label for="cartEmail">${lang === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
-            </div>
-          </div>
-        </div>
-        <div class="floating-input-group mb-4">
-          <input type="tel" id="cartPhone" placeholder=" " required style="background: var(--input-bg); border-color: var(--input-border); color: var(--text-primary);">
-          <label for="cartPhone">${lang === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
-        </div>
-        <button type="submit" class="btn btn-luxury w-100 py-3 rounded-lg text-lg d-flex align-items-center justify-content-center">
-          <span>${lang === 'ar' ? 'تأكيد وحجز المساقات المحددة' : 'Submit Registration Request'}</span>
-          <i class="bi bi-arrow-right ms-2 rtl:rotate-180"></i>
+    const formHtml = window.isStudentLoggedIn ? `
+      <div class="mt-4">
+        <button type="button" onclick="window.CartSystem.checkoutLoggedIn()" class="btn btn-luxury w-100 py-3 rounded-lg text-lg d-flex align-items-center justify-content-center">
+          <span>${lang === 'ar' ? 'المتابعة لإجراء الدفع والتسجيل' : 'Proceed to Payment & Registration'}</span>
+          <i class="bi bi-credit-card ms-2"></i>
         </button>
-      </form>
+      </div>
+    ` : `
+      <div class="mt-4 text-center">
+        <p class="opacity-75 mb-4" style="color: var(--text-secondary);">
+          ${lang === 'ar' ? 'يجب عليك إنشاء حساب أو تسجيل الدخول لإتمام التسجيل في المساقات.' : 'You must create an account or sign in to complete your subject registration.'}
+        </p>
+        <a href="${window.studentRegisterUrl || '/student/register'}" class="btn btn-luxury w-100 py-3 rounded-lg text-lg d-flex align-items-center justify-content-center">
+          <span>${lang === 'ar' ? 'سجل حساباً للمتابعة' : 'Sign Up to Continue'}</span>
+          <i class="bi bi-arrow-right ms-2 rtl:rotate-180"></i>
+        </a>
+      </div>
     `;
 
     container.innerHTML = `
@@ -454,6 +449,51 @@
     saveCartItems([]);
   }
 
+  function checkoutLoggedIn() {
+    const items = getCartItems();
+    if (items.length === 0) return;
+
+    const lang = getLang();
+    const btn = document.querySelector('#cartModalInner button[onclick]');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>${lang === 'ar' ? 'جاري التحضير للدفع...' : 'Preparing checkout...'}`;
+    }
+
+    fetch('/student/cart/sync', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': window.csrfToken || '',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        items: items.map(i => ({ subject_id: i.id, group_id: i.group_id || null }))
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        saveCartItems([]);
+        window.location.href = data.redirect;
+      } else {
+        showNotification(data.message || (lang === 'ar' ? 'حدث خطأ' : 'Error'), 'warning');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = lang === 'ar' ? 'المتابعة لإجراء الدفع والتسجيل' : 'Proceed to Payment &amp; Registration';
+        }
+      }
+    })
+    .catch(err => {
+      console.error('Cart sync error:', err);
+      showNotification(lang === 'ar' ? 'حدث خطأ أثناء الاتصال' : 'An error occurred', 'warning');
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = lang === 'ar' ? 'المتابعة لإجراء الدفع والتسجيل' : 'Proceed to Payment &amp; Registration';
+      }
+    });
+  }
+
   // Load badge counts and listeners on load
   document.addEventListener('DOMContentLoaded', () => {
     injectModalMarkup();
@@ -466,7 +506,9 @@
     removeItem,
     getItems: getCartItems,
     clear: () => saveCartItems([]),
-    handleCheckout
+    handleCheckout,
+    showNotification,
+    checkoutLoggedIn
   };
   window.toggleCartModal = toggleCartModal;
 

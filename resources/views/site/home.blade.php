@@ -306,101 +306,32 @@
       </div>
 
       <div class="row g-4 justify-content-center reveal">
-        <!-- Program 1: Tawjihi -->
+        @foreach ($programs as $prog)
         <div class="col-md-6 col-lg-3">
           <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
-            <a href="{{ route('programs.show', 'tawjihi') }}" class="news-img-wrapper d-block overflow-hidden">
-              <img src="{{ asset('site/images/img/programs/prog1.png') }}" alt="Tawjihi Program" class="news-img">
+            <a href="{{ route('programs.show', $prog->slug) }}" class="news-img-wrapper d-block overflow-hidden">
+              <img src="{{ $prog->image ? (str_starts_with($prog->image, 'site/') ? asset($prog->image) : asset('storage/' . $prog->image)) : asset('site/images/img/programs/prog1.png') }}" alt="{{ $prog->name }}" class="news-img">
             </a>
             <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
               <div>
                 <h4 class="text-xl font-bold mb-3">
-                  <a href="{{ route('programs.show', 'tawjihi') }}" class="stretched-link text-decoration-none hover-text-accent" style="color: var(--text-primary);" data-en="Tawjihi Program" data-ar="برنامج التوجيهي">Tawjihi Program</a>
+                  <a href="{{ route('programs.show', $prog->slug) }}" class="stretched-link text-decoration-none hover-text-accent" style="color: var(--text-primary);" data-en="{{ $prog->name_en }}" data-ar="{{ $prog->name_ar }}">
+                    {{ app()->getLocale() == 'ar' ? $prog->name_ar : $prog->name_en }}
+                  </a>
                 </h4>
                 <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                   data-en="Comprehensive preparation for high school students with elite teachers to ensure top scores and academic excellence."
-                   data-ar="تأهيل شامل لطلبة الثانوية العامة مع نخبة من أفضل المعلمين لضمان التفوق والحصول على العلامة الكاملة.">
-                  Comprehensive preparation for high school students with elite teachers to ensure top scores and academic excellence.
+                   data-en="{{ $prog->short_description }}"
+                   data-ar="{{ $prog->long_description ?? $prog->short_description }}">
+                  {{ app()->getLocale() == 'ar' ? ($prog->long_description ?? $prog->short_description) : $prog->short_description }}
                 </p>
               </div>
-              <a href="{{ route('programs.show', 'tawjihi') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3 position-relative z-10 text-decoration-none" data-en="Join Program" data-ar="الانضمام للبرنامج">
-                Join Program
+              <a href="{{ route('programs.show', $prog->slug) }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3 position-relative z-10 text-decoration-none" data-en="Join Program" data-ar="الانضمام للبرنامج">
+                {{ app()->getLocale() == 'ar' ? 'الانضمام للبرنامج' : 'Join Program' }}
               </a>
             </div>
           </div>
         </div>
-
-        <!-- Program 2: Children -->
-        <div class="col-md-6 col-lg-3">
-          <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
-            <a href="{{ route('programs.show', 'children') }}" class="news-img-wrapper d-block overflow-hidden">
-              <img src="{{ asset('site/images/img/programs/prog2.png') }}" alt="Children Program" class="news-img">
-            </a>
-            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
-              <div>
-                <h4 class="text-xl font-bold mb-3">
-                  <a href="{{ route('programs.show', 'children') }}" class="stretched-link text-decoration-none hover-text-accent" style="color: var(--text-primary);" data-en="Children Program" data-ar="برنامج الأطفال">Children Program</a>
-                </h4>
-                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                   data-en="Fun, interactive language learning designed to build a strong foundation for young learners using modern tools."
-                   data-ar="تعليم تفاعلي مرح يهدف إلى بناء لغوي قوي للأطفال من سن مبكر باستخدام وسائل تعليمية مبتكرة.">
-                  Fun, interactive language learning designed to build a strong foundation for young learners using modern tools.
-                </p>
-              </div>
-              <a href="{{ route('programs.show', 'children') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3 position-relative z-10 text-decoration-none" data-en="Join Program" data-ar="الانضمام للبرنامج">
-                Join Program
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Program 3: Speech Therapy -->
-        <div class="col-md-6 col-lg-3">
-          <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
-            <a href="{{ route('programs.show', 'speech') }}" class="news-img-wrapper d-block overflow-hidden">
-              <img src="{{ asset('site/images/img/programs/prog3.png') }}" alt="Speech Therapy" class="news-img">
-            </a>
-            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
-              <div>
-                <h4 class="text-xl font-bold mb-3">
-                  <a href="{{ route('programs.show', 'speech') }}" class="stretched-link text-decoration-none hover-text-accent" style="color: var(--text-primary);" data-en="Speech Therapy Program" data-ar="برنامج النطق">Speech Therapy Program</a>
-                </h4>
-                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                   data-en="Specialized therapy sessions to resolve speech difficulties and enhance articulation for children and adults."
-                   data-ar="جلسات متخصصة لعلاج مشاكل النطق والتخاطب وتحسين النطق السليم لدى الأطفال والبالغين بأحدث الأساليب.">
-                  Specialized therapy sessions to resolve speech difficulties and enhance articulation for children and adults.
-                </p>
-              </div>
-              <a href="{{ route('programs.show', 'speech') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3 position-relative z-10 text-decoration-none" data-en="Join Program" data-ar="الانضمام للبرنامج">
-                Join Program
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Program 4: Rehabilitation -->
-        <div class="col-md-6 col-lg-3">
-          <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between">
-            <a href="{{ route('programs.show', 'rehab') }}" class="news-img-wrapper d-block overflow-hidden">
-              <img src="{{ asset('site/images/img/programs/prog4.png') }}" alt="Rehabilitation Program" class="news-img">
-            </a>
-            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
-              <div>
-                <h4 class="text-xl font-bold mb-3">
-                  <a href="{{ route('programs.show', 'rehab') }}" class="stretched-link text-decoration-none hover-text-accent" style="color: var(--text-primary);" data-en="Rehabilitation Program" data-ar="برنامج التأهيلي">Rehabilitation Program</a>
-                </h4>
-                <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                   data-en="Intensive training designed to build key academic skills and prepare students for integration into standard tracks."
-                   data-ar="برنامج مكثف لتطوير المهارات الأكاديمية والاجتماعية وتأهيل الطلاب للاندماج الفعال في البيئات التعليمية.">
-                  Intensive training designed to build key academic skills and prepare students for integration into standard tracks.
-                </p>
-              </div>
-              <a href="{{ route('programs.show', 'rehab') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3 position-relative z-10 text-decoration-none" data-en="Join Program" data-ar="الانضمام للبرنامج">
-                Join Program
-              </a>
-            </div>
-          </div>
-        </div>
+        @endforeach
       </div>
     </div>
   </section>

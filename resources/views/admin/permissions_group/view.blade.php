@@ -220,7 +220,8 @@
             $.post(REORDER_URL, { _token: CSRF_TOKEN, items: items })
                 .done(function(res) {
                     if (res.status === 'success') {
-                        Swal.fire({ icon: 'success', title: res.message, timer: 1500, showConfirmButton: false });
+                        Swal.fire({ icon: 'success', title: res.message, timer: 1500, showConfirmButton: false })
+                            .then(() => location.reload());
                         $('#save_order_btn').prop('disabled', true).removeClass('btn-warning').addClass('btn-success');
                         $('#save_order_text').text('{{ \App\Helpers\translate("save_order") }}');
                         pendingChanges = false;
@@ -241,7 +242,8 @@
                         const $item = $('.group-item[data-id="' + id + '"]');
                         const $icon = $item.find('.group-icon');
                         $icon.attr('class', $icon.attr('class').replace(/text-\w+/, 'text-' + color));
-                        Swal.fire({ icon: 'success', title: res.message, timer: 1200, showConfirmButton: false });
+                        Swal.fire({ icon: 'success', title: res.message, timer: 1200, showConfirmButton: false })
+                            .then(() => location.reload());
                     } else {
                         Swal.fire({ icon: 'error', title: res.message });
                     }

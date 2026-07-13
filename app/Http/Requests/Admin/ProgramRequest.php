@@ -25,14 +25,14 @@ class ProgramRequest extends FormRequest
         }
 
         return [
-            'title_ar' => 'required|string|max:255',
-            'title_en' => 'required|string|max:255',
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
             'slug' => ['required', 'alpha_dash', Rule::unique('programs', 'slug')->ignore($id)],
-            'type' => 'required|in:regular,children,rehabilitation',
-            'description_ar' => 'nullable|string|max:2000',
-            'description_en' => 'nullable|string|max:2000',
+            'type' => 'required|in:primary,middle,high,university,general',
+            'short_description' => 'nullable|string|max:2000',
+            'long_description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
-            'order' => 'nullable|integer|min:0',
+            'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
         ];
     }

@@ -1,6 +1,8 @@
 @extends('layouts.student')
 
 @section('title', 'My Profile | FULL MARK ACADEMY')
+@section('page_title_en', 'My Profile')
+@section('page_title_ar', 'الملف الشخصي')
 
 @section('content')
   <h1 class="h3 fw-bold mb-4" style="color: var(--text-primary);" data-en="My Profile" data-ar="الملف الشخصي">My Profile</h1>

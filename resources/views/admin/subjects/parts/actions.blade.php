@@ -1,0 +1,9 @@
+@can('admin.programs.edit')
+<a href="{{ route('subjects.edit', [Crypt::encrypt($program ? $program->id : $subject->program_id), Crypt::encrypt($subject->id)]) }}" class="btn btn-icon btn-primary btn-sm">
+   <i class="bi bi-pencil-square fs-5"></i></a>
+@endcan
+@can('admin.programs.delete')
+<a class="btn btn-icon btn-danger btn-sm" href="javascript:void(0)" data-href="{{ Crypt::encrypt($subject->id) }}" data-name="{{ app()->getLocale() == 'ar' ? $subject->name_ar : $subject->name_en }}" data-bs-toggle="modal" data-bs-target="#confirm">
+    <i class="bi bi-trash3-fill fs-5"></i>
+</a>
+@endcan

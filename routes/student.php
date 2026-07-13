@@ -7,8 +7,11 @@ use App\Http\Controllers\Student\Auth\VerifyEmailController;
 use App\Http\Controllers\Student\CartController;
 use App\Http\Controllers\Student\CheckoutController;
 use App\Http\Controllers\Student\DashboardController;
+use App\Http\Controllers\Student\GroupsController;
 use App\Http\Controllers\Student\ProfileController;
+use App\Http\Controllers\Student\ProgramsController;
 use App\Http\Controllers\Student\RegistrationsController;
+use App\Http\Controllers\Student\ResourcesController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('student')->name('student.')->group(function () {
@@ -26,6 +29,7 @@ Route::prefix('student')->name('student.')->group(function () {
 
         Route::get('cart', [CartController::class, 'index'])->name('cart');
         Route::post('cart', [CartController::class, 'store'])->name('cart.store');
+        Route::post('cart/sync', [CartController::class, 'sync'])->name('cart.sync');
         Route::post('cart/{cartItem}/group', [CartController::class, 'updateGroup'])->name('cart.update-group');
         Route::delete('cart/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
 
@@ -35,9 +39,14 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('registrations', [RegistrationsController::class, 'index'])->name('registrations');
         Route::get('registrations/{registration}', [RegistrationsController::class, 'show'])->name('registrations.show');
         Route::post('registrations/{registration}/pay-remaining', [RegistrationsController::class, 'payRemaining'])->name('registrations.pay-remaining');
+        Route::post('registrations/{registration}/group', [RegistrationsController::class, 'updateGroup'])->name('registrations.update-group');
 
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile');
         Route::post('profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::post('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
+        Route::get('programs', [ProgramsController::class, 'index'])->name('programs');
+        Route::get('groups', [GroupsController::class, 'index'])->name('groups');
+        Route::get('resources', [ResourcesController::class, 'index'])->name('resources');
     });
 });

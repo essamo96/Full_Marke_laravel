@@ -11,10 +11,14 @@
 
     <!-- ════ SIDEBAR ════ -->
     <aside id="dashboardSidebar" class="dashboard-sidebar">
+      @php($sidebarStudent = auth('student')->user())
       <div class="d-flex flex-column align-items-center mb-5 border-b pb-4" style="border-color: var(--separator-color) !important;">
         <div class="w-24 h-24 rounded-circle border-2 p-1 mb-3 position-relative overflow-hidden" style="border-color: var(--accent-color);">
-          <img src="{{ asset('site/images/img/logo_backup.png') }}" alt="Student Profile" class="w-100 h-100 object-contain rounded-circle">
+          <img src="{{ $sidebarStudent && $sidebarStudent->image ? asset('storage/'.$sidebarStudent->image) : asset('site/images/logo_v2_gold.png') }}"
+               alt="{{ $sidebarStudent->name ?? 'Student' }}" class="w-100 h-100 object-cover rounded-circle">
         </div>
+        <h6 class="fw-bold mb-0 text-center" style="color: var(--text-primary);">{{ $sidebarStudent->name ?? '' }}</h6>
+        <span class="text-xs opacity-75" data-en="Student" data-ar="طالب">Student</span>
       </div>
 
       <nav class="flex-1 d-flex flex-column gap-1 w-100 px-2">
@@ -31,24 +35,22 @@
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuAcademy">
-          <li><a href="#" class="sidebar-submenu-item" data-en="Programs" data-ar="البرامج الدراسية">Programs</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Courses" data-ar="المواد التعليمية">Courses</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Study Groups" data-ar="المجموعات الدراسية">Study Groups</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Sessions & Lectures" data-ar="الجلسات والمحاضرات">Sessions & Lectures</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Resources" data-ar="الموارد التعليمية">Resources</a></li>
+          <li><a href="{{ route('student.programs') }}" class="sidebar-submenu-item {{ request()->routeIs('student.programs') ? 'active' : '' }}" data-en="Programs" data-ar="البرامج الدراسية">Programs</a></li>
+          <li><a href="{{ route('student.groups') }}" class="sidebar-submenu-item {{ request()->routeIs('student.groups') ? 'active' : '' }}" data-en="Study Groups & Sessions" data-ar="المجموعات والجلسات الدراسية">Study Groups &amp; Sessions</a></li>
+          <li><a href="{{ route('student.resources') }}" class="sidebar-submenu-item {{ request()->routeIs('student.resources') ? 'active' : '' }}" data-en="Resources" data-ar="الموارد التعليمية">Resources</a></li>
         </ul>
 
-        <!-- Exams -->
+        <!-- Exams (not built yet — kept visible but clearly marked, never a silent dead link) -->
         <a href="#menuExams" class="sidebar-nav-item accordion-trigger"  aria-expanded="false" aria-controls="menuExams">
           <i class="bi bi-journal-check sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Exams & Assessments" data-ar="الامتحانات والتقييمات">Exams & Assessments</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuExams">
-          <li><a href="#" class="sidebar-submenu-item" data-en="Exams" data-ar="الامتحانات">Exams</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Results" data-ar="النتائج">Results</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Assessments" data-ar="التقييمات">Assessments</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Certificates" data-ar="الشهادات">Certificates</a></li>
+          <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Exams" data-ar="الامتحانات">Exams</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
+          <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Results" data-ar="النتائج">Results</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
+          <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Assessments" data-ar="التقييمات">Assessments</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
+          <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Certificates" data-ar="الشهادات">Certificates</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
         </ul>
 
         <!-- Financials -->
@@ -58,8 +60,8 @@
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuFinance">
-          <li><a href="{{ route('student.registrations') }}" class="sidebar-submenu-item" data-en="My Registrations" data-ar="طلباتي">My Registrations</a></li>
-          <li><a href="{{ route('student.checkout') }}" class="sidebar-submenu-item" data-en="Checkout" data-ar="الدفع">Checkout</a></li>
+          <li><a href="{{ route('student.registrations') }}" class="sidebar-submenu-item {{ request()->routeIs('student.registrations') || request()->routeIs('student.registrations.show') ? 'active' : '' }}" data-en="My Registrations" data-ar="طلباتي">My Registrations</a></li>
+          <li><a href="{{ route('student.checkout') }}" class="sidebar-submenu-item {{ request()->routeIs('student.checkout') ? 'active' : '' }}" data-en="Checkout" data-ar="الدفع">Checkout</a></li>
         </ul>
 
         <!-- Communication -->
@@ -69,10 +71,9 @@
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuComm">
-          <li><a href="#" class="sidebar-submenu-item" data-en="Messages" data-ar="الرسائل">Messages</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Announcements" data-ar="الإعلانات">Announcements</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Notifications" data-ar="الإشعارات">Notifications</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Support" data-ar="الدعم الفني">Support</a></li>
+          <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Messages" data-ar="الرسائل">Messages</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
+          <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Announcements" data-ar="الإعلانات">Announcements</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
+          <li><a href="{{ route('site.home') }}#contact" class="sidebar-submenu-item" data-en="Support" data-ar="الدعم الفني">Support</a></li>
         </ul>
 
         <!-- Profile -->

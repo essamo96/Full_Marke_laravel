@@ -34,7 +34,7 @@ class CartController extends Controller
 
         $alreadyRegistered = Registration::where('student_id', $student->id)
             ->where('subject_id', $request->subject_id)
-            ->whereIn('registration_status', ['active', 'pending'])
+            ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
             ->exists();
 
         if ($alreadyRegistered) {
@@ -56,7 +56,15 @@ class CartController extends Controller
     {
         $this->authorizeOwnership($cartItem);
 
-        $request->validate(['group_id' => 'required|exists:groups,id']);
+        // Group selection is optional — a student may clear it back to "no
+        // group / later" just as freely as picking one.
+        $request->validate(['group_id' => 'nullable|exists:groups,id']);
+
+        if (! $request->filled('group_id')) {
+            $cartItem->update(['group_id' => null]);
+
+            return back()->with('success', __('app.update_success'));
+        }
 
         $group = Group::findOrFail($request->group_id);
 
@@ -85,5 +93,42 @@ class CartController extends Controller
         if ($cartItem->user_id !== $student->id || $cartItem->user_type !== 'student') {
             abort(403);
         }
+    }
+
+    public function sync(Request $request)
+    {
+        $student = Auth::guard('student')->user();
+
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.subject_id' => 'required|exists:subjects,id',
+            'items.*.group_id' => 'nullable|exists:groups,id',
+        ]);
+
+        // Clear existing cart items
+        CartItem::where('user_id', $student->id)->where('user_type', 'student')->delete();
+
+        // Add new items
+        foreach ($request->items as $item) {
+            $alreadyRegistered = Registration::where('student_id', $student->id)
+                ->where('subject_id', $item['subject_id'])
+                ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
+                ->exists();
+
+            if (!$alreadyRegistered) {
+                CartItem::firstOrCreate([
+                    'user_id' => $student->id,
+                    'user_type' => 'student',
+                    'subject_id' => $item['subject_id'],
+                ], [
+                    'group_id' => $item['group_id'] ?? null,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'redirect' => route('student.checkout'),
+        ]);
     }
 }

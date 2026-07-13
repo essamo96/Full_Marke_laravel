@@ -60,7 +60,7 @@ class PaymentService
             foreach ($cartItems as $item) {
                 $alreadyActive = Registration::where('student_id', $student->id)
                     ->where('subject_id', $item->subject_id)
-                    ->whereIn('registration_status', ['active', 'pending'])
+                    ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
                     ->exists();
 
                 if ($alreadyActive) {
@@ -78,8 +78,8 @@ class PaymentService
             $payment = Payment::create([
                 'payment_number' => Payment::generateNumber(),
                 'student_id' => $student->id,
-                'payment_method_id' => $paymentMethodId,
-                'total_amount' => $paidAmount,
+                'method' => (string) $paymentMethodId,
+                'amount' => $paidAmount,
                 'receipt_image' => $receiptPath,
                 'notes' => $notes,
                 'status' => 'pending',
@@ -93,10 +93,9 @@ class PaymentService
                     'student_id' => $student->id,
                     'subject_id' => $item->subject_id,
                     'group_id' => $item->group_id,
-                    'total_fee' => $item->subject->fee,
+                    'fee_snapshot' => $item->subject->fee,
                     'amount_paid' => 0,
-                    'registration_status' => 'pending',
-                    'payment_status' => 'unpaid',
+                    'status' => 'pending',
                 ]);
 
                 $registrations->push($registration);
@@ -124,6 +123,12 @@ class PaymentService
         if ($adminEmails->isNotEmpty()) {
             Mail::to($adminEmails->all())->send(new NewPaymentAdminMail($payment));
         }
+
+        // Notify admins in dashboard
+        \Illuminate\Support\Facades\Notification::send(
+            Admin::active()->get(),
+            new \App\Notifications\NewPaymentSubmittedNotification($payment)
+        );
     }
 
     /**
@@ -137,7 +142,7 @@ class PaymentService
         }
 
         foreach ($registrations as $registration) {
-            $share = ((float) $registration->total_fee / $totalFee) * $paidAmount;
+            $share = ((float) $registration->fee_snapshot / $totalFee) * $paidAmount;
 
             PaymentItem::create([
                 'payment_id' => $payment->id,
@@ -164,17 +169,18 @@ class PaymentService
                 $registration = $item->registration;
                 $registration->amount_paid = (float) $registration->amount_paid + (float) $item->allocated_amount;
 
-                $registration->payment_status = $registration->amount_paid >= (float) $registration->total_fee
-                    ? 'fully_paid'
-                    : 'partially_paid';
-
-                if ($registration->registration_status === 'pending') {
-                    $registration->registration_status = 'active';
-                    $registration->activated_at = now();
+                if ($registration->status === 'pending') {
+                    $registration->status = $registration->amount_paid >= (float) $registration->fee_snapshot
+                        ? 'fully_paid'
+                        : 'partially_paid';
 
                     if ($registration->group_id) {
                         Group::where('id', $registration->group_id)->increment('current_count');
                     }
+                } else {
+                    $registration->status = $registration->amount_paid >= (float) $registration->fee_snapshot
+                        ? 'fully_paid'
+                        : 'partially_paid';
                 }
 
                 $registration->save();
@@ -182,6 +188,9 @@ class PaymentService
         });
 
         Mail::to($payment->student->email)->send(new PaymentConfirmedMail($payment));
+
+        // Generate PDF Invoice
+        \App\Jobs\GenerateInvoiceJob::dispatch($payment);
     }
 
     /**
@@ -213,8 +222,8 @@ class PaymentService
             $payment = Payment::create([
                 'payment_number' => Payment::generateNumber(),
                 'student_id' => $registration->student_id,
-                'payment_method_id' => $paymentMethodId,
-                'total_amount' => $amount,
+                'method' => (string) $paymentMethodId,
+                'amount' => $amount,
                 'receipt_image' => $receiptPath,
                 'notes' => $notes,
                 'status' => 'pending',

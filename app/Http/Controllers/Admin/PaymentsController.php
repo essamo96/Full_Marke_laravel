@@ -43,6 +43,6 @@ class PaymentsController extends AdminController
 
         return view('admin.payments.view', self::$data + [
             'payments' => $payments,
-            'programs' => Program::orderBy('order')->get()]);
+            'programs' => Program::orderBy('sort_order')->get()]);
     }
 }

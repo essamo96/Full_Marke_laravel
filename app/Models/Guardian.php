@@ -3,17 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
 class Guardian extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory;
 
     protected $fillable = [
-        'full_name', 'national_id', 'phone', 'email', 'password',
-        'address', 'relationship', 'photo', 'is_active', 'email_verified_at',
+        'name', 'national_id', 'phone', 'email', 'password',
+        'address', 'relationship', 'photo', 'email_verified_at', 'is_active'
     ];
 
     protected $hidden = [
@@ -21,22 +21,14 @@ class Guardian extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_active' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'is_active' => 'boolean',
+    ];
 
-    public function children(): HasMany
+    public function students(): HasMany
     {
-        return $this->hasMany(Student::class, 'guardian_id');
-    }
-
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
+        return $this->hasMany(Student::class);
     }
 }

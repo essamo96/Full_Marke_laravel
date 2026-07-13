@@ -52,7 +52,7 @@
 
 @section('content')
   <!-- Hero Section -->
-  <section id="program-hero" class="detail-hero" style="background-image: url('{{ asset($program->image) }}');">
+  <section id="program-hero" class="detail-hero" style="background-image: url('{{ $program->image ? (str_starts_with($program->image, 'site/') ? asset($program->image) : asset('storage/' . $program->image)) : asset('site/images/img/programs/prog1.png') }}');">
     <div class="detail-hero-overlay"></div>
     <div class="container px-4 text-center detail-hero-content">
       <div class="reveal-scale">
@@ -116,38 +116,44 @@
 
                   <div class="fee-box d-flex justify-content-between align-items-center mb-3">
                     <div>
-                      <span class="text-xs block" style="color: var(--text-muted);" data-en="Reg Fee" data-ar="رسوم التسجيل">Reg Fee</span>
-                      <span class="text-base font-medium" style="color: var(--text-primary);">{{ $subject->fee }} JOD</span>
+                      <span class="text-xs block" style="color: var(--text-muted);" data-en="Min Reg Payment" data-ar="رسوم التسجيل (الحد الأدنى)">Min Reg Payment</span>
+                      <span class="text-base font-medium" style="color: var(--text-primary);">{{ number_format($subject->min_payment, 2) }} JOD</span>
                     </div>
                     <div class="text-end">
                       <span class="text-xs block" style="color: var(--text-muted);" data-en="Total Fee" data-ar="إجمالي الرسوم">Total Fee</span>
-                      <span class="text-lg font-bold text-gold">{{ $subject->total_fee }} JOD</span>
+                      <span class="text-lg font-bold text-gold">{{ number_format($subject->fee, 2) }} JOD</span>
                     </div>
                   </div>
 
-                  @auth('student')
-                    <form method="POST" action="{{ route('student.cart.store') }}" class="d-flex gap-2">
-                      @csrf
-                      <input type="hidden" name="subject_id" value="{{ $subject->id }}">
-                      @if ($subject->groups->isNotEmpty())
-                        <select name="group_id" class="form-select form-select-sm">
-                          @foreach ($subject->groups as $group)
-                            <option value="{{ $group->id }}" @disabled(! $group->hasAvailableCapacity())>
-                              {{ $group->name }} @if (! $group->hasAvailableCapacity()) ({{ __('app.full') }}) @endif
-                            </option>
-                          @endforeach
-                        </select>
-                      @endif
-                      <button type="submit" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center" data-en="Add to Cart" data-ar="أضف للسلة">
-                        Add to Cart
+                  <div class="d-flex gap-2">
+                    @if ($subject->groups->isNotEmpty())
+                      <select id="group-select-{{ $subject->id }}" class="form-select form-select-sm" style="background: var(--input-bg); border-color: var(--input-border); color: var(--text-primary); max-width: 150px;">
+                        <option value="" data-en="Later" data-ar="شعبة لاحقاً">شعبة لاحقاً</option>
+                        @foreach ($subject->groups as $group)
+                          <option value="{{ $group->id }}" @disabled(! $group->hasAvailableCapacity())>
+                            {{ $group->name }} @if (! $group->hasAvailableCapacity()) ({{ __('app.full') }}) @endif
+                          </option>
+                        @endforeach
+                      </select>
+                    @endif
+                    @auth('student')
+                      <button type="button" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center add-to-cart-btn"
+                              data-id="{{ $subject->id }}"
+                              data-name-ar="{{ $subject->name_ar }}"
+                              data-name-en="{{ $subject->name_en }}"
+                              data-fee="{{ number_format($subject->min_payment, 2) }} JOD"
+                              data-total-fee="{{ number_format($subject->fee, 2) }} JOD"
+                              data-image="{{ $subject->image ? (str_starts_with($subject->image, 'site/') ? asset($subject->image) : asset('storage/' . $subject->image)) : asset('site/images/img/logo_backup.png') }}"
+                              data-program-ar="{{ $program->name_ar }}"
+                              data-program-en="{{ $program->name_en }}">
+                        <span data-en="Add to Cart" data-ar="أضف للسلة">Add to Cart</span>
                       </button>
-                    </form>
-                  @else
-                    <a href="{{ route('apply.create', ['program' => $program->slug, 'subject' => $subject->id]) }}"
-                       class="btn btn-luxury w-100 py-2.5 rounded-lg text-center" data-en="Book Your Seat" data-ar="احجز مقعدك الآن">
-                      Book Your Seat
-                    </a>
-                  @endauth
+                    @else
+                      <a href="{{ route('student.register') }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center">
+                        <span data-en="Sign Up to Register" data-ar="سجل حساباً للتسجيل">سجل حساباً للتسجيل</span>
+                      </a>
+                    @endauth
+                  </div>
                 </div>
               </div>
             </div>
@@ -159,3 +165,40 @@
     </div>
   </section>
 @endsection
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const nameAr = this.dataset.nameAr;
+        const nameEn = this.dataset.nameEn;
+        const fee = this.dataset.fee;
+        const totalFee = this.dataset.totalFee;
+        const image = this.dataset.image;
+        const programAr = this.dataset.programAr;
+        const programEn = this.dataset.programEn;
+
+        // Get group selection if exists
+        const select = document.getElementById(`group-select-${id}`);
+        const groupId = select ? select.value : null;
+
+        const item = {
+          id: id,
+          name: { ar: nameAr, en: nameEn },
+          fee: fee,
+          totalFee: totalFee,
+          image: image,
+          program: { ar: programAr, en: programEn },
+          group_id: groupId || null
+        };
+
+        if (window.CartSystem) {
+          window.CartSystem.addItem(item);
+        }
+      });
+    });
+  });
+</script>
+@endpush

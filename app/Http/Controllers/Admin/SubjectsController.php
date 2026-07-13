@@ -8,6 +8,7 @@ use App\Models\Subject;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Yajra\DataTables\Facades\DataTables;
 
 class SubjectsController extends AdminController
 {
@@ -20,24 +21,56 @@ class SubjectsController extends AdminController
         $this->path = 'subjects';
     }
 
-    public function getIndex()
+    public function getIndex($programId = null)
     {
-        $subjects = Subject::with('program')->withCount('groups')->orderBy('order')->paginate(15);
-
-        return view('admin.subjects.view', self::$data + ['subjects' => $subjects]);
+        $program = $programId ? Program::findOrFail(Crypt::decrypt($programId)) : null;
+        $programs = Program::where('is_active', true)->orderBy('sort_order')->get();
+        return view('admin.subjects.view', self::$data + ['program' => $program, 'programs' => $programs]);
     }
 
-    public function getAdd()
+    public function getList(Request $request, $programId = null)
     {
+        $program = $programId ? Program::findOrFail(Crypt::decrypt($programId)) : null;
+        $search = $request->get('search_value');
+
+        $subjects = Subject::when($program, fn($q) => $q->where('program_id', $program->id))
+            ->when(!$program && $request->filled('program_id'), fn($q) => $q->where('program_id', $request->program_id))
+            ->when($request->filled('is_active'), fn($q) => $q->where('is_active', $request->is_active))
+            ->withCount('groups')
+            ->when($search, fn ($q) => $q->where(fn ($q2) => $q2
+                ->where('name_ar', 'like', "%{$search}%")
+                ->orWhere('name_en', 'like', "%{$search}%")))
+            ->orderBy('sort_order');
+
+        return DataTables::of($subjects)
+            ->editColumn('image', fn ($subject) => view('admin.subjects.parts.image', ['subject' => $subject])->render())
+            ->addColumn('name', fn ($subject) => view('admin.subjects.parts.name', ['subject' => $subject])->render())
+            ->addColumn('groups_count', fn ($subject) => $subject->groups_count)
+            ->addColumn('fee', fn ($subject) => $subject->fee)
+            ->addColumn('status', fn ($subject) => view('admin.subjects.parts.status', ['subject' => $subject])->render())
+            ->addColumn('actions', fn ($subject) => view('admin.subjects.parts.actions', ['subject' => $subject, 'program' => $program])->render())
+            ->rawColumns(['image', 'name', 'status', 'actions'])
+            ->toJson();
+    }
+
+    public function getAdd($programId = null)
+    {
+        $program = $programId ? Program::findOrFail(Crypt::decrypt($programId)) : null;
+        $programs = $program ? collect([$program]) : Program::where('is_active', true)->orderBy('sort_order')->get();
         return view('admin.subjects.add', self::$data + [
             'info' => null,
-            'programs' => Program::orderBy('order')->get(),
+            'program' => $program,
+            'programs' => $programs,
             'teachers' => Teacher::active()->orderBy('name')->get()]);
     }
 
-    public function postAdd(SubjectRequest $request)
+    public function postAdd(SubjectRequest $request, $programId = null)
     {
+        $progId = $programId ? Crypt::decrypt($programId) : $request->input('program_id');
+        $program = Program::findOrFail($progId);
+        
         $subject = Subject::create($request->safe()->except(['image', 'teacher_ids']) + [
+            'program_id' => $program->id,
             'is_active' => $request->boolean('is_active', true)]);
 
         if ($request->hasFile('image')) {
@@ -46,29 +79,31 @@ class SubjectsController extends AdminController
 
         $subject->teachers()->sync($request->input('teacher_ids', []));
 
-        return redirect()->route('subjects.view')->with('success', __('app.insert_success'));
+        return redirect()->route('programs.subjects.view', Crypt::encrypt($program->id))->with('success', __('app.insert_success'));
     }
 
-    public function getEdit(Request $request, $id)
+    public function getEdit(Request $request, $programId, $id)
     {
         try {
+            $program = Program::findOrFail(Crypt::decrypt($programId));
             $subject = Subject::with('teachers')->findOrFail(Crypt::decrypt($id));
         } catch (\Exception $e) {
-            return redirect()->route('subjects.view')->with('danger', __('app.not_found'));
+            return redirect()->route('programs.view')->with('danger', __('app.not_found'));
         }
 
         return view('admin.subjects.add', self::$data + [
             'info' => $subject,
-            'programs' => Program::orderBy('order')->get(),
+            'program' => $program,
             'teachers' => Teacher::active()->orderBy('name')->get()]);
     }
 
-    public function postEdit(SubjectRequest $request, $id)
+    public function postEdit(SubjectRequest $request, $programId, $id)
     {
         try {
+            $program = Program::findOrFail(Crypt::decrypt($programId));
             $subject = Subject::findOrFail(Crypt::decrypt($id));
         } catch (\Exception $e) {
-            return redirect()->route('subjects.view')->with('danger', __('app.not_found'));
+            return redirect()->route('programs.view')->with('danger', __('app.not_found'));
         }
 
         $data = $request->safe()->except(['image', 'teacher_ids']) + [
@@ -81,7 +116,7 @@ class SubjectsController extends AdminController
         $subject->update($data);
         $subject->teachers()->sync($request->input('teacher_ids', []));
 
-        return redirect()->route('subjects.view')->with('success', __('app.update_success'));
+        return redirect()->route('programs.subjects.view', Crypt::encrypt($program->id))->with('success', __('app.update_success'));
     }
 
     public function postStatus(Request $request)

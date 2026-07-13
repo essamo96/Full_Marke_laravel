@@ -118,6 +118,10 @@ return [
     'type_regular' => 'عادي',
     'type_children' => 'أطفال',
     'type_rehabilitation' => 'تأهيلي',
+    'type' => 'النوع',
+    'type_test_preparation' => 'التحضير لاختبار',
+    'type_diploma' => 'دبلوم',
+    'type_general_english' => 'إنجليزي عام',
     'long_description' => 'الوصف التفصيلي',
     'image' => 'الصورة',
     'fee' => 'الرسوم الكاملة',
@@ -520,4 +524,12 @@ return [
     'new_student_registered' => 'طالب جديد قام بالتسجيل',
     'new' => 'جديد',
     'now' => 'الآن',
+    
+    // Programs
+    'programs' => 'البرامج',
+    'type_primary' => 'ابتدائي',
+    'type_middle' => 'إعدادي',
+    'type_high' => 'ثانوي',
+    'type_university' => 'جامعي',
+    'type_general' => 'عام',
 ];

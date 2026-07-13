@@ -69,7 +69,7 @@
 													<a href="#" class="d-flex text-dark text-hover-primary align-items-center mb-5">
 														<!--begin::Symbol-->
 														<div class="symbol symbol-40px me-4">
-															<img src="{{ asset('assets/admin/media/avatars/300-6.jpg') }}" alt="" />
+															<img src="{{ asset('assets/admin/media/avatars/300-1.jpg') }}" alt="" />
 														</div>
 														<!--end::Symbol-->
 														<!--begin::Title-->
@@ -99,7 +99,7 @@
 													<a href="#" class="d-flex text-dark text-hover-primary align-items-center mb-5">
 														<!--begin::Symbol-->
 														<div class="symbol symbol-40px me-4">
-															<img src="{{ asset('assets/admin/media/avatars/300-9.jpg') }}" alt="" />
+															<img src="{{ asset('assets/admin/media/avatars/300-1.jpg') }}" alt="" />
 														</div>
 														<!--end::Symbol-->
 														<!--begin::Title-->
@@ -114,7 +114,7 @@
 													<a href="#" class="d-flex text-dark text-hover-primary align-items-center mb-5">
 														<!--begin::Symbol-->
 														<div class="symbol symbol-40px me-4">
-															<img src="{{ asset('assets/admin/media/avatars/300-14.jpg') }}" alt="" />
+															<img src="{{ asset('assets/admin/media/avatars/blank.png') }}" alt="" />
 														</div>
 														<!--end::Symbol-->
 														<!--begin::Title-->
@@ -129,7 +129,7 @@
 													<a href="#" class="d-flex text-dark text-hover-primary align-items-center mb-5">
 														<!--begin::Symbol-->
 														<div class="symbol symbol-40px me-4">
-															<img src="{{ asset('assets/admin/media/avatars/300-11.jpg') }}" alt="" />
+															<img src="{{ asset('assets/admin/media/avatars/300-1.jpg') }}" alt="" />
 														</div>
 														<!--end::Symbol-->
 														<!--begin::Title-->
@@ -148,7 +148,7 @@
 														<!--begin::Symbol-->
 														<div class="symbol symbol-40px me-4">
 															<span class="symbol-label bg-light">
-																<img class="w-20px h-20px" src="{{ asset('assets/admin/media/svg/brand-logos/volicity-9.svg') }}" alt="" />
+																<img class="w-20px h-20px" src="{{ asset('assets/admin/media/svg/brand-logos/google-icon.svg') }}" alt="" />
 															</span>
 														</div>
 														<!--end::Symbol-->
@@ -165,7 +165,7 @@
 														<!--begin::Symbol-->
 														<div class="symbol symbol-40px me-4">
 															<span class="symbol-label bg-light">
-																<img class="w-20px h-20px" src="{{ asset('assets/admin/media/svg/brand-logos/tvit.svg') }}" alt="" />
+																<img class="w-20px h-20px" src="{{ asset('assets/admin/media/svg/brand-logos/twitter.svg') }}" alt="" />
 															</span>
 														</div>
 														<!--end::Symbol-->
@@ -182,7 +182,7 @@
 														<!--begin::Symbol-->
 														<div class="symbol symbol-40px me-4">
 															<span class="symbol-label bg-light">
-																<img class="w-20px h-20px" src="{{ asset('assets/admin/media/svg/misc/infography.svg') }}" alt="" />
+																<img class="w-20px h-20px" src="{{ asset('assets/admin/media/svg/brand-logos/linkedin.svg') }}" alt="" />
 															</span>
 														</div>
 														<!--end::Symbol-->
@@ -199,7 +199,7 @@
 														<!--begin::Symbol-->
 														<div class="symbol symbol-40px me-4">
 															<span class="symbol-label bg-light">
-																<img class="w-20px h-20px" src="{{ asset('assets/admin/media/svg/brand-logos/leaf.svg') }}" alt="" />
+																<img class="w-20px h-20px" src="{{ asset('assets/admin/media/svg/brand-logos/facebook-1.svg') }}" alt="" />
 															</span>
 														</div>
 														<!--end::Symbol-->
@@ -216,7 +216,7 @@
 														<!--begin::Symbol-->
 														<div class="symbol symbol-40px me-4">
 															<span class="symbol-label bg-light">
-																<img class="w-20px h-20px" src="{{ asset('assets/admin/media/svg/brand-logos/tower.svg') }}" alt="" />
+																<img class="w-20px h-20px" src="{{ asset('assets/admin/media/svg/brand-logos/youtube.svg') }}" alt="" />
 															</span>
 														</div>
 														<!--end::Symbol-->

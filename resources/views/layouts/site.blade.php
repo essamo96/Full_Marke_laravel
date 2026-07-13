@@ -103,7 +103,12 @@
   <script src="{{ asset('site/js/particles.js') }}"></script>
   <script src="{{ asset('site/js/cart.js') }}"></script>
 
-  <script>window.currentLang = '{{ app()->getLocale() }}';</script>
+  <script>
+    window.currentLang = '{{ app()->getLocale() }}';
+    window.isStudentLoggedIn = {{ auth('student')->check() ? 'true' : 'false' }};
+    window.csrfToken = '{{ csrf_token() }}';
+    window.studentRegisterUrl = '{{ route('student.register') }}';
+  </script>
   <script src="{{ asset('site/js/language-manager.js') }}?v=1.1"></script>
 
   <script>
@@ -223,6 +228,24 @@
       e.target.reset();
     }
   </script>
+  @if(session('success'))
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.CartSystem && typeof window.CartSystem.showNotification === 'function') {
+          window.CartSystem.showNotification({!! json_encode(session('success')) !!}, 'success');
+        }
+      });
+    </script>
+  @endif
+  @if(session('error') || (isset($errors) && $errors->any()))
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.CartSystem && typeof window.CartSystem.showNotification === 'function') {
+          window.CartSystem.showNotification({!! json_encode(session('error') ?? $errors->first()) !!}, 'warning');
+        }
+      });
+    </script>
+  @endif
 </body>
 </html>
 @stack('scripts')

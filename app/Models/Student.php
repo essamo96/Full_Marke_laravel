@@ -2,36 +2,21 @@
 
 namespace App\Models;
 
-use Database\Factories\StudentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 
 class Student extends Authenticatable
 {
-    use HasFactory;
-    use Notifiable;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
-        'parent_id',
-        'full_name_ar',
-        'full_name_en',
-        'national_id',
-        'is_child',
-        'guardian_id',
-        'email',
-        'phone',
-        'image',
-        'date_of_birth',
-        'gender',
-        'address',
-        'region_id',
-        'branch_id',
-        'major_profession',
-        'health_information',
-        'password',
-        'status',
-        'email_verified_at',
+        'full_name_ar', 'full_name_en', 'national_id', 'is_child', 'guardian_id',
+        'phone', 'email', 'image', 'date_of_birth', 'gender', 'address',
+        'region_id', 'branch_id', 'major_profession', 'health_information',
+        'status', 'email_verified_at', 'password', 'parent_id', 'study_branch_id'
     ];
 
     protected $hidden = [
@@ -39,55 +24,52 @@ class Student extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'date_of_birth' => 'date',
+        'password' => 'hashed',
+        'status' => 'boolean',
+        'is_child' => 'boolean',
+    ];
+
+    public function guardian(): BelongsTo
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'date_of_birth' => 'date',
-            'password' => 'hashed',
-            'status' => 'integer',
-            'is_child' => 'boolean',
-        ];
+        return $this->belongsTo(Guardian::class, 'guardian_id');
     }
 
-    protected static function newFactory()
-    {
-        return StudentFactory::new();
-    }
-
-    public function region()
+    public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class);
     }
 
-    public function branch()
+    public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
 
-    public function guardian()
-    {
-        return $this->belongsTo(Guardian::class);
-    }
-
-    public function registrations()
+    public function registrations(): HasMany
     {
         return $this->hasMany(Registration::class);
     }
 
-    public function payments()
+    public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
     }
 
-    public function cartItems()
-    {
-        return CartItem::query()->forUser($this->id, 'student');
-    }
-
-    public function emailVerificationCodes()
+    public function emailVerificationCodes(): HasMany
     {
         return $this->hasMany(EmailVerificationCode::class);
+    }
+
+    public function getNameAttribute(): string
+    {
+        return app()->getLocale() === 'ar' ? $this->full_name_ar : $this->full_name_en;
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', true);
     }
 
     public function isEmailVerified(): bool
@@ -95,8 +77,8 @@ class Student extends Authenticatable
         return !is_null($this->email_verified_at);
     }
 
-    public function scopeActive($query)
+    public function hasVerifiedEmail(): bool
     {
-        return $query->where('status', 1);
+        return $this->isEmailVerified();
     }
 }

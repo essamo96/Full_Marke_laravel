@@ -42,7 +42,12 @@
                                     $childTitle = $child_item->{'name_' . $lang} ?? $child_item->name;
                                     $childActive = isset($active_menu) && $active_menu == $child_item->name;
                                     
-                                    $childUrl = Route::has($childRoute) ? route($childRoute) : '#';
+                                    try {
+                                        $childUrl = Route::has($childRoute) ? route($childRoute) : '#';
+                                    } catch (\Exception $e) {
+                                        \Log::error("Sidebar route generation failed for childRoute {$childRoute}: " . $e->getMessage());
+                                        $childUrl = '#';
+                                    }
 
                                     if ($childRoute == 'pending_requests.view') {
                                         $pendingCount = auth('admin')->check() ? auth('admin')->user()->unreadNotifications->where('type', 'App\Notifications\NewStudentRegisteredNotification')->count() : 0;
@@ -50,6 +55,15 @@
                                             $childTitle .= ' <span class="badge badge-danger ms-2" id="sidebar_pending_badge">' . $pendingCount . '</span>';
                                         } else {
                                             $childTitle .= ' <span class="badge badge-danger ms-2 d-none" id="sidebar_pending_badge">0</span>';
+                                        }
+                                    }
+                                    
+                                    if ($childRoute == 'approvals.view') {
+                                        $approvalsCount = auth('admin')->check() ? auth('admin')->user()->unreadNotifications->where('type', 'App\Notifications\NewPaymentSubmittedNotification')->count() : 0;
+                                        if($approvalsCount > 0) {
+                                            $childTitle .= ' <span class="badge badge-danger ms-2" id="sidebar_approvals_badge">' . $approvalsCount . '</span>';
+                                        } else {
+                                            $childTitle .= ' <span class="badge badge-danger ms-2 d-none" id="sidebar_approvals_badge">0</span>';
                                         }
                                     }
                                     ?>
@@ -64,7 +78,11 @@
                             </x-admin.sidebar-menu>
                         @else
                             <?php 
-                            $parentUrl = Route::has($parentRoute) ? route($parentRoute) : '#';
+                            try {
+                                $parentUrl = Route::has($parentRoute) ? route($parentRoute) : '#';
+                            } catch (\Exception $e) {
+                                $parentUrl = '#';
+                            }
                             ?>
                             <x-admin.sidebar-item 
                                 :title="$parentTitle" 

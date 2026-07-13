@@ -7,9 +7,17 @@
           <div class="form-section-head">
             <h1 class="form-title" data-en="Join Our Academy" data-ar="انضم لأكاديميتنا">Join Our Academy</h1>
             <div class="gold-divider"></div>
-            <p class="form-subtitle" data-en="Complete your details to begin your academic excellence journey with globally recognized standards." data-ar="أكمل بياناتك لبدء رحلة التميز الأكاديمي والحصول على تعليم بمعايير عالمية.">
-              Complete your details to begin your academic excellence journey with globally recognized standards.
-            </p>
+            <div class="motivation-rotator" id="motivationRotator" role="status" aria-live="polite">
+              <span class="motivation-line is-active"
+                    data-en="Your first step toward the full mark starts right here."
+                    data-ar="خطوتك الأولى نحو العلامة الكاملة تبدأ من هنا.">Your first step toward the full mark starts right here.</span>
+              <span class="motivation-line"
+                    data-en="An elite team of top educators is ready to guide you to excellence."
+                    data-ar="نخبة من أفضل المعلمين بانتظارك لتحقيق التفوق.">An elite team of top educators is ready to guide you to excellence.</span>
+              <span class="motivation-line"
+                    data-en="Excellence isn't an accident — it's a decision you make today."
+                    data-ar="التميز ليس صدفة... إنه قرار تتخذه اليوم.">Excellence isn't an accident — it's a decision you make today.</span>
+            </div>
           </div>
 
           <!-- Step dots -->
@@ -96,6 +104,14 @@
                     <i class="bi bi-chevron-down fi-icon"></i>
                   </div>
                 </div>
+                <!-- Health Notes -->
+                <div class="col-md-6">
+                  <div class="floating-input-group">
+                    <input class="fi-input" type="text" id="health" name="health" value="{{ old('health') }}" placeholder=" ">
+                    <label class="fi-label" for="health" data-en="Health Status (any important notes)" data-ar="الحالة الصحية (أي ملاحظات هامة)">Health Status (any important notes)</label>
+                    <i class="bi bi-heart-pulse fi-icon"></i>
+                  </div>
+                </div>
               </div>
 
               <!-- Academic Info -->
@@ -123,7 +139,7 @@
                   </div>
                 </div>
                 <!-- Study Branch -->
-                <div class="col-12">
+                <div class="col-md-6">
                   <div class="floating-input-group">
                     <select class="fi-select" id="branch_id" name="branch_id" required>
                       <option value="" disabled {{ old('branch_id') ? '' : 'selected' }}></option>
@@ -136,7 +152,7 @@
                   </div>
                 </div>
                 <!-- Program -->
-                <div class="col-12">
+                <div class="col-md-6">
                   <div class="floating-input-group">
                     <select class="fi-select" id="program" name="program" required>
                       <option value="" disabled {{ old('program') ? '' : 'selected' }}></option>
@@ -180,14 +196,6 @@
                     <label class="fi-label" for="address" style="top:1.25rem;" data-en="Address Details" data-ar="تفاصيل العنوان">Address Details</label>
                   </div>
                 </div>
-                <!-- Health Notes -->
-                <div class="col-12">
-                  <div class="floating-input-group">
-                    <input class="fi-input" type="text" id="health" name="health" value="{{ old('health') }}" placeholder=" ">
-                    <label class="fi-label" for="health" data-en="Health Status (any important notes)" data-ar="الحالة الصحية (أي ملاحظات هامة)">Health Status (any important notes)</label>
-                    <i class="bi bi-heart-pulse fi-icon"></i>
-                  </div>
-                </div>
               </div>
 
               <!-- Terms -->
@@ -215,6 +223,9 @@
             </form>
           </div><!-- /form-body -->
 
+@endsection
+
+@push('modals')
           <!-- OTP Verification Modal -->
           <div class="modal fade" id="otpVerificationModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -231,13 +242,13 @@
                     <span data-en="A verification code has been sent to:" data-ar="تم إرسال رمز التحقق إلى:">A verification code has been sent to:</span><br>
                     <strong id="sentEmailAddress" class="text-dark"></strong>
                   </p>
-                  
+
                   <div id="otpErrorMsg" class="alert alert-danger d-none" style="font-size: 0.9rem;"></div>
 
                   <form id="verifyOtpForm">
                     @csrf
                     <input type="hidden" id="verifyEmailInput" name="email">
-                    
+
                     <div class="d-flex justify-content-center gap-2 mb-4" dir="ltr">
                       <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
                       <input type="text" class="form-control otp-input text-center fs-4 fw-bold p-0 rounded" maxlength="1" style="width: 45px; height: 50px;" required>
@@ -262,13 +273,23 @@
               </div>
             </div>
           </div>
-
-@endsection
+@endpush
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Cycle the motivational sentences under the page title
+    const motivationLines = document.querySelectorAll('#motivationRotator .motivation-line');
+    if (motivationLines.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        let activeIndex = 0;
+        setInterval(function() {
+            motivationLines[activeIndex].classList.remove('is-active');
+            activeIndex = (activeIndex + 1) % motivationLines.length;
+            motivationLines[activeIndex].classList.add('is-active');
+        }, 4200);
+    }
+
     const regForm = document.getElementById('registrationForm');
     const submitBtn = document.getElementById('submitBtn');
     const otpModal = new bootstrap.Modal(document.getElementById('otpVerificationModal'));
@@ -401,11 +422,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle Resend Request
-    document.getElementById('resendCodeBtn').addEventListener('click', function(e) {
-        e.preventDefault();
-        this.disabled = true;
-        this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-        
+    function requestResendCode() {
+        const btn = document.getElementById('resendCodeBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
         const email = document.getElementById('verifyEmailInput').value;
         const formData = new FormData();
         formData.append('_token', document.querySelector('input[name="_token"]').value);
@@ -435,6 +456,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 showOtpError(data.message || 'فشل في إعادة الإرسال.');
             }
         });
+    }
+
+    document.getElementById('resendCodeBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        requestResendCode();
     });
 
     function showOtpError(msg, type = 'danger') {
@@ -463,15 +489,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
     
-    // Check if redirect flag exists (fallback)
-    @if(session('show_otp_modal'))
-        const sessionEmail = '{{ session("otp.student.email") }}';
-        if(sessionEmail) {
-            document.getElementById('sentEmailAddress').textContent = sessionEmail;
-            document.getElementById('verifyEmailInput').value = sessionEmail;
-            otpModal.show();
+    // Reopen the OTP modal if this session left an unverified registration
+    // behind (e.g. the page was refreshed before the code was entered).
+    @if($pendingEmail ?? false)
+        document.getElementById('sentEmailAddress').textContent = '{{ $pendingEmail }}';
+        document.getElementById('verifyEmailInput').value = '{{ $pendingEmail }}';
+        otpModal.show();
+
+        @if($hasActiveCode ?? false)
             startResendTimer();
-        }
+        @else
+            // The previous code already expired — send a fresh one automatically
+            // so the user isn't stuck staring at a modal with a dead code.
+            requestResendCode();
+        @endif
     @endif
 });
 </script>

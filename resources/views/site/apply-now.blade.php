@@ -18,6 +18,12 @@
           <div class="glass-panel p-6 md:p-12">
             <form id="registrationForm" method="POST" action="{{ route('apply.store') }}" enctype="multipart/form-data">
               @csrf
+              @if(isset($selectedProgram))
+                <input type="hidden" name="program_id" value="{{ $selectedProgram->id }}">
+              @endif
+              @if(isset($selectedSubject))
+                <input type="hidden" name="subject_id" value="{{ $selectedSubject->id }}">
+              @endif
 
               <h5 class="text-gold font-bold tracking-widest text-xs uppercase mb-4" data-en="Personal Information" data-ar="البيانات الشخصية">Personal Information</h5>
 

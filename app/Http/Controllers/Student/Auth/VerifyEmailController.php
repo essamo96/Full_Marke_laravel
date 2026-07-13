@@ -52,7 +52,9 @@ class VerifyEmailController extends Controller
         // Success
         $student->update(['email_verified_at' => now()]);
         EmailVerificationCode::where('student_id', $student->id)->delete(); // clear old codes
-        
+
+        $request->session()->forget('otp.student.email');
+
         Auth::guard('student')->login($student);
 
         return response()->json([

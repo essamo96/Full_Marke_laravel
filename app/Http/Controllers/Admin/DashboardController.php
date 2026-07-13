@@ -41,7 +41,7 @@ class DashboardController extends AdminController
             'groups' => Group::active()->count(),
             'study_branches' => Branch::active()->count(),
             'applications_pending' => Application::where('status', 'new')->count(),
-            'registrations_active' => Registration::where('registration_status', 'active')->count()];
+            'registrations_active' => Registration::whereNotNull('activated_at')->count()];
 
         $topPrograms = Program::query()
             ->withCount('subjects')

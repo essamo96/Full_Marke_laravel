@@ -8,6 +8,7 @@ use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
+use Yajra\DataTables\Facades\DataTables;
 
 class TeachersController extends AdminController
 {
@@ -22,21 +23,56 @@ class TeachersController extends AdminController
 
     public function getIndex()
     {
-        $teachers = Teacher::withCount('subjects')->latest()->paginate(15);
+        return view('admin.teachers.view', self::$data);
+    }
 
-        return view('admin.teachers.view', self::$data + ['teachers' => $teachers]);
+    public function getList(Request $request)
+    {
+        $search = $request->get('generalSearch') ?? $request->get('search_value');
+        $status = $request->get('status');
+
+        $query = Teacher::withCount('subjects')->latest();
+        
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+        
+        if ($status !== null && $status !== '') {
+            $query->where('status', $status);
+        }
+
+        $datatable = DataTables::of($query);
+        
+        $datatable->addColumn('photo', function ($row) {
+            return view('admin.teachers.parts.photo', ['teacher' => $row])->render();
+        });
+
+        $datatable->editColumn('status', function ($row) {
+            return view('admin.teachers.parts.status', ['teacher' => $row])->render();
+        });
+
+        $datatable->addColumn('actions', function ($row) {
+            return view('admin.teachers.parts.actions', ['teacher' => $row])->render();
+        });
+
+        $datatable->escapeColumns(['*']);
+        return $datatable->addIndexColumn()->make(true);
     }
 
     public function getAdd()
     {
         return view('admin.teachers.add', self::$data + [
             'info' => null,
-            'subjects' => Subject::active()->orderBy('order')->get()]);
+            'subjects' => Subject::active()->orderBy('sort_order')->get()]);
     }
 
     public function postAdd(TeacherRequest $request)
     {
-        $teacher = Teacher::create($request->safe()->except(['photo', 'subject_ids', 'password']) + [
+        $teacher = Teacher::create($request->safe()->except(['photo', 'subject_ids', 'password', 'specialty', 'bio']) + [
             'password' => Hash::make($request->password),
             'status' => $request->boolean('status', true)]);
 
@@ -59,7 +95,7 @@ class TeachersController extends AdminController
 
         return view('admin.teachers.add', self::$data + [
             'info' => $teacher,
-            'subjects' => Subject::active()->orderBy('order')->get()]);
+            'subjects' => Subject::active()->orderBy('sort_order')->get()]);
     }
 
     public function postEdit(TeacherRequest $request, $id)
@@ -70,7 +106,7 @@ class TeachersController extends AdminController
             return redirect()->route('teachers.view')->with('danger', __('app.not_found'));
         }
 
-        $data = $request->safe()->except(['photo', 'subject_ids', 'password']) + [
+        $data = $request->safe()->except(['photo', 'subject_ids', 'password', 'specialty', 'bio']) + [
             'status' => $request->boolean('status', true)];
 
         if ($request->filled('password')) {

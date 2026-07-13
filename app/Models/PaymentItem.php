@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PaymentItem extends Model
 {
+    protected $table = 'payment_registrations';
+
     public const UPDATED_AT = null;
 
     protected $fillable = [

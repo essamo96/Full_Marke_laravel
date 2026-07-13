@@ -1,6 +1,8 @@
 @extends('layouts.student')
 
 @section('title', 'Registration Details | FULL MARK ACADEMY')
+@section('page_title_en', 'Registration Details')
+@section('page_title_ar', 'تفاصيل التسجيل')
 
 @section('content')
   <h1 class="h3 fw-bold mb-4" style="color: var(--text-primary);">{{ $registration->registration_number }}</h1>
@@ -25,13 +27,13 @@
     </div>
     <hr>
     <div class="progress mb-2" style="height: 10px;">
-      @php($pct = $registration->total_fee > 0 ? min(100, ($registration->amount_paid / $registration->total_fee) * 100) : 0)
+      @php($pct = $registration->fee_snapshot > 0 ? min(100, ($registration->amount_paid / $registration->fee_snapshot) * 100) : 0)
       <div class="progress-bar bg-success" style="width: {{ $pct }}%"></div>
     </div>
     <div class="d-flex justify-content-between fs-7">
-      <span>{{ __('app.amount_paid') }}: {{ number_format($registration->amount_paid, 2) }}</span>
-      <span>{{ __('app.remaining') }}: {{ number_format($registration->remaining_amount, 2) }}</span>
-      <span>{{ __('app.total_fee') }}: {{ number_format($registration->total_fee, 2) }}</span>
+      <span>{{ __('app.amount_paid') }}: {{ number_format($registration->amount_paid, 2) }} JOD</span>
+      <span>{{ __('app.remaining') }}: {{ number_format($registration->remaining_amount, 2) }} JOD</span>
+      <span>{{ __('app.total_fee') }}: {{ number_format($registration->fee_snapshot, 2) }} JOD</span>
     </div>
   </div>
 
@@ -52,7 +54,7 @@
     </table>
   </div>
 
-  @if ($registration->remaining_amount > 0 && $registration->registration_status !== 'cancelled')
+  @if ($registration->remaining_amount > 0 && $registration->status !== 'cancelled')
     <div class="glass-panel rounded-4 p-4 mb-4">
       <h5 class="fw-bold mb-3" style="color: var(--text-primary);" data-en="Pay Remaining Balance" data-ar="سداد الباقي">Pay Remaining Balance</h5>
       <form method="POST" action="{{ route('student.registrations.pay-remaining', $registration) }}" enctype="multipart/form-data">
@@ -78,7 +80,7 @@
     </div>
   @endif
 
-  @if ($registration->hasResourceAccess())
+  @if ($registration->status === 'fully_paid')
     <div class="glass-panel rounded-4 p-4">
       <h5 class="fw-bold mb-3" style="color: var(--text-primary);" data-en="Learning Resources" data-ar="الموارد التعليمية">Learning Resources</h5>
       @forelse ($registration->subject->resources->where('is_active', true) as $resource)

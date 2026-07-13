@@ -42,11 +42,11 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/users.php';
     require __DIR__.'/socials.php';
     require __DIR__.'/sliders.php';
-    require __DIR__.'/admin-settings.php';
-    require __DIR__.'/admin-site-settings.php';
-    require __DIR__.'/admin-permissions.php';
-    require __DIR__.'/admin-permissions_group.php';
-    require __DIR__.'/admin-role.php';
+    require __DIR__.'/settings.php';
+    require __DIR__.'/site-settings.php';
+    require __DIR__.'/permissions.php';
+    require __DIR__.'/permissions_group.php';
+    require __DIR__.'/role.php';
 
     // Academy management modules (see academy_system_analysis.md)
     require __DIR__.'/pages.php';
@@ -57,17 +57,18 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/contacts.php';
     require __DIR__.'/regions.php';
     require __DIR__.'/branches.php';
-    require __DIR__.'/admin-programs.php';
-    require __DIR__.'/admin-subjects.php';
-    require __DIR__.'/admin-subject-resources.php';
-    require __DIR__.'/admin-groups.php';
-    require __DIR__.'/admin-teachers.php';
-    require __DIR__.'/admin-students.php';
-    require __DIR__.'/admin-payment-methods.php';
-    require __DIR__.'/admin-approvals.php';
+    require __DIR__.'/programs.php';
+    require __DIR__.'/subjects.php';
+    require __DIR__.'/subject-resources.php';
+    require __DIR__.'/groups.php';
+    require __DIR__.'/teachers.php';
+    require __DIR__.'/students.php';
+    require __DIR__.'/payment-methods.php';
+    require __DIR__.'/registrations.php';
+    require __DIR__.'/approvals.php';
     require __DIR__.'/pending_requests.php';
-    require __DIR__.'/admin-payments.php';
-    require __DIR__.'/admin-financial-reports.php';
+    require __DIR__.'/payments.php';
+    require __DIR__.'/financial-reports.php';
 });
 Route::get('auto-login', function () { Auth::guard('admin')->loginUsingId(1); return redirect('/admin/users'); });
 Route::get('test-dt', function() { Auth::guard('admin')->loginUsingId(1); return app(App\Http\Controllers\Admin\UsersController::class)->getList(request()); });

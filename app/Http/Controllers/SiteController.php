@@ -20,19 +20,35 @@ class SiteController extends Controller
 {
     public function programDetails(Program $program): View
     {
-        $program->load('subjects.groups');
+        $program->load(['subjects' => function ($query) {
+            $query->active()->orderBy('sort_order');
+        }, 'subjects.groups']);
 
         return view('site.program-details', compact('program'));
     }
 
     public function applyNow(Request $request): View
     {
-        $programs = Program::where('is_active', true)->orderBy('order')->with('subjects')->get();
+        $programs = Program::where('is_active', true)->orderBy('sort_order')->with('subjects')->get();
         $regions = Region::where('status', 1)->get();
         $branches = Branch::where('status', 1)->get();
-        $selectedProgram = $request->query('program');
+        
+        $selectedProgram = null;
+        if ($request->filled('program')) {
+            $selectedProgram = Program::where('slug', $request->query('program'))->first();
+        }
 
-        return view('site.apply-now', compact('programs', 'regions', 'branches', 'selectedProgram'));
+        $selectedSubject = null;
+        if ($request->filled('subject')) {
+            try {
+                $decryptedId = Crypt::decrypt($request->query('subject'));
+                $selectedSubject = \App\Models\Subject::find($decryptedId);
+            } catch (\Exception $e) {
+                // Ignore if decryption fails
+            }
+        }
+
+        return view('site.apply-now', compact('programs', 'regions', 'branches', 'selectedProgram', 'selectedSubject'));
     }
 
     public function storeApplication(Request $request, \App\Actions\SendVerificationCodeAction $sendCodeAction)
@@ -51,6 +67,8 @@ class SiteController extends Controller
             'major_profession' => 'nullable|string|max:255',
             'health_information' => 'nullable|string',
             'message' => 'nullable|string',
+            'program_id' => 'nullable|exists:programs,id',
+            'subject_id' => 'nullable|exists:subjects,id',
         ]);
 
         if ($request->hasFile('image')) {

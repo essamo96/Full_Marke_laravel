@@ -167,7 +167,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof tinymce !== 'undefined') {
                 tinymce.init({
-                    selector: 'textarea',
+                    selector: 'textarea.editor, textarea.ckeditor, textarea[name*="description"]:not(.no-editor), textarea[name*="details"]:not(.no-editor), textarea[name*="content"]:not(.no-editor), textarea[name*="about"]:not(.no-editor), textarea[name*="text"]:not(.no-editor), textarea[name*="bio"]:not(.no-editor)',
                     plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking table directionality emoticons template',
                     toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | ltr rtl | bullist numlist outdent indent | link image media table | removeformat | charmap emoticons | fullscreen preview code',
                     directionality: document.documentElement.dir || 'ltr',
@@ -292,6 +292,97 @@
                                     </div>
                                     <div class="mb-0 me-2">
                                         <a href="${data.url ?? '#'}" class="fs-6 text-gray-800 text-hover-primary fw-bold">{{ __('app.new_student_registered') }}</a>
+                                        <div class="text-gray-400 fs-7">${data.student_name}</div>
+                                    </div>
+                                </div>
+                                <span class="badge badge-light fs-8">{{ __('app.now') }}</span>
+                            </div>`;
+                            list.insertAdjacentHTML('afterbegin', itemHtml);
+                        }
+                    });
+
+                    // Handle New Payment Event
+                    channel.bind('NewPaymentEvent', function(data) {
+                        // Play sound
+                        var audio = new Audio('{{ asset("assets/sounds/notification.mp3") }}');
+                        var playPromise = audio.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(function(error) {
+                                console.log('Audio play failed: ', error);
+                            });
+                        }
+
+                        // Configure Toastr
+                        if (typeof toastr !== 'undefined') {
+                            toastr.options = {
+                                "closeButton": true,
+                                "debug": false,
+                                "newestOnTop": true,
+                                "progressBar": true,
+                                "rtl": {{ app()->getLocale() == 'ar' ? 'true' : 'false' }},
+                                "positionClass": "toast-top-right",
+                                "preventDuplicates": false,
+                                "onclick": null,
+                                "showDuration": "300",
+                                "hideDuration": "1000",
+                                "timeOut": "6000",
+                                "extendedTimeOut": "1000",
+                                "showEasing": "swing",
+                                "hideEasing": "linear",
+                                "showMethod": "fadeIn",
+                                "hideMethod": "fadeOut",
+                                "escapeHtml": false
+                            };
+
+                            var messageHtml = `
+                            <div class="d-flex align-items-center mt-2">
+                                <div class="symbol symbol-40px me-3">
+                                    <img src="${data.student_image ?? '{{ asset("assets/admin/media/avatars/blank.png") }}'}" alt="image" style="border-radius: 50%; width: 40px; height: 40px; object-fit: cover;" />
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold fs-6 text-white">${data.student_name}</span>
+                                    <span class="text-white-50 fs-7">${data.message}</span>
+                                </div>
+                            </div>
+                            `;
+                            toastr.success(messageHtml, 'طلب دفعة جديدة');
+                        }
+
+                        // Update Notification Badge
+                        var badge = document.getElementById('notification_count_badge');
+                        if (badge) {
+                            badge.classList.remove('d-none');
+                            badge.innerText = parseInt(badge.innerText || 0) + 1;
+                        }
+
+                        var textCount = document.getElementById('notification_count_text');
+                        if (textCount) {
+                            textCount.innerText = (parseInt(textCount.innerText || 0) + 1) + ' {{ __("app.new") }}';
+                        }
+
+                        // Update Sidebar Badge for Approvals
+                        var sidebarBadge = document.getElementById('sidebar_approvals_badge');
+                        if (sidebarBadge) {
+                            sidebarBadge.classList.remove('d-none');
+                            sidebarBadge.innerText = parseInt(sidebarBadge.innerText || 0) + 1;
+                        }
+
+                        // Add new notification item to the top of the list
+                        var list = document.getElementById('notifications_list');
+                        var noMsg = document.getElementById('no_notifications_msg');
+                        if (noMsg) {
+                            noMsg.remove();
+                        }
+
+                        if (list) {
+                            var itemHtml = `
+                            <div class="d-flex flex-stack py-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="symbol symbol-35px me-4">
+                                        <img src="${data.student_image ?? '{{ asset("assets/admin/media/avatars/blank.png") }}'}" alt="image" style="border-radius: 50%; width: 35px; height: 35px; object-fit: cover;" />
+                                    </div>
+                                    <div class="mb-0 me-2">
+                                        <a href="${data.url ?? '#'}" class="fs-6 text-gray-800 text-hover-primary fw-bold">طلب دفعة جديدة</a>
                                         <div class="text-gray-400 fs-7">${data.student_name}</div>
                                     </div>
                                 </div>

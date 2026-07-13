@@ -171,6 +171,37 @@
   box-shadow: 0 0 8px var(--accent-color);
 }
 
+/* Sidebar items for features not built yet — shown honestly instead of a
+   silent dead link that looks broken when clicked. */
+.sidebar-submenu li:has(.sidebar-item-disabled) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-inline-end: 12px;
+}
+.sidebar-item-disabled {
+  color: var(--text-muted);
+  opacity: 0.6;
+  cursor: default;
+  pointer-events: none;
+}
+.sidebar-item-disabled::before {
+  background: var(--text-muted) !important;
+}
+.sidebar-soon-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(197, 168, 128, 0.1);
+  color: var(--accent-color);
+  border: 1px solid rgba(197, 168, 128, 0.25);
+  flex-shrink: 0;
+}
+
 /* Progress Ring */
 .progress-ring-circle {
   transition: stroke-dashoffset 1s ease-in-out;

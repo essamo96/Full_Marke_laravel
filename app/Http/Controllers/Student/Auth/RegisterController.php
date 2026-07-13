@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Student\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\EmailVerificationCode;
 use App\Models\Student;
-use App\Services\OtpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Rule;
 use App\Models\Admin;
 use App\Notifications\NewStudentRegisteredNotification;
 
@@ -18,12 +19,31 @@ class RegisterController extends Controller
         $this->middleware('guest:student');
     }
 
-    public function showRegisterForm()
+    public function showRegisterForm(Request $request)
     {
         $regions = \App\Models\Region::where('status', 1)->get();
         $branches = \App\Models\Branch::where('status', 1)->get();
-        
-        return view('student.auth.register', compact('regions', 'branches'));
+
+        // If this session left an unverified registration behind (e.g. the user
+        // refreshed the page before entering the OTP), surface it again so the
+        // verification modal reopens instead of silently disappearing.
+        $pendingEmail = $request->session()->get('otp.student.email');
+        $pendingStudent = null;
+
+        if ($pendingEmail) {
+            $pendingStudent = Student::where('email', $pendingEmail)->whereNull('email_verified_at')->first();
+
+            if (!$pendingStudent) {
+                $request->session()->forget('otp.student.email');
+                $pendingEmail = null;
+            }
+        }
+
+        $hasActiveCode = $pendingStudent
+            ? $pendingStudent->emailVerificationCodes()->active()->exists()
+            : false;
+
+        return view('student.auth.register', compact('regions', 'branches', 'pendingEmail', 'hasActiveCode'));
     }
 
     public function register(Request $request, \App\Actions\SendVerificationCodeAction $sendCodeAction)
@@ -31,8 +51,10 @@ class RegisterController extends Controller
         $data = $request->validate([
             'fullnameAr' => 'required|string|max:255',
             'fullnameEn' => 'required|string|max:255',
-            'nationalId' => 'nullable|string|max:20|unique:students,national_id',
-            'email' => 'required|email|unique:students,email',
+            // A row only blocks re-registration once its owner has verified the
+            // email — an abandoned, unverified signup must not lock the address.
+            'nationalId' => ['nullable', 'string', 'max:20', Rule::unique('students', 'national_id')->where(fn ($q) => $q->whereNotNull('email_verified_at'))],
+            'email' => ['required', 'email', Rule::unique('students', 'email')->where(fn ($q) => $q->whereNotNull('email_verified_at'))],
             'phone' => 'required|string|max:30',
             'dob' => 'required|date',
             'gender' => 'required|string',
@@ -46,7 +68,7 @@ class RegisterController extends Controller
             'terms' => 'required|accepted',
         ]);
 
-        $student = Student::create([
+        $attributes = [
             'full_name_ar' => $data['fullnameAr'],
             'full_name_en' => $data['fullnameEn'],
             'national_id' => $data['nationalId'] ?? null,
@@ -61,14 +83,26 @@ class RegisterController extends Controller
             'major_profession' => $data['profession'] ?? null,
             'password' => Hash::make($data['password']),
             'status' => 0,
-        ]);
+        ];
+
+        // Resume an abandoned, unverified registration instead of creating a
+        // duplicate row for the same email address.
+        $student = Student::where('email', $data['email'])->whereNull('email_verified_at')->first();
+
+        if ($student) {
+            $student->update($attributes);
+            EmailVerificationCode::where('student_id', $student->id)->delete();
+        } else {
+            $student = Student::create($attributes);
+        }
 
         $sendCodeAction->execute($student);
 
         // Notify admins
         Notification::send(Admin::all(), new NewStudentRegisteredNotification($student));
 
-        // Store email in session in case page is reloaded or for traditional submit
+        // Store email in session (not flashed) so a page refresh can still
+        // detect the pending verification and reopen the OTP modal.
         $request->session()->put('otp.student.email', $student->email);
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -79,6 +113,6 @@ class RegisterController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('show_otp_modal', true);
+        return redirect()->back();
     }
 }

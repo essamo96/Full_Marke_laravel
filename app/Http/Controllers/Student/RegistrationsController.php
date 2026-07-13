@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\Group;
 use App\Models\Registration;
 use App\Models\PaymentMethod;
 use App\Services\PaymentService;
@@ -21,7 +22,7 @@ class RegistrationsController extends Controller
             ->latest();
 
         if ($request->filled('status') && $request->status !== 'all') {
-            $query->where('registration_status', $request->status);
+            $query->where('status', $request->status);
         }
 
         $registrations = $query->paginate(10)->withQueryString();
@@ -66,6 +67,35 @@ class RegistrationsController extends Controller
         }
 
         return redirect()->route('student.registrations.show', $registration)->with('success', __('app.checkout_success'));
+    }
+
+    public function updateGroup(Request $request, Registration $registration)
+    {
+        $this->authorizeOwnership($registration);
+
+        // Group selection stays optional after checkout too — a student can
+        // pick one, switch, or clear it back to "no group" at any time.
+        $request->validate(['group_id' => 'nullable|exists:groups,id']);
+
+        if (! $request->filled('group_id')) {
+            $registration->update(['group_id' => null]);
+
+            return back()->with('success', __('app.update_success'));
+        }
+
+        $group = Group::findOrFail($request->group_id);
+
+        if ($group->subject_id !== $registration->subject_id) {
+            return back()->withErrors(['group_id' => __('app.not_found')]);
+        }
+
+        if (! $group->hasAvailableCapacity()) {
+            return back()->withErrors(['group_id' => __('app.group_full')]);
+        }
+
+        $registration->update(['group_id' => $group->id]);
+
+        return back()->with('success', __('app.update_success'));
     }
 
     protected function authorizeOwnership(Registration $registration): void

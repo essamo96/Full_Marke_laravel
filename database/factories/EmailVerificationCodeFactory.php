@@ -2,23 +2,21 @@
 
 namespace Database\Factories;
 
-use App\Models\EmailVerificationCode;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\EmailVerificationCode;
+use App\Models\Student;
 
-/**
- * @extends Factory<EmailVerificationCode>
- */
 class EmailVerificationCodeFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = EmailVerificationCode::class;
+
     public function definition(): array
     {
         return [
-            //
+            'student_id' => Student::factory(),
+            'code' => $this->faker->numerify('######'),
+            'attempts' => 0,
+            'expires_at' => now()->addMinutes(10),
         ];
     }
 }

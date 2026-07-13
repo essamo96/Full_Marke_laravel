@@ -21,6 +21,13 @@ class ApprovalsController extends AdminController
 
     public function getIndex()
     {
+        // Mark notifications as read
+        if (auth('admin')->check()) {
+            auth('admin')->user()->unreadNotifications
+                ->where('type', \App\Notifications\NewPaymentSubmittedNotification::class)
+                ->markAsRead();
+        }
+
         $payments = Payment::with(['student', 'paymentMethod', 'items.registration.subject'])
             ->pending()
             ->latest()

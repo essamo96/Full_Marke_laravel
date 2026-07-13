@@ -15,12 +15,13 @@ class ProgramsSeeder extends Seeder
         $programs = [
             [
                 'slug' => 'tawjihi',
-                'title_en' => 'Tawjihi Program',
-                'title_ar' => 'برنامج التوجيهي',
-                'description_en' => 'Comprehensive preparation for high school students with elite teachers to ensure top scores and academic excellence.',
-                'description_ar' => 'تأهيل شامل لطلبة الثانوية العامة مع نخبة من أفضل المعلمين لضمان التفوق والحصول على العلامة الكاملة.',
+                'name_en' => 'Tawjihi Program',
+                'name_ar' => 'برنامج التوجيهي',
+                'type' => 'high',
+                'short_description' => 'Comprehensive preparation for high school students with elite teachers to ensure top scores and academic excellence.',
+                'long_description' => 'تأهيل شامل لطلبة الثانوية العامة مع نخبة من أفضل المعلمين لضمان التفوق والحصول على العلامة الكاملة.',
                 'image' => 'site/images/img/programs/prog1.png',
-                'order' => 1,
+                'sort_order' => 1,
                 'subjects' => [
                     [
                         'name_en' => 'English Language',
@@ -52,12 +53,13 @@ class ProgramsSeeder extends Seeder
             ],
             [
                 'slug' => 'children',
-                'title_en' => 'Children Program',
-                'title_ar' => 'برنامج الأطفال',
-                'description_en' => 'Fun, interactive language learning designed to build a strong foundation for young learners using modern tools.',
-                'description_ar' => 'تعليم تفاعلي مرح يهدف إلى بناء لغوي قوي للأطفال من سن مبكر باستخدام وسائل تعليمية مبتكرة.',
+                'name_en' => 'Children Program',
+                'name_ar' => 'برنامج الأطفال',
+                'type' => 'primary',
+                'short_description' => 'Fun, interactive language learning designed to build a strong foundation for young learners using modern tools.',
+                'long_description' => 'تعليم تفاعلي مرح يهدف إلى بناء لغوي قوي للأطفال من سن مبكر باستخدام وسائل تعليمية مبتكرة.',
                 'image' => 'site/images/img/programs/prog2.png',
-                'order' => 2,
+                'sort_order' => 2,
                 'subjects' => [
                     [
                         'name_en' => 'Phonics & Reading',
@@ -68,7 +70,7 @@ class ProgramsSeeder extends Seeder
                         'reg_start_date' => '2026-06-25',
                         'reg_end_date' => '2026-07-10',
                         'fee' => 80,
-                        'total_fee' => 90,
+                        'min_payment' => 90,
                         'discount_percent' => 20,
                         'google_tags' => ['GoogleClassroom', 'GoogleMeet', 'YouTubeKids'],
                     ],
@@ -81,7 +83,7 @@ class ProgramsSeeder extends Seeder
                         'reg_start_date' => '2026-06-25',
                         'reg_end_date' => '2026-07-12',
                         'fee' => 95,
-                        'total_fee' => 100,
+                        'min_payment' => 100,
                         'discount_percent' => null,
                         'google_tags' => ['Classroom', 'Workspace', 'Slides'],
                     ],
@@ -89,12 +91,13 @@ class ProgramsSeeder extends Seeder
             ],
             [
                 'slug' => 'speech',
-                'title_en' => 'Speech Therapy Program',
-                'title_ar' => 'برنامج النطق',
-                'description_en' => 'Specialized therapy sessions to resolve speech difficulties and enhance articulation for children and adults.',
-                'description_ar' => 'جلسات متخصصة لعلاج مشاكل النطق والتخاطب وتحسين النطق السليم لدى الأطفال والبالغين بأحدث الأساليب.',
+                'name_en' => 'Speech Therapy Program',
+                'name_ar' => 'برنامج النطق',
+                'type' => 'general',
+                'short_description' => 'Specialized therapy sessions to resolve speech difficulties and enhance articulation for children and adults.',
+                'long_description' => 'جلسات متخصصة لعلاج مشاكل النطق والتخاطب وتحسين النطق السليم لدى الأطفال والبالغين بأحدث الأساليب.',
                 'image' => 'site/images/img/programs/prog3.png',
-                'order' => 3,
+                'sort_order' => 3,
                 'subjects' => [
                     [
                         'name_en' => 'Articulation & Speech Correction',
@@ -105,7 +108,7 @@ class ProgramsSeeder extends Seeder
                         'reg_start_date' => '2026-07-05',
                         'reg_end_date' => '2026-07-25',
                         'fee' => 150,
-                        'total_fee' => 160,
+                        'min_payment' => 160,
                         'discount_percent' => 25,
                         'google_tags' => ['GoogleMeet', 'GoogleForms', 'GoogleKeep'],
                     ],
@@ -118,7 +121,7 @@ class ProgramsSeeder extends Seeder
                         'reg_start_date' => '2026-07-05',
                         'reg_end_date' => '2026-07-30',
                         'fee' => 160,
-                        'total_fee' => 170,
+                        'min_payment' => 170,
                         'discount_percent' => 15,
                         'google_tags' => ['GoogleClassroom', 'GoogleMeet', 'GoogleDocs'],
                     ],
@@ -126,12 +129,13 @@ class ProgramsSeeder extends Seeder
             ],
             [
                 'slug' => 'rehab',
-                'title_en' => 'Rehabilitation Program',
-                'title_ar' => 'برنامج التأهيلي',
-                'description_en' => 'Intensive training designed to build key academic skills and prepare students for integration into standard tracks.',
-                'description_ar' => 'برنامج مكثف لتطوير المهارات الأكاديمية والاجتماعية وتأهيل الطلاب للاندماج الفعال في البيئات التعليمية.',
+                'name_en' => 'Rehabilitation Program',
+                'name_ar' => 'برنامج التأهيلي',
+                'type' => 'general',
+                'short_description' => 'Intensive training designed to build key academic skills and prepare students for integration into standard tracks.',
+                'long_description' => 'برنامج مكثف لتطوير المهارات الأكاديمية والاجتماعية وتأهيل الطلاب للاندماج الفعال في البيئات التعليمية.',
                 'image' => 'site/images/img/programs/prog4.png',
-                'order' => 4,
+                'sort_order' => 4,
                 'subjects' => [
                     [
                         'name_en' => 'Behavioral & Social Rehabilitation',
@@ -142,7 +146,7 @@ class ProgramsSeeder extends Seeder
                         'reg_start_date' => '2026-07-10',
                         'reg_end_date' => '2026-07-28',
                         'fee' => 180,
-                        'total_fee' => 190,
+                        'min_payment' => 190,
                         'discount_percent' => 30,
                         'google_tags' => ['GoogleMeet', 'GoogleClassroom', 'Jamboard'],
                     ],
@@ -155,7 +159,7 @@ class ProgramsSeeder extends Seeder
                         'reg_start_date' => '2026-07-10',
                         'reg_end_date' => '2026-08-05',
                         'fee' => 190,
-                        'total_fee' => 200,
+                        'min_payment' => 200,
                         'discount_percent' => 10,
                         'google_tags' => ['GoogleClassroom', 'GoogleMeet', 'GoogleDocs'],
                     ],
@@ -170,7 +174,7 @@ class ProgramsSeeder extends Seeder
             $program = Program::updateOrCreate(['slug' => $data['slug']], $data);
 
             foreach ($subjects as $subjectOrder => $subjectData) {
-                $subjectData['order'] = $subjectOrder + 1;
+                $subjectData['sort_order'] = $subjectOrder + 1;
                 $program->subjects()->updateOrCreate(
                     ['name_en' => $subjectData['name_en']],
                     $subjectData

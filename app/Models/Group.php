@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Group extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'subject_id', 'teacher_id', 'name', 'days', 'start_time', 'end_time',
         'max_capacity', 'current_count', 'start_date', 'end_date', 'zoom_link', 'is_active',
@@ -19,6 +22,11 @@ class Group extends Model
         'start_date' => 'date',
         'end_date' => 'date',
     ];
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', 1);
+    }
 
     public function subject(): BelongsTo
     {
@@ -37,11 +45,12 @@ class Group extends Model
 
     public function hasAvailableCapacity(): bool
     {
-        return $this->current_count < $this->max_capacity;
-    }
+        // Calculate pending registrations + active ones, or just current_count if it handles it.
+        // For Phase 3, we count pending and active registrations.
+        $reserved = $this->registrations()
+                         ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
+                         ->count();
 
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
+        return $reserved < $this->max_capacity;
     }
 }

@@ -16,10 +16,12 @@ class CheckoutController extends Controller
     {
         $student = Auth::guard('student')->user();
 
-        $items = CartItem::forUser($student->id, 'student')->with('subject')->get();
+        $items = CartItem::forUser($student->id, 'student')
+            ->with(['subject.groups' => fn($q) => $q->where('is_active', true)->orderBy('name')])
+            ->get();
 
         if ($items->isEmpty()) {
-            return redirect()->route('student.cart')->with('danger', __('app.cart_empty'));
+            return view('student.checkout.sync');
         }
 
         $totalFee = $items->sum(fn (CartItem $i) => (float) $i->subject->fee);
@@ -34,13 +36,25 @@ class CheckoutController extends Controller
         $student = Auth::guard('student')->user();
 
         $data = $request->validate([
-            'amount' => 'required|numeric|min:0.01',
+            'amount'          => 'required|numeric|min:0.01',
             'payment_method_id' => 'required|exists:payment_methods,id',
-            'receipt' => 'required|file|mimes:png,jpg,jpeg,pdf|max:5120',
-            'notes' => 'nullable|string|max:1000',
-            'cart_item_ids' => 'required|array|min:1',
+            'receipt'         => 'required|file|mimes:png,jpg,jpeg,pdf|max:5120',
+            'notes'           => 'nullable|string|max:1000',
+            'cart_item_ids'   => 'required|array|min:1',
             'cart_item_ids.*' => 'exists:cart_items,id',
+            'group_ids'       => 'nullable|array',
+            'group_ids.*'     => 'nullable|exists:groups,id',
         ]);
+
+        // Apply selected group to each cart item (optional)
+        if (!empty($data['group_ids'])) {
+            foreach ($data['group_ids'] as $cartItemId => $groupId) {
+                CartItem::where('id', $cartItemId)
+                    ->where('user_id', $student->id)
+                    ->where('user_type', 'student')
+                    ->update(['group_id' => $groupId ?: null]);
+            }
+        }
 
         // Stored on the `local` disk, which is private (storage/app/private) —
         // never publicly served directly; admins view it via a signed URL.

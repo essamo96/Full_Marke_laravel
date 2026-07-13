@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('programs', function (Blueprint $table) {
-            $table->enum('type', ['regular', 'children', 'rehabilitation'])->default('regular')->after('slug');
+            $table->enum('type', ['primary', 'middle', 'high', 'university', 'general'])->default('primary')->after('slug');
         });
     }
 
