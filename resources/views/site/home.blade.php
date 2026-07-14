@@ -650,7 +650,7 @@
                         $socials = $team->socials ? json_decode($team->socials, true) : [];
                     @endphp
                     @foreach($socials as $social)
-                        <a href="{{ $social['link'] ?? '#' }}" class="teacher-social-link"><i class="bi bi-{{ $social['platform'] ?? 'link' }}"></i></a>
+                        <a href="{{ $social['link'] ?? '#' }}" class="teacher-social-link" target="_blank"><i class="bi bi-{{ strtolower(trim($social['platform'] ?? 'link')) }}"></i></a>
                     @endforeach
                   </div>
                 </div>

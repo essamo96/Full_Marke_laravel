@@ -86,7 +86,7 @@
                         <span data-en="{{ $subject->discount_percent }}% OFF" data-ar="{{ $subject->discount_percent }}% خصم">{{ $subject->discount_percent }}% OFF</span>
                       </div>
                     @endif
-                    <img src="{{ asset($subject->image) }}" alt="{{ $subject->name }}" class="news-img">
+                    <img src="{{ $subject->image ? (str_starts_with($subject->image, 'site/') ? asset($subject->image) : asset('storage/' . $subject->image)) : asset('site/images/img/logo_backup.png') }}" alt="{{ $subject->name }}" class="news-img">
                   </div>
                 </div>
                 <div class="col-md-7 d-flex flex-column justify-content-between">
@@ -100,7 +100,7 @@
                     <h3 class="text-xl font-bold mb-2" style="color: var(--text-primary);"
                         data-en="{{ $subject->name_en }}" data-ar="{{ $subject->name_ar }}">{{ $subject->name }}</h3>
                     <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                       data-en="{{ $subject->description_en }}" data-ar="{{ $subject->description_ar }}">{{ $subject->description }}</p>
+                       data-en="{{ strip_tags(html_entity_decode($subject->description_en ?? '')) }}" data-ar="{{ strip_tags(html_entity_decode($subject->description_ar ?? '')) }}">{!! $subject->description !!}</p>
 
                     <div class="d-flex gap-2 mb-3">
                       <div class="date-box">
