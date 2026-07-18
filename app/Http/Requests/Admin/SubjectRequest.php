@@ -22,6 +22,8 @@ class SubjectRequest extends FormRequest
             'image' => 'nullable|image|max:2048',
             'fee' => 'required|numeric|min:0',
             'min_payment' => 'required|numeric|min:0|lte:fee',
+            'reg_start_date' => 'nullable|date',
+            'reg_end_date' => 'nullable|date|after_or_equal:reg_start_date',
             'teacher_ids' => 'nullable|array',
             'teacher_ids.*' => 'exists:teachers,id',
             'order' => 'nullable|integer|min:0',

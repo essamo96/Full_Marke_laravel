@@ -25,8 +25,7 @@
                 <div class="card">
                     <div class="card-header border-0 pt-6">
                         <div class="card-title w-100 mb-0 row">
-                            <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
-                                <label for="generalSearch" class="form-label">بحث بالاسم أو الايميل أو الجوال</label>
+                            <div class="col-12 mb-3">
                                 <div class="d-flex align-items-center position-relative">
                                     <i class="bi bi-search-heart fs-3 position-absolute ms-5"></i>
                                     <input type="text" id="generalSearch" value="{{ old('name') }}"
@@ -34,15 +33,39 @@
                                            placeholder="الاسم، الايميل، الجوال" />
                                 </div>
                             </div>
-                            <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
-                                <label for="status" class="form-label"> @lang('app.status')</label>
+
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                                 <select id="status" name="status" class="form-select form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="الكل">
                                     <option value="">الكل</option>
                                     <option value="1">مفعل</option>
                                     <option value="0">معطل</option>
                                 </select>
                             </div>
-                        </div>
+
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <select id="group_id" name="group_id" class="form-select form-select-solid" data-control="select2" data-placeholder="الكل">
+                                    <option value=""></option>
+                                    @foreach($groups as $group)
+                                        <option value="{{ $group->id }}">{{ $group->name }}@if($group->subject) — {{ app()->getLocale() == 'ar' ? $group->subject->name_ar : $group->subject->name_en }} @endif</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <select id="subject_id" name="subject_id" class="form-select form-select-solid" data-control="select2" data-placeholder="الكل">
+                                    <option value=""></option>
+                                    @foreach($subjects as $subject)
+                                        <option value="{{ $subject->id }}">{{ app()->getLocale() == 'ar' ? $subject->name_ar : $subject->name_en }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3 d-flex align-items-end">
+                                <button type="button" class="btn btn-light-danger h-40px fs-7 fw-bold reset-filters-btn w-100">
+                                    <i class="bi bi-eraser fs-3"></i> @lang('app.clear')
+                                </button>
+                            </div>
+</div>
                     </div>
                     <div class="card-body py-4">
                         @include('admin.layout.masterLayouts.error')
@@ -68,6 +91,7 @@
         </div>
     </div>
     @include('admin.' . $active_menu . '.parts.modal')
+    @include('admin.' . $active_menu . '.parts.password_modal')
 @stop
 @section('js')
     <script>
@@ -77,31 +101,31 @@
                 data: 'DT_RowIndex',
                 orderable: false,
                 searchable: false
-            },
+            , className: 'text-start' },
             {
                 data: 'photo',
                 orderable: false,
                 searchable: false
-            },
+            , className: 'text-start' },
             {
                 data: 'name',
-                className: 'text-center'
+                className: 'text-start'
             },
             {
                 data: 'email',
-                className: 'text-center'
+                className: 'text-start'
             },
             {
                 data: 'phone',
-                className: 'text-center'
+                className: 'text-start'
             },
             {
                 data: 'subjects_count',
-                className: 'text-center'
+                className: 'text-start'
             },
             {
                 data: 'status',
-                className: 'text-center',
+                className: 'text-start',
                 orderable: false,
                 searchable: false
             },
@@ -110,12 +134,14 @@
                 responsivePriority: -1,
                 orderable: false,
                 searchable: false
-            }
+            , className: 'text-start' }
         ];
 
         var filterFields = [
             '#generalSearch',
-            '#status'
+            '#status',
+            '#group_id',
+            '#subject_id'
         ];
         @include('admin.layout.masterLayouts.datatableMaster')
     </script>

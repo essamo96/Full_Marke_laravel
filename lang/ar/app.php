@@ -42,6 +42,7 @@ return [
     'inactive' => 'غير فعّال',
     'search' => 'بحث',
     'reset' => 'إعادة تعيين',
+    'clear' => 'تصفية',
     'parent_group' => 'المجموعة الأب',
     'parent' => 'الجهة التابعة',
     'top_level' => 'قسم رئيسي',

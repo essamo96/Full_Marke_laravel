@@ -54,12 +54,21 @@ class FinancialReportsController extends AdminController
             ->sortByDesc(fn (Registration $r) => $r->remaining_amount)
             ->values();
 
+        $studentStats = [
+            'active' => \App\Models\Student::active()->count(),
+            'inactive' => \App\Models\Student::where('status', false)->count(),
+            'email_verified' => \App\Models\Student::whereNotNull('email_verified_at')->count(),
+            'email_unverified' => \App\Models\Student::whereNull('email_verified_at')->count(),
+        ];
+
         return view('admin.financial_reports.view', self::$data + [
             'totalRevenue' => $totalRevenue,
             'totalOutstanding' => $totalOutstanding,
             'revenueByProgram' => $revenueByProgram,
             'revenueByMethod' => $revenueByMethod,
             'monthlyRevenue' => $monthlyRevenue,
-            'debtors' => $debtors]);
+            'debtors' => $debtors,
+            'studentStats' => $studentStats
+        ]);
     }
 }

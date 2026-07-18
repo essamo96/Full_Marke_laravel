@@ -40,9 +40,9 @@
                     </div>
                     <div class="card-body py-4">
                         @include('admin.layout.masterLayouts.error')
-                        <table id="permissions_group" class="table table-row-bordered gy-5">
+                        <table id="permissions_group" class="table table-striped table-row-bordered gy-5 gs-7">
                             <thead>
-                                <tr class="fw-semibold fs-6 text-muted">
+                                <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
                                     <th>#</th>
                                     <th>{{ \App\Helpers\translate('id') }}</th>
                                     <th>{{ \App\Helpers\translate('name') }} </th>
@@ -69,32 +69,32 @@
         var tableId = 'permissions_group';
         var columns = [{
                 data: 'DT_RowIndex'
-            },
+            , className: 'text-start' },
             {
                 data: 'id'
-            },
+            , className: 'text-start' },
             {
                 data: 'name'
-            },
+            , className: 'text-start' },
             {
                 data: 'name_ar'
-            },
+            , className: 'text-start' },
             {
                 data: 'name_en'
-            },
+            , className: 'text-start' },
             {
                 data: 'parent_id'
-            },
+            , className: 'text-start' },
             {
                 data: 'sort'
-            },
+            , className: 'text-start' },
             {
                 data: 'status'
-            },
+            , className: 'text-start' },
             {
                 data: 'actions',
                 responsivePriority: -1
-            }
+            , className: 'text-start' }
         ];
 
         var filterFields = [

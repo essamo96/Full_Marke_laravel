@@ -15,10 +15,10 @@ class AdminPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Create or ensure Dashboard permission
-        Permission::firstOrCreate(['name' => 'admin.dashboard.view', 'guard_name' => 'admin']);
-
-        // 2. Explicitly define and insert Permissions Groups
+        // 1. Explicitly define and insert Permissions Groups
+        // (the "admin.dashboard.view" permission is generated below via generateCrudPermissions()
+        // so it's created with the correct group_id — do not pre-create it here without a group_id,
+        // firstOrCreate() would leave it permanently orphaned since it won't backfill group_id later)
         $groups = [
             [
                 'name' => 'dashboard',

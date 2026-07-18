@@ -8,6 +8,7 @@ use App\Http\Controllers\Student\CartController;
 use App\Http\Controllers\Student\CheckoutController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\GroupsController;
+use App\Http\Controllers\Student\NotificationsController;
 use App\Http\Controllers\Student\ProfileController;
 use App\Http\Controllers\Student\ProgramsController;
 use App\Http\Controllers\Student\RegistrationsController;
@@ -47,6 +48,10 @@ Route::prefix('student')->name('student.')->group(function () {
 
         Route::get('programs', [ProgramsController::class, 'index'])->name('programs');
         Route::get('groups', [GroupsController::class, 'index'])->name('groups');
+        Route::post('groups/join-by-code', [GroupsController::class, 'joinByCode'])->name('groups.join-by-code');
         Route::get('resources', [ResourcesController::class, 'index'])->name('resources');
+
+        Route::post('notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');
+        Route::post('notifications/read-all', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');
     });
 });

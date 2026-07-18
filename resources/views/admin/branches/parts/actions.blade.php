@@ -1,4 +1,4 @@
-<div class="d-flex justify-content-end flex-shrink-0">
+<div class="d-flex justify-content-start gap-2 flex-shrink-0">
     @if(auth('admin')->user()->can('admin.branches.edit'))
     <a href="{{ route('branches.edit', ['id' => Crypt::encrypt($branch->id)]) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
         <i class="ki-duotone ki-pencil fs-2">

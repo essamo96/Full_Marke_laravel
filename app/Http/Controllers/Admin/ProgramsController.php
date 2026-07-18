@@ -26,7 +26,7 @@ class ProgramsController extends AdminController
 
     public function getList(Request $request)
     {
-        $search = $request->get('search_value');
+        $search = $request->get('name') ?? $request->get('generalSearch') ?? $request->get('search_value');
 
         $programs = Program::withCount('subjects')
             ->when($search, fn ($q) => $q->where(fn ($q2) => $q2

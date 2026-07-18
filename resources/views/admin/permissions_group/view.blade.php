@@ -61,6 +61,45 @@
                 </div>
             </div>
 
+            {{-- ============ إعدادات ألوان القائمة الجانبية (تأثير فوري) ============ --}}
+            <div class="card card-flush mb-6 shadow-sm">
+                <div class="card-header py-5">
+                    <h3 class="card-title fw-bold">
+                        <i class="bi bi-palette text-primary fs-2 me-2"></i>
+                        إعدادات ألوان القائمة الجانبية
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-5">
+                        <div class="col-md-4 col-lg-2">
+                            <label class="form-label d-block">لون الخلفية</label>
+                            <input type="color" class="form-control form-control-color w-100 sidebar-color-picker" id="sidebar_bg_color" data-var="--custom-sidebar-bg-color" value="{{ \App\Models\Setting::getValue('sidebar_bg_color', '#1e1e2d') }}">
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <label class="form-label d-block">لون النصوص</label>
+                            <input type="color" class="form-control form-control-color w-100 sidebar-color-picker" id="sidebar_text_color" data-var="--custom-sidebar-text-color" value="{{ \App\Models\Setting::getValue('sidebar_text_color', '#9899ac') }}">
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <label class="form-label d-block">لون الأيقونات</label>
+                            <input type="color" class="form-control form-control-color w-100 sidebar-color-picker" id="sidebar_icon_color" data-var="--custom-sidebar-icon-color" value="{{ \App\Models\Setting::getValue('sidebar_icon_color', '#494b74') }}">
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <label class="form-label d-block">اللون النشط</label>
+                            <input type="color" class="form-control form-control-color w-100 sidebar-color-picker" id="sidebar_active_color" data-var="--custom-sidebar-active-color" value="{{ \App\Models\Setting::getValue('sidebar_active_color', '#1b1b28') }}">
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <label class="form-label d-block">لون السهم</label>
+                            <input type="color" class="form-control form-control-color w-100 sidebar-color-picker" id="sidebar_arrow_color" data-var="--custom-sidebar-arrow-color" value="{{ \App\Models\Setting::getValue('sidebar_arrow_color', '#494b74') }}">
+                        </div>
+                        <div class="col-md-4 col-lg-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-success w-100" id="save_sidebar_colors_btn">
+                                <i class="bi bi-save me-1"></i>حفظ الألوان
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- ============ بطاقة السحب والإفلات ============ --}}
             <div class="card card-flush shadow-sm">
                 <div class="card-header py-5">
@@ -71,7 +110,7 @@
                     <div class="card-toolbar">
                         <div class="d-flex align-items-center position-relative me-3">
                             <i class="bi bi-search position-absolute ms-3"></i>
-                            <input type="text" id="generalSearch" class="form-control form-control-sm ps-10" placeholder="{{ \App\Helpers\translate('search') }}" style="width:220px;">
+                            <input type="text" id="generalSearch" class="form-control form-control-solid ps-13 generalSearch" placeholder="{{ \App\Helpers\translate('search') }}" />
                         </div>
                         <button type="button" id="save_order_btn" class="btn btn-sm btn-success" disabled>
                             <i class="bi bi-check-lg me-1"></i><span id="save_order_text">{{ \App\Helpers\translate('save_order') }}</span>
@@ -318,6 +357,45 @@
                 e.preventDefault();
                 e.returnValue = '';
             }
+        });
+
+        // ============ إعدادات ألوان القائمة الجانبية (تأثير فوري) ============
+        $('.sidebar-color-picker').on('input', function() {
+            const varName = $(this).data('var');
+            const color = $(this).val();
+            document.documentElement.style.setProperty(varName, color);
+        });
+
+        $('#save_sidebar_colors_btn').on('click', function() {
+            const colors = {
+                sidebar_bg_color: $('#sidebar_bg_color').val(),
+                sidebar_text_color: $('#sidebar_text_color').val(),
+                sidebar_icon_color: $('#sidebar_icon_color').val(),
+                sidebar_active_color: $('#sidebar_active_color').val(),
+                sidebar_arrow_color: $('#sidebar_arrow_color').val()
+            };
+
+            const btn = $(this);
+            const originalText = btn.html();
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> جاري الحفظ...');
+
+            $.post('{{ route("settings.update_sidebar_colors") }}', { 
+                _token: CSRF_TOKEN, 
+                colors: colors 
+            })
+            .done(function(res) {
+                if (res.status === 'success') {
+                    Swal.fire({ icon: 'success', title: 'تم الحفظ بنجاح', timer: 1500, showConfirmButton: false });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'حدث خطأ أثناء الحفظ' });
+                }
+            })
+            .fail(function() {
+                Swal.fire({ icon: 'error', title: 'حدث خطأ في الاتصال بالخادم' });
+            })
+            .always(function() {
+                btn.prop('disabled', false).html(originalText);
+            });
         });
     });
 </script>

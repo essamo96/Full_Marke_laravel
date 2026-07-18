@@ -23,6 +23,7 @@ class PermissionsGroup extends Model
         'name_ar',
         'name_en',
         'color',
+        'bg_color',
         'icon',
         'sort',
         'status',

@@ -38,7 +38,7 @@ class TeamsController extends AdminController
         $obj = new Team();
         $info = $obj->getSearch($name, $companies, 0);
 
-        if ($request->has('status') && $request->get('status') !== null) {
+        if ($request->filled('status')) {
             $info->where('teams.status', $request->get('status'));
         }
 

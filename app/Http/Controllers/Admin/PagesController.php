@@ -39,7 +39,7 @@ class PagesController extends AdminController
         $obj = new Page();
         $info = $obj->getSearch($name, $companies, 0);
 
-        if ($request->has('status') && $request->get('status') !== null) {
+        if ($request->filled('status')) {
             $info->where('pages.status', $request->get('status'));
         }
 

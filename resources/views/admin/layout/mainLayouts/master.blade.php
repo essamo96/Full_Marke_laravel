@@ -7,10 +7,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="shortcut icon" href="{{ asset('site/images/logo_v2_blue.png') }}" />
     
     <!--begin::Fonts-->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap&subset=arabic" rel="stylesheet" />
+    <!-- Fonts commented out to resolve ERR_NAME_NOT_RESOLVED -->
+    <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" /> -->
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap&subset=arabic" rel="stylesheet" /> -->
     <!--end::Fonts-->
     
     <!-- datatable css -->
@@ -25,6 +27,16 @@
             body, .app-sidebar-menu * { font-family: 'Cairo', sans-serif !important; }
             [data-kt-app-sidebar-minimize="on"] .my-custom-logo { display: none !important; }
             #kt_app_header { z-index: 1050 !important; }
+            .select2-container--bootstrap5 .select2-selection--multiple .select2-selection__choice {
+                display: flex;
+                flex-direction: row-reverse;
+            }
+            .select2-container--bootstrap5 .select2-selection--multiple .select2-selection__choice__remove {
+                margin-right: 0.5rem !important;
+                margin-left: 0 !important;
+                border-right: 1px solid rgba(255,255,255,0.2) !important;
+                border-left: 0 !important;
+            }
         </style>
     @else
         <link href="{{ asset('assets/admin/css/style.bundle.css?v=7.2.9') }}" rel="stylesheet" type="text/css" />
@@ -49,6 +61,49 @@
         }
         .btn.btn-icon.btn-xs i {
             font-size: 0.85rem !important;
+        }
+        
+        /* Dynamic Sidebar Colors */
+        :root {
+            --custom-sidebar-bg-color: {{ \App\Models\Setting::getValue('sidebar_bg_color', '#1e1e2d') }};
+            --custom-sidebar-text-color: {{ \App\Models\Setting::getValue('sidebar_text_color', '#9899ac') }};
+            --custom-sidebar-icon-color: {{ \App\Models\Setting::getValue('sidebar_icon_color', '#494b74') }};
+            --custom-sidebar-active-color: {{ \App\Models\Setting::getValue('sidebar_active_color', '#1b1b28') }};
+            --custom-sidebar-arrow-color: {{ \App\Models\Setting::getValue('sidebar_arrow_color', '#494b74') }};
+        }
+        
+        [data-kt-app-layout="dark-sidebar"] .app-sidebar {
+            background-color: var(--custom-sidebar-bg-color) !important;
+            border-right: 0 !important;
+            border-left: 0 !important;
+            box-shadow: none !important;
+        }
+        [data-kt-app-layout="dark-sidebar"] .app-header-logo {
+            background-color: var(--custom-sidebar-bg-color) !important;
+            border-bottom: 0 !important;
+            border-right: 0 !important;
+            border-left: 0 !important;
+            box-shadow: none !important;
+        }
+        [data-kt-app-layout="dark-sidebar"] .app-sidebar-toggle {
+            background-color: var(--custom-sidebar-bg-color) !important;
+            border: 1px solid var(--custom-sidebar-text-color) !important;
+            color: var(--custom-sidebar-text-color) !important;
+        }
+        .app-sidebar .menu-item .menu-link .menu-title {
+            color: var(--custom-sidebar-text-color) !important;
+        }
+        .app-sidebar .menu-item .menu-icon i {
+            color: var(--custom-sidebar-icon-color) !important;
+        }
+        .app-sidebar .menu-item.here > .menu-link,
+        .app-sidebar .menu-item.active > .menu-link,
+        .app-sidebar .menu-item.show > .menu-link,
+        .app-sidebar .menu-link:hover {
+            background-color: var(--custom-sidebar-active-color) !important;
+        }
+        .app-sidebar .menu-item .menu-arrow:after {
+            background-color: var(--custom-sidebar-arrow-color) !important;
         }
     </style>
 </head>
@@ -184,8 +239,11 @@
     @yield('js')
     
     @if(auth('admin')->check())
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <!-- Pusher via JSDelivr to resolve ERR_TIMED_OUT on js.pusher.com -->
+    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.3.0/dist/web/pusher.min.js"></script>
     <script>
+        // Enable pusher logging - don't include this in production
+        Pusher.logToConsole = true;
         document.addEventListener('DOMContentLoaded', function () {
             // Check if Pusher is available
             if (typeof Pusher !== 'undefined') {
@@ -196,15 +254,15 @@
                 if(appKey) {
                     var pusherOptions = {
                         cluster: '{{ env("PUSHER_APP_CLUSTER", "mt1") }}',
-                        forceTLS: true
+                        forceTLS: true,
+                        disableStats: true,
+                        enabledTransports: ['ws', 'wss']
                     };
 
                     if (isReverb) {
                         pusherOptions.wsHost = window.location.hostname;
                         pusherOptions.wsPort = {{ env('REVERB_SERVER_PORT', 8080) }};
                         pusherOptions.forceTLS = false;
-                        pusherOptions.disableStats = true;
-                        pusherOptions.enabledTransports = ['ws', 'wss'];
                     }
 
                     var pusher = new Pusher(appKey, pusherOptions);
@@ -484,6 +542,9 @@
     </script>
     @endif
     <!--end::Javascript-->
+    @include('admin.enrolment._modal')
+    @include('admin.enrolment._modal_transfer')
+    @include('admin.partials.student_sidebar')
 </body>
 <!--end::Body-->
 </html>

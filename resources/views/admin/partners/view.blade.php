@@ -43,9 +43,9 @@
                     </div>
                     <div class="card-body py-4">
                         @include('admin.layout.masterLayouts.error')
-                        <table id="partners" class="table table-row-bordered gy-5">
+                        <table id="partners" class="table table-striped table-row-bordered gy-5 gs-7">
                             <thead>
-                                <tr class="fw-semibold fs-6 text-muted">
+                                <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
                                     <th>#</th>
                                     <th>{{ \App\Helpers\translate('name') }}</th>
                                     
@@ -73,21 +73,21 @@
         var tableId = 'partners';
         var columns = [{
                 data: 'DT_RowIndex'
-            },
+            , className: 'text-start' },
             {
                 data: "partner_name"
-            },
+            , className: 'text-start' },
             {
                 data: "image"
-            },
+            , className: 'text-start' },
             {
                 data: "status"
-            },
+            , className: 'text-start' },
 
             {
                 data: 'actions',
                 responsivePriority: -1
-            }
+            , className: 'text-start' }
         ];
 
         @include('admin.layout.masterLayouts.datatableMaster')

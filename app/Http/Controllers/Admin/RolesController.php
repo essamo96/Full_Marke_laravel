@@ -84,7 +84,7 @@ class RolesController extends AdminController
         $info = Role::when($name, function ($q) use ($name) {
                 return $q->where('name', 'like', "%{$name}%");
             })
-            ->when($status !== null, function ($q) use ($status) {
+            ->when($status !== null && $status !== '', function ($q) use ($status) {
                 return $q->where('status', $status);
             })
             ->latest()

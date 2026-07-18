@@ -72,8 +72,9 @@ class SiteSettingsController extends AdminController
             'enable_newsletter' => $request->boolean('enable_newsletter'),
             'enable_live_chat' => $request->boolean('enable_live_chat'),
             'show_registration_button' => $request->boolean('show_registration_button'),
+            'currency' => $request->input('currency', 'JOD'),
         ];
-        $validated['options'] = json_encode($options, JSON_UNESCAPED_UNICODE);
+        $validated['options'] = $options;
 
         $record->fill($validated)->save();
 

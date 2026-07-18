@@ -29,7 +29,7 @@
                                                 data-bs-toggle="collapse" data-bs-target="#collapse_{{ $group->id }}"
                                                 aria-expanded="false" aria-controls="collapse_{{ $group->id }}">
                                                 <i class="{{ $group->icon ?? 'bi bi-diagram-3' }} fs-2 text-{{ $group->color ?? 'dark' }} me-3"></i>
-                                                {{ $group->name }}
+                                                {{ $group->{'name_' . app()->getLocale()} ?? $group->name }}
                                             </button>
                                         </h2>
                                         <div id="collapse_{{ $group->id }}" class="accordion-collapse collapse"

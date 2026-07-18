@@ -27,7 +27,6 @@
                     <div class="card-header border-0 pt-6">
                         <div class="card-title w-100 mb-0 row">
                             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
-                                <label for="generalSearch" class="form-label">{{ \App\Helpers\translate('generalSearch') }}</label>
                                 <div class="d-flex align-items-center position-relative">
                                     <i class="bi bi-search-heart fs-3 position-absolute ms-5"></i>
                                     <input type="text" id="generalSearch" value="{{ old('name') }}"
@@ -36,14 +35,20 @@
                                 </div>
                             </div>
                             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
-                                <label for="status" class="form-label"> @lang('app.status')</label>
                                 <select id="status" name="status" class="form-select form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="الكل">
                                     <option value="">الكل</option>
                                     <option value="1">مفعل</option>
                                     <option value="0">معطل</option>
                                 </select>
+                            
                             </div>
-                        </div>
+                        
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <button type="button" class="btn btn-light-danger h-40px fs-7 fw-bold reset-filters-btn w-100">
+                                    <i class="bi bi-eraser fs-3"></i> @lang('app.clear')
+                                </button>
+                            </div>
+</div>
                     </div>
                     <div class="card-body py-4">
                         @include('admin.layout.masterLayouts.error')
@@ -74,21 +79,21 @@
         var tableId = 'pages';
         var columns = [{
                 data: 'DT_RowIndex'
-            },
+            , className: 'text-start' },
             {
                 data: "title"
-            },
+            , className: 'text-start' },
             {
                 data: "slug"
-            },
+            , className: 'text-start' },
             {
                 data: "status"
-            },
+            , className: 'text-start' },
 
             {
                 data: 'actions',
                 responsivePriority: -1
-            }
+            , className: 'text-start' }
         ];
 
         var filterFields = [

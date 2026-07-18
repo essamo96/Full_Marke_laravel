@@ -45,8 +45,7 @@
                 <div class="card">
                     <div class="card-header border-0 pt-6">
                         <div class="card-title w-100 mb-0 row">
-                            <div class="{{ $program ? 'col-lg-6' : 'col-lg-4' }} col-md-6 col-sm-12 mb-3">
-                                <label for="generalSearch" class="form-label">بحث</label>
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                                 <div class="d-flex align-items-center position-relative">
                                     <i class="bi bi-search-heart fs-3 position-absolute ms-5"></i>
                                     <input type="text" id="generalSearch" value="{{ old('search_value') }}"
@@ -55,8 +54,7 @@
                                 </div>
                             </div>
                             @if(!$program)
-                            <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
-                                <label for="program_id" class="form-label">البرنامج</label>
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                                 <select id="program_id" name="program_id" class="form-select form-select-solid" data-control="select2" data-placeholder="الكل">
                                     <option value=""></option>
                                     @foreach($programs as $prog)
@@ -65,15 +63,20 @@
                                 </select>
                             </div>
                             @endif
-                            <div class="{{ $program ? 'col-lg-6' : 'col-lg-4' }} col-md-6 col-sm-12 mb-3">
-                                <label for="is_active" class="form-label">الحالة</label>
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                                 <select id="is_active" name="is_active" class="form-select form-select-solid" data-control="select2" data-placeholder="الكل">
                                     <option value=""></option>
                                     <option value="1">مفعل</option>
                                     <option value="0">معطل</option>
                                 </select>
                             </div>
-                        </div>
+                        
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <button type="button" class="btn btn-light-danger h-40px fs-7 fw-bold reset-filters-btn w-100">
+                                    <i class="bi bi-eraser fs-3"></i> @lang('app.clear')
+                                </button>
+                            </div>
+</div>
                     </div>
                     <div class="card-body py-4">
                         @include('admin.layout.masterLayouts.error')
@@ -107,22 +110,22 @@
                 data: 'image',
                 orderable: false,
                 searchable: false
-            },
+            , className: 'text-start' },
             {
                 data: 'name',
-                className: 'text-center'
+                className: 'text-start'
             },
             {
                 data: 'groups_count',
-                className: 'text-center'
+                className: 'text-start'
             },
             {
                 data: 'fee',
-                className: 'text-center'
+                className: 'text-start'
             },
             {
                 data: 'status',
-                className: 'text-center',
+                className: 'text-start',
                 orderable: false,
                 searchable: false
             },
@@ -131,11 +134,11 @@
                 responsivePriority: -1,
                 orderable: false,
                 searchable: false
-            }
+            , className: 'text-start' }
         ];
 
         var filterFields = [
-            '#generalSearch',
+'#generalSearch',
             '#program_id',
             '#is_active'
         ];

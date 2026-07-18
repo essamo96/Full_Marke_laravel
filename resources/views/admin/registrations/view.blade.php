@@ -16,7 +16,7 @@
                 <div class="card">
                     <div class="card-header border-0 pt-6">
                         <div class="card-title w-100 mb-0 row">
-                            <div class="col-lg-12 col-md-12 col-sm-12 mb-3">
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                                 <form action="{{ route('registrations.view') }}" method="GET" class="d-flex w-100">
                                     <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm form-control-solid me-2 w-200px" placeholder="بحث برقم التسجيل أو اسم الطالب">
                                     <select name="status" class="form-select form-select-sm form-select-solid me-2 w-150px">
@@ -35,7 +35,21 @@
                                     <a href="{{ route('registrations.view') }}" class="btn btn-sm btn-light ms-2">إلغاء</a>
                                 </form>
                             </div>
-                        </div>
+                        
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <select id="status" name="status" class="form-select form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="الكل">
+                                    <option value="">الكل</option>
+                                    <option value="1">مفعل</option>
+                                    <option value="0">معطل</option>
+                                </select>
+                            
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <button type="button" class="btn btn-light-danger h-40px fs-7 fw-bold reset-filters-btn w-100">
+                                    <i class="bi bi-eraser fs-3"></i> @lang('app.clear')
+                                </button>
+                            </div>
+</div>
                     </div>
                     <div class="card-body py-4">
                         @include('admin.layout.masterLayouts.error')

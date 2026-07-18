@@ -42,6 +42,7 @@ return [
     'inactive' => 'Inactive',
     'search' => 'Search',
     'reset' => 'Reset',
+    'clear' => 'Clear',
     'parent_group' => 'Parent Group',
     'parent' => 'Parent Entity',
     'top_level' => 'Top Level',

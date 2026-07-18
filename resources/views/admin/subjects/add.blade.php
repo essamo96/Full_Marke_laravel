@@ -79,6 +79,16 @@
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-md-6">
+                                            <label class="p-2">تاريخ بدء التسجيل</label>
+                                            <input type="date" name="reg_start_date" value="{{ old('reg_start_date', isset($info->reg_start_date) ? $info->reg_start_date->format('Y-m-d') : '') }}" class="form-control">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="p-2">تاريخ انتهاء التسجيل</label>
+                                            <input type="date" name="reg_end_date" value="{{ old('reg_end_date', isset($info->reg_end_date) ? $info->reg_end_date->format('Y-m-d') : '') }}" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
                                             <label class="p-2">الوصف (عربي)</label>
                                             <textarea name="description_ar" class="form-control" rows="3">{{ old('description_ar', $info->description_ar ?? '') }}</textarea>
                                         </div>

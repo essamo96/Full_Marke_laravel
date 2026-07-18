@@ -37,4 +37,18 @@ class SettingsController extends AdminController
 
         return redirect()->route('settings.view')->with('success', __('app.update_success'));
     }
+
+    public function postUpdateSidebarColors(Request $request)
+    {
+        $colors = $request->input('colors');
+        if (is_array($colors)) {
+            foreach ($colors as $key => $value) {
+                if (in_array($key, ['sidebar_bg_color', 'sidebar_text_color', 'sidebar_icon_color', 'sidebar_active_color', 'sidebar_arrow_color'])) {
+                    Setting::updateOrCreate(['key' => $key], ['value' => $value, 'group' => 'sidebar']);
+                }
+            }
+        }
+        
+        return response()->json(['status' => 'success', 'message' => __('app.update_success') ?? 'نجاح']);
+    }
 }

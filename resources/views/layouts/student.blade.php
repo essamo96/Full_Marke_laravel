@@ -6,6 +6,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>@yield('title', 'Student Dashboard | FULL MARK ACADEMY')</title>
   <meta name="description" content="Student Dashboard for Full Mark Academy">
 
@@ -113,6 +114,146 @@
       });
     });
   </script>
+
+  @auth('student')
+  <!-- Notifications: mark-read handlers -->
+  <script>
+    (function () {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+      function postJson(url) {
+        return fetch(url, {
+          method: 'POST',
+          keepalive: true,
+          headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+          }
+        });
+      }
+
+      document.addEventListener('click', function (e) {
+        const item = e.target.closest('.student-notification-item');
+        if (item) {
+          postJson(`/student/notifications/${item.dataset.id}/read`);
+        }
+      });
+
+      const markAllBtn = document.getElementById('studentMarkAllReadBtn');
+      if (markAllBtn) {
+        markAllBtn.addEventListener('click', function () {
+          postJson('{{ route("student.notifications.read-all") }}').then(function () {
+            document.querySelectorAll('.student-notification-item').forEach(el => el.remove());
+            const list = document.getElementById('studentNotificationsList');
+            if (list && !document.getElementById('studentNoNotificationsMsg')) {
+              const p = document.createElement('p');
+              p.className = 'text-muted text-center py-6 mb-0';
+              p.id = 'studentNoNotificationsMsg';
+              p.textContent = 'لا توجد إشعارات جديدة';
+              list.appendChild(p);
+            }
+            const badge = document.getElementById('studentNotificationsBadge');
+            if (badge) {
+              badge.classList.add('d-none');
+              badge.textContent = '0';
+            }
+          });
+        });
+      }
+    })();
+  </script>
+
+  <!-- Notifications: real-time delivery -->
+  <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.3.0/dist/web/pusher.min.js"></script>
+  <script>
+    (function () {
+      if (typeof Pusher === 'undefined') return;
+
+      const connection = '{{ env("BROADCAST_CONNECTION", "pusher") }}';
+      const isReverb = connection === 'reverb';
+      const appKey = isReverb ? '{{ env("REVERB_APP_KEY") }}' : '{{ env("PUSHER_APP_KEY") }}';
+      if (!appKey) return;
+
+      const pusherOptions = {
+        cluster: '{{ env("PUSHER_APP_CLUSTER", "mt1") }}',
+        forceTLS: true,
+        disableStats: true,
+        enabledTransports: ['ws', 'wss']
+      };
+      if (isReverb) {
+        pusherOptions.wsHost = window.location.hostname;
+        pusherOptions.wsPort = {{ env('REVERB_SERVER_PORT', 8080) }};
+        pusherOptions.forceTLS = false;
+      }
+
+      const pusher = new Pusher(appKey, pusherOptions);
+      const channel = pusher.subscribe('student-notifications.{{ auth("student")->id() }}');
+
+      function handleIncoming(data) {
+        const message = typeof data.message === 'object' ? data.message.message : data.message;
+        const url = data.url || '#';
+
+        // Badge
+        const badge = document.getElementById('studentNotificationsBadge');
+        if (badge) {
+          const current = parseInt(badge.textContent || '0', 10) || 0;
+          badge.textContent = current + 1;
+          badge.classList.remove('d-none');
+        }
+
+        // Dropdown list
+        const list = document.getElementById('studentNotificationsList');
+        const noMsg = document.getElementById('studentNoNotificationsMsg');
+        if (noMsg) noMsg.remove();
+        if (list) {
+          const item = document.createElement('a');
+          item.href = url;
+          item.className = 'd-block text-decoration-none p-2 rounded mb-1 student-notification-item';
+          item.style.background = 'var(--bg-secondary)';
+          item.style.color = 'var(--text-primary)';
+          item.innerHTML = `<div class="fs-7">${message}</div><div class="text-muted" style="font-size: 0.7rem;">الآن</div>`;
+          list.insertAdjacentElement('afterbegin', item);
+        }
+
+        showStudentToast(message);
+
+        // Play Notification Sound
+        var audio = new Audio('{{ asset("assets/sounds/notification.mp3") }}');
+        var playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(function(error) {
+            console.log('Audio play failed: ', error);
+          });
+        }
+      }
+
+      channel.bind('StudentFeeDuesEvent', handleIncoming);
+      channel.bind('StudentPaymentConfirmedEvent', handleIncoming);
+    })();
+
+    function showStudentToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'position-fixed shadow-lg';
+      toast.style.cssText = 'top: 20px; inset-inline-end: 20px; z-index: 2000; max-width: 320px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--separator-color); border-radius: 12px; padding: 14px 16px; opacity: 0; transform: translateY(-10px); transition: all .3s ease;';
+      toast.innerHTML = `
+        <div class="d-flex align-items-start gap-2">
+          <i class="bi bi-bell-fill" style="color: var(--gold, #c5a880);"></i>
+          <div class="fs-7">${message}</div>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+      });
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 6000);
+    }
+  </script>
+  @endauth
 </body>
 </html>
 @stack('scripts')

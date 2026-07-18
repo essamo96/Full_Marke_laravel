@@ -14,8 +14,8 @@
 							<!--end::Sidebar mobile toggle-->
 							<!--begin::Logo-->
 							<a href="{{ route('admin.dashboard') }}" class="app-sidebar-logo my-custom-logo">
-								<img alt="Logo" src="{{ asset('site/images/logo_v2_blue.png') }}" class="h-65px theme-light-show" />
-								<img alt="Logo" src="{{ asset('site/images/full_mark_dark.png') }}" class="h-65px theme-dark-show" />
+								<img alt="Logo" src="{{ asset('site/images/logo_v2_blue.png') }}" class="h-50px theme-light-show" />
+								<img alt="Logo" src="{{ asset('site/images/full_mark_dark.png') }}" class="h-50px theme-dark-show" />
 							</a>
 							<!--end::Logo-->
 						</div>
@@ -635,6 +635,13 @@
 								</div>
 								<!--end::Search-->
 							</div>
+							<!--begin::Student Inquiry-->
+							<div class="app-navbar-item ms-2 ms-lg-6">
+								<a href="#" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px" id="kt_student_inquiry_toggle" data-bs-toggle="tooltip" title="استعلامات الطلاب">
+									<i class="ki-outline ki-user-square fs-1"></i>
+								</a>
+							</div>
+							<!--end::Student Inquiry-->
 							<!--begin::Clear Cache-->
 							<div class="app-navbar-item ms-2 ms-lg-6">
 								<a href="{{ route('admin.clear-cache') }}" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px" data-bs-toggle="tooltip" title="Clear Cache">
@@ -656,10 +663,10 @@
     <!--begin::Menu-->
     <div class="menu menu-sub menu-sub-dropdown menu-column w-350px w-lg-375px" data-kt-menu="true" id="kt_menu_notifications">
         <!--begin::Heading-->
-        <div class="d-flex flex-column bgi-no-repeat rounded-top" style="background-image:url('{{ asset('assets/admin/media/misc/menu-header-bg.jpg') }}')">
+        <div class="d-flex flex-column flex-center bgi-no-repeat rounded-top px-9 py-10" style="background-image:url('{{ asset('assets/admin/media/misc/menu-header-bg.jpg') }}')">
             <!--begin::Title-->
-            <h3 class="text-white fw-semibold px-9 mt-10 mb-6">@lang('app.notifications')
-            <span class="fs-8 opacity-75 ps-3" id="notification_count_text">{{ auth('admin')->check() ? auth('admin')->user()->unreadNotifications->count() : 0 }} @lang('app.new')</span></h3>
+            <h3 class="text-white fw-semibold mb-3">@lang('app.notifications')</h3>
+            <span class="badge bg-primary text-inverse-primary py-2 px-3" id="notification_count_text">{{ auth('admin')->check() ? auth('admin')->user()->unreadNotifications->count() : 0 }} @lang('app.new')</span>
             <!--end::Title-->
         </div>
         <!--end::Heading-->
@@ -696,7 +703,11 @@
                             </div>
                             <!--end::Item-->
                         @empty
-                            <div class="text-center py-4 text-muted" id="no_notifications_msg">لا توجد إشعارات جديدة</div>
+                            <div class="text-center px-4 py-8" id="no_notifications_msg">
+                                <img src="{{ asset('assets/admin/media/illustrations/sketchy-1/5.png') }}" alt="No notifications" class="mw-100 mh-200px theme-light-show" />
+                                <img src="{{ asset('assets/admin/media/illustrations/sketchy-1/5-dark.png') }}" alt="No notifications" class="mw-100 mh-200px theme-dark-show" />
+                                <div class="fs-6 text-muted mt-4">لا توجد إشعارات جديدة</div>
+                            </div>
                         @endforelse
                     @endif
                 </div>
@@ -796,10 +807,10 @@
 									@endif
 								</div>
 								<!--begin::User account menu-->
-								<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px" data-kt-menu="true" style="z-index: 1050 !important;">
+								<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold pb-4 fs-6 w-275px" data-kt-menu="true" style="z-index: 1050 !important;">
 									<!--begin::Menu item-->
-									<div class="menu-item px-3">
-										<div class="menu-content d-flex align-items-center px-3">
+									<div class="menu-item px-0">
+										<div class="menu-content d-flex align-items-center px-9 py-10 bgi-no-repeat rounded-top" style="background-image:url('{{ asset('assets/admin/media/misc/menu-header-bg.jpg') }}')">
 											<!--begin::Avatar-->
 											<div class="symbol symbol-50px me-5 symbol-circle">
 												@if(auth('admin')->user() && auth('admin')->user()->photo)
@@ -811,9 +822,9 @@
 											<!--end::Avatar-->
 											<!--begin::Username-->
 											<div class="d-flex flex-column">
-												<div class="fw-bold d-flex align-items-center fs-5">{{ auth('admin')->user()->name ?? 'Admin' }}
+												<div class="fw-bold d-flex align-items-center fs-5 text-white">{{ auth('admin')->user()->name ?? 'Admin' }}
 												<span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">{{ auth('admin')->user() && auth('admin')->user()->roles->count() > 0 ? auth('admin')->user()->roles->pluck('name')->implode(', ') : 'Admin' }}</span></div>
-												<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">{{ auth('admin')->user()->email ?? 'admin@domain.com' }}</a>
+												<a href="#" class="fw-semibold text-white opacity-75 text-hover-primary fs-7">{{ auth('admin')->user()->email ?? 'admin@domain.com' }}</a>
 											</div>
 											<!--end::Username-->
 										</div>

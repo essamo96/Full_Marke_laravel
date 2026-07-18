@@ -40,6 +40,7 @@ class SidebarController extends AdminController
         $group->name_en = $validatedData['name_en'] ?? $group->name_en;
         $group->icon = $validatedData['icon'] ?? $group->icon;
         $group->color = $validatedData['color'] ?? $group->color;
+        $group->bg_color = $validatedData['bg_color'] ?? $group->bg_color;
         $group->sort = $validatedData['sort'] ?? $group->sort ?? 0;
         $group->parent_id = $validatedData['parent_id'] ?? $group->parent_id ?? 0;
         $group->status = $request->has('status') ? 1 : 0;
@@ -281,7 +282,8 @@ class SidebarController extends AdminController
         
         $group = PermissionsGroup::find($id);
         if ($group) {
-            $group->color = $request->input('color');
+            if ($request->has('color')) $group->color = $request->input('color');
+            if ($request->has('bg_color')) $group->bg_color = $request->input('bg_color');
             $group->save();
             Cache::forget('spatie.permission.cache');
             return response()->json(['status' => 'success', 'message' => __('app.update_success') ?? 'نجاح']);

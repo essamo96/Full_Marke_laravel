@@ -32,6 +32,7 @@ class RegionsController extends AdminController
             ->when($search, fn ($q) => $q->where(fn ($q2) => $q2
                 ->where('name_ar', 'like', "%{$search}%")
                 ->orWhere('name_en', 'like', "%{$search}%")))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->get('status')))
             ->orderBy('id', 'desc');
 
         return DataTables::of($regions)

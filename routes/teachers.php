@@ -11,3 +11,4 @@ Route::get('teachers/edit/{id}', [TeachersController::class, 'getEdit'])->name('
 Route::post('teachers/edit/{id}', [TeachersController::class, 'postEdit'])->name('teachers.edit.submit')->middleware('permission:admin.teachers.edit');
 Route::post('teachers/status', [TeachersController::class, 'postStatus'])->name('teachers.status')->middleware('permission:admin.teachers.status');
 Route::post('teachers/delete', [TeachersController::class, 'postDelete'])->name('teachers.delete')->middleware('permission:admin.teachers.delete');
+Route::post('teachers/change-password', [TeachersController::class, 'postChangePassword'])->name('teachers.change_password')->middleware('permission:admin.teachers.change_password');

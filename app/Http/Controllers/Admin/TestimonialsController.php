@@ -27,9 +27,13 @@ class TestimonialsController extends AdminController
     public function getList(Request $request)
     {
         $name = $request->get('name') ?? '';
-        
+
         $obj = new Testimonial();
         $info = $obj->getSearch($name);
+
+        if ($request->filled('status')) {
+            $info->where('testimonials.status', $request->get('status'));
+        }
 
         return Datatables::of($info)
             ->editColumn('image', function ($row) {

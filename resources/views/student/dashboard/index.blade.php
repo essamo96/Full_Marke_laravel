@@ -131,6 +131,27 @@
           </div>
         @endif
 
+        <!-- Join Group By Code Section -->
+        <div class="glass-panel rounded-4 p-4 mb-4">
+          <div class="row align-items-center">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <h4 class="fw-bold mb-1" style="color: var(--text-primary);" data-en="Join Group with Code" data-ar="الانضمام لمجموعة عبر الكود">Join Group with Code</h4>
+              <p class="text-sm opacity-75 mb-0" data-en="Enter the branching code provided by your teacher to join a study group directly." data-ar="أدخل كود التشعيب الخاص بالمجموعة للانضمام إليها مباشرة.">Enter the branching code provided by your teacher to join a study group directly.</p>
+            </div>
+            <div class="col-md-6">
+              <form id="joinGroupForm" class="d-flex gap-2">
+                <input type="text" id="groupJoinCodeInput" class="form-control form-control-solid bg-white/5 border-1 border-white/10 text-white" placeholder="أدخل الكود هنا (مثال: G-12345)" required>
+                <button type="submit" class="btn btn-luxury px-4 flex-shrink-0" id="joinGroupBtn">
+                  <span class="indicator-label" data-en="Join" data-ar="انضمام">Join</span>
+                  <span class="indicator-progress d-none"><i class="fas fa-circle-notch fa-spin"></i></span>
+                </button>
+              </form>
+              <div id="joinGroupFeedback" class="mt-2 text-sm d-none"></div>
+              <a href="#" id="joinGroupRegisterBtn" class="btn btn-sm btn-outline-warning mt-2 d-none" data-en="Go to Registration" data-ar="الانتقال إلى حجز المقعد">الانتقال إلى حجز المقعد</a>
+            </div>
+          </div>
+        </div>
+
         <div class="row g-4">
           <!-- My Registered Subjects -->
           <div class="col-lg-8">
@@ -248,4 +269,61 @@
           </div>
         </div>
 
+@push('scripts')
+<script>
+  document.getElementById('joinGroupForm')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const btn = document.getElementById('joinGroupBtn');
+    const input = document.getElementById('groupJoinCodeInput');
+    const feedback = document.getElementById('joinGroupFeedback');
+    const registerBtn = document.getElementById('joinGroupRegisterBtn');
+    
+    btn.disabled = true;
+    btn.querySelector('.indicator-label').classList.add('d-none');
+    btn.querySelector('.indicator-progress').classList.remove('d-none');
+    feedback.classList.add('d-none');
+    registerBtn.classList.add('d-none');
+
+    fetch('{{ route("student.groups.join-by-code") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ code: input.value })
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(({ status, body }) => {
+      btn.disabled = false;
+      btn.querySelector('.indicator-label').classList.remove('d-none');
+      btn.querySelector('.indicator-progress').classList.add('d-none');
+
+      feedback.classList.remove('d-none');
+      if (status === 200 && body.success) {
+        feedback.className = 'mt-2 text-sm text-success';
+        feedback.textContent = body.message;
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        feedback.className = 'mt-2 text-sm text-danger';
+        feedback.textContent = body.message || 'حدث خطأ غير متوقع.';
+        
+        if (body.needs_registration && body.program_url) {
+          registerBtn.href = body.program_url;
+          registerBtn.classList.remove('d-none');
+        }
+      }
+    })
+    .catch(error => {
+      btn.disabled = false;
+      btn.querySelector('.indicator-label').classList.remove('d-none');
+      btn.querySelector('.indicator-progress').classList.add('d-none');
+      
+      feedback.classList.remove('d-none');
+      feedback.className = 'mt-2 text-sm text-danger';
+      feedback.textContent = 'حدث خطأ في الاتصال بالخادم.';
+    });
+  });
+</script>
+@endpush
 @endsection

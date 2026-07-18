@@ -88,6 +88,34 @@
                         @endif
                     @endcan
                 @endforeach
+
+                <!-- Static Links added for new features -->
+                <div class="menu-item">
+                    <a class="menu-link {{ (request()->routeIs('educational_materials.*')) ? 'active' : '' }}" href="{{ route('educational_materials.index') }}">
+                        <span class="menu-icon">
+                            <i class="ki-duotone ki-book fs-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                                <span class="path3"></span>
+                                <span class="path4"></span>
+                            </i>
+                        </span>
+                        <span class="menu-title">المواد التعليمية (الهرمية)</span>
+                    </a>
+                </div>
+                <div class="menu-item">
+                    <a class="menu-link {{ (request()->routeIs('financial_reports.*')) ? 'active' : '' }}" href="{{ route('financial_reports.view') }}">
+                        <span class="menu-icon">
+                            <i class="ki-duotone ki-dollar fs-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                                <span class="path3"></span>
+                            </i>
+                        </span>
+                        <span class="menu-title">الإدارة المالية</span>
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>

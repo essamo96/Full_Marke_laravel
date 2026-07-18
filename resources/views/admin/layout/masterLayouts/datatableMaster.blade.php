@@ -66,6 +66,28 @@ $(document).ready(function() {
     $('#generalSearch, #companies').on('input change', function () {
          table.ajax.reload(null, false);
     });
+
+    $(document).on('click', '.reset-filters-btn', function(e) {
+        e.preventDefault();
+        
+        if (typeof filterFields !== 'undefined') {
+            filterFields.forEach(function(field) {
+                let $el = $(field);
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.val(null).trigger('change.select2');
+                } else if ($el.is(':checkbox') || $el.is(':radio')) {
+                    $el.prop('checked', false);
+                } else {
+                    $el.val('');
+                }
+            });
+        }
+        $('#generalSearch').val('');
+        $('#companies').val('');
+        
+        table.search('').columns().search('').draw();
+        table.ajax.reload(null, false);
+    });
     var hasStatusColumn = columns.some(col => col.data === 'status');
 
     @include('admin.layout.masterLayouts.delete')
@@ -73,4 +95,6 @@ $(document).ready(function() {
         if (hasStatusColumn) {
             @include('admin.layout.masterLayouts.status')
         }
+
+    @include('admin.layout.masterLayouts.delete-status-simple')
 });

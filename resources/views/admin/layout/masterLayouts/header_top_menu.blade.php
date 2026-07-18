@@ -116,6 +116,17 @@
             <!--end::Menu wrapper-->
             <!--begin::Navbar-->
             <div class="app-navbar flex-shrink-0">
+                <!--begin::Student Inquiry Toggle-->
+                <div class="app-navbar-item ms-1 ms-md-3">
+                    <div class="btn btn-icon btn-custom btn-icon-muted btn-active-light btn-active-color-primary w-30px h-30px w-md-40px h-md-40px"
+                        id="kt_student_inquiry_toggle" title="استعلامات الطلاب">
+                        <i class="ki-duotone ki-magnifier fs-2 fs-lg-1">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                    </div>
+                </div>
+                <!--end::Student Inquiry Toggle-->
                 <!--begin::Activities-->
                 <div class="app-navbar-item ms-1 ms-md-3">
                     <!--begin::Drawer toggle-->

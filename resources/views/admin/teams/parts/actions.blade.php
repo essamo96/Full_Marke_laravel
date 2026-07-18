@@ -1,3 +1,4 @@
+<div class="d-flex justify-content-start gap-2 flex-shrink-0">
 @can('admin.' . $active_menu . '.edit')
 <a href="{{ route($active_menu . '.edit', Crypt::encrypt($id)) }}" class="btn btn-icon btn-primary btn-sm">
     <i class="bi bi-pencil-square mx-2 fs-4 me-2"></i></a>
@@ -7,3 +8,4 @@
     <i class="bi bi-trash3-fill fs-4 me-2"></i>
 </a>
 @endcan
+</div>

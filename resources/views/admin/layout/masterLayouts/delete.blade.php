@@ -29,17 +29,36 @@ $('#confirm').on('show.bs.modal', function (e) {
                  _token: '{{ csrf_token() }}'
              },
              success: function (data) {
+                 var isSuccess = data.status ? (data.status === 'success') : (data.success !== false);
+
                  $('#confirm').modal('hide');
+
+                 if (isSuccess) {
+                     Swal.fire({
+                         text: data.message || "تم الحذف بنجاح",
+                         title: "نجاح",
+                         icon: "success",
+                         buttonsStyling: false,
+                         showConfirmButton: false,
+                         timer: 3000
+                     });
+                     table.draw();
+                 } else {
+                     Swal.fire({
+                         text: data.message || "تعذر تنفيذ عملية الحذف.",
+                         title: "خطأ",
+                         icon: "error"
+                     });
+                 }
+             },
+             error: function (xhr) {
+                 $('#confirm').modal('hide');
+                 var message = (xhr.responseJSON && xhr.responseJSON.message) || "تعذر تنفيذ عملية الحذف. قد تكون هذه العناصر مرتبطة ببيانات أخرى.";
                  Swal.fire({
-                     text: "تم الحذف بنجاح",
-                     title: "نجاح",
-                     icon: "success",
-                     buttonsStyling: false,
-                     showConfirmButton: false,
-                     timer: 3000
+                     text: message,
+                     title: "خطأ",
+                     icon: "error"
                  });
-                 // toastr[data.status](data.message);
-                 table.draw();
              }
          });
      });

@@ -31,7 +31,7 @@ class SubjectsController extends AdminController
     public function getList(Request $request, $programId = null)
     {
         $program = $programId ? Program::findOrFail(Crypt::decrypt($programId)) : null;
-        $search = $request->get('search_value');
+        $search = $request->get('name') ?? $request->get('search_value');
 
         $subjects = Subject::when($program, fn($q) => $q->where('program_id', $program->id))
             ->when(!$program && $request->filled('program_id'), fn($q) => $q->where('program_id', $request->program_id))

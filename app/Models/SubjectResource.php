@@ -10,7 +10,7 @@ class SubjectResource extends Model
     protected $table = 'subject_resources';
 
     protected $fillable = [
-        'subject_id', 'title', 'type', 'url', 'description', 'is_active', 'sort_order',
+        'subject_id', 'educational_lesson_id', 'category', 'title', 'type', 'url', 'description', 'is_active', 'sort_order',
     ];
 
     protected $casts = [
@@ -20,6 +20,11 @@ class SubjectResource extends Model
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function lesson(): BelongsTo
+    {
+        return $this->belongsTo(EducationalLesson::class, 'educational_lesson_id');
     }
 
     public function scopeActive($query)

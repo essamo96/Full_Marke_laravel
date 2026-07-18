@@ -46,9 +46,9 @@
                 </div>
                 <div class="card-body py-4">
                     @include('admin.layout.masterLayouts.error')
-                    <table id="kt_table" class="table table-row-bordered gy-5">
+                    <table id="kt_table" class="table table-striped table-row-bordered gy-5 gs-7">
                         <thead>
-                            <tr class="fw-semibold fs-6 text-muted">
+                                <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
                                 <th> # </th>
                                 <!-- <th>{{ \App\Helpers\translate('title') }}</th> -->
                                

@@ -49,6 +49,13 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/role.php';
 
     // Academy management modules (see academy_system_analysis.md)
+    require __DIR__.'/news_categories.php';
+    require __DIR__.'/news_articles.php';
+    require __DIR__.'/static_pages.php';
+    require __DIR__.'/paper_editions.php';
+    require __DIR__.'/contact_messages.php';
+    require __DIR__.'/partners.php';
+
     require __DIR__.'/pages.php';
     require __DIR__.'/faqs.php';
     require __DIR__.'/teams.php';
@@ -69,6 +76,16 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/pending_requests.php';
     require __DIR__.'/payments.php';
     require __DIR__.'/financial-reports.php';
+    require __DIR__.'/enrolments.php';
+    require __DIR__.'/educational-materials.php';
+    // Student Inquiries Main Screen
+    Route::get('/student-inquiry', [\App\Http\Controllers\Admin\StudentInquiryController::class, 'index'])->name('student_inquiry.view');
+    Route::get('/student-inquiry/search', [\App\Http\Controllers\Admin\StudentInquiryController::class, 'search'])->name('student_inquiry.search');
+    Route::get('/student-inquiry/details/{id}', [\App\Http\Controllers\Admin\StudentInquiryController::class, 'details'])->name('student_inquiry.details');
+
+    // Subject Content (Educational Content) Screen
+    Route::get('/subject-content', [\App\Http\Controllers\Admin\SubjectContentController::class, 'index'])->name('subject_content.view');
+    Route::get('/subject-content/{id}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'manage'])->name('subject_content.manage');
 });
 Route::get('auto-login', function () { Auth::guard('admin')->loginUsingId(1); return redirect('/admin/users'); });
 Route::get('test-dt', function() { Auth::guard('admin')->loginUsingId(1); return app(App\Http\Controllers\Admin\UsersController::class)->getList(request()); });

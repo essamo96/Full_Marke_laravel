@@ -1,3 +1,4 @@
+<div class="d-flex justify-content-start gap-2 flex-shrink-0">
 <div class="dropdown d-inline-block">
     <button class="btn btn-sm btn-icon btn-light btn-active-light-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
         <i class="ki-duotone ki-dots-vertical fs-3">
@@ -17,4 +18,6 @@
         </li>
         @endif
     </ul>
+</div>
+
 </div>

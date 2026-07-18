@@ -41,6 +41,7 @@ class SiteSetting extends Model
             'social_links' => 'array',
             'maintenance_mode' => 'boolean',
             'show_translation_button' => 'boolean',
+            'options' => 'array',
         ];
     }
 
@@ -62,6 +63,9 @@ class SiteSetting extends Model
             'training_hours_count' => 1500,
             'site_email' => 'info@fullmark.com',
             'site_phone' => '+123456789',
+            'options' => [
+                'currency' => 'JOD',
+            ],
         ]);
     }
 }

@@ -1,4 +1,4 @@
-<div class="d-flex justify-content-end flex-shrink-0">
+<div class="d-flex justify-content-start gap-2 flex-shrink-0">
     @if(auth('admin')->user()->can('admin.regions.edit'))
     <a href="{{ route('regions.edit', ['id' => Crypt::encrypt($region->id)]) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
         <i class="ki-duotone ki-pencil fs-2">

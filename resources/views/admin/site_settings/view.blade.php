@@ -42,7 +42,7 @@
                 <!-- Basic Data Tab -->
                 <div class="tab-pane fade show active" id="kt_tab_pane_basic" role="tabpanel">
                     @php
-                        $options = $info && $info->options ? json_decode($info->options, true) : [];
+                        $options = $info && $info->options ? (is_array($info->options) ? $info->options : json_decode($info->options, true)) : [];
                     @endphp
 
                     <div class="row mb-5">
@@ -101,6 +101,10 @@
                                 <input class="form-check-input" name="show_contact_form" type="checkbox" value="1" {{ old('show_contact_form', $options['show_contact_form'] ?? 1) ? 'checked' : '' }}>
                                 <span class="form-check-label fw-semibold text-muted">{{ \App\Helpers\translate('Show Contact Form') }}</span>
                             </label>
+                        </div>
+                        <div class="col-md-3 fv-row mb-3">
+                            <label class="fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('Currency') }}</label>
+                            <input type="text" class="form-control form-control-solid" name="currency" value="{{ old('currency', $info->options['currency'] ?? 'JOD') }}" placeholder="e.g. JOD, USD">
                         </div>
                     </div>
                 </div>

@@ -320,9 +320,9 @@
                   </a>
                 </h4>
                 <p class="opacity-75 text-sm mb-4" style="color: var(--text-secondary);"
-                   data-en="{{ $prog->short_description }}"
-                   data-ar="{{ $prog->long_description ?? $prog->short_description }}">
-                  {{ app()->getLocale() == 'ar' ? ($prog->long_description ?? $prog->short_description) : $prog->short_description }}
+                   data-en="{{ \Illuminate\Support\Str::limit(strip_tags(str_replace('&nbsp;', ' ', html_entity_decode($prog->short_description ?? ''))), 120) }}"
+                   data-ar="{{ \Illuminate\Support\Str::limit(strip_tags(str_replace('&nbsp;', ' ', html_entity_decode($prog->long_description ?? $prog->short_description ?? ''))), 120) }}">
+                  {{ \Illuminate\Support\Str::limit(strip_tags(str_replace('&nbsp;', ' ', html_entity_decode(app()->getLocale() == 'ar' ? ($prog->long_description ?? $prog->short_description ?? '') : ($prog->short_description ?? '')))), 120) }}
                 </p>
               </div>
               <a href="{{ route('programs.show', $prog->slug) }}" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center mt-3 position-relative z-10 text-decoration-none" data-en="Join Program" data-ar="الانضمام للبرنامج">

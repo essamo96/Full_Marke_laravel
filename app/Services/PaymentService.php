@@ -165,6 +165,11 @@ class PaymentService
                 'confirmed_at' => now(),
             ]);
 
+            $student = $payment->student;
+            if (is_null($student->email_verified_at)) {
+                $student->update(['email_verified_at' => now()]);
+            }
+
             foreach ($payment->items()->with('registration')->get() as $item) {
                 $registration = $item->registration;
                 $registration->amount_paid = (float) $registration->amount_paid + (float) $item->allocated_amount;
@@ -188,6 +193,12 @@ class PaymentService
         });
 
         Mail::to($payment->student->email)->send(new PaymentConfirmedMail($payment));
+
+        // Notify student via Pusher
+        \Illuminate\Support\Facades\Notification::send(
+            $payment->student,
+            new \App\Notifications\StudentPaymentConfirmedNotification($payment)
+        );
 
         // Generate PDF Invoice
         \App\Jobs\GenerateInvoiceJob::dispatch($payment);

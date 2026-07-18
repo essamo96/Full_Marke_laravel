@@ -42,11 +42,18 @@
                                         </div>
                                     </div>
                                     <div class="row mb-3">
+                                        @if(!$info || !$info->id)
                                         <div class="col-md-4">
-                                            <label class="p-2 {{ $info && $info->id ? '' : 'required' }}">@lang('app.password')</label>
-                                            <input type="password" name="password" id="password" class="form-control" {{ $info && $info->id ? '' : 'required' }}>
+                                            <label class="p-2 required">@lang('app.password')</label>
+                                            <input type="password" name="password" id="password" class="form-control" required>
                                         </div>
-                                        <div class="col-md-8">
+                                        <div class="col-md-4">
+                                            <label class="p-2 required">تأكيد كلمة المرور</label>
+                                            <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required>
+                                            <span id="password_match_message" class="text-danger mt-1 d-block fs-8" style="display:none;"></span>
+                                        </div>
+                                        @endif
+                                        <div class="col-md-{{ (!$info || !$info->id) ? '4' : '12' }}">
                                             <label class="p-2">المواد الأكاديمية</label>
                                             <select name="subject_ids[]" class="form-select" data-control="select2" data-placeholder="اختر المواد" multiple>
                                                 @php $selectedSubjects = old('subject_ids', $info ? $info->subjects->pluck('id')->toArray() : []); @endphp
@@ -97,4 +104,38 @@
             </div>
         </div>
     </div>
+@stop
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        $('#password, #password_confirmation').on('keyup', function() {
+            var password = $('#password').val();
+            var confirmPassword = $('#password_confirmation').val();
+            var message = $('#password_match_message');
+            
+            if (password !== '' && confirmPassword !== '') {
+                if (password !== confirmPassword) {
+                    message.text('كلمتا المرور غير متطابقتين').show();
+                    message.removeClass('text-success').addClass('text-danger');
+                } else {
+                    message.text('كلمتا المرور متطابقتان').show();
+                    message.removeClass('text-danger').addClass('text-success');
+                }
+            } else {
+                message.hide();
+            }
+        });
+        
+        $('form').on('submit', function(e) {
+            if ($('#password').length > 0) {
+                if ($('#password').val() !== $('#password_confirmation').val()) {
+                    e.preventDefault();
+                    $('#password_match_message').text('كلمتا المرور غير متطابقتين').show();
+                    $('#password_match_message').removeClass('text-success').addClass('text-danger');
+                }
+            }
+        });
+    });
+</script>
 @stop

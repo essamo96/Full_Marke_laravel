@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\TeacherRequest;
+use App\Models\Group;
 use App\Models\Subject;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
@@ -23,7 +24,9 @@ class TeachersController extends AdminController
 
     public function getIndex()
     {
-        return view('admin.teachers.view', self::$data);
+        return view('admin.teachers.view', self::$data + [
+            'groups' => Group::with('subject')->orderBy('name')->get(),
+            'subjects' => Subject::orderBy('sort_order')->get()]);
     }
 
     public function getList(Request $request)
@@ -32,7 +35,7 @@ class TeachersController extends AdminController
         $status = $request->get('status');
 
         $query = Teacher::withCount('subjects')->latest();
-        
+
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -40,9 +43,17 @@ class TeachersController extends AdminController
                   ->orWhere('phone', 'like', "%{$search}%");
             });
         }
-        
+
         if ($status !== null && $status !== '') {
             $query->where('status', $status);
+        }
+
+        if ($request->filled('group_id')) {
+            $query->whereHas('groups', fn ($q) => $q->where('groups.id', $request->get('group_id')));
+        }
+
+        if ($request->filled('subject_id')) {
+            $query->whereHas('subjects', fn ($q) => $q->where('subjects.id', $request->get('subject_id')));
         }
 
         $datatable = DataTables::of($query);
@@ -149,6 +160,25 @@ class TeachersController extends AdminController
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false], 422);
+        }
+    }
+
+    public function postChangePassword(Request $request)
+    {
+        $request->validate([
+            'id' => 'required',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        try {
+            $teacher = Teacher::findOrFail(Crypt::decrypt($request->id));
+            $teacher->update([
+                'password' => Hash::make($request->password)
+            ]);
+
+            return response()->json(['success' => true, 'message' => __('app.update_success')]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => __('app.execution_error')], 422);
         }
     }
 }

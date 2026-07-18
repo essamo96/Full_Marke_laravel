@@ -27,13 +27,26 @@
                     <div class="card-header border-0 pt-6">
                         <div class="card-title w-100 mb-0 row">
                             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
-                                <label for="generalSearch" class="form-label">{{ \App\Helpers\translate('search') ?? 'بحث' }}</label>
                                 <div class="d-flex align-items-center position-relative">
                                     <i class="bi bi-search-heart fs-3 position-absolute ms-5"></i>
                                     <input type="text" id="generalSearch" class="form-control form-control-solid ps-13 generalSearch" placeholder="{{ \App\Helpers\translate('search') ?? 'بحث' }}" />
                                 </div>
                             </div>
-                        </div>
+                        
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <select id="status" name="status" class="form-select form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="الكل">
+                                    <option value="">الكل</option>
+                                    <option value="1">مفعل</option>
+                                    <option value="0">معطل</option>
+                                </select>
+                            
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <button type="button" class="btn btn-light-danger h-40px fs-7 fw-bold reset-filters-btn w-100">
+                                    <i class="bi bi-eraser fs-3"></i> @lang('app.clear')
+                                </button>
+                            </div>
+</div>
                     </div>
                     <div class="card-body py-4">
                         @include('admin.layout.masterLayouts.error')
@@ -43,7 +56,7 @@
                                     <th>#</th>
                                     <th>{{ \App\Helpers\translate('name') ?? 'الاسم' }}</th>
                                     <th>{{ \App\Helpers\translate('status') ?? 'الحالة' }}</th>
-                                    <th class="text-end">{{ \App\Helpers\translate('actions') ?? 'الإجراءات' }}</th>
+                                    <th>{{ \App\Helpers\translate('actions') ?? 'الإجراءات' }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -61,14 +74,15 @@
         var table;
         var tableId = 'regions';
         var columns = [
-            { data: 'DT_RowIndex', name: 'id' },
-            { data: 'name', name: 'name_ar' },
-            { data: 'status', name: 'status' },
-            { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end' }
+            { data: 'DT_RowIndex', name: 'id', className: 'text-start' },
+            { data: 'name', name: 'name_ar', className: 'text-start' },
+            { data: 'status', name: 'status', className: 'text-start' },
+            { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-start' }
         ];
 
         var filterFields = [
-            '#generalSearch',
+'#generalSearch',
+            '#status'
         ];
         
         @include('admin.layout.masterLayouts.datatableMaster')

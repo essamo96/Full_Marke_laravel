@@ -52,12 +52,12 @@
                         @include('admin.layout.masterLayouts.error')
                         <table id="roles" class="table table-striped table-row-bordered gy-5 gs-7">
                             <thead>
-                                <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-center">
-                                    <th class="text-center">#</th>
-                                    <th class="text-center">@lang('app.group_name')</th>
-                                    <th class="text-center">@lang('app.status')</th>
-                                    <th class="text-center">@lang('app.guard_name')</th>
-                                    <th class="text-center">@lang('app.actions')</th>
+                                <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
+                                    <th >#</th>
+                                    <th >@lang('app.group_name')</th>
+                                    <th >@lang('app.status')</th>
+                                    <th >@lang('app.guard_name')</th>
+                                    <th >@lang('app.actions')</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -75,22 +75,22 @@
         var tableId = 'roles';
         var columns = [{
                 data: 'DT_RowIndex'
-            },
+            , className: 'text-start' },
             {
                 data: 'name',
-                className: 'text-center'
+                className: 'text-start'
             },
             {
                 data: 'status',
-                className: 'text-center'
+                className: 'text-start'
             },
             {
                 data: 'guard_name',
-                className: 'text-center'
+                className: 'text-start'
             },
             {
                 data: 'actions',
-                className: 'text-center',
+                className: 'text-start',
                 responsivePriority: -1
             }
         ];

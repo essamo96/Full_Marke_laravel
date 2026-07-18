@@ -79,6 +79,69 @@
                 </div>
 
                 <div class="row g-4 mb-6">
+                    <div class="col-md-3">
+                        <div class="card h-100 bg-success bg-opacity-10">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="symbol symbol-50px me-4">
+                                    <span class="symbol-label bg-success">
+                                        <i class="bi bi-person-check text-white fs-2"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-muted fs-7 fw-semibold">الطلاب النشطين</div>
+                                    <div class="fs-4 fw-bold text-success">{{ $studentStats['active'] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 bg-danger bg-opacity-10">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="symbol symbol-50px me-4">
+                                    <span class="symbol-label bg-danger">
+                                        <i class="bi bi-person-dash text-white fs-2"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-muted fs-7 fw-semibold">الطلاب غير النشطين</div>
+                                    <div class="fs-4 fw-bold text-danger">{{ $studentStats['inactive'] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 bg-primary bg-opacity-10">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="symbol symbol-50px me-4">
+                                    <span class="symbol-label bg-primary">
+                                        <i class="bi bi-envelope-check text-white fs-2"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-muted fs-7 fw-semibold">إيميلات موثقة</div>
+                                    <div class="fs-4 fw-bold text-primary">{{ $studentStats['email_verified'] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 bg-warning bg-opacity-10">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="symbol symbol-50px me-4">
+                                    <span class="symbol-label bg-warning">
+                                        <i class="bi bi-envelope-x text-white fs-2"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-muted fs-7 fw-semibold">إيميلات غير موثقة</div>
+                                    <div class="fs-4 fw-bold text-warning">{{ $studentStats['email_unverified'] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-6">
                     {{-- Revenue by Program --}}
                     <div class="col-lg-6">
                         <div class="card h-100">
@@ -89,11 +152,11 @@
                             </div>
                             <div class="card-body py-3">
                                 <div class="table-responsive">
-                                    <table class="table table-row-dashed table-row-gray-200 align-middle gs-0 gy-4">
+                                    <table class="table table-striped table-row-bordered gy-5 gs-7">
                                         <thead>
-                                            <tr class="border-0">
+                                <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
                                                 <th class="p-0 min-w-150px">البرنامج</th>
-                                                <th class="p-0 min-w-140px text-end">الإيراد</th>
+                                                <th class="p-0 min-w-140px">الإيراد</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -128,8 +191,8 @@
                                         <thead>
                                             <tr class="border-0">
                                                 <th class="p-0 min-w-150px">طريقة الدفع</th>
-                                                <th class="p-0 min-w-70px text-center">عدد</th>
-                                                <th class="p-0 min-w-140px text-end">الإيراد</th>
+                                                <th class="p-0 min-w-70px">عدد</th>
+                                                <th class="p-0 min-w-140px">الإيراد</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -176,7 +239,7 @@
                         <div class="table-responsive">
                             <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
                                 <thead>
-                                    <tr class="fw-bold text-muted bg-light">
+                                    <tr class="fw-bold text-muted bg-light text-start">
                                         <th class="ps-4 rounded-start">الطالب</th>
                                         <th>المادة</th>
                                         <th>الرسوم الكاملة</th>

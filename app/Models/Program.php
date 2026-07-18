@@ -58,4 +58,9 @@ class Program extends Model
     {
         return $this->short_description;
     }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', 1);
+    }
 }

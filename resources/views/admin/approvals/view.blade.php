@@ -16,10 +16,17 @@
                 <div class="card">
                     <div class="card-header border-0 pt-6">
                         <div class="card-title w-100 mb-0 row">
-                            <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                                 <h3>طلبات الدفع المعلقة</h3>
+                            
                             </div>
-                        </div>
+                        
+                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <button type="button" class="btn btn-light-danger h-40px fs-7 fw-bold reset-filters-btn w-100">
+                                    <i class="bi bi-eraser fs-3"></i> @lang('app.clear')
+                                </button>
+                            </div>
+</div>
                     </div>
                     <div class="card-body py-4">
                         @include('admin.layout.masterLayouts.error')
@@ -48,14 +55,14 @@
                                         <td>{{ $payment->created_at->format('Y-m-d H:i') }}</td>
                                         <td>
                                             @if($payment->receipt_image)
-                                                <a href="javascript:void(0)" class="btn btn-sm btn-light-info view-receipt" data-image="{{ Storage::url($payment->receipt_image) }}">عرض الإيصال</a>
+                                                <a href="javascript:void(0)" class="btn btn-sm btn-light-info view-receipt" data-image="{{ URL::signedRoute('payments.receipt', $payment->id) }}">عرض الإيصال</a>
                                             @else
                                                 <span class="text-muted">لا يوجد</span>
                                             @endif
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-end flex-shrink-0">
-                                                <form action="{{ route('approvals.confirm') }}" method="POST" class="me-2" onsubmit="return confirm('هل أنت متأكد من تأكيد هذه الدفعة؟');">
+                                                <form action="{{ route('approvals.confirm') }}" method="POST" class="me-2 confirm-payment-form">
                                                     @csrf
                                                     <input type="hidden" name="id" value="{{ Crypt::encrypt($payment->id) }}">
                                                     <button type="submit" class="btn btn-icon btn-success btn-sm" title="موافقة">
@@ -128,7 +135,7 @@
     </div>
 @stop
 
-@section('scripts')
+@section('js')
 <script>
     $(document).ready(function() {
         $('.view-receipt').click(function() {
@@ -141,6 +148,25 @@
             var id = $(this).data('id');
             $('#rejectPaymentId').val(id);
             $('#rejectModal').modal('show');
+        });
+
+        $('.confirm-payment-form').on('submit', function(e) {
+            e.preventDefault();
+            var form = this;
+            Swal.fire({
+                title: 'تأكيد الدفعة',
+                text: 'هل أنت متأكد من تأكيد هذه الدفعة؟ سيتم إرسال إشعار للطالب بذلك.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'نعم، موافق',
+                cancelButtonText: 'إلغاء'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
         });
     });
 </script>

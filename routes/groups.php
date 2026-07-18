@@ -20,3 +20,9 @@ Route::prefix('subjects/{subject}')->group(function () {
 
 Route::post('groups/status', [GroupsController::class, 'postStatus'])->name('groups.status')->middleware('permission:admin.groups.status');
 Route::post('groups/delete', [GroupsController::class, 'postDelete'])->name('groups.delete')->middleware('permission:admin.groups.delete');
+
+Route::get('groups/{id}/students', [GroupsController::class, 'getStudents'])->name('groups.students')->middleware('permission:admin.groups.view');
+Route::get('groups/{id}/students/list', [GroupsController::class, 'getStudentsList'])->name('groups.students.list')->middleware('permission:admin.groups.view');
+
+Route::get('groups/{id}/details', [GroupsController::class, 'getDetails'])->name('groups.details')->middleware('permission:admin.groups.view');
+Route::post('groups/generate-code', [GroupsController::class, 'postGenerateCode'])->name('groups.generate_code')->middleware('permission:admin.groups.generate_code');

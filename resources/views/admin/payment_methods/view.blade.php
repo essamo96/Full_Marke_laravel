@@ -32,16 +32,16 @@
                         @include('admin.layout.masterLayouts.error')
 
                         <div class="table-responsive">
-                            <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+                            <table class="table table-striped table-row-bordered gy-5 gs-7">
                                 <thead>
-                                    <tr class="fw-bold text-muted bg-light">
+                                <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
                                         <th class="ps-4 min-w-50px rounded-start">#</th>
                                         <th class="min-w-150px">الاسم (عربي)</th>
                                         <th class="min-w-150px">الاسم (إنجليزي)</th>
                                         <th class="min-w-200px">التفاصيل</th>
-                                        <th class="min-w-80px text-center">الترتيب</th>
-                                        <th class="min-w-100px text-center">الحالة</th>
-                                        <th class="min-w-100px text-end pe-4 rounded-end">الإجراءات</th>
+                                        <th class="min-w-80px">الترتيب</th>
+                                        <th class="min-w-100px">الحالة</th>
+                                        <th class="min-w-100px  pe-4 rounded-end">الإجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody>

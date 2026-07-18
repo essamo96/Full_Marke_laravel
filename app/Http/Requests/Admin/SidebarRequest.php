@@ -19,6 +19,7 @@ class SidebarRequest extends FormRequest
             'name_en' => 'nullable|string|max:191',
             'icon' => 'nullable|string|max:191',
             'color' => 'nullable|string|max:50',
+            'bg_color' => 'nullable|string|max:50',
             'sort' => 'nullable|integer',
             'parent_id' => 'nullable|integer',
             'status' => 'nullable|boolean',

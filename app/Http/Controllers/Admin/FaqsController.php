@@ -37,7 +37,7 @@ class FaqsController extends AdminController
         $obj = new Faq();
         $info = $obj->getSearch($name, $companies, 0);
 
-        if ($request->has('status') && $request->get('status') !== null) {
+        if ($request->filled('status')) {
             $info->where('faqs.status', $request->get('status'));
         }
 

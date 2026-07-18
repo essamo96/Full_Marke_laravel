@@ -57,6 +57,7 @@ class Student extends Authenticatable
         return $this->hasMany(Payment::class);
     }
 
+
     public function emailVerificationCodes(): HasMany
     {
         return $this->hasMany(EmailVerificationCode::class);
