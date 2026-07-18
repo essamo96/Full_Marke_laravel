@@ -53,7 +53,10 @@
                             <span id="transfer_source_count" class="badge badge-light-dark fs-7">0</span>
                         </div>
                         <div id="transfer_source_students" class="min-h-350px max-h-500px overflow-auto p-5 border border-dashed border-gray-400 rounded bg-light" style="transition: all 0.3s;" ondrop="dropToTransferSource(event)" ondragover="allowDropTransfer(event)">
-                            <p class="text-muted text-center mt-10 empty-msg-source">اختر المادة الهدف أو اضغط "عرض كل الطلاب"</p>
+                            <p class="text-muted text-center mt-10 empty-msg-source">
+                                <img src="{{ asset('assets/admin/media/illustrations/sketchy-1/15.png') }}" alt="اختر المادة الهدف" class="mw-100 mh-200px theme-light-show" />
+                                <img src="{{ asset('assets/admin/media/illustrations/sketchy-1/15-dark.png') }}" alt="اختر المادة الهدف" class="mw-100 mh-200px theme-dark-show" />
+                            </p>
                         </div>
                     </div>
 
@@ -65,8 +68,8 @@
                         </div>
                         <div id="transfer_target_students" class="min-h-350px max-h-500px overflow-auto p-5 border border-dashed border-primary rounded bg-light-primary" style="transition: all 0.3s;" ondrop="dropToTransferTarget(event)" ondragover="allowDropTransfer(event)">
                             <p class="text-muted text-center mt-10 empty-msg">
-                                <i class="ki-outline ki-file-down fs-3x text-primary mb-3 d-block"></i>
-                                اسحب الطلاب هنا أو اضغط عليهم للتحديد
+                                <img src="{{ asset('assets/admin/media/illustrations/sketchy-1/17.png') }}" alt="اسحب الطلاب هنا" class="mw-100 mh-200px theme-light-show" />
+                                <img src="{{ asset('assets/admin/media/illustrations/sketchy-1/17-dark.png') }}" alt="اسحب الطلاب هنا" class="mw-100 mh-200px theme-dark-show" />
                             </p>
                         </div>
                         <div class="mt-4 text-center">

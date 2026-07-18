@@ -1,7 +1,7 @@
 <!-- Student Inquiry Offcanvas -->
-<div id="kt_student_inquiry" class="bg-white" data-kt-drawer="true" data-kt-drawer-name="student_inquiry" data-kt-drawer-activate="true" data-kt-drawer-overlay="true" data-kt-drawer-width="{default:'300px', 'md': '500px'}" data-kt-drawer-direction="end" data-kt-drawer-toggle="#kt_student_inquiry_toggle" data-kt-drawer-close="#kt_student_inquiry_close">
-    <div class="card w-100 rounded-0 border-0">
-        <div class="card-header pe-5">
+<div id="kt_student_inquiry" class="bg-body drawer drawer-end" data-kt-drawer="true" data-kt-drawer-name="student_inquiry" data-kt-drawer-activate="true" data-kt-drawer-overlay="true" data-kt-drawer-width="{default:'300px', 'md': '500px'}" data-kt-drawer-direction="end" data-kt-drawer-toggle="#kt_student_inquiry_toggle" data-kt-drawer-close="#kt_student_inquiry_close" style="z-index: 1000 !important;">
+    <div class="card w-100 rounded-0 border-0 pt-15">
+        <div class="card-header pe-5 mt-20">
             <div class="card-title">
                 <div class="d-flex justify-content-center flex-column me-3">
                     <a href="#" class="fs-4 fw-bolder text-gray-900 text-hover-primary me-1 lh-1">استعلامات الطلاب</a>
