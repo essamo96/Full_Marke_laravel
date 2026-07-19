@@ -117,8 +117,25 @@ class DashboardController extends AdminController
             $days = is_string($group->days) ? json_decode($group->days, true) : $group->days;
             if (!$days) continue;
             
-            // Note: DB days are string 0-6. FullCalendar uses 0=Sunday, 1=Monday, etc.
-            $intDays = array_map('intval', $days);
+            $daysMap = [
+                'sun' => 0, 'sunday' => 0,
+                'mon' => 1, 'monday' => 1,
+                'tue' => 2, 'tuesday' => 2,
+                'wed' => 3, 'wednesday' => 3,
+                'thu' => 4, 'thursday' => 4,
+                'fri' => 5, 'friday' => 5,
+                'sat' => 6, 'saturday' => 6,
+            ];
+            
+            $intDays = [];
+            foreach ($days as $d) {
+                $dLower = strtolower($d);
+                if (isset($daysMap[$dLower])) {
+                    $intDays[] = $daysMap[$dLower];
+                } elseif (is_numeric($d)) {
+                    $intDays[] = intval($d);
+                }
+            }
             
             $calendarEvents[] = [
                 'title' => $group->name . ($group->subject ? ' - ' . $group->subject->name : ''),

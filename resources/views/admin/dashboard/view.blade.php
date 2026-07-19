@@ -2,7 +2,7 @@
 @section('title', __('app.dashboard'))
 
 @push('styles')
-    <link href="{{ asset('admin/assets/plugins/custom/fullcalendar/fullcalendar.bundle.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('assets/admin/plugins/custom/fullcalendar/fullcalendar.bundle.css') }}" rel="stylesheet" type="text/css" />
     <style>
         .bullet-custom { display: none; }
         .nav-link.active .bullet-custom { display: block; }
@@ -81,10 +81,10 @@
             <!-- Widget 2: Academic Stats -->
             <div class="col-xl-4 mb-xl-10">
                 <div class="card card-flush h-xl-100">
-                    <div class="card-header rounded bgi-no-repeat bgi-size-cover bgi-position-y-top bgi-position-x-center align-items-start h-250px" style="background-image:url('{{ asset('assets/admin/media/svg/shapes/widget-bg-2.png') }}')" data-bs-theme="light">
-                        <h3 class="card-title align-items-start flex-column text-white pt-15">
+                    <div class="card-header rounded bgi-no-repeat bgi-size-cover bgi-position-y-top bgi-position-x-center align-items-start h-250px" style="background-image:url('{{ asset('assets/admin/media/svg/shapes/widget-bg-2.png') }}')">
+                        <h3 class="card-title align-items-start flex-column text-gray-900 pt-15">
                             <span class="fw-bold fs-2x mb-3">الأداء والبرامج</span>
-                            <div class="fs-4 text-white">
+                            <div class="fs-4 text-gray-800">
                                 <span class="opacity-75">مؤشرات الأداء الأكاديمي</span>
                             </div>
                         </h3>
@@ -207,19 +207,34 @@
             </div>
         </div>
 
-        <!-- Row 3: School Calendar and Ordered Groups -->
+        @php
+            $daysOfWeek = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            $daysAr = [
+                'Saturday' => 'السبت',
+                'Sunday' => 'الأحد',
+                'Monday' => 'الإثنين',
+                'Tuesday' => 'الثلاثاء',
+                'Wednesday' => 'الأربعاء',
+                'Thursday' => 'الخميس',
+                'Friday' => 'الجمعة'
+            ];
+            $currentDay = date('l');
+        @endphp
+
+        <!-- Row 3: Weekly Groups Schedule -->
         <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
-            <!-- Table Widget 8 from School -->
-            <div class="col-xl-6">
+            <div class="col-xl-12">
                 <div class="card h-xl-100">
                     <div class="card-header position-relative py-0 border-bottom-2 d-flex justify-content-between align-items-center">
-                        <ul class="nav nav-stretch nav-pills nav-pills-custom d-flex mt-3">
+                        <ul class="nav nav-stretch nav-pills nav-pills-custom d-flex mt-3 overflow-auto">
+                            @foreach($daysOfWeek as $day)
                             <li class="nav-item p-0 ms-0 me-8">
-                                <a class="nav-link btn btn-color-muted px-0 show active" data-bs-toggle="tab" href="#kt_table_widget_7_tab_content_1">
-                                    <span class="nav-text fw-semibold fs-4 mb-3">جدول المجموعات الأقرب للبدء</span>
+                                <a class="nav-link btn btn-color-muted px-0 show {{ $day == $currentDay ? 'active' : '' }}" data-bs-toggle="tab" href="#kt_table_widget_7_tab_content_{{ $day }}">
+                                    <span class="nav-text fw-semibold fs-4 mb-3">{{ $daysAr[$day] }}</span>
                                     <span class="bullet-custom position-absolute z-index-2 w-100 h-2px top-100 bottom-n100 bg-primary rounded"></span>
                                 </a>
                             </li>
+                            @endforeach
                         </ul>
                         <div class="card-toolbar">
                             <a href="#" data-bs-toggle="modal" data-bs-target="#kt_modal_enrolment" class="btn btn-sm btn-light-primary fw-bold" title="تشعيب ونقل الطلاب وتوزيعهم على المجموعات">
@@ -230,54 +245,79 @@
                     </div>
                     <div class="card-body">
                         <div class="tab-content mb-2">
-                            <div class="tab-pane fade show active" id="kt_table_widget_7_tab_content_1">
+                            @foreach($daysOfWeek as $day)
+                            <div class="tab-pane fade show {{ $day == $currentDay ? 'active' : '' }}" id="kt_table_widget_7_tab_content_{{ $day }}">
                                 <div class="table-responsive">
                                     <table class="table table-striped table-row-bordered gy-5 gs-7">
                                         <thead>
-                                <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
-                                                <th class="min-w-150px p-0"></th>
-                                                <th class="min-w-200px p-0"></th>
-                                                <th class="min-w-100px p-0"></th>
-                                                <th class="min-w-80px p-0"></th>
+                                            <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
+                                                <th class="min-w-150px p-0 pb-3">الوقت</th>
+                                                <th class="min-w-200px p-0 pb-3">المادة / المجموعة</th>
+                                                <th class="min-w-100px p-0 pb-3">المعلم</th>
+                                                <th class="min-w-80px p-0 pb-3 text-end">الإجراءات</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($orderedGroups as $grp)
+                                            @php
+                                                $daysMapToDb = [
+                                                    'Saturday' => ['sat', 'saturday', 'Saturday', '6'],
+                                                    'Sunday' => ['sun', 'sunday', 'Sunday', '0'],
+                                                    'Monday' => ['mon', 'monday', 'Monday', '1'],
+                                                    'Tuesday' => ['tue', 'tuesday', 'Tuesday', '2'],
+                                                    'Wednesday' => ['wed', 'wednesday', 'Wednesday', '3'],
+                                                    'Thursday' => ['thu', 'thursday', 'Thursday', '4'],
+                                                    'Friday' => ['fri', 'friday', 'Friday', '5'],
+                                                ];
+                                                $dayGroups = $orderedGroups->filter(function($grp) use ($day, $daysMapToDb) {
+                                                    if (!is_array($grp->days)) return false;
+                                                    // Check if any of the group days matches the expected values for the current tab's day
+                                                    $grpDaysLower = array_map('strtolower', $grp->days);
+                                                    $expectedDays = array_map('strtolower', $daysMapToDb[$day]);
+                                                    return count(array_intersect($grpDaysLower, $expectedDays)) > 0;
+                                                });
+                                            @endphp
+                                            @foreach($dayGroups as $grp)
                                             <tr>
-                                                <td class="fs-6 fw-bold text-gray-800">
+                                                <td class="fs-6 fw-bold text-gray-800 align-middle">
                                                     @if($grp->start_time && $grp->end_time)
-                                                        {{ \Carbon\Carbon::parse($grp->start_time)->format('h:i') }}-{{ \Carbon\Carbon::parse($grp->end_time)->format('h:ia') }}
+                                                        <span class="badge badge-light-primary fs-7">
+                                                            {{ \Carbon\Carbon::parse($grp->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($grp->end_time)->format('h:i A') }}
+                                                        </span>
                                                     @else
                                                         -
                                                     @endif
                                                 </td>
-                                                <td class="fs-6 fw-bold text-gray-400">
+                                                <td class="fs-6 fw-bold text-gray-400 align-middle">
                                                     {{ $grp->subject?->name ?? '-' }}:
-                                                    <span class="text-gray-800">{{ $grp->name }}</span>
+                                                    <a href="{{ route('groups.students', encrypt($grp->id)) }}" class="text-gray-800 text-hover-primary">{{ $grp->name }}</a>
                                                 </td>
-                                                <td class="fs-6 fw-bold text-gray-400">
-                                                    المعلم: <span class="text-gray-800">{{ $grp->teacher?->name ?? '-' }}</span>
+                                                <td class="fs-6 fw-bold text-gray-400 align-middle">
+                                                    <span class="text-gray-800">{{ $grp->teacher?->name ?? '-' }}</span>
                                                 </td>
-                                                <td class="pe-0 text-end">
-                                                    <a href="#" class="btn btn-sm btn-light btn-active-light-primary">تفاصيل</a>
+                                                <td class="pe-0 text-end align-middle">
+                                                    <a href="{{ route('groups.students', encrypt($grp->id)) }}" class="btn btn-sm btn-light btn-active-light-primary">تفاصيل</a>
                                                 </td>
                                             </tr>
                                             @endforeach
-                                            @if($orderedGroups->isEmpty())
+                                            @if($dayGroups->isEmpty())
                                             <tr>
-                                                <td colspan="4" class="text-center text-muted">لا يوجد مجموعات حالياً</td>
+                                                <td colspan="4" class="text-center text-muted py-8">لا يوجد مجموعات مجدولة في هذا اليوم</td>
                                             </tr>
                                             @endif
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="col-xl-6">
+        <!-- Row 4: School Calendar -->
+        <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
+            <div class="col-xl-12">
                 <div class="card card-flush h-xl-100">
                     <div class="card-header pt-7">
                         <h3 class="card-title align-items-start flex-column">
@@ -296,7 +336,7 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('admin/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js') }}"></script>
+<script src="{{ asset('assets/admin/plugins/custom/fullcalendar/fullcalendar.bundle.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
