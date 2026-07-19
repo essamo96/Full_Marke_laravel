@@ -11,10 +11,32 @@ class ExamResultsPermissionsSeeder extends Seeder
 {
     public function run()
     {
-        // 1. إضافة القوائم الجانبية
-        // الحصول على معرفات الأقسام الأب (الامتحانات والطلاب) إن وجدت، وإلا استخدام القيم الافتراضية
+        // 1. التأكد من وجود قسم "الامتحانات" الرئيسي، إن لم يوجد نقوم بإنشائه
         $examsGroup = DB::table('permissions_groups')->where('name', 'exams')->first();
-        $examsParentId = $examsGroup ? $examsGroup->id : 44;
+        if (!$examsGroup) {
+            $examsParentId = DB::table('permissions_groups')->insertGetId([
+                'name' => 'exams',
+                'name_ar' => 'الامتحانات',
+                'name_en' => 'Exams',
+                'icon' => 'ki-outline ki-document',
+                'sort' => 102,
+                'status' => 1,
+                'parent_id' => 0
+            ]);
+            
+            // إنشاء صلاحيات القسم الرئيسي
+            $pView = Permission::firstOrCreate(['name' => 'admin.exams.view', 'guard_name' => 'admin']);
+            $pView->update(['group_id' => $examsParentId]);
+            $pManage = Permission::firstOrCreate(['name' => 'admin.exams.manage', 'guard_name' => 'admin']);
+            $pManage->update(['group_id' => $examsParentId]);
+            
+            $role = Role::findByName('Super Admin', 'admin');
+            if ($role) {
+                $role->givePermissionTo([$pView, $pManage]);
+            }
+        } else {
+            $examsParentId = $examsGroup->id;
+        }
 
         $studentsGroup = DB::table('permissions_groups')->where('name', 'students')->first();
         $studentsParentId = $studentsGroup ? $studentsGroup->id : 26;
