@@ -263,4 +263,16 @@ class StudentsController extends AdminController
         $student = Student::with(['registrations.subject', 'registrations.group'])->findOrFail(Crypt::decrypt($id));
         return view('admin.students.parts.invoices_modal', compact('student'));
     }
+
+    public function getResults($id)
+    {
+        $student = Student::findOrFail(Crypt::decrypt($id));
+        
+        $grades = \App\Models\Grade::with(['exam', 'group.subject'])
+            ->where('student_id', $student->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        return view('admin.students.results', self::$data + compact('student', 'grades'));
+    }
 }

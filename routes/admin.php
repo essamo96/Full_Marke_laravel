@@ -77,6 +77,9 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/payments.php';
     require __DIR__.'/financial-reports.php';
     require __DIR__.'/enrolments.php';
+    require __DIR__.'/exams.php';
+    Route::get('/exams-results', [\App\Http\Controllers\Admin\ExamController::class, 'allResults'])->name('exams_results.view');
+    Route::get('/students-results', [\App\Http\Controllers\Admin\ExamController::class, 'allResults'])->name('students_results.view');
     // Student Inquiries Main Screen
     Route::get('/student-inquiry', [\App\Http\Controllers\Admin\StudentInquiryController::class, 'index'])->name('student_inquiry.view');
     Route::get('/student-inquiry/search', [\App\Http\Controllers\Admin\StudentInquiryController::class, 'search'])->name('student_inquiry.search');
@@ -91,6 +94,8 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     Route::delete('/subject-content/lessons/{lesson}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyLesson'])->name('subject_content.lessons.destroy');
     Route::post('/subject-content/lessons/{lesson}/resources', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeResource'])->name('subject_content.resources.store');
     Route::delete('/subject-content/resources/{resource}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyResource'])->name('subject_content.resources.destroy');
+    Route::get('/subject-content/resources/{resource}/file', [\App\Http\Controllers\Admin\SubjectContentController::class, 'viewResourceFile'])->name('subject_content.resources.file');
+    Route::post('/subject-content/upload-chunk', [\App\Http\Controllers\Admin\VideoChunkUploadController::class, 'upload'])->name('subject_content.upload_chunk');
 });
 Route::get('auto-login', function () { Auth::guard('admin')->loginUsingId(1); return redirect('/admin/users'); });
 Route::get('test-dt', function() { Auth::guard('admin')->loginUsingId(1); return app(App\Http\Controllers\Admin\UsersController::class)->getList(request()); });

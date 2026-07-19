@@ -57,6 +57,11 @@ class Subject extends Model
         return $this->hasMany(EducationalStage::class);
     }
 
+    public function exams(): HasMany
+    {
+        return $this->hasMany(Exam::class);
+    }
+
     public function getNameAttribute(): string
     {
         return app()->getLocale() === 'ar' ? $this->name_ar : $this->name_en;

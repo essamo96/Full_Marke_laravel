@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Jobs\ProcessLessonVideo;
 use App\Models\Subject;
 use App\Models\EducationalStage;
 use App\Models\EducationalUnit;
@@ -10,6 +11,7 @@ use App\Models\SubjectResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SubjectContentController extends AdminController
 {
@@ -103,9 +105,13 @@ class SubjectContentController extends AdminController
     {
         $data = $request->validate([
             'title' => 'required|string|max:255',
-            'type' => 'required|in:video,document,link,zoom',
-            'url' => 'nullable|required_without:file|string|max:500',
-            'file' => 'nullable|required_without:url|file|max:51200|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,mp4,mov,avi,webm',
+            'type' => 'required|in:video,document,image,link,zoom',
+            'url' => 'nullable|required_without_all:uploaded_path,file|string|max:500',
+            // Small, non-chunked fallback upload (kept for quick document/image attachments).
+            'file' => 'nullable|file|max:51200|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,webp,gif',
+            // Path produced by the resumable chunk-upload endpoint, relative to the protected_videos disk.
+            'uploaded_path' => 'nullable|string|starts_with:incoming/',
+            'original_filename' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
         ]);
 
@@ -116,8 +122,24 @@ class SubjectContentController extends AdminController
             return response()->json(['success' => false, 'message' => __('app.not_found')], 422);
         }
 
-        if ($request->hasFile('file')) {
-            $data['url'] = $request->file('file')->store('subject_resources', 'public');
+        $processingStatus = 'ready';
+        $storedPath = null;
+
+        if (! empty($data['uploaded_path']) && Storage::disk('protected_videos')->exists($data['uploaded_path'])) {
+            if ($data['type'] === 'video') {
+                // Leave the raw upload in place; ProcessLessonVideo will transcode it to HLS
+                // and delete the source once the rendition set is ready.
+                $storedPath = $data['uploaded_path'];
+                $processingStatus = 'processing';
+            } else {
+                $extension = pathinfo($data['uploaded_path'], PATHINFO_EXTENSION);
+                $storedPath = 'resources/'.Str::uuid().'.'.$extension;
+                Storage::disk('protected_videos')->move($data['uploaded_path'], $storedPath);
+            }
+        } elseif ($request->hasFile('file')) {
+            $storedPath = $request->file('file')->store('resources', 'protected_videos');
+        } else {
+            $storedPath = $data['url'] ?? null;
         }
 
         $resource = SubjectResource::create([
@@ -126,18 +148,42 @@ class SubjectContentController extends AdminController
             'title' => $data['title'],
             'type' => $data['type'],
             'category' => $data['type'],
-            'url' => $data['url'],
+            'url' => $storedPath,
+            'original_filename' => $data['original_filename'] ?? null,
+            'processing_status' => $processingStatus,
             'description' => $data['description'] ?? null,
             'is_active' => true,
         ]);
 
+        if ($processingStatus === 'processing') {
+            ProcessLessonVideo::dispatch($resource->id);
+        }
+
         return response()->json(['success' => true, 'id' => $resource->id]);
+    }
+
+    public function viewResourceFile(SubjectResource $resource)
+    {
+        abort_if($resource->isVideo() || $resource->isExternalLink() || ! $resource->url, 404);
+        abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404);
+
+        return Storage::disk('protected_videos')->response($resource->url, $resource->original_filename);
     }
 
     public function destroyResource(SubjectResource $resource)
     {
-        if ($resource->url && ! preg_match('#^https?://#i', $resource->url)) {
-            Storage::disk('public')->delete($resource->url);
+        if ($resource->isExternalLink()) {
+            $resource->delete();
+
+            return response()->json(['success' => true]);
+        }
+
+        // Remove the whole per-resource directory: source file (if still processing),
+        // HLS playlists, segments and rotating encryption keys all live under it.
+        Storage::disk('protected_videos')->deleteDirectory("resources/{$resource->id}");
+
+        if ($resource->url && Storage::disk('protected_videos')->exists($resource->url)) {
+            Storage::disk('protected_videos')->delete($resource->url);
         }
 
         $resource->delete();

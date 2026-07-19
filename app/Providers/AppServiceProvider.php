@@ -19,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\View::composer(['layouts.partials.admin-header', 'layouts.partials.admin-sidebar'], function ($view) {
+            $view->with('pending_applications', \App\Models\Application::where('status', 'new')->latest()->take(5)->get());
+            $view->with('pending_applications_count', \App\Models\Application::where('status', 'new')->count());
+        });
     }
 }

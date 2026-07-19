@@ -352,3 +352,8 @@
 [dir="rtl"] footer .text-md-start {
   text-align: right !important;
 }
+
+/* ----- Modal close (X) button sits at the far left in Arabic ----- */
+[dir="rtl"] .modal-header .btn-close {
+  margin: -0.5rem auto -0.5rem -0.5rem;
+}

@@ -39,44 +39,43 @@
         @foreach($withGroup as $registration)
           @php $group = $registration->group; @endphp
           <div class="col-md-6 col-xl-4">
-            <div class="glass-panel rounded-4 p-4 h-100 tilt-card glow-card">
-              <div class="d-flex justify-content-between align-items-start mb-3">
-                <div class="p-2 rounded" style="background: rgba(197, 168, 128, 0.1); color: var(--accent-color);">
-                  <i class="bi bi-people-fill fs-4"></i>
+            <a href="{{ route('student.groups.show', $group) }}" class="text-decoration-none d-block h-100">
+              <div class="glass-panel rounded-4 p-4 h-100 tilt-card glow-card transition-all hover:bg-white/5">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div class="p-2 rounded" style="background: rgba(197, 168, 128, 0.1); color: var(--accent-color);">
+                    <i class="bi bi-people-fill fs-4"></i>
+                  </div>
+                  <span class="badge bg-success bg-opacity-25 text-success" data-en="Joined" data-ar="منضم">منضم</span>
                 </div>
-                <span class="badge bg-success bg-opacity-25 text-success" data-en="Joined" data-ar="منضم">Joined</span>
-              </div>
-              <h5 class="fw-bold mb-1" style="color: var(--text-primary);">{{ $registration->subject->name }}</h5>
-              <p class="text-sm opacity-75 mb-3">{{ $group->name }}</p>
+                <h5 class="fw-bold mb-1" style="color: var(--text-primary);">{{ $registration->subject->name }}</h5>
+                <p class="text-sm opacity-75 mb-3 text-white">{{ $group->name }}</p>
 
-              <div class="d-flex flex-column gap-2 text-sm">
-                @if(!empty($group->days))
-                  <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-calendar-week" style="color: var(--accent-color);"></i>
-                    <span>{{ collect($group->days)->map(fn($d) => $dayLabels[$d][$lang] ?? $d)->implode(' · ') }}</span>
-                  </div>
-                @endif
-                @if($group->start_time)
-                  <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-clock" style="color: var(--accent-color);"></i>
-                    <span>{{ \Carbon\Carbon::parse($group->start_time)->format('h:i A') }} — {{ \Carbon\Carbon::parse($group->end_time)->format('h:i A') }}</span>
-                  </div>
-                @endif
-                @if($group->teacher)
-                  <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-person-badge" style="color: var(--accent-color);"></i>
-                    <span>{{ $group->teacher->name }}</span>
-                  </div>
-                @endif
-              </div>
+                <div class="d-flex flex-column gap-2 text-sm text-white/80">
+                  @if(!empty($group->days))
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-calendar-week text-gold"></i>
+                      <span>{{ collect($group->days)->map(fn($d) => $dayLabels[$d][$lang] ?? $d)->implode(' · ') }}</span>
+                    </div>
+                  @endif
+                  @if($group->start_time)
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-clock text-gold"></i>
+                      <span>{{ \Carbon\Carbon::parse($group->start_time)->format('h:i A') }} — {{ \Carbon\Carbon::parse($group->end_time)->format('h:i A') }}</span>
+                    </div>
+                  @endif
+                  @if($group->teacher)
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-person-badge text-gold"></i>
+                      <span>{{ $group->teacher->name }}</span>
+                    </div>
+                  @endif
+                </div>
 
-              @if($group->zoom_link)
-                <a href="{{ $group->zoom_link }}" target="_blank" rel="noopener" class="btn btn-luxury w-100 mt-3 py-2">
-                  <i class="bi bi-camera-video-fill me-1"></i>
-                  <span data-en="Join Session" data-ar="انضم للجلسة">Join Session</span>
-                </a>
-              @endif
-            </div>
+                <div class="mt-4 pt-3 border-top border-white/10 text-center">
+                  <span class="text-gold fw-bold text-sm" data-en="View Materials" data-ar="عرض المواد التعليمية">عرض المواد التعليمية <i class="bi bi-arrow-left ms-1 rtl:rotate-180"></i></span>
+                </div>
+              </div>
+            </a>
           </div>
         @endforeach
       </div>

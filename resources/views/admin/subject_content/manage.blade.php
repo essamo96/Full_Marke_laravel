@@ -103,10 +103,20 @@
                                                                         <td>{{ $resource->title }}</td>
                                                                         <td><span class="badge badge-light-primary">{{ $resource->type }}</span></td>
                                                                         <td>
-                                                                            <a href="{{ preg_match('#^https?://#i', $resource->url) ? $resource->url : asset('storage/' . $resource->url) }}" target="_blank" class="btn btn-sm btn-light-primary">فتح</a>
+                                                                            @if($resource->isExternalLink())
+                                                                                <a href="{{ $resource->url }}" target="_blank" class="btn btn-sm btn-light-primary">فتح</a>
+                                                                            @elseif($resource->type === 'document' || $resource->isImage())
+                                                                                <a href="{{ route('subject_content.resources.file', $resource) }}" target="_blank" class="btn btn-sm btn-light-primary">فتح</a>
+                                                                            @elseif($resource->processing_status === 'processing')
+                                                                                <span class="badge badge-light-warning">جاري المعالجة...</span>
+                                                                            @elseif($resource->processing_status === 'failed')
+                                                                                <span class="badge badge-light-danger" title="{{ $resource->processing_error }}">فشلت المعالجة</span>
+                                                                            @else
+                                                                                <span class="badge badge-light-success">جاهز (يُعرض للطالب)</span>
+                                                                            @endif
                                                                         </td>
                                                                         <td class="text-end">
-                                                                            <button type="button" class="btn btn-icon btn-sm btn-light-danger" onclick="deleteResource({{ $resource->id }})"><i class="bi bi-trash"></i></button>
+                                                                            <button type="button" class="btn btn-icon btn-sm btn-light-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                                                                         </td>
                                                                     </tr>
                                                                 @empty
@@ -220,19 +230,40 @@
                         <select name="type" id="resource_type" class="form-select" required>
                             <option value="video">فيديو</option>
                             <option value="document">ملف / PDF</option>
-                            <option value="link">رابط خارجي</option>
+                            <option value="image">صورة</option>
+                            <option value="link">رابط خارجي (يوتيوب، إلخ)</option>
                             <option value="zoom">رابط Zoom</option>
                         </select>
                     </div>
-                    <div class="mb-5" id="resource_file_field">
-                        <label class="form-label">رفع ملف (فيديو أو PDF أو مستند)</label>
-                        <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.mp4,.mov,.avi,.webm"/>
-                        <div class="form-text">أو أدخل رابطاً خارجياً بدلاً من رفع ملف.</div>
+                    <div class="mb-5" id="resource_video_field">
+                        <label class="form-label">رفع فيديو</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <button type="button" id="resource_video_browse" class="btn btn-light-primary btn-sm">
+                                <i class="ki-duotone ki-folder-up fs-3"></i> اختر ملف الفيديو
+                            </button>
+                            <span id="resource_video_filename" class="text-muted fs-7"></span>
+                        </div>
+                        <div class="progress mt-3 d-none" id="resource_video_progress_wrap" style="height: 8px;">
+                            <div class="progress-bar" id="resource_video_progress" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="form-text">
+                            يدعم الرفع المجزّأ (Chunked) القابل للاستئناف — إذا انقطع الاتصال بالإنترنت أثناء الرفع فسيكمل تلقائيًا من حيث توقف بمجرد عودة الاتصال.
+                        </div>
+                    </div>
+                    <div class="mb-5" id="resource_document_field">
+                        <label class="form-label">رفع ملف (PDF / مستند)</label>
+                        <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"/>
+                    </div>
+                    <div class="mb-5 d-none" id="resource_image_field">
+                        <label class="form-label">رفع صورة</label>
+                        <input type="file" name="file" class="form-control" accept=".jpg,.jpeg,.png,.webp,.gif"/>
                     </div>
                     <div class="mb-5" id="resource_url_field">
                         <label class="form-label">رابط خارجي</label>
                         <input type="text" name="url" class="form-control" placeholder="https://..."/>
                     </div>
+                    <input type="hidden" name="uploaded_path" id="resource_uploaded_path"/>
+                    <input type="hidden" name="original_filename" id="resource_original_filename"/>
                     <div class="mb-5">
                         <label class="form-label">وصف مختصر</label>
                         <textarea name="description" class="form-control" rows="2"></textarea>
@@ -246,9 +277,99 @@
         </div>
     </div>
 </div>
+
+<!-- Upload Progress Drawer -->
+<div id="kt_upload_progress_drawer" class="bg-body" data-kt-drawer="true" data-kt-drawer-name="upload_progress" data-kt-drawer-activate="true" data-kt-drawer-overlay="false" data-kt-drawer-width="{default:'300px', 'md': '400px'}" data-kt-drawer-direction="end" data-kt-drawer-close="#kt_upload_progress_close">
+    <div class="card w-100 rounded-0 border-0 h-100">
+        <div class="card-header pe-5">
+            <div class="card-title">
+                <div class="d-flex justify-content-center flex-column me-3">
+                    <a href="#" class="fs-4 fw-bold text-gray-900 text-hover-primary me-1 lh-1">جاري الرفع...</a>
+                </div>
+            </div>
+            <div class="card-toolbar">
+                <div class="btn btn-sm btn-icon btn-active-light-primary" id="kt_upload_progress_close">
+                    <i class="ki-duotone ki-cross fs-2"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+        </div>
+        <div class="card-body hover-scroll-overlay-y">
+            <div class="d-flex align-items-center mb-5">
+                <i class="ki-duotone ki-file-up fs-2x text-primary me-3"><span class="path1"></span><span class="path2"></span></i>
+                <div class="d-flex flex-column">
+                    <span class="fw-bold text-gray-800" id="upload_drawer_filename" style="word-break: break-all;">اسم الملف</span>
+                    <span class="text-gray-400 fw-semibold" id="upload_drawer_size">0 MB</span>
+                </div>
+            </div>
+            
+            <div class="d-flex flex-column w-100 mt-5">
+                <div class="d-flex justify-content-between mb-2 fs-6 fw-bold">
+                    <span class="text-muted" id="upload_drawer_speed" dir="ltr">0 MB/s</span>
+                    <span class="text-primary" id="upload_drawer_percentage">0%</span>
+                </div>
+                <div class="progress h-8px mb-2">
+                    <div class="progress-bar bg-primary" id="upload_drawer_progress" role="progressbar" style="width: 0%"></div>
+                </div>
+                <div class="d-flex justify-content-between mb-2 fs-7 fw-semibold text-gray-600">
+                    <span id="upload_drawer_time_remaining">جارِ الحساب...</span>
+                    <span id="upload_drawer_uploaded" dir="ltr">0 MB / 0 MB</span>
+                </div>
+            </div>
+
+            <div class="mt-5 notice d-flex bg-light-primary rounded border-primary border border-dashed p-6">
+                <div class="d-flex flex-stack flex-grow-1">
+                    <div class="fw-semibold">
+                        <div class="fs-6 text-gray-700">يمكنك المتابعة في استخدام النظام أثناء رفع الفيديو، وسوف تكتمل العملية في الخلفية طالما لم تغلق هذه الصفحة.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Processing Progress Toast -->
+<div id="kt_processing_progress_toast" class="bg-body shadow-sm rounded border d-none" style="position: fixed; bottom: 2rem; left: 2rem; width: 350px; z-index: 1055;">
+    <div class="card w-100 rounded-0 border-0 h-100">
+        <div class="card-header pe-5 min-h-50px">
+            <div class="card-title">
+                <div class="d-flex justify-content-center flex-column me-3">
+                    <a href="#" class="fs-5 fw-bold text-gray-900 text-hover-primary me-1 lh-1">جاري المعالجة...</a>
+                </div>
+            </div>
+            <div class="card-toolbar">
+                <div class="btn btn-sm btn-icon btn-active-light-primary" onclick="document.getElementById('kt_processing_progress_toast').classList.add('d-none')">
+                    <i class="ki-duotone ki-cross fs-2"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-4">
+                <i class="ki-duotone ki-setting-2 fs-2x text-primary me-3"><span class="path1"></span><span class="path2"></span></i>
+                <div class="d-flex flex-column">
+                    <span class="fw-bold text-gray-800 fs-7" style="word-break: break-all;">تحضير الفيديو</span>
+                    <span class="text-gray-400 fw-semibold fs-8">يتم تحويل الفيديو وتشفيره...</span>
+                </div>
+            </div>
+            
+            <div class="d-flex flex-column w-100">
+                <div class="d-flex justify-content-between mb-2 fs-7 fw-bold">
+                    <span class="text-muted">نسبة الإنجاز</span>
+                    <span class="text-primary" id="processing_drawer_percentage">0%</span>
+                </div>
+                <div class="progress h-6px mb-2">
+                    <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" id="processing_drawer_progress" role="progressbar" style="width: 0%"></div>
+                </div>
+                <div class="d-flex justify-content-between fs-8 fw-semibold text-gray-600">
+                    <span id="processing_drawer_time_remaining">جارِ المعالجة...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
+<script src="{{ asset('assets/vendor/resumable/resumable.js') }}"></script>
 <script>
     const subjectContentUnitsStoreUrl = '{{ route('subject_content.units.store', \Illuminate\Support\Facades\Crypt::encrypt($subject->id)) }}';
     const subjectContentUnitsBaseUrl = '{{ url('admin/subject-content/units') }}';
@@ -256,30 +377,179 @@
     const subjectContentResourcesBaseUrl = '{{ url('admin/subject-content/resources') }}';
     const csrfToken = '{{ csrf_token() }}';
 
+    const chunkUploadUrl = '{{ route('subject_content.upload_chunk') }}';
+
     let modalAddUnit, modalAddLesson, modalAddResource;
     let currentUnitId = null;
     let currentLessonId = null;
+    let videoUploadResumable = null;
+    let videoUploadDone = false;
+
+    let uploadStartTime = 0;
+    let uploadDrawer;
+    let processingDrawer;
 
     document.addEventListener('DOMContentLoaded', function () {
         modalAddUnit = new bootstrap.Modal(document.getElementById('kt_modal_add_unit'));
         modalAddLesson = new bootstrap.Modal(document.getElementById('kt_modal_add_lesson'));
         modalAddResource = new bootstrap.Modal(document.getElementById('kt_modal_add_resource'));
 
+        // Initialize Drawer
+        const drawerEl = document.getElementById('kt_upload_progress_drawer');
+        if (drawerEl) {
+            uploadDrawer = KTDrawer.getInstance(drawerEl);
+            if (!uploadDrawer) uploadDrawer = new KTDrawer(drawerEl);
+        }
+
+        // We no longer need KTDrawer for processing toast
+
         document.getElementById('resource_type').addEventListener('change', toggleResourceFields);
         toggleResourceFields();
+        initVideoResumable();
     });
+
+    function showProcessingDrawer(resourceId) {
+        document.getElementById('processing_drawer_progress').style.width = '0%';
+        document.getElementById('processing_drawer_percentage').textContent = '0%';
+        document.getElementById('processing_drawer_time_remaining').textContent = 'جاري التحضير...';
+        
+        document.getElementById('kt_processing_progress_toast').classList.remove('d-none');
+
+        if (window.pusherInstance) {
+            var channel = window.pusherInstance.subscribe('system-jobs');
+            channel.bind('video.processing', function(data) {
+                if (data.resourceId === resourceId) {
+                    const pct = data.percentage;
+                    document.getElementById('processing_drawer_progress').style.width = pct + '%';
+                    document.getElementById('processing_drawer_percentage').textContent = pct + '%';
+                    document.getElementById('processing_drawer_time_remaining').textContent = 'تتم المعالجة الآن...';
+
+                    if (pct >= 100) {
+                        document.getElementById('processing_drawer_time_remaining').textContent = 'اكتملت المعالجة!';
+                        setTimeout(() => {
+                            document.getElementById('kt_processing_progress_toast').classList.add('d-none');
+                            showSuccess(function () { location.reload(); });
+                        }, 2000);
+                    }
+                }
+            });
+        } else {
+            // fallback if pusher not configured
+            setTimeout(() => {
+                showSuccess(function () { location.reload(); });
+            }, 3000);
+        }
+    }
 
     function toggleResourceFields() {
         const type = document.getElementById('resource_type').value;
-        const fileField = document.getElementById('resource_file_field');
+        const videoField = document.getElementById('resource_video_field');
+        const documentField = document.getElementById('resource_document_field');
+        const imageField = document.getElementById('resource_image_field');
         const urlField = document.getElementById('resource_url_field');
-        if (type === 'link' || type === 'zoom') {
-            fileField.classList.add('d-none');
-            urlField.classList.remove('d-none');
-        } else {
-            fileField.classList.remove('d-none');
-            urlField.classList.remove('d-none');
-        }
+
+        videoField.classList.toggle('d-none', type !== 'video');
+        documentField.classList.toggle('d-none', type !== 'document');
+        imageField.classList.toggle('d-none', type !== 'image');
+        urlField.classList.toggle('d-none', type !== 'link' && type !== 'zoom');
+    }
+
+    function formatBytes(bytes, decimals = 2) {
+        if (!+bytes) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+    }
+
+    function formatTime(seconds) {
+        if (!seconds || seconds === Infinity || seconds < 0) return 'جارِ الحساب...';
+        seconds = Math.round(seconds);
+        if (seconds < 60) return `متبقي ${seconds} ثانية`;
+        const minutes = Math.floor(seconds / 60);
+        const remSeconds = seconds % 60;
+        return `متبقي ${minutes} دقيقة و ${remSeconds} ثانية`;
+    }
+
+    // Chunked, resumable video upload
+    function initVideoResumable() {
+        videoUploadResumable = new Resumable({
+            target: chunkUploadUrl,
+            chunkSize: 5 * 1024 * 1024,
+            simultaneousUploads: 3,
+            testChunks: false,
+            maxChunkRetries: 8,
+            chunkRetryInterval: 3000,
+            query: { _token: csrfToken },
+        });
+
+        videoUploadResumable.assignBrowse(document.getElementById('resource_video_browse'));
+
+        videoUploadResumable.on('fileAdded', function (file) {
+            videoUploadDone = false;
+            uploadStartTime = Date.now();
+            document.getElementById('resource_uploaded_path').value = '';
+            document.getElementById('resource_video_filename').textContent = file.fileName;
+            document.getElementById('resource_video_progress_wrap').classList.remove('d-none');
+            document.getElementById('resource_video_progress').style.width = '0%';
+
+            // Update Drawer Info
+            document.getElementById('upload_drawer_filename').textContent = file.fileName;
+            document.getElementById('upload_drawer_size').textContent = formatBytes(file.size);
+            document.getElementById('upload_drawer_progress').style.width = '0%';
+            document.getElementById('upload_drawer_percentage').textContent = '0%';
+            document.getElementById('upload_drawer_time_remaining').textContent = 'جارِ الحساب...';
+            document.getElementById('upload_drawer_uploaded').textContent = '0 MB / ' + formatBytes(file.size);
+            document.getElementById('upload_drawer_speed').textContent = '0 KB/s';
+
+            if (uploadDrawer) uploadDrawer.show();
+
+            videoUploadResumable.upload();
+        });
+
+        videoUploadResumable.on('fileProgress', function (file) {
+            const progress = videoUploadResumable.progress();
+            const pct = Math.floor(progress * 100);
+            document.getElementById('resource_video_progress').style.width = pct + '%';
+
+            // Calculate Speed and ETA
+            const uploadedBytes = progress * file.size;
+            const elapsedTime = (Date.now() - uploadStartTime) / 1000; // seconds
+            let speedBps = 0;
+            if (elapsedTime > 0) speedBps = uploadedBytes / elapsedTime;
+
+            const remainingBytes = file.size - uploadedBytes;
+            let remainingTimeSec = 0;
+            if (speedBps > 0) remainingTimeSec = remainingBytes / speedBps;
+
+            document.getElementById('upload_drawer_progress').style.width = pct + '%';
+            document.getElementById('upload_drawer_percentage').textContent = pct + '%';
+            document.getElementById('upload_drawer_uploaded').textContent = formatBytes(uploadedBytes) + ' / ' + formatBytes(file.size);
+            document.getElementById('upload_drawer_speed').textContent = formatBytes(speedBps) + '/s';
+            document.getElementById('upload_drawer_time_remaining').textContent = formatTime(remainingTimeSec);
+        });
+
+        videoUploadResumable.on('fileSuccess', function (file, response) {
+            const data = JSON.parse(response);
+            document.getElementById('resource_uploaded_path').value = data.path;
+            document.getElementById('resource_original_filename').value = data.original_filename;
+            document.getElementById('resource_video_progress').style.width = '100%';
+            videoUploadDone = true;
+
+            document.getElementById('upload_drawer_progress').style.width = '100%';
+            document.getElementById('upload_drawer_percentage').textContent = '100%';
+            document.getElementById('upload_drawer_time_remaining').textContent = 'اكتمل الرفع!';
+            document.getElementById('upload_drawer_uploaded').textContent = formatBytes(file.size) + ' / ' + formatBytes(file.size);
+
+            setTimeout(() => { if (uploadDrawer) uploadDrawer.hide(); }, 4000);
+        });
+
+        videoUploadResumable.on('fileError', function (file, message) {
+            showError('تعذّر رفع الفيديو. سيتم إعادة المحاولة تلقائيًا عند استعادة الاتصال بالإنترنت.');
+            document.getElementById('upload_drawer_time_remaining').textContent = 'حدث خطأ في الرفع';
+            document.getElementById('upload_drawer_time_remaining').classList.add('text-danger');
+        });
     }
 
     function openUnitModal() {
@@ -296,6 +566,12 @@
     function openResourceModal(lessonId) {
         currentLessonId = lessonId;
         $('#kt_form_add_resource')[0].reset();
+        document.getElementById('resource_uploaded_path').value = '';
+        document.getElementById('resource_original_filename').value = '';
+        document.getElementById('resource_video_filename').textContent = '';
+        document.getElementById('resource_video_progress_wrap').classList.add('d-none');
+        videoUploadDone = false;
+        if (videoUploadResumable) videoUploadResumable.files = [];
         toggleResourceFields();
         modalAddResource.show();
     }
@@ -367,6 +643,13 @@
 
     $('#kt_form_add_resource').on('submit', function (e) {
         e.preventDefault();
+
+        const type = document.getElementById('resource_type').value;
+        if (type === 'video' && !videoUploadDone) {
+            showError('يرجى الانتظار حتى ينتهي رفع الفيديو قبل الحفظ.');
+            return;
+        }
+
         const formData = new FormData(this);
         formData.append('_token', csrfToken);
         $.ajax({
@@ -375,9 +658,13 @@
             data: formData,
             contentType: false,
             processData: false,
-            success: function () {
+            success: function (response) {
                 modalAddResource.hide();
-                showSuccess(function () { location.reload(); });
+                if (type === 'video' && response.id) {
+                    showProcessingDrawer(response.id);
+                } else {
+                    showSuccess(function () { location.reload(); });
+                }
             },
             error: function (xhr) {
                 const message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : null;

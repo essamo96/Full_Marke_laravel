@@ -14,6 +14,7 @@ use App\Http\Controllers\Student\ProfileController;
 use App\Http\Controllers\Student\ProgramsController;
 use App\Http\Controllers\Student\RegistrationsController;
 use App\Http\Controllers\Student\ResourcesController;
+use App\Http\Controllers\Student\VideoStreamController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('student')->name('student.')->group(function () {
@@ -52,8 +53,19 @@ Route::prefix('student')->name('student.')->group(function () {
 
         Route::get('programs', [ProgramsController::class, 'index'])->name('programs');
         Route::get('groups', [GroupsController::class, 'index'])->name('groups');
+        Route::get('groups/{group}', [GroupsController::class, 'show'])->name('groups.show');
         Route::post('groups/join-by-code', [GroupsController::class, 'joinByCode'])->name('groups.join-by-code');
         Route::get('resources', [ResourcesController::class, 'index'])->name('resources');
+        Route::post('videos/{resource}/start', [VideoStreamController::class, 'startSession'])->name('video.start');
+        Route::get('videos/{resource}/hls/{file}', [VideoStreamController::class, 'hls'])->name('video.hls');
+        Route::get('resources/{resource}/file', [VideoStreamController::class, 'file'])->name('resources.file');
+        Route::get('resources/{resource}/link', [VideoStreamController::class, 'link'])->name('resources.link');
+
+        Route::get('exams', [\App\Http\Controllers\Student\ExamsController::class, 'index'])->name('exams.index');
+        Route::get('exams/{exam}/take', [\App\Http\Controllers\Student\ExamsController::class, 'take'])->name('exams.take');
+        Route::post('exams/{exam}/submit', [\App\Http\Controllers\Student\ExamsController::class, 'submit'])->name('exams.submit');
+        Route::get('results', [\App\Http\Controllers\Student\ResultsController::class, 'index'])->name('results.index');
+        Route::get('attendance', [\App\Http\Controllers\Student\AttendanceController::class, 'index'])->name('attendance.index');
 
         Route::post('notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');
         Route::post('notifications/read-all', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');

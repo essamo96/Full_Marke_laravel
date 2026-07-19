@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CartItem extends Model
 {
+    use \App\Traits\EncryptsRouteKey;
+
     public const UPDATED_AT = null;
 
     protected $fillable = [

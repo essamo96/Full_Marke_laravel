@@ -16,6 +16,8 @@
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
         "mcamara/laravel-localization": "^2.4",
+        "pbmedia/laravel-ffmpeg": "^8.9",
+        "pion/laravel-chunk-upload": "^1.6",
         "pusher/pusher-php-server": "^7.2",
         "spatie/laravel-permission": "^6.25",
         "yajra/laravel-datatables-oracle": "^12"

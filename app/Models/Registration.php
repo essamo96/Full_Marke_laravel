@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Registration extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\EncryptsRouteKey;
 
     protected $fillable = [
         'registration_number', 'student_id', 'subject_id', 'group_id',

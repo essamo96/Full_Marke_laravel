@@ -52,10 +52,20 @@
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuExams">
-          <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Exams" data-ar="الامتحانات">Exams</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
-          <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Results" data-ar="النتائج">Results</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
+          <li><a href="{{ route('student.exams.index') }}" class="sidebar-submenu-item {{ request()->routeIs('student.exams.*') ? 'active' : '' }}" data-en="Exams" data-ar="الامتحانات">Exams</a></li>
+          <li><a href="{{ route('student.results.index') }}" class="sidebar-submenu-item {{ request()->routeIs('student.results.*') ? 'active' : '' }}" data-en="Results" data-ar="النتائج">Results</a></li>
           <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Assessments" data-ar="التقييمات">Assessments</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
           <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Certificates" data-ar="الشهادات">Certificates</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
+        </ul>
+
+        <!-- Attendance -->
+        <a href="#menuAttendance" class="sidebar-nav-item accordion-trigger"  aria-expanded="false" aria-controls="menuAttendance">
+          <i class="bi bi-calendar-check sidebar-nav-item-icon"></i>
+          <span class="sidebar-nav-item-text" data-en="Attendance" data-ar="الحضور والغياب">Attendance</span>
+          <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
+        </a>
+        <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuAttendance">
+          <li><a href="{{ route('student.attendance.index') }}" class="sidebar-submenu-item {{ request()->routeIs('student.attendance.*') ? 'active' : '' }}" data-en="My Attendance" data-ar="سجل الحضور">My Attendance</a></li>
         </ul>
 
         <!-- Financials -->

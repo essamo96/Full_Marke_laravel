@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\EncryptsRouteKey;
 
 class Group extends Model
 {
-    use HasFactory;
+    use HasFactory, EncryptsRouteKey;
 
     protected $fillable = [
         'subject_id', 'teacher_id', 'name', 'days', 'start_time', 'end_time',
@@ -46,6 +47,11 @@ class Group extends Model
     public function joinCodes(): HasMany
     {
         return $this->hasMany(GroupJoinCode::class);
+    }
+
+    public function exams(): HasMany
+    {
+        return $this->hasMany(Exam::class);
     }
 
     public function hasAvailableCapacity(): bool

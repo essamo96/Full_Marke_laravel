@@ -229,6 +229,7 @@
 
       channel.bind('StudentFeeDuesEvent', handleIncoming);
       channel.bind('StudentPaymentConfirmedEvent', handleIncoming);
+      channel.bind('NewExamPublishedEvent', handleIncoming);
     })();
 
     function showStudentToast(message) {

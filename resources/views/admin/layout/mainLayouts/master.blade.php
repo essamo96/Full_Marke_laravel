@@ -266,6 +266,7 @@
                     }
 
                     var pusher = new Pusher(appKey, pusherOptions);
+                    window.pusherInstance = pusher;
 
                     var channel = pusher.subscribe('admin-notifications');
                     channel.bind('NewStudentEvent', function(data) {

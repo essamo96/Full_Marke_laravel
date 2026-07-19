@@ -565,4 +565,5 @@ return [
     'payment_date' => 'تاريخ الدفع:',
     'print_invoice' => 'طباعة الفاتورة',
     'taxes_included' => 'شامل الضرائب (إن وجدت)',
+    'exams' => 'الامتحانات',
 ];

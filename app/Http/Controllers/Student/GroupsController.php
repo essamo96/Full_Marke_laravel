@@ -86,4 +86,47 @@ class GroupsController extends Controller
 
         return response()->json(['success' => true, 'message' => 'تم الانضمام للمجموعة بنجاح.']);
     }
+
+    public function show(Group $group)
+    {
+        $student = Auth::guard('student')->user();
+
+        // Ensure the student is registered in this subject and specifically assigned to this group
+        $registration = $student->registrations()
+            ->where('subject_id', $group->subject_id)
+            ->where('group_id', $group->id)
+            ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
+            ->first();
+
+        if (!$registration) {
+            return redirect()->route('student.groups')->withErrors(['error' => 'أنت غير مسجل في هذه المجموعة.']);
+        }
+
+        $group->load('teacher', 'subject');
+        
+        $subject = $group->subject;
+        $subject->load([
+            'stages' => function ($q) {
+                $q->where('is_active', true)->orderBy('sort_order');
+            },
+            'stages.units' => function ($q) {
+                $q->where('is_active', true)->orderBy('sort_order');
+            },
+            'stages.units.lessons' => function ($q) {
+                $q->where('is_active', true)->orderBy('sort_order');
+            },
+            'stages.units.lessons.resources' => function ($q) {
+                $q->where('is_active', true)->orderBy('sort_order');
+            }
+        ]);
+
+        // Also fetch general resources that are not attached to any lesson
+        $generalResources = \App\Models\SubjectResource::where('subject_id', $subject->id)
+            ->where('is_active', true)
+            ->whereNull('educational_lesson_id')
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('student.groups.show', compact('group', 'subject', 'generalResources'));
+    }
 }

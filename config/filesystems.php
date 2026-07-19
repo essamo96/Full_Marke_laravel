@@ -47,6 +47,22 @@ return [
             'report' => false,
         ],
 
+        'protected_videos' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/protected_videos'),
+            'serve' => false,
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'chunks' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/chunks'),
+            'serve' => false,
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

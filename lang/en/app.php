@@ -548,4 +548,5 @@ return [
     'payment_date' => 'Payment Date:',
     'print_invoice' => 'Print Invoice',
     'taxes_included' => 'Taxes included (if any)',
+    'exams' => 'Exams',
 ];
