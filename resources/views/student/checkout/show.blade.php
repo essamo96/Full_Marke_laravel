@@ -111,7 +111,23 @@
         </select>
         @foreach ($paymentMethods as $method)
           <div id="pm-{{ $method->id }}" class="pm-details d-none mt-2 p-3 rounded-3 fs-7"
-               style="background: var(--bg-secondary); color: var(--text-secondary); white-space: pre-line;">{{ $method->details }}</div>
+               style="background: var(--bg-secondary); color: var(--text-secondary);">
+               
+               @if(!empty($method->credentials) && is_array($method->credentials))
+                 <div class="mb-3">
+                    <strong class="d-block mb-2" data-en="Payment Credentials:" data-ar="بيانات الاعتماد:">بيانات الاعتماد:</strong>
+                    <ul class="list-unstyled ms-3">
+                      @foreach($method->credentials as $cred)
+                        <li class="mb-1"><span class="fw-bold">{{ $cred['name'] ?? '' }}:</span> <span dir="ltr">{{ $cred['value'] ?? '' }}</span></li>
+                      @endforeach
+                    </ul>
+                 </div>
+               @endif
+
+               @if($method->details)
+                 <div class="mt-2 text-wrap">{!! $method->details !!}</div>
+               @endif
+          </div>
         @endforeach
       </div>
 

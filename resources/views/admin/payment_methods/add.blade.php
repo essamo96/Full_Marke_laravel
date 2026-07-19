@@ -62,6 +62,56 @@
                                         </div>
                                     </div>
 
+                                    <!-- Credentials Repeater -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <label class="p-2 fw-bold fs-5">بيانات الاعتماد (مثال: رقم الحساب، المستفيد)</label>
+                                            <div id="credentials_repeater">
+                                                <div class="form-group">
+                                                    <div data-repeater-list="credentials" class="d-flex flex-column gap-3">
+                                                        @php
+                                                            $credentials = old('credentials', $info->credentials ?? []);
+                                                        @endphp
+                                                        
+                                                        @if(empty($credentials))
+                                                            <div data-repeater-item class="form-group d-flex flex-wrap align-items-center gap-5">
+                                                                <div class="w-100 w-md-250px">
+                                                                    <input type="text" name="name" class="form-control" placeholder="الاسم (مثال: رقم الحساب)" />
+                                                                </div>
+                                                                <div class="flex-grow-1">
+                                                                    <input type="text" name="value" class="form-control" placeholder="البيان (مثال: 1234567890)" />
+                                                                </div>
+                                                                <button type="button" data-repeater-delete class="btn btn-sm btn-light-danger mt-3 mt-md-0">
+                                                                    <i class="bi bi-trash fs-5"></i>
+                                                                </button>
+                                                            </div>
+                                                        @else
+                                                            @foreach($credentials as $cred)
+                                                                <div data-repeater-item class="form-group d-flex flex-wrap align-items-center gap-5">
+                                                                    <div class="w-100 w-md-250px">
+                                                                        <input type="text" name="name" value="{{ $cred['name'] ?? '' }}" class="form-control" placeholder="الاسم (مثال: رقم الحساب)" />
+                                                                    </div>
+                                                                    <div class="flex-grow-1">
+                                                                        <input type="text" name="value" value="{{ $cred['value'] ?? '' }}" class="form-control" placeholder="البيان (مثال: 1234567890)" />
+                                                                    </div>
+                                                                    <button type="button" data-repeater-delete class="btn btn-sm btn-light-danger mt-3 mt-md-0">
+                                                                        <i class="bi bi-trash fs-5"></i>
+                                                                    </button>
+                                                                </div>
+                                                            @endforeach
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                <div class="form-group mt-5">
+                                                    <button type="button" data-repeater-create class="btn btn-sm btn-light-primary">
+                                                        <i class="bi bi-plus fs-3"></i> إضافة حقل جديد
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Credentials Repeater -->
+
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label class="p-2">الترتيب</label>
@@ -97,4 +147,49 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('js')
+<script src="{{ asset('assets/admin/plugins/custom/formrepeater/formrepeater.bundle.js') }}"></script>
+<script>
+    $(document).ready(function() {
+        // Init Repeater (Fallback to manual if plugin not available)
+        if($.fn.repeater) {
+            $('#credentials_repeater').repeater({
+                initEmpty: false,
+                show: function () {
+                    $(this).slideDown();
+                },
+                hide: function (deleteElement) {
+                    if(confirm('هل أنت متأكد من حذف هذا الحقل؟')) {
+                        $(this).slideUp(deleteElement);
+                    }
+                }
+            });
+        } else {
+            console.error('FormRepeater plugin is missing!');
+            // Simple manual repeater fallback
+            var itemIndex = {{ empty($credentials) ? 1 : count($credentials) }};
+            $('[data-repeater-create]').on('click', function() {
+                var template = `
+                <div data-repeater-item class="form-group d-flex flex-wrap align-items-center gap-5 mt-3">
+                    <div class="w-100 w-md-250px">
+                        <input type="text" name="credentials[${itemIndex}][name]" class="form-control" placeholder="الاسم (مثال: رقم الحساب)" />
+                    </div>
+                    <div class="flex-grow-1">
+                        <input type="text" name="credentials[${itemIndex}][value]" class="form-control" placeholder="البيان (مثال: 1234567890)" />
+                    </div>
+                    <button type="button" data-repeater-delete class="btn btn-sm btn-light-danger mt-3 mt-md-0">
+                        <i class="bi bi-trash fs-5"></i>
+                    </button>
+                </div>`;
+                $('[data-repeater-list="credentials"]').append(template);
+                itemIndex++;
+            });
+            $(document).on('click', '[data-repeater-delete]', function() {
+                $(this).closest('[data-repeater-item]').remove();
+            });
+        }
+    });
+</script>
 @endsection

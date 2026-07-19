@@ -1,12 +1,15 @@
 @extends('admin.layout.mainLayouts.master')
-@section('title', 'المحتوى التعليمي للمواد')
+@section('title', 'المحتوى التعليمي')
+
+@section('breadcrumb')
+    <li class="breadcrumb-item text-dark">المحتوى التعليمي</li>
+@endsection
 
 @section('page-content')
 <div class="card mb-5 mb-xl-10">
     <div class="card-header border-0 pt-5">
         <h3 class="card-title align-items-start flex-column">
-            <span class="card-label fw-bold fs-3 mb-1">المحتوى التعليمي</span>
-            <span class="text-muted mt-1 fw-semibold fs-7">اختر المادة لإدارة المحتوى التعليمي الخاص بها (الوحدات، الدروس، المرفقات)</span>
+            <span class="text-muted mt-1 fw-semibold fs-6">اختر المادة لإدارة المحتوى التعليمي الخاص بها (الوحدات، الدروس، المرفقات)</span>
         </h3>
     </div>
     <div class="card-body py-3">
@@ -25,7 +28,7 @@
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
                                     <div class="symbol symbol-45px me-5">
-                                        <img src="{{ $subject->image ? '/' . $subject->image : '/assets/admin/media/avatars/blank.png' }}" alt="" />
+                                        <img src="{{ $subject->image ? (str_starts_with($subject->image, 'site/') ? asset($subject->image) : asset('storage/' . $subject->image)) : asset('assets/admin/media/avatars/blank.png') }}" alt="" />
                                     </div>
                                     <div class="d-flex justify-content-start flex-column">
                                         <a href="{{ route('subject_content.manage', \Illuminate\Support\Facades\Crypt::encrypt($subject->id)) }}" class="text-dark fw-bold text-hover-primary fs-6">{{ $subject->name_ar }}</a>

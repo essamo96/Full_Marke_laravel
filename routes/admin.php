@@ -77,7 +77,6 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/payments.php';
     require __DIR__.'/financial-reports.php';
     require __DIR__.'/enrolments.php';
-    require __DIR__.'/educational-materials.php';
     // Student Inquiries Main Screen
     Route::get('/student-inquiry', [\App\Http\Controllers\Admin\StudentInquiryController::class, 'index'])->name('student_inquiry.view');
     Route::get('/student-inquiry/search', [\App\Http\Controllers\Admin\StudentInquiryController::class, 'search'])->name('student_inquiry.search');
@@ -86,6 +85,12 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     // Subject Content (Educational Content) Screen
     Route::get('/subject-content', [\App\Http\Controllers\Admin\SubjectContentController::class, 'index'])->name('subject_content.view');
     Route::get('/subject-content/{id}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'manage'])->name('subject_content.manage');
+    Route::post('/subject-content/{id}/units', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeUnit'])->name('subject_content.units.store');
+    Route::delete('/subject-content/units/{unit}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyUnit'])->name('subject_content.units.destroy');
+    Route::post('/subject-content/units/{unit}/lessons', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeLesson'])->name('subject_content.lessons.store');
+    Route::delete('/subject-content/lessons/{lesson}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyLesson'])->name('subject_content.lessons.destroy');
+    Route::post('/subject-content/lessons/{lesson}/resources', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeResource'])->name('subject_content.resources.store');
+    Route::delete('/subject-content/resources/{resource}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyResource'])->name('subject_content.resources.destroy');
 });
 Route::get('auto-login', function () { Auth::guard('admin')->loginUsingId(1); return redirect('/admin/users'); });
 Route::get('test-dt', function() { Auth::guard('admin')->loginUsingId(1); return app(App\Http\Controllers\Admin\UsersController::class)->getList(request()); });

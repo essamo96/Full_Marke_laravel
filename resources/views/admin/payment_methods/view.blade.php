@@ -55,7 +55,7 @@
                                                 <span class="text-gray-600">{{ $method->name_en }}</span>
                                             </td>
                                             <td>
-                                                <span class="text-muted fs-7">{{ Str::limit($method->details, 80) }}</span>
+                                                <span class="text-muted fs-7">{{ Str::limit(strip_tags($method->details), 80) }}</span>
                                             </td>
                                             <td class="text-center">
                                                 <span class="badge badge-light">{{ $method->sort_order ?? 0 }}</span>

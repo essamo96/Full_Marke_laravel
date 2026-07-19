@@ -11,27 +11,11 @@
 >
     <!-- Sidebar Logo -->
     <div class="app-sidebar-logo px-6" id="kt_app_sidebar_logo">
-        <a href="{{ url('/') }}">
-            <!-- اسم الشركة -->
-            {{-- <span
-                id="app_sidebar_logo_text"
-                class="text-warning fw-bold"
-                style="font-family: 'Inter', sans-serif !important;"
-            >
-                {{ \App\Helpers\translate('app.company_name') }}
-            </span> --}}
-
-            <!-- صورة الشعار -->
-            <img
-                src="{{ asset('yabous_logo.png') }}"
-                alt="Logo"
-                class="h-50px app-sidebar-logo-default fs-2"
-            />
-            <img
-                src="{{ asset('yabous_logo.png') }}"
-                alt="Logo"
-                class="h-50px app-sidebar-logo-minimize fs-2"
-            />
+        <a href="{{ route('admin.dashboard') }}" class="app-sidebar-logo my-custom-logo">
+            <img alt="Logo" src="{{ asset('site/images/logo_v2_blue.png') }}" class="h-50px app-sidebar-logo-default theme-light-show">
+            <img alt="Logo" src="{{ asset('site/images/full_mark_dark.png') }}" class="h-50px app-sidebar-logo-default theme-dark-show">
+            <img alt="Logo" src="{{ asset('site/images/logo_v2_blue.png') }}" class="h-50px app-sidebar-logo-minimize theme-light-show">
+            <img alt="Logo" src="{{ asset('site/images/full_mark_dark.png') }}" class="h-50px app-sidebar-logo-minimize theme-dark-show">
         </a>
 
         <!-- زر إخفاء/إظهار القائمة -->
@@ -90,19 +74,6 @@
                 @endforeach
 
                 <!-- Static Links added for new features -->
-                <div class="menu-item">
-                    <a class="menu-link {{ (request()->routeIs('educational_materials.*')) ? 'active' : '' }}" href="{{ route('educational_materials.index') }}">
-                        <span class="menu-icon">
-                            <i class="ki-duotone ki-book fs-2">
-                                <span class="path1"></span>
-                                <span class="path2"></span>
-                                <span class="path3"></span>
-                                <span class="path4"></span>
-                            </i>
-                        </span>
-                        <span class="menu-title">المواد التعليمية (الهرمية)</span>
-                    </a>
-                </div>
                 <div class="menu-item">
                     <a class="menu-link {{ (request()->routeIs('financial_reports.*')) ? 'active' : '' }}" href="{{ route('financial_reports.view') }}">
                         <span class="menu-icon">

@@ -15,18 +15,46 @@
             <div id="kt_app_content_container" class="app-container container-xxl">
                 <div class="card">
                     <div class="card-header border-0 pt-6">
-                        <div class="card-title w-100 mb-0 row">
-                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
-                                <h3>طلبات الدفع المعلقة</h3>
-                            
+                        <form method="GET" action="{{ route('approvals.view') }}" class="w-100">
+                            <div class="row w-100 mb-0">
+                                <div class="col-12 mb-5">
+                                    <h3>طلبات الدفع المعلقة</h3>
+                                </div>
+                                <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
+                                    <label class="form-label fs-7 fw-bold">@lang('app.payment_number')</label>
+                                    <input type="text" name="payment_number" value="{{ request('payment_number') }}" class="form-control form-control-sm form-control-solid" placeholder="رقم العملية" />
+                                </div>
+                                <div class="col-lg-3 col-md-3 col-sm-6 mb-3">
+                                    <label class="form-label fs-7 fw-bold">@lang('app.student')</label>
+                                    <input type="text" name="student" value="{{ request('student') }}" class="form-control form-control-sm form-control-solid" placeholder="اسم الطالب" />
+                                </div>
+                                <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
+                                    <label class="form-label fs-7 fw-bold">@lang('app.payment_method')</label>
+                                    <select name="method" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="الكل">
+                                        <option value=""></option>
+                                        @foreach($methods as $method)
+                                            <option value="{{ $method->id }}" {{ request('method') == $method->id ? 'selected' : '' }}>{{ app()->getLocale() == 'ar' ? $method->name_ar : $method->name_en }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
+                                    <label class="form-label fs-7 fw-bold">@lang('app.amount')</label>
+                                    <input type="number" step="0.01" name="amount" value="{{ request('amount') }}" class="form-control form-control-sm form-control-solid" placeholder="المبلغ" />
+                                </div>
+                                <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
+                                    <label class="form-label fs-7 fw-bold">@lang('app.date')</label>
+                                    <input type="date" name="date" value="{{ request('date') }}" class="form-control form-control-sm form-control-solid" />
+                                </div>
+                                <div class="col-lg-1 col-md-12 col-sm-12 mb-3 d-flex align-items-end gap-1">
+                                    <button type="submit" class="btn btn-primary btn-sm h-35px fs-8 fw-bold w-100" title="بحث">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    <a href="{{ route('approvals.view') }}" class="btn btn-light-danger btn-sm h-35px fs-8 fw-bold w-100" title="مسح">
+                                        <i class="bi bi-eraser"></i>
+                                    </a>
+                                </div>
                             </div>
-                        
-                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
-                                <button type="button" class="btn btn-light-danger h-40px fs-7 fw-bold reset-filters-btn w-100">
-                                    <i class="bi bi-eraser fs-3"></i> @lang('app.clear')
-                                </button>
-                            </div>
-</div>
+                        </form>
                     </div>
                     <div class="card-body py-4">
                         @include('admin.layout.masterLayouts.error')
@@ -47,8 +75,15 @@
                                     <tr>
                                         <td>{{ $payment->payment_number ?? $payment->id }}</td>
                                         <td>
-                                            <div class="fw-bold">{{ app()->getLocale() == 'ar' ? $payment->student->full_name_ar : $payment->student->full_name_en }}</div>
-                                            <div class="text-muted small">{{ $payment->student->email }}</div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="symbol symbol-40px me-3">
+                                                    <img src="{{ $payment->student->image ? asset('storage/'.$payment->student->image) : 'https://ui-avatars.com/api/?name='.urlencode($payment->student->full_name_ar).'&background=random' }}" alt="">
+                                                </div>
+                                                <div class="d-flex justify-content-start flex-column">
+                                                    <div class="fw-bold">{{ app()->getLocale() == 'ar' ? $payment->student->full_name_ar : $payment->student->full_name_en }}</div>
+                                                    <div class="text-muted small">{{ $payment->student->email }}</div>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td>{{ $payment->paymentMethod ? (app()->getLocale() == 'ar' ? $payment->paymentMethod->name_ar : $payment->paymentMethod->name_en) : 'بنكي' }}</td>
                                         <td>{{ number_format($payment->amount, 2) }}</td>

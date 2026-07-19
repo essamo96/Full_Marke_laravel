@@ -1,11 +1,11 @@
 @extends('admin.layout.mainLayouts.master')
 @section('title')
-    تاريخ الدفعات
+    @lang('app.payment_history')
 @stop
 
 @section('breadcrumb')
     <li class="breadcrumb-item text-muted">
-        <a href="{{ route('payments.view') }}" class="text-muted text-hover-primary">تاريخ الدفعات</a>
+        <a href="{{ route('payments.view') }}" class="text-muted text-hover-primary">@lang('app.payment_history')</a>
     </li>
 @endsection
 
@@ -15,93 +15,66 @@
             <div id="kt_app_content_container" class="app-container container-xxl">
                 <div class="card">
                     <div class="card-header border-0 pt-6">
-                        <div class="card-title w-100 mb-0 row">
-                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
-                                <form action="{{ route('payments.view') }}" method="GET" class="d-flex w-100">
-                                    <select name="status" class="form-select form-select-sm form-select-solid me-2 w-150px">
-                                        <option value="">كل الحالات</option>
-                                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>معلق</option>
-                                        <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>مؤكد</option>
-                                        <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>مرفوض</option>
+                        <form id="filter-form" action="javascript:void(0)" class="w-100">
+                            <div class="row w-100 mb-0">
+                                <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                    <label class="form-label fs-7 fw-bold">@lang('app.global_search')</label>
+                                    <input type="text" name="name" id="generalSearch" class="form-control form-control-sm form-control-solid" placeholder="@lang('app.search_placeholder')">
+                                </div>
+                                <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                    <label class="form-label fs-7 fw-bold">@lang('app.status')</label>
+                                    <select name="status" id="filter_status" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="@lang('app.all')" data-hide-search="true">
+                                        <option value=""></option>
+                                        <option value="pending">@lang('app.status_pending')</option>
+                                        <option value="confirmed">@lang('app.status_confirmed')</option>
+                                        <option value="rejected">@lang('app.status_rejected')</option>
                                     </select>
-                                    <select name="program_id" class="form-select form-select-sm form-select-solid me-2 w-200px">
-                                        <option value="">كل البرامج</option>
+                                </div>
+                                <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                    <label class="form-label fs-7 fw-bold">@lang('app.program')</label>
+                                    <select name="program_id" id="filter_program" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="@lang('app.all')">
+                                        <option value=""></option>
                                         @foreach($programs as $program)
-                                            <option value="{{ $program->id }}" {{ request('program_id') == $program->id ? 'selected' : '' }}>{{ app()->getLocale() == 'ar' ? $program->name_ar : $program->name_en }}</option>
+                                            <option value="{{ $program->id }}">{{ app()->getLocale() == 'ar' ? $program->name_ar : $program->name_en }}</option>
                                         @endforeach
                                     </select>
-                                    <input type="date" name="from" value="{{ request('from') }}" class="form-control form-control-sm form-control-solid me-2 w-150px" placeholder="من تاريخ">
-                                    <input type="date" name="to" value="{{ request('to') }}" class="form-control form-control-sm form-control-solid me-2 w-150px" placeholder="إلى تاريخ">
-                                    <button type="submit" class="btn btn-sm btn-primary">تصفية</button>
-                                    <a href="{{ route('payments.view') }}" class="btn btn-sm btn-light ms-2">إلغاء</a>
-                                </form>
+                                </div>
+                                <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                    <label class="form-label fs-7 fw-bold">@lang('app.date_from')</label>
+                                    <input type="date" name="date_from" id="filter_date_from" class="form-control form-control-sm form-control-solid">
+                                </div>
+                                <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                    <label class="form-label fs-7 fw-bold">@lang('app.date_to')</label>
+                                    <input type="date" name="date_to" id="filter_date_to" class="form-control form-control-sm form-control-solid">
+                                </div>
                             </div>
-                        
-                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
-                                <select id="status" name="status" class="form-select form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="الكل">
-                                    <option value="">الكل</option>
-                                    <option value="1">مفعل</option>
-                                    <option value="0">معطل</option>
-                                </select>
-                            
+                            <div class="row w-100 mb-0">
+                                <div class="col-12 mb-3 d-flex justify-content-end gap-2">
+                                    <button type="button" onclick="exportExcel()" class="btn btn-success btn-sm h-35px fs-7 fw-bold">
+                                        <i class="bi bi-file-earmark-excel"></i> @lang('app.export_excel')
+                                    </button>
+                                    <button type="button" class="btn btn-light-danger btn-sm h-35px fs-7 fw-bold reset-filters-btn">
+                                        <i class="bi bi-eraser"></i> @lang('app.clear')
+                                    </button>
+                                </div>
                             </div>
-                            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
-                                <button type="button" class="btn btn-light-danger h-40px fs-7 fw-bold reset-filters-btn w-100">
-                                    <i class="bi bi-eraser fs-3"></i> @lang('app.clear')
-                                </button>
-                            </div>
-</div>
+                        </form>
                     </div>
                     <div class="card-body py-4">
                         @include('admin.layout.masterLayouts.error')
-                        <table class="table table-striped table-row-bordered gy-5 gs-7">
-                            <thead>
-                                <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
-                                    <th>رقم الدفعة</th>
-                                    <th>الطالب</th>
-                                    <th>المبلغ</th>
-                                    <th>الحالة</th>
-                                    <th>التاريخ</th>
-                                    <th>الإيصال / الفاتورة</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($payments as $payment)
-                                    <tr>
-                                        <td>{{ $payment->payment_number ?? $payment->id }}</td>
-                                        <td>
-                                            <div class="fw-bold">{{ app()->getLocale() == 'ar' ? $payment->student->full_name_ar : $payment->student->full_name_en }}</div>
-                                            <div class="text-muted small">{{ $payment->student->email }}</div>
-                                        </td>
-                                        <td>{{ number_format($payment->amount, 2) }}</td>
-                                        <td>
-                                            @if($payment->status === 'confirmed')
-                                                <span class="badge badge-light-success">مؤكد</span>
-                                            @elseif($payment->status === 'rejected')
-                                                <span class="badge badge-light-danger" title="{{ $payment->rejection_reason }}">مرفوض</span>
-                                            @else
-                                                <span class="badge badge-light-warning">معلق</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ $payment->created_at->format('Y-m-d H:i') }}</td>
-                                        <td>
-                                            @if($payment->receipt_image)
-                                                <a href="javascript:void(0)" class="btn btn-sm btn-light-info view-receipt" data-image="{{ Storage::url($payment->receipt_image) }}">الإيصال</a>
-                                            @endif
-                                            @if($payment->status === 'confirmed')
-                                                <a href="#" class="btn btn-sm btn-light-primary ms-1"><i class="bi bi-file-pdf"></i> الفاتورة</a>
-                                            @endif
-                                        </td>
+                        <div class="table-responsive">
+                            <table id="kt_table" class="table table-striped table-row-bordered gy-5 gs-7">
+                                <thead>
+                                    <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
+                                        <th>@lang('app.payment_number')</th>
+                                        <th>@lang('app.student')</th>
+                                        <th>@lang('app.amount')</th>
+                                        <th>@lang('app.status')</th>
+                                        <th>@lang('app.date')</th>
+                                        <th>@lang('app.receipt_invoice')</th>
                                     </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center">لا توجد دفعات</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                        <div class="mt-4">
-                            {{ $payments->links() }}
+                                </thead>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -114,25 +87,81 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">صورة الإيصال</h5>
+                    <h5 class="modal-title">@lang('app.receipt_image')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center">
-                    <img src="" id="receiptImage" class="img-fluid" alt="إيصال" style="max-height: 500px; object-fit: contain;">
+                    <img src="" id="receiptImage" class="img-fluid" alt="@lang('app.receipt')" style="max-height: 500px; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Modal -->
+    <div class="modal fade" id="invoiceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@lang('app.payment_invoice')</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="invoiceContent">
+                    <div class="text-center py-10">
+                        <span class="spinner-border text-primary" role="status"></span>
+                        <div class="mt-2">@lang('app.loading')</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 @stop
 
-@section('scripts')
+@section('js')
 <script>
-    $(document).ready(function() {
-        $('.view-receipt').click(function() {
-            var imageUrl = $(this).data('image');
-            $('#receiptImage').attr('src', imageUrl);
-            $('#receiptModal').modal('show');
+    var columns = [
+        {data: 'payment_number', name: 'payment_number', className: 'text-start'},
+        {data: 'student_info', name: 'student_info', orderable: false, searchable: false, className: 'text-start'},
+        {data: 'amount', name: 'amount', orderable: false, searchable: false, className: 'text-start'},
+        {data: 'status_badge', name: 'status_badge', orderable: false, searchable: false, className: 'text-start'},
+        {data: 'created_date', name: 'created_date', orderable: false, searchable: false, className: 'text-start'},
+        {data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-start'}
+    ];
+
+    var filterFields = [
+        '#filter_status',
+        '#filter_program',
+        '#filter_date_from',
+        '#filter_date_to'
+    ];
+
+    function exportExcel() {
+        let url = "{{ route('payments.export') }}?";
+        url += "name=" + ($('#generalSearch').val() || '');
+        url += "&status=" + ($('#filter_status').val() || '');
+        url += "&program_id=" + ($('#filter_program').val() || '');
+        url += "&date_from=" + ($('#filter_date_from').val() || '');
+        url += "&date_to=" + ($('#filter_date_to').val() || '');
+        window.location.href = url;
+    }
+
+    $(document).on('click', '.view-receipt', function() {
+        var imageUrl = $(this).data('image');
+        $('#receiptImage').attr('src', imageUrl);
+        $('#receiptModal').modal('show');
+    });
+
+    $(document).on('click', '.view-invoice', function() {
+        var url = $(this).data('url');
+        $('#invoiceModal').modal('show');
+        $('#invoiceContent').html('<div class="text-center py-10"><span class="spinner-border text-primary" role="status"></span><div class="mt-2">@lang('app.loading')</div></div>');
+        
+        $.get(url, function(data) {
+            $('#invoiceContent').html(data);
+        }).fail(function() {
+            $('#invoiceContent').html('<div class="alert alert-danger text-center">@lang('app.error_loading_invoice')</div>');
         });
     });
+
+    @include('admin.layout.masterLayouts.datatableMaster')
 </script>
 @stop

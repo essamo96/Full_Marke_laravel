@@ -15,6 +15,10 @@
 
 @section('page-content')
     @section('toolbar-actions')
+        <a href="{{ route('students.export') }}" class="btn btn-flex btn-success h-40px fs-7 fw-bold me-2">
+            <i class="ki-duotone ki-file-down fs-2"><span class="path1"></span><span class="path2"></span></i>
+            @lang('app.export_excel')
+        </a>
         <a href="#" data-bs-toggle="modal" data-bs-target="#kt_modal_enrolment" class="btn btn-flex btn-info h-40px fs-7 fw-bold me-2" title="تشعيب ونقل الطلاب وتوزيعهم على المجموعات">
             <i class="ki-duotone ki-people fs-2"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i>
             تشعيب / نقل الطلاب
@@ -32,14 +36,16 @@
                     <div class="card-header border-0 pt-6">
                         <div class="card-title w-100 mb-0 row">
                             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <label class="form-label fs-6 fw-bold">بحث شامل (بالاسم، الجوال، الايميل)</label>
                                 <div class="d-flex align-items-center position-relative">
                                     <i class="bi bi-search-heart fs-3 position-absolute ms-5"></i>
                                     <input type="text" id="generalSearch" value="{{ old('search_value') }}"
                                            class="form-control form-control-solid ps-13 generalSearch"
-                                           placeholder="بحث..." />
+                                           placeholder="ابحث هنا..." />
                                 </div>
                             </div>
                             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <label class="form-label fs-6 fw-bold">@lang('app.branch')</label>
                                 <select id="branch_id" name="branch_id" class="form-select form-select-solid" data-control="select2" data-placeholder="الكل">
                                     <option value=""></option>
                                     @foreach($branches as $branch)
@@ -48,6 +54,7 @@
                                 </select>
                             </div>
                             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <label class="form-label fs-6 fw-bold">@lang('app.region')</label>
                                 <select id="region_id" name="region_id" class="form-select form-select-solid" data-control="select2" data-placeholder="الكل">
                                     <option value=""></option>
                                     @foreach($regions as $region)
@@ -56,6 +63,7 @@
                                 </select>
                             </div>
                             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <label class="form-label fs-6 fw-bold">@lang('app.gender')</label>
                                 <select id="gender" name="gender" class="form-select form-select-solid" data-control="select2" data-placeholder="الكل">
                                     <option value=""></option>
                                     <option value="male">ذكر</option>
@@ -63,6 +71,7 @@
                                 </select>
                             </div>
                             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <label class="form-label fs-6 fw-bold">@lang('app.type')</label>
                                 <select id="is_child" name="is_child" class="form-select form-select-solid" data-control="select2" data-placeholder="الكل">
                                     <option value=""></option>
                                     <option value="1">طفل</option>
@@ -70,12 +79,12 @@
                                 </select>
                             </div>
                             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+                                <label class="form-label fs-6 fw-bold">@lang('app.status')</label>
                                 <select id="status" name="status" class="form-select form-select-solid" data-control="select2" data-placeholder="الكل">
                                     <option value=""></option>
-                                    <option value="1">مفعل</option>
-                                    <option value="0">معطل</option>
+                                    <option value="1">نشط</option>
+                                    <option value="0">غير نشط</option>
                                 </select>
-                            
                             </div>
                         
                             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
@@ -171,6 +180,19 @@
             '#status'
         ];
 
+        function loadInvoices(id) {
+            let url = "{{ route('students.invoices', ':id') }}";
+            url = url.replace(':id', id);
+            
+            $.get(url, function(response) {
+                $('#invoices_modal_container').html(response);
+                $('#kt_modal_invoices').modal('show');
+            }).fail(function() {
+                toastr.error('حدث خطأ أثناء تحميل الفواتير');
+            });
+        }
+
         @include('admin.layout.masterLayouts.datatableMaster')
     </script>
+    <div id="invoices_modal_container"></div>
 @stop

@@ -64,7 +64,7 @@
             <input type="number" step="0.01" min="0.01" max="{{ $registration->remaining_amount }}" name="amount" class="form-control" placeholder="{{ __('app.amount') }}" required>
           </div>
           <div class="col-md-4">
-            <select name="payment_method_id" class="form-select" required>
+            <select name="payment_method_id" class="form-select" required onchange="document.querySelectorAll('.pm-details-reg').forEach(e=>e.classList.add('d-none')); document.getElementById('pm-reg-'+this.value)?.classList.remove('d-none');">
               <option value="">-- {{ __('app.payment_methods') }} --</option>
               @foreach ($paymentMethods as $method)
                 <option value="{{ $method->id }}">{{ $method->name }}</option>
@@ -73,6 +73,29 @@
           </div>
           <div class="col-md-4">
             <input type="file" name="receipt" class="form-control" accept="image/*,.pdf" required>
+          </div>
+        </div>
+        
+        <div class="row g-3 mt-1">
+          <div class="col-12">
+            @foreach ($paymentMethods as $method)
+              <div id="pm-reg-{{ $method->id }}" class="pm-details-reg d-none mt-2 p-3 rounded-3 fs-7"
+                   style="background: var(--bg-secondary); color: var(--text-secondary);">
+                   @if(!empty($method->credentials) && is_array($method->credentials))
+                     <div class="mb-3">
+                        <strong class="d-block mb-2" data-en="Payment Credentials:" data-ar="بيانات الاعتماد:">بيانات الاعتماد:</strong>
+                        <ul class="list-unstyled ms-3">
+                          @foreach($method->credentials as $cred)
+                            <li class="mb-1"><span class="fw-bold">{{ $cred['name'] ?? '' }}:</span> <span dir="ltr">{{ $cred['value'] ?? '' }}</span></li>
+                          @endforeach
+                        </ul>
+                     </div>
+                   @endif
+                   @if($method->details)
+                     <div class="mt-2 text-wrap">{!! $method->details !!}</div>
+                   @endif
+              </div>
+            @endforeach
           </div>
         </div>
         <button type="submit" class="btn btn-luxury mt-3" data-en="Submit Payment" data-ar="إرسال الدفعة">Submit Payment</button>

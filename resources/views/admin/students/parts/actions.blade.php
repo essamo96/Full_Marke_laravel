@@ -2,6 +2,9 @@
 <a href="{{ route('students.show', Crypt::encrypt($student->id)) }}" class="btn btn-icon btn-info btn-sm">
     <i class="bi bi-eye fs-5"></i>
 </a>
+<a href="javascript:void(0)" onclick="loadInvoices('{{ Crypt::encrypt($student->id) }}')" class="btn btn-icon btn-success btn-sm" title="الفواتير">
+    <i class="bi bi-receipt fs-5"></i>
+</a>
 @can('admin.students.edit')
 <a href="{{ route('students.edit', Crypt::encrypt($student->id)) }}" class="btn btn-icon btn-primary btn-sm">
    <i class="bi bi-pencil-square fs-5"></i></a>

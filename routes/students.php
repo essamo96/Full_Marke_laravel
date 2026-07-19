@@ -12,3 +12,5 @@ Route::post('students/edit/{id}', [StudentsController::class, 'postEdit'])->name
 Route::get('students/show/{id}', [StudentsController::class, 'getView'])->name('students.show')->middleware('permission:admin.students.view');
 Route::post('students/status', [StudentsController::class, 'postStatus'])->name('students.status')->middleware('permission:admin.students.status');
 Route::post('students/delete', [StudentsController::class, 'postDelete'])->name('students.delete')->middleware('permission:admin.students.delete');
+Route::get('students/export', [StudentsController::class, 'exportExcel'])->name('students.export')->middleware('permission:admin.students.view');
+Route::get('students/{id}/invoices', [StudentsController::class, 'getInvoices'])->name('students.invoices')->middleware('permission:admin.students.view');

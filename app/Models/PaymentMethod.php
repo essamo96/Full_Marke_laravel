@@ -11,11 +11,12 @@ class PaymentMethod extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'name_ar', 'name_en', 'details', 'is_active', 'sort_order',
+        'name_ar', 'name_en', 'details', 'credentials', 'is_active', 'sort_order',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'credentials' => 'array',
     ];
 
     public function payments(): HasMany

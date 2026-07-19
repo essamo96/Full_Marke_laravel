@@ -13,12 +13,17 @@
     <aside id="dashboardSidebar" class="dashboard-sidebar">
       @php($sidebarStudent = auth('student')->user())
       <div class="d-flex flex-column align-items-center mb-5 border-b pb-4" style="border-color: var(--separator-color) !important;">
-        <div class="w-24 h-24 rounded-circle border-2 p-1 mb-3 position-relative overflow-hidden" style="border-color: var(--accent-color);">
-          <img src="{{ $sidebarStudent && $sidebarStudent->image ? asset('storage/'.$sidebarStudent->image) : asset('site/images/logo_v2_gold.png') }}"
+        <div class="w-20 h-20 rounded-circle border-2 p-1 mb-3 position-relative overflow-hidden" style="border-color: var(--accent-color);">
+          <img src="{{ $sidebarStudent && $sidebarStudent->image ? asset('storage/'.$sidebarStudent->image) : asset('assets/admin/media/avatars/blank.png') }}"
                alt="{{ $sidebarStudent->name ?? 'Student' }}" class="w-100 h-100 object-cover rounded-circle">
         </div>
-        <h6 class="fw-bold mb-0 text-center" style="color: var(--text-primary);">{{ $sidebarStudent->name ?? '' }}</h6>
-        <span class="text-xs opacity-75" data-en="Student" data-ar="طالب">Student</span>
+        <h6 class="fw-bold mb-0 text-center d-flex align-items-center justify-content-center" style="color: var(--text-primary);">
+          {{ $sidebarStudent->name ?? '' }}
+          @if($sidebarStudent && $sidebarStudent->is_active)
+            <i class="bi bi-patch-check-fill verified-badge ms-1" title="حساب مفعل"></i>
+          @endif
+        </h6>
+        <span class="text-xs opacity-75 mt-1" data-en="Student" data-ar="طالب">Student</span>
       </div>
 
       <nav class="flex-1 d-flex flex-column gap-1 w-100 px-2">

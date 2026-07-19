@@ -17,6 +17,9 @@ class PaymentMethodRequest extends FormRequest
             'name_ar' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'details' => 'nullable|string|max:2000',
+            'credentials' => 'nullable|array',
+            'credentials.*.name' => 'required_with:credentials|string|max:255',
+            'credentials.*.value' => 'required_with:credentials|string|max:255',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
         ];

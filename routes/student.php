@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Student\Auth\ForgotPasswordController;
 use App\Http\Controllers\Student\Auth\LoginController;
 use App\Http\Controllers\Student\Auth\RegisterController;
 use App\Http\Controllers\Student\Auth\VerifyEmailController;
@@ -21,6 +22,9 @@ Route::prefix('student')->name('student.')->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('register', [RegisterController::class, 'showRegisterForm'])->name('register');
     Route::post('register', [RegisterController::class, 'register'])->name('register.submit');
+
+    Route::get('password/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('password/forgot', [ForgotPasswordController::class, 'sendNewPassword'])->name('password.email')->middleware('throttle:3,1');
 
     Route::post('verify', [VerifyEmailController::class, 'verify'])->name('verify.submit');
     Route::post('verify/resend', [VerifyEmailController::class, 'resend'])->name('verify.resend')->middleware('throttle:1,1');

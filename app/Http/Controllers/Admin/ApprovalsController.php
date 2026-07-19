@@ -19,7 +19,7 @@ class ApprovalsController extends AdminController
         $this->path = 'approvals';
     }
 
-    public function getIndex()
+    public function getIndex(Request $request)
     {
         // Mark notifications as read
         if (auth('admin')->check()) {
@@ -28,12 +28,38 @@ class ApprovalsController extends AdminController
                 ->markAsRead();
         }
 
-        $payments = Payment::with(['student', 'paymentMethod', 'items.registration.subject'])
+        $query = Payment::with(['student', 'paymentMethod', 'items.registration.subject'])
             ->pending()
-            ->latest()
-            ->paginate(15);
+            ->latest();
 
-        return view('admin.approvals.view', self::$data + ['payments' => $payments]);
+        if ($request->filled('payment_number')) {
+            $query->where(function($q) use ($request) {
+                $q->where('payment_number', 'like', '%' . $request->payment_number . '%')
+                  ->orWhere('id', $request->payment_number);
+            });
+        }
+        if ($request->filled('student')) {
+            $query->whereHas('student', function ($q) use ($request) {
+                $q->where('full_name_ar', 'like', '%' . $request->student . '%')
+                  ->orWhere('full_name_en', 'like', '%' . $request->student . '%')
+                  ->orWhere('email', 'like', '%' . $request->student . '%')
+                  ->orWhere('phone', 'like', '%' . $request->student . '%');
+            });
+        }
+        if ($request->filled('method')) {
+            $query->where('method', $request->method);
+        }
+        if ($request->filled('amount')) {
+            $query->where('amount', $request->amount);
+        }
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        $payments = $query->paginate(15)->appends($request->all());
+        $methods = \App\Models\PaymentMethod::all();
+
+        return view('admin.approvals.view', self::$data + ['payments' => $payments, 'methods' => $methods]);
     }
 
     public function postConfirm(Request $request, PaymentService $service)

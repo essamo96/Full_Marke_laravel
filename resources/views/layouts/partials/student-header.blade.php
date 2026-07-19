@@ -48,7 +48,7 @@
 
         <!-- Profile Mini -->
         <a href="{{ route('student.profile') }}" class="d-flex align-items-center gap-2 ms-2 cursor-pointer p-1 rounded-pill text-decoration-none" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
-          <img src="{{ $headerStudent && $headerStudent->image ? asset('storage/'.$headerStudent->image) : asset('site/images/logo_v2_gold.png') }}" alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
+          <img src="{{ $headerStudent && $headerStudent->image ? asset('storage/'.$headerStudent->image) : asset('assets/admin/media/avatars/blank.png') }}" alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
           <span class="fw-semibold d-none d-sm-block me-3 text-sm" style="color: var(--text-primary);">{{ $headerStudent?->name }}</span>
         </a>
       </div>

@@ -30,7 +30,7 @@ class StudentsController extends AdminController
 
     public function getList(Request $request)
     {
-        $query = Student::with('branch')->withCount('registrations');
+        $query = Student::with(['branch', 'registrations.subject'])->withCount('registrations');
 
         if ($request->filled('branch_id')) {
             $query->where('branch_id', $request->branch_id);
@@ -72,11 +72,22 @@ class StudentsController extends AdminController
             return view('admin.students.parts.status', ['student' => $row])->render();
         });
 
+        $datatable->editColumn('registrations_count', function ($row) {
+            $count = $row->registrations_count;
+            if ($count == 0) return '<span class="badge badge-light-danger">0 تسجيلات</span>';
+            
+            $subjects = $row->registrations->map(function($reg) {
+                return '<span class="badge badge-light-primary mb-1">'.($reg->subject->name ?? '-').'</span>';
+            })->implode(' ');
+
+            return '<div class="d-flex flex-column"><span class="fw-bold fs-6 mb-1">' . $count . ' مادة/مجموعة</span><div class="d-flex flex-wrap gap-1">' . $subjects . '</div></div>';
+        });
+
         $datatable->addColumn('actions', function ($row) {
             return view('admin.students.parts.actions', ['student' => $row])->render();
         });
 
-        $datatable->rawColumns(['status', 'actions']);
+        $datatable->rawColumns(['status', 'actions', 'registrations_count']);
         return $datatable->addIndexColumn()->make(true);
     }
 
@@ -194,5 +205,62 @@ class StudentsController extends AdminController
         } catch (\Exception $e) {
             return response()->json(['success' => false], 422);
         }
+    }
+
+    public function exportExcel()
+    {
+        $students = Student::with('branch')->get();
+        $fileName = 'students_' . date('Y_m_d_H_i_s') . '.xls';
+        
+        $headers = array(
+            "Content-type"        => "application/vnd.ms-excel; charset=utf-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        );
+        
+        $callback = function() use($students) {
+            echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+            echo '<head><meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8"></head>';
+            echo '<body dir="rtl">';
+            echo '<table border="1" style="font-family: \'Segoe UI\', Tahoma, Arial, sans-serif; text-align: center; vertical-align: middle; border-collapse: collapse;">';
+            echo '<thead>';
+            echo '<tr style="height: 45px;">';
+            echo '<th style="background-color: #000000; color: #ffffff; font-weight: bold; font-size: 14px; width: 100px; text-align: center; vertical-align: middle;">المسلسل</th>';
+            echo '<th style="background-color: #000000; color: #ffffff; font-weight: bold; font-size: 14px; width: 350px; text-align: center; vertical-align: middle;">اسم الطالب كامل</th>';
+            echo '<th style="background-color: #000000; color: #ffffff; font-weight: bold; font-size: 14px; width: 200px; text-align: center; vertical-align: middle;">رقم الجوال</th>';
+            echo '<th style="background-color: #000000; color: #ffffff; font-weight: bold; font-size: 14px; width: 250px; text-align: center; vertical-align: middle;">الايميل</th>';
+            echo '<th style="background-color: #000000; color: #ffffff; font-weight: bold; font-size: 14px; width: 250px; text-align: center; vertical-align: middle;">اسم الفرع</th>';
+            echo '</tr>';
+            echo '</thead>';
+            echo '<tbody>';
+            
+            $i = 1;
+            foreach ($students as $student) {
+                echo '<tr style="height: 35px;">';
+                echo '<td style="font-size: 13px; text-align: center; vertical-align: middle;">' . $i++ . '</td>';
+                echo '<td style="font-size: 13px; text-align: center; vertical-align: middle;">' . $student->full_name_ar . '</td>';
+                // Force phone number to be text by styling
+                echo '<td style="font-size: 13px; text-align: center; vertical-align: middle; mso-number-format:\'@\';">' . $student->phone . '</td>';
+                echo '<td style="font-size: 13px; text-align: center; vertical-align: middle;">' . $student->email . '</td>';
+                $branchName = $student->branch ? $student->branch->name_ar : '';
+                echo '<td style="font-size: 13px; text-align: center; vertical-align: middle;">' . $branchName . '</td>';
+                echo '</tr>';
+            }
+            
+            echo '</tbody>';
+            echo '</table>';
+            echo '</body>';
+            echo '</html>';
+        };
+        
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function getInvoices($id)
+    {
+        $student = Student::with(['registrations.subject', 'registrations.group'])->findOrFail(Crypt::decrypt($id));
+        return view('admin.students.parts.invoices_modal', compact('student'));
     }
 }

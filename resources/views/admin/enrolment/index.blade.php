@@ -13,44 +13,46 @@
     <div class="card-body">
         <!-- Filters -->
         <div class="row mb-5 align-items-end">
-            <div class="col-md-3">
-                <label>البرنامج</label>
-                <select id="filter_program" class="form-select form-select-solid" data-control="select2" data-placeholder="اختر البرنامج">
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                <label class="form-label fs-7 fw-bold">@lang('app.program')</label>
+                <select id="filter_program" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="اختر البرنامج">
                     <option></option>
                     @foreach($programs as $program)
                         <option value="{{ $program->id }}">{{ $program->name }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
-                <label>المادة</label>
-                <select id="filter_subject" class="form-select form-select-solid" data-control="select2" data-placeholder="اختر المادة">
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                <label class="form-label fs-7 fw-bold">@lang('app.subject')</label>
+                <select id="filter_subject" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="اختر المادة">
                     <option></option>
                     @foreach($subjects as $subject)
                         <option value="{{ $subject->id }}">{{ $subject->name }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
-                <label>المجموعة الحالية</label>
-                <select id="filter_group" class="form-select form-select-solid" data-control="select2" data-placeholder="اختر المجموعة">
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                <label class="form-label fs-7 fw-bold">@lang('app.current_group')</label>
+                <select id="filter_group" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="اختر المجموعة">
                     <option></option>
                     @foreach($groups as $group)
                         <option value="{{ $group->id }}">{{ $group->name }} ({{ $group->subject->name ?? '' }})</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-2">
-                <label>المجموعة الهدف (للتشعيب/النقل)</label>
-                <select id="target_group" class="form-select form-select-solid border-primary" data-control="select2" data-placeholder="اختر المجموعة الهدف">
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
+                <label class="form-label fs-7 fw-bold text-primary">@lang('app.target_group')</label>
+                <select id="target_group" class="form-select form-select-sm form-select-solid border-primary" data-control="select2" data-placeholder="اختر المجموعة الهدف">
                     <option></option>
                     @foreach($groups as $group)
                         <option value="{{ $group->id }}">{{ $group->name }} ({{ $group->subject->name ?? '' }}) - {{ $group->start_time }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-2 mt-4 mt-md-0 d-flex gap-2 align-items-end">
-                <button type="button" class="btn btn-light-primary w-100" onclick="fetchAllStudents()">كل الطلاب</button>
+            <div class="col-lg-2 col-md-6 col-sm-12 mb-3 d-flex align-items-end">
+                <button type="button" class="btn btn-primary btn-sm h-35px fs-7 fw-bold w-100" onclick="fetchAllStudents()">
+                    <i class="bi bi-funnel"></i> تصفية وجلب الطلاب
+                </button>
             </div>
         </div>
 
@@ -118,7 +120,7 @@
 
 @endsection
 
-@section('scripts')
+@section('js')
 <script>
     let studentsData = [];
 

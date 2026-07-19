@@ -3,6 +3,9 @@
 @section('title', 'Student Login | FULL MARK ACADEMY')
 
 @section('content')
+          @if (session('status'))
+            <div class="alert alert-success">{{ session('status') }}</div>
+          @endif
           @if ($errors->any())
             <div class="alert alert-danger">{{ $errors->first() }}</div>
           @endif
@@ -39,7 +42,7 @@
                   <input type="checkbox" id="rememberMe" name="remember">
                   <span data-en="Remember me" data-ar="تذكرني">Remember me</span>
                 </label>
-                <a href="#" data-en="Forgot password?" data-ar="نسيت كلمة المرور؟">Forgot password?</a>
+                <a href="{{ route('student.password.request') }}" data-en="Forgot password?" data-ar="نسيت كلمة المرور؟">Forgot password?</a>
               </div>
 
               <!-- Submit -->
