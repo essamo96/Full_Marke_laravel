@@ -169,20 +169,20 @@
     (function () {
       if (typeof Pusher === 'undefined') return;
 
-      const connection = '{{ env("BROADCAST_CONNECTION", "pusher") }}';
+      const connection = '{{ config("broadcasting.default", "pusher") }}';
       const isReverb = connection === 'reverb';
-      const appKey = isReverb ? '{{ env("REVERB_APP_KEY") }}' : '{{ env("PUSHER_APP_KEY") }}';
+      const appKey = isReverb ? '{{ config("broadcasting.connections.reverb.key") }}' : '{{ config("broadcasting.connections.pusher.key") }}';
       if (!appKey) return;
 
       const pusherOptions = {
-        cluster: '{{ env("PUSHER_APP_CLUSTER", "mt1") }}',
+        cluster: '{{ config("broadcasting.connections.pusher.options.cluster", "mt1") }}',
         forceTLS: true,
         disableStats: true,
         enabledTransports: ['ws', 'wss']
       };
       if (isReverb) {
         pusherOptions.wsHost = window.location.hostname;
-        pusherOptions.wsPort = {{ env('REVERB_SERVER_PORT', 8080) }};
+        pusherOptions.wsPort = {{ config('broadcasting.connections.reverb.options.port', 8080) }};
         pusherOptions.forceTLS = false;
       }
 

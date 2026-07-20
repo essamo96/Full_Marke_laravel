@@ -4,11 +4,11 @@ namespace App\Notifications;
 
 use App\Models\Payment;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
-class StudentPaymentConfirmedNotification extends Notification implements ShouldBroadcast
+class StudentPaymentConfirmedNotification extends Notification implements ShouldBroadcastNow
 {
     use Queueable;
 

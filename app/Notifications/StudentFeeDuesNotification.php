@@ -3,11 +3,11 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
-class StudentFeeDuesNotification extends Notification implements ShouldBroadcast
+class StudentFeeDuesNotification extends Notification implements ShouldBroadcastNow
 {
     use Queueable;
 
