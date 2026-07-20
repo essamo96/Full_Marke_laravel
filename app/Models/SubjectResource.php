@@ -50,10 +50,6 @@ class SubjectResource extends Model
 
     public function isReady(): bool
     {
-        if ($this->isVideo()) {
-            return $this->processing_status === 'ready' && ! empty($this->hls_path);
-        }
-
         return $this->processing_status === 'ready';
     }
 

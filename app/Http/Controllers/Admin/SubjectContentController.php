@@ -131,16 +131,10 @@ class SubjectContentController extends AdminController
         $storedPath = null;
 
         if (! empty($data['uploaded_path']) && Storage::disk('protected_videos')->exists($data['uploaded_path'])) {
-            if ($data['type'] === 'video') {
-                // Leave the raw upload in place; ProcessLessonVideo will transcode it to HLS
-                // and delete the source once the rendition set is ready.
-                $storedPath = $data['uploaded_path'];
-                $processingStatus = 'processing';
-            } else {
-                $extension = pathinfo($data['uploaded_path'], PATHINFO_EXTENSION);
-                $storedPath = 'resources/'.Str::uuid().'.'.$extension;
-                Storage::disk('protected_videos')->move($data['uploaded_path'], $storedPath);
-            }
+            $extension = pathinfo($data['uploaded_path'], PATHINFO_EXTENSION);
+            if (!$extension) $extension = $data['type'] === 'video' ? 'mp4' : 'bin';
+            $storedPath = 'resources/'.Str::uuid().'.'.$extension;
+            Storage::disk('protected_videos')->move($data['uploaded_path'], $storedPath);
         } elseif ($request->hasFile('file')) {
             $storedPath = $request->file('file')->store('resources', 'protected_videos');
         } else {
@@ -159,10 +153,6 @@ class SubjectContentController extends AdminController
             'description' => $data['description'] ?? null,
             'is_active' => true,
         ]);
-
-        if ($processingStatus === 'processing') {
-            ProcessLessonVideo::dispatch($resource->id);
-        }
 
         return response()->json(['success' => true, 'id' => $resource->id]);
     }

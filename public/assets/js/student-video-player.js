@@ -230,26 +230,11 @@
         return res.json();
       })
       .then(function (data) {
-        var separator = data.playlist_url.indexOf('?') === -1 ? '?' : '&';
-        var playlistUrl = data.playlist_url + separator + 'st=' + encodeURIComponent(data.session_token);
+        var streamUrl = data.stream_url;
 
-        if (global.Hls && global.Hls.isSupported()) {
-          var hls = new global.Hls({
-            xhrSetup: function (xhr, url) {
-              if (url.indexOf('st=') === -1) {
-                var sep = url.indexOf('?') === -1 ? '?' : '&';
-                xhr.open('GET', url + sep + 'st=' + encodeURIComponent(data.session_token), true);
-              }
-            },
-          });
-          hls.loadSource(playlistUrl);
-          hls.attachMedia(opts.videoEl);
-          cleanupFns.push(function () { hls.destroy(); });
-        } else if (opts.videoEl.canPlayType('application/vnd.apple.mpegurl')) {
-          opts.videoEl.src = playlistUrl;
-        } else {
-          throw new Error('متصفحك لا يدعم تشغيل هذا الفيديو');
-        }
+        // Ensure browser can play mp4 directly
+        opts.videoEl.src = streamUrl;
+        opts.videoEl.load();
 
         cleanupFns.push(mountWatermark(opts.container, opts.studentName, opts.studentPhotoUrl));
         cleanupFns.push(applyDeterrents(opts.videoEl));

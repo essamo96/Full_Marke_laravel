@@ -107,7 +107,11 @@
     <div class="glass-panel rounded-4 p-4">
       <h5 class="fw-bold mb-3" style="color: var(--text-primary);" data-en="Learning Resources" data-ar="الموارد التعليمية">Learning Resources</h5>
       @forelse ($registration->subject->resources->where('is_active', true) as $resource)
-        <a href="{{ $resource->url }}" target="_blank" class="d-flex align-items-center gap-2 mb-2 text-decoration-none">
+        @php
+            $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
+            $resUrl = $isUrl ? $resource->url : route('student.resources');
+        @endphp
+        <a href="{{ $resUrl }}" target="_blank" class="d-flex align-items-center gap-2 mb-2 text-decoration-none">
           <i class="bi bi-{{ match($resource->type) { 'video' => 'play-circle', 'document' => 'file-earmark-text', 'zoom' => 'camera-video', default => 'link-45deg' } }}"></i>
           <span style="color: var(--text-primary);">{{ $resource->title }}</span>
         </a>

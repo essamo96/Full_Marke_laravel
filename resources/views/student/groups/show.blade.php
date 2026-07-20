@@ -72,7 +72,7 @@
                                 $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
                                 $resUrl = $isUrl ? $resource->url : asset('storage/'.$resource->url);
                             @endphp
-                            <a href="javascript:void(0)" class="resource-item" onclick="loadResource({{ json_encode(['title' => $resource->title, 'type' => $resource->type, 'url' => $resUrl, 'description' => $resource->description]) }})">
+                            <a href="javascript:void(0)" class="resource-item" onclick="loadResource({{ json_encode(['id' => $resource->id, 'title' => $resource->title, 'type' => $resource->type, 'url' => $resUrl, 'description' => $resource->description]) }})">
                                 <i class="bi bi-{{ $resource->type === 'video' ? 'play-circle-fill text-danger' : ($resource->type === 'zoom' ? 'camera-video-fill text-primary' : 'file-earmark-text-fill text-info') }}"></i>
                                 <span class="text-sm">{{ $resource->title }}</span>
                             </a>
@@ -100,7 +100,7 @@
                                                       $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
                                                       $resUrl = $isUrl ? $resource->url : asset('storage/'.$resource->url);
                                                     @endphp
-                                                    <a href="javascript:void(0)" class="resource-item ps-4" onclick="loadResource({{ json_encode(['title' => $resource->title, 'type' => $resource->type, 'url' => $resUrl, 'description' => $resource->description]) }})">
+                                                    <a href="javascript:void(0)" class="resource-item ps-4" onclick="loadResource({{ json_encode(['id' => $resource->id, 'title' => $resource->title, 'type' => $resource->type, 'url' => $resUrl, 'description' => $resource->description]) }})">
                                                         <i class="bi bi-{{ $resource->type === 'video' ? 'play-circle-fill text-danger' : ($resource->type === 'zoom' ? 'camera-video-fill text-primary' : 'file-earmark-text-fill text-info') }}"></i>
                                                         <span class="text-sm">{{ $resource->title }}</span>
                                                     </a>
@@ -142,7 +142,7 @@
                 </div>
                 
                 <div id="videoWrapper" class="video-player-container d-none mb-4 shadow-lg">
-                    <video id="videoPlayer" controls controlsList="nodownload" class="w-100 h-100" style="object-fit: contain;">
+                    <video id="videoPlayer" controls controlsList="nodownload" oncontextmenu="return false;" class="w-100 h-100" style="object-fit: contain;">
                         <source src="" type="video/mp4">
                         Your browser does not support HTML video.
                     </video>
@@ -206,8 +206,24 @@
             badge.innerText = 'فيديو';
             badge.className = 'badge bg-danger text-white px-3 py-2 rounded-pill';
             document.getElementById('videoWrapper').classList.remove('d-none');
-            videoPlayer.src = resource.url;
-            videoPlayer.load();
+            
+            // Fetch secure stream URL
+            fetch('{{ url("student/videos") }}/' + resource.id + '/start', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    videoPlayer.src = data.stream_url;
+                    videoPlayer.load();
+                }
+            })
+            .catch(err => console.error(err));
+            
         } else if (resource.type === 'zoom' || resource.type === 'link') {
             badge.innerText = 'رابط خارجي';
             badge.className = 'badge bg-primary text-white px-3 py-2 rounded-pill';

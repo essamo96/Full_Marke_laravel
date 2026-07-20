@@ -65,24 +65,25 @@ class VideoStreamController extends Controller
         return response()->json([
             'success' => true,
             'session_token' => $log->session_token,
-            'playlist_url' => route('student.video.hls', ['resource' => $resource, 'file' => 'master.m3u8']),
+            'stream_url' => route('student.video.stream', ['resource' => $resource]) . '?st=' . $log->session_token,
         ]);
     }
 
     /**
-     * Serves every file that belongs to a resource's HLS rendition
-     * (master/sub playlists, encrypted segments, rotating AES keys) from
-     * the private disk, gated by an active, single-owner session token.
+     * Streams the MP4 file securely using Range requests and referer locks.
      */
-    public function hls(Request $request, SubjectResource $resource, string $file)
+    public function stream(Request $request, SubjectResource $resource)
     {
         $this->authorizeAccess($resource);
 
-        abort_unless($resource->isVideo() && $resource->hls_path, 404);
+        abort_unless($resource->isVideo() && $resource->url, 404);
 
-        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-        abort_unless(in_array($extension, self::ALLOWED_EXTENSIONS, true), 404);
-        abort_if(str_contains($file, '/') || str_contains($file, '..'), 404);
+        // Referer Protection: Block direct URL sharing or IDM downloads
+        $referer = $request->headers->get('referer');
+        $host = $request->getHost();
+        if (!$referer || !str_contains(parse_url($referer, PHP_URL_HOST) ?? '', $host)) {
+            abort(403, 'Unauthorized access: Invalid Referer.');
+        }
 
         $student = Auth::guard('student')->user();
         $token = (string) $request->query('st');
@@ -94,28 +95,18 @@ class VideoStreamController extends Controller
 
         abort_unless($log, 403, 'انتهت هذه الجلسة — على الأرجح تم تشغيل الفيديو من جهاز آخر بنفس الحساب.');
 
-        // A lesson video can mean dozens of segment/key requests; writing on every
-        // single one adds a DB round trip we don't need. Once every 10s is plenty
-        // to keep the session "alive" and detect abandoned players.
         if (! $log->last_seen_at || $log->last_seen_at->diffInSeconds(now()) >= 10) {
             $log->update(['last_seen_at' => now()]);
         }
 
-        $directory = dirname($resource->hls_path); // resources/{id}
-        $path = "{$directory}/{$file}";
+        abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404);
 
-        abort_unless(Storage::disk('protected_videos')->exists($path), 404);
+        $path = Storage::disk('protected_videos')->path($resource->url);
 
-        $contentType = match ($extension) {
-            'm3u8' => 'application/vnd.apple.mpegurl',
-            'key' => 'application/octet-stream',
-            'ts' => 'video/mp2t',
-            default => 'application/octet-stream',
-        };
-
-        return response(Storage::disk('protected_videos')->get($path), 200, [
-            'Content-Type' => $contentType,
+        return response()->file($path, [
+            'Content-Type' => 'video/mp4',
             'Cache-Control' => 'no-store, private',
+            'Accept-Ranges' => 'bytes',
         ]);
     }
 

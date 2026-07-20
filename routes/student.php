@@ -57,7 +57,7 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::post('groups/join-by-code', [GroupsController::class, 'joinByCode'])->name('groups.join-by-code');
         Route::get('resources', [ResourcesController::class, 'index'])->name('resources');
         Route::post('videos/{resource}/start', [VideoStreamController::class, 'startSession'])->name('video.start');
-        Route::get('videos/{resource}/hls/{file}', [VideoStreamController::class, 'hls'])->name('video.hls');
+        Route::get('videos/{resource}/stream', [VideoStreamController::class, 'stream'])->name('video.stream');
         Route::get('resources/{resource}/file', [VideoStreamController::class, 'file'])->name('resources.file');
         Route::get('resources/{resource}/link', [VideoStreamController::class, 'link'])->name('resources.link');
 
