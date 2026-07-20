@@ -63,10 +63,10 @@
             <!-- ===================== OVERVIEW TAB ===================== -->
             <div class="tab-pane fade show active fade-in-up delay-2" id="overview" role="tabpanel" aria-labelledby="overview-tab">
                 <!-- Welcome Banner -->
-                <section class="glass-panel bg-pattern-gold rounded-4 p-4 p-md-5 mb-4 position-relative overflow-hidden d-flex flex-column flex-md-row align-items-center justify-content-between gap-4 border-1 border-white/10">
+                <section class="glass-panel bg-pattern-gold rounded-4 p-5 mb-5 position-relative overflow-hidden d-flex flex-column flex-md-row align-items-center justify-content-between gap-5 border-1 border-white/10" style="box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
                   <div class="position-absolute top-0 end-0 w-50 h-100 bg-gold/10 blur-[80px]"></div>
                   <div class="position-relative z-1 text-center text-md-start">
-                    <h1 class="display-6 fw-bold mb-2" style="color: var(--text-primary);">
+                    <h1 class="display-5 fw-bold mb-3" style="color: var(--text-off-white, #fdfbf7); font-family: 'Tajawal', 'Almarai', sans-serif;">
                       <span data-en="Welcome back," data-ar="مرحباً بعودتك،">Welcome back,</span> <span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ $student->name }}</span>
                     </h1>
                     @if($registrations->isEmpty())

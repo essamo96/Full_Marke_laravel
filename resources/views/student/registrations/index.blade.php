@@ -30,7 +30,7 @@
       </div>
     @else
       <div class="table-responsive">
-        <table class="table align-middle mb-0">
+        <table class="table table-borderless text-white align-middle mb-0">
           <thead>
             <tr class="text-muted text-uppercase fs-7">
               <th>#</th>

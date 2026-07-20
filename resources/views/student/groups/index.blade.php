@@ -38,41 +38,63 @@
       <div class="row g-4 mb-4">
         @foreach($withGroup as $registration)
           @php $group = $registration->group; @endphp
-          <div class="col-md-6 col-xl-4">
-            <a href="{{ route('student.groups.show', $group) }}" class="text-decoration-none d-block h-100">
-              <div class="glass-panel rounded-4 p-4 h-100 tilt-card glow-card transition-all hover:bg-white/5">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <div class="p-2 rounded" style="background: rgba(197, 168, 128, 0.1); color: var(--accent-color);">
-                    <i class="bi bi-people-fill fs-4"></i>
+          <div class="col-md-6 col-xl-4 group-card-animate" style="animation-delay: {{ $loop->index * 0.1 }}s">
+            <a href="{{ route('student.groups.show', $group) }}" class="text-decoration-none d-block h-100 group-card-link">
+              <div class="glass-panel rounded-4 h-100 tilt-card overflow-hidden position-relative group-card" style="border: 1px solid var(--separator-color); box-shadow: 0 4px 20px rgba(0,0,0,0.15); background-color: var(--bg-primary);">
+                
+                <!-- Background Image & Gradient -->
+                @if($registration->subject->image)
+                  <div class="position-absolute w-100 top-0 start-0" style="height: 180px;">
+                    <img src="{{ asset('storage/' . $registration->subject->image) }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $registration->subject->name }}">
+                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to bottom, rgba(14, 18, 22, 0.1) 0%, var(--bg-primary) 100%);"></div>
                   </div>
-                  <span class="badge bg-success bg-opacity-25 text-success" data-en="Joined" data-ar="منضم">منضم</span>
-                </div>
-                <h5 class="fw-bold mb-1" style="color: var(--text-primary);">{{ $registration->subject->name }}</h5>
-                <p class="text-sm opacity-75 mb-3 text-white">{{ $group->name }}</p>
+                @else
+                  <div class="position-absolute w-100 top-0 start-0 d-flex align-items-center justify-content-center" style="height: 180px; background: rgba(197, 168, 128, 0.05);">
+                    <i class="bi bi-book fs-1" style="color: var(--accent-color); opacity: 0.3;"></i>
+                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to bottom, transparent 0%, var(--bg-primary) 100%);"></div>
+                  </div>
+                @endif
+                
+                <!-- Card Content -->
+                <div class="position-relative p-4 pt-5 mt-4 d-flex flex-column h-100 z-1">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="p-2 rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 48px; height: 48px; background: var(--bg-secondary); color: var(--accent-color); border: 1px solid var(--separator-color);">
+                      <i class="bi bi-people-fill fs-5"></i>
+                    </div>
+                    <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2 shadow-sm" style="backdrop-filter: blur(4px);" data-en="Joined" data-ar="منضم">منضم</span>
+                  </div>
+                  
+                  <h5 class="fw-bold mb-1" style="color: var(--text-off-white, #fdfbf7); text-shadow: 0 2px 4px rgba(0,0,0,0.4); font-family: 'Tajawal', 'Almarai', sans-serif;">{{ $registration->subject->name }}</h5>
+                  <p class="text-sm opacity-75 mb-4" style="color: #d1d5db;">{{ $group->name }}</p>
 
-                <div class="d-flex flex-column gap-2 text-sm text-white/80">
-                  @if(!empty($group->days))
-                    <div class="d-flex align-items-center gap-2">
-                      <i class="bi bi-calendar-week text-gold"></i>
-                      <span>{{ collect($group->days)->map(fn($d) => $dayLabels[$d][$lang] ?? $d)->implode(' · ') }}</span>
-                    </div>
-                  @endif
-                  @if($group->start_time)
-                    <div class="d-flex align-items-center gap-2">
-                      <i class="bi bi-clock text-gold"></i>
-                      <span>{{ \Carbon\Carbon::parse($group->start_time)->format('h:i A') }} — {{ \Carbon\Carbon::parse($group->end_time)->format('h:i A') }}</span>
-                    </div>
-                  @endif
-                  @if($group->teacher)
-                    <div class="d-flex align-items-center gap-2">
-                      <i class="bi bi-person-badge text-gold"></i>
-                      <span>{{ $group->teacher->name }}</span>
-                    </div>
-                  @endif
-                </div>
+                  <div class="d-flex flex-column gap-2 text-sm mt-auto">
+                    @if(!empty($group->days))
+                      <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                        <i class="bi bi-calendar-week text-gold"></i>
+                        <span style="color: #e5e7eb;">{{ collect($group->days)->map(fn($d) => $dayLabels[$d][$lang] ?? $d)->implode(' · ') }}</span>
+                      </div>
+                    @endif
+                    @if($group->start_time)
+                      <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                        <i class="bi bi-clock text-gold"></i>
+                        <span style="color: #e5e7eb;">{{ \Carbon\Carbon::parse($group->start_time)->format('h:i A') }} — {{ \Carbon\Carbon::parse($group->end_time)->format('h:i A') }}</span>
+                      </div>
+                    @endif
+                    @if($group->teacher)
+                      <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                        <i class="bi bi-person-badge text-gold"></i>
+                        <span style="color: #e5e7eb;">{{ $group->teacher->name }}</span>
+                      </div>
+                    @endif
+                  </div>
 
-                <div class="mt-4 pt-3 border-top border-white/10 text-center">
-                  <span class="text-gold fw-bold text-sm" data-en="View Materials" data-ar="عرض المواد التعليمية">عرض المواد التعليمية <i class="bi bi-arrow-left ms-1 rtl:rotate-180"></i></span>
+                  <!-- Animated Hover Button -->
+                  <div class="group-card-action overflow-hidden mt-0">
+                    <div class="btn btn-luxury w-100 d-flex justify-content-center align-items-center gap-2 py-2">
+                      <span data-en="View Materials" data-ar="عرض المواد">عرض المواد</span> 
+                      <i class="bi bi-arrow-left rtl:rotate-180"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
             </a>
@@ -112,3 +134,40 @@
     @endif
   @endif
 @endsection
+
+@push('styles')
+<style>
+/* Card Hover Animations & Styles */
+.group-card-link:hover .group-card-action {
+    height: 44px !important;
+    opacity: 1 !important;
+    margin-top: 1rem !important;
+}
+.group-card-link:hover .group-card {
+    border-color: var(--accent-color) !important;
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(197, 168, 128, 0.15) !important;
+}
+.group-card {
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.group-card-action {
+    height: 0;
+    opacity: 0;
+    margin-top: 0;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+/* Staggered Entrance Animation */
+.group-card-animate {
+    animation: fadeInUpCard 0.7s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+    opacity: 0;
+    transform: translateY(30px);
+}
+@keyframes fadeInUpCard {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+@endpush

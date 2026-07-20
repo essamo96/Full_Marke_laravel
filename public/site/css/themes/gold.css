@@ -39,3 +39,10 @@
   /* Separator */
   --separator-color: rgba(197, 168, 128, 0.08);
 }
+
+.bg-pattern-gold {
+    background-color: var(--bg-secondary);
+    background-image: radial-gradient(rgba(197, 168, 128, 0.15) 1.5px, transparent 1.5px), radial-gradient(rgba(197, 168, 128, 0.1) 1px, transparent 1px);
+    background-size: 32px 32px, 16px 16px;
+    background-position: 0 0, 8px 8px;
+}

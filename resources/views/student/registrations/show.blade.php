@@ -39,15 +39,15 @@
 
   <div class="glass-panel rounded-4 p-4 mb-4">
     <h5 class="fw-bold mb-3" style="color: var(--text-primary);" data-en="Payment History" data-ar="سجل المدفوعات">Payment History</h5>
-    <table class="table table-sm mb-0">
+    <table class="table table-borderless text-white table-sm mb-0">
       <thead><tr class="text-muted"><th>#</th><th data-en="Amount" data-ar="المبلغ">Amount</th><th data-en="Status" data-ar="الحالة">Status</th><th data-en="Date" data-ar="التاريخ">Date</th></tr></thead>
       <tbody>
         @foreach ($registration->paymentItems as $item)
           <tr>
-            <td>{{ $item->payment->payment_number }}</td>
+            <td>{{ $item->payment?->payment_number ?? '-' }}</td>
             <td>{{ number_format($item->allocated_amount, 2) }}</td>
-            <td>{{ $item->payment->status }}</td>
-            <td>{{ $item->payment->created_at->format('Y-m-d') }}</td>
+            <td>{{ $item->payment?->status ?? '-' }}</td>
+            <td>{{ $item->payment?->created_at?->format('Y-m-d') ?? '-' }}</td>
           </tr>
         @endforeach
       </tbody>
