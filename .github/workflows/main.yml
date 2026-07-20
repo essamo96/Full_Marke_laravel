@@ -55,7 +55,7 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
-            /vendor/**
+            vendor/**
             **/tests/**
             **/storage/*.key
             .env
