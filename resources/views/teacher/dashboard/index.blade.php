@@ -8,7 +8,7 @@
         <section class="glass-panel bg-pattern-gold rounded-4 p-5 mb-5 position-relative overflow-hidden d-flex flex-column flex-md-row align-items-center justify-content-between gap-5 border-1 border-white/10" style="box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
           <div class="position-absolute top-0 end-0 w-50 h-100 bg-gold/10 blur-[80px]"></div>
           <div class="position-relative z-1 text-center text-md-start w-100">
-            <h1 class="display-5 fw-bold mb-3" style="color: var(--text-off-white, #fdfbf7); font-family: 'Tajawal', 'Almarai', sans-serif;">
+            <h1 class="display-5 fw-bold mb-3" style="color: var(--text-primary); font-family: 'Tajawal', 'Almarai', sans-serif;">
               <span data-en="Hello," data-ar="مرحباً،">Hello,</span> <span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Dr. Sarah</span>
             </h1>
             <p class="fs-5 opacity-75 mb-0" data-en="You have 3 assignments waiting for review and 2 upcoming sessions today." data-ar="لديك 3 واجبات بانتظار التقييم وجلستين مباشرتين مبرمجتين لليوم.">
@@ -32,7 +32,7 @@
                 <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2">+15 <i class="bi bi-arrow-up"></i></span>
               </div>
               <p class="mb-2 text-sm opacity-75 fw-medium" data-en="Total Students" data-ar="إجمالي الطلاب">Total Students</p>
-              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-off-white, #fdfbf7);">240</h3>
+              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">240</h3>
             </div>
           </div>
           <!-- Stat 2 -->
@@ -44,7 +44,7 @@
                 </div>
               </div>
               <p class="mb-2 text-sm opacity-75 fw-medium" data-en="Active Classes" data-ar="الصفوف النشطة">Active Classes</p>
-              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-off-white, #fdfbf7);">8</h3>
+              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">8</h3>
             </div>
           </div>
           <!-- Stat 3 -->
@@ -56,7 +56,7 @@
                 </div>
               </div>
               <p class="mb-2 text-sm opacity-75 fw-medium" data-en="Pending Reviews" data-ar="مراجعات معلقة">Pending Reviews</p>
-              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-off-white, #fdfbf7);">12</h3>
+              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">12</h3>
             </div>
           </div>
           <!-- Stat 4 -->
@@ -69,7 +69,7 @@
                 <span class="text-sm fw-bold px-3 py-2 rounded-pill" style="background: rgba(197,168,128,0.1); color: var(--accent-color);">/ 5.0</span>
               </div>
               <p class="mb-2 text-sm opacity-75 fw-medium" data-en="Average Rating" data-ar="متوسط التقييم">Average Rating</p>
-              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-off-white, #fdfbf7);">4.9</h3>
+              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">4.9</h3>
             </div>
           </div>
         </section>
@@ -93,7 +93,7 @@
                     <i class="bi bi-camera-video fs-3" style="color: #ff4757;"></i>
                   </div>
                   <div>
-                    <h5 class="mb-2 fs-5 fw-bold" style="color: var(--text-off-white, #fdfbf7);" data-en="IELTS Preparation Group A" data-ar="مجموعة تحضير الآيلتس (أ)">IELTS Preparation Group A</h5>
+                    <h5 class="mb-2 fs-5 fw-bold" style="color: var(--text-primary);" data-en="IELTS Preparation Group A" data-ar="مجموعة تحضير الآيلتس (أ)">IELTS Preparation Group A</h5>
                     <span class="text-sm opacity-75 fw-medium"><i class="bi bi-clock me-2 text-gold"></i> 10:00 AM - 11:30 AM</span>
                   </div>
                 </div>
@@ -107,7 +107,7 @@
                     <i class="bi bi-mic fs-3" style="color: var(--accent-color);"></i>
                   </div>
                   <div>
-                    <h5 class="mb-2 fs-5 fw-bold" style="color: var(--text-off-white, #fdfbf7);" data-en="Academic Speaking Masterclass" data-ar="كورس المحادثة الأكاديمية">Academic Speaking Masterclass</h5>
+                    <h5 class="mb-2 fs-5 fw-bold" style="color: var(--text-primary);" data-en="Academic Speaking Masterclass" data-ar="كورس المحادثة الأكاديمية">Academic Speaking Masterclass</h5>
                     <span class="text-sm opacity-75 fw-medium"><i class="bi bi-clock me-2 text-gold"></i> 02:00 PM - 03:30 PM</span>
                   </div>
                 </div>
@@ -126,7 +126,7 @@
                   <i class="bi bi-plus-lg fs-4"></i>
                 </div>
                 <div>
-                  <span class="fw-bold d-block mb-1 fs-5" style="color: var(--text-off-white, #fdfbf7);" data-en="Create New Course" data-ar="إنشاء مساق جديد">Create New Course</span>
+                  <span class="fw-bold d-block mb-1 fs-5" style="color: var(--text-primary);" data-en="Create New Course" data-ar="إنشاء مساق جديد">Create New Course</span>
                   <span class="text-sm opacity-75" data-en="Draft a new syllabus" data-ar="إعداد خطة دراسية جديدة">Draft a new syllabus</span>
                 </div>
               </button>
@@ -136,7 +136,7 @@
                   <i class="bi bi-cloud-upload fs-4"></i>
                 </div>
                 <div>
-                  <span class="fw-bold d-block mb-1 fs-5" style="color: var(--text-off-white, #fdfbf7);" data-en="Upload Material" data-ar="رفع ملفات/مواد">Upload Material</span>
+                  <span class="fw-bold d-block mb-1 fs-5" style="color: var(--text-primary);" data-en="Upload Material" data-ar="رفع ملفات/مواد">Upload Material</span>
                   <span class="text-sm opacity-75" data-en="Share PDFs or Videos" data-ar="مشاركة الملفات ومقاطع الفيديو">Share PDFs or Videos</span>
                 </div>
               </button>
@@ -146,7 +146,7 @@
                   <i class="bi bi-megaphone fs-4"></i>
                 </div>
                 <div>
-                  <span class="fw-bold d-block mb-1 fs-5" style="color: var(--text-off-white, #fdfbf7);" data-en="Post Announcement" data-ar="نشر تعميم">Post Announcement</span>
+                  <span class="fw-bold d-block mb-1 fs-5" style="color: var(--text-primary);" data-en="Post Announcement" data-ar="نشر تعميم">Post Announcement</span>
                   <span class="text-sm opacity-75" data-en="Notify all students" data-ar="تنبيه لكافة الطلاب">Notify all students</span>
                 </div>
               </button>

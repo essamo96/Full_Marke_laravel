@@ -40,7 +40,7 @@
           @php $group = $registration->group; @endphp
           <div class="col-md-6 col-xl-4 group-card-animate" style="animation-delay: {{ $loop->index * 0.1 }}s">
             <a href="{{ route('student.groups.show', $group) }}" class="text-decoration-none d-block h-100 group-card-link">
-              <div class="glass-panel rounded-4 h-100 tilt-card overflow-hidden position-relative group-card" style="border: 1px solid var(--separator-color); box-shadow: 0 4px 20px rgba(0,0,0,0.15); background-color: var(--bg-primary);">
+              <div class="glass-panel rounded-4 h-100 tilt-card overflow-hidden position-relative group-card d-flex flex-column" style="border: 1px solid var(--separator-color); box-shadow: 0 4px 20px rgba(0,0,0,0.15); background-color: var(--bg-primary);">
                 
                 <!-- Background Image & Gradient -->
                 @if($registration->subject->image)
@@ -56,41 +56,43 @@
                 @endif
                 
                 <!-- Card Content -->
-                <div class="position-relative p-4 pt-5 mt-4 d-flex flex-column h-100 z-1">
-                  <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="p-2 rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 48px; height: 48px; background: var(--bg-secondary); color: var(--accent-color); border: 1px solid var(--separator-color);">
-                      <i class="bi bi-people-fill fs-5"></i>
+                <div class="position-relative p-4 pt-5 mt-5 d-flex flex-column h-100 z-1">
+                  <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div class="p-2 rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px; background: var(--bg-secondary); color: var(--accent-color); border: 1px solid var(--separator-color);">
+                      <i class="bi bi-people-fill fs-4"></i>
                     </div>
-                    <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2 shadow-sm" style="backdrop-filter: blur(4px);" data-en="Joined" data-ar="منضم">منضم</span>
+                    <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2 shadow-sm fs-6" style="backdrop-filter: blur(4px);" data-en="Joined" data-ar="منضم">منضم</span>
                   </div>
                   
-                  <h5 class="fw-bold mb-1" style="color: var(--text-off-white, #fdfbf7); text-shadow: 0 2px 4px rgba(0,0,0,0.4); font-family: 'Tajawal', 'Almarai', sans-serif;">{{ $registration->subject->name }}</h5>
-                  <p class="text-sm opacity-75 mb-4" style="color: #d1d5db;">{{ $group->name }}</p>
+                  <div class="mb-4">
+                    <h5 class="fw-bold mb-2 fs-4" style="color: var(--text-primary); text-shadow: 0 1px 2px rgba(0,0,0,0.1); font-family: 'Tajawal', 'Almarai', sans-serif;">{{ $registration->subject->name }}</h5>
+                    <p class="text-sm opacity-75 mb-0" style="color: var(--text-secondary);">{{ $group->name }}</p>
+                  </div>
 
-                  <div class="d-flex flex-column gap-2 text-sm mt-auto">
+                  <div class="d-flex flex-column gap-3 text-sm mt-auto mb-4">
                     @if(!empty($group->days))
-                      <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
-                        <i class="bi bi-calendar-week text-gold"></i>
-                        <span style="color: #e5e7eb;">{{ collect($group->days)->map(fn($d) => $dayLabels[$d][$lang] ?? $d)->implode(' · ') }}</span>
+                      <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
+                        <i class="bi bi-calendar-week fs-5" style="color: var(--accent-color);"></i>
+                        <span class="fw-medium" style="color: var(--text-secondary);">{{ collect($group->days)->map(fn($d) => $dayLabels[$d][$lang] ?? $d)->implode(' · ') }}</span>
                       </div>
                     @endif
                     @if($group->start_time)
-                      <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
-                        <i class="bi bi-clock text-gold"></i>
-                        <span style="color: #e5e7eb;">{{ \Carbon\Carbon::parse($group->start_time)->format('h:i A') }} — {{ \Carbon\Carbon::parse($group->end_time)->format('h:i A') }}</span>
+                      <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
+                        <i class="bi bi-clock fs-5" style="color: var(--accent-color);"></i>
+                        <span class="fw-medium" style="color: var(--text-secondary);">{{ \Carbon\Carbon::parse($group->start_time)->format('h:i A') }} — {{ \Carbon\Carbon::parse($group->end_time)->format('h:i A') }}</span>
                       </div>
                     @endif
                     @if($group->teacher)
-                      <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
-                        <i class="bi bi-person-badge text-gold"></i>
-                        <span style="color: #e5e7eb;">{{ $group->teacher->name }}</span>
+                      <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
+                        <i class="bi bi-person-badge fs-5" style="color: var(--accent-color);"></i>
+                        <span class="fw-medium" style="color: var(--text-secondary);">{{ $group->teacher->name }}</span>
                       </div>
                     @endif
                   </div>
 
                   <!-- Animated Hover Button -->
-                  <div class="group-card-action overflow-hidden mt-0">
-                    <div class="btn btn-luxury w-100 d-flex justify-content-center align-items-center gap-2 py-2">
+                  <div class="group-card-action overflow-hidden mt-2">
+                    <div class="btn btn-luxury w-100 d-flex justify-content-center align-items-center gap-2 py-3 fw-bold rounded-pill shadow-sm">
                       <span data-en="View Materials" data-ar="عرض المواد">عرض المواد</span> 
                       <i class="bi bi-arrow-left rtl:rotate-180"></i>
                     </div>
