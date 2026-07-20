@@ -46,12 +46,15 @@
                 @if($registration->subject->image)
                   <div class="position-absolute w-100 top-0 start-0" style="height: 180px;">
                     <img src="{{ asset('storage/' . $registration->subject->image) }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $registration->subject->name }}">
-                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to bottom, rgba(14, 18, 22, 0.1) 0%, var(--bg-primary) 100%);"></div>
+                    <!-- Cloud / Fog Gradient -->
+                    <div class="position-absolute bottom-0 start-0 w-100" style="height: 120px; background: linear-gradient(to top, var(--bg-primary) 10%, transparent 100%); backdrop-filter: blur(3px); -webkit-mask-image: linear-gradient(to top, black 30%, transparent 100%);"></div>
+                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to bottom, rgba(14, 18, 22, 0.1) 0%, transparent 50%, var(--bg-primary) 100%); pointer-events: none;"></div>
                   </div>
                 @else
                   <div class="position-absolute w-100 top-0 start-0 d-flex align-items-center justify-content-center" style="height: 180px; background: rgba(197, 168, 128, 0.05);">
                     <i class="bi bi-book fs-1" style="color: var(--accent-color); opacity: 0.3;"></i>
-                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to bottom, transparent 0%, var(--bg-primary) 100%);"></div>
+                    <div class="position-absolute bottom-0 start-0 w-100" style="height: 120px; background: linear-gradient(to top, var(--bg-primary) 10%, transparent 100%); backdrop-filter: blur(3px); -webkit-mask-image: linear-gradient(to top, black 30%, transparent 100%);"></div>
+                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to bottom, transparent 0%, transparent 50%, var(--bg-primary) 100%); pointer-events: none;"></div>
                   </div>
                 @endif
                 
@@ -141,7 +144,8 @@
 <style>
 /* Card Hover Animations & Styles */
 .group-card-link:hover .group-card-action {
-    height: 44px !important;
+    height: auto !important;
+    max-height: 80px !important;
     opacity: 1 !important;
     margin-top: 1rem !important;
 }
@@ -154,7 +158,8 @@
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .group-card-action {
-    height: 0;
+    height: auto;
+    max-height: 0;
     opacity: 0;
     margin-top: 0;
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);

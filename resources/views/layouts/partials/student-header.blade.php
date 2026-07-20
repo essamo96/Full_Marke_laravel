@@ -68,8 +68,20 @@
 
         <!-- Profile Mini -->
         <a href="{{ route('student.profile') }}" class="d-flex align-items-center gap-2 ms-2 cursor-pointer p-1 rounded-pill text-decoration-none" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
-          <img src="{{ $headerStudent && $headerStudent->image ? asset('storage/'.$headerStudent->image) : asset('assets/admin/media/avatars/blank.png') }}" alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
-          <span class="fw-semibold d-none d-sm-block me-3 text-sm" style="color: var(--text-primary);">{{ $headerStudent?->name }}</span>
+          <div class="position-relative">
+            <img src="{{ $headerStudent && $headerStudent->image ? asset('storage/'.$headerStudent->image) : asset('assets/admin/media/avatars/blank.png') }}" alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
+            @if($headerStudent && $headerStudent->email_verified_at)
+              <span class="position-absolute d-flex align-items-center justify-content-center bg-gold rounded-circle shadow-sm pulse-glow" style="bottom: -2px; right: -2px; width: 14px; height: 14px; border: 2px solid var(--bg-secondary);" title="طالب موثوق">
+                <i class="bi bi-check" style="color: #fff; font-size: 10px; line-height: 1; -webkit-text-stroke: 1px #fff;"></i>
+              </span>
+            @endif
+          </div>
+          <span class="fw-semibold d-none d-sm-flex align-items-center me-3 text-sm" style="color: var(--text-primary);">
+            {{ $headerStudent?->name }}
+            @if($headerStudent && $headerStudent->email_verified_at)
+              <i class="bi bi-patch-check-fill ms-2 pulse-glow" style="color: var(--accent-color); font-size: 1rem;" title="حساب موثق"></i>
+            @endif
+          </span>
         </a>
       </div>
     </header>

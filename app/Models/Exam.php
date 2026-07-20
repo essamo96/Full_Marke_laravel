@@ -20,12 +20,14 @@ class Exam extends Model
         'duration_minutes',
         'status',
         'excluded_student_ids',
+        'start_alert_sent_at',
     ];
 
     protected $casts = [
         'start_time' => 'datetime',
         'end_time' => 'datetime',
         'excluded_student_ids' => 'array',
+        'start_alert_sent_at' => 'datetime',
     ];
 
     public function subject()
