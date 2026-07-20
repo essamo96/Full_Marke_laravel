@@ -12,16 +12,16 @@
     <!-- ════ SIDEBAR ════ -->
     <aside id="dashboardSidebar" class="dashboard-sidebar">
       <div class="d-flex flex-column align-items-center mb-5 border-b pb-4" style="border-color: var(--separator-color) !important;">
-        <div class="w-24 h-24 rounded-circle border-2 p-1 mb-3 position-relative overflow-hidden" style="border-color: var(--accent-color);">
+        <div class="w-24 h-24 rounded-circle border-2 p-1 mb-3 position-relative overflow-hidden shadow-lg" style="border-color: var(--accent-color);">
           <img src="{{ asset('site/images/img/logo_backup.png') }}" alt="Teacher Profile" class="w-100 h-100 object-contain rounded-circle">
         </div>
       </div>
 
-      <nav class="flex-1 d-flex flex-column gap-1 w-100 px-2 pb-4">
+      <nav class="flex-1 d-flex flex-column gap-2 w-100 px-3 pb-4" style="font-family: 'Tajawal', 'Almarai', sans-serif;">
         <!-- Overview -->
-        <a href="{{ route('teacher.dashboard') }}" class="sidebar-nav-item active">
+        <a href="{{ route('teacher.dashboard') }}" class="sidebar-nav-item active rounded-3 mb-1">
           <i class="bi bi-grid-1x2-fill sidebar-nav-item-icon"></i>
-          <span class="sidebar-nav-item-text" data-en="Overview" data-ar="الرئيسية">Overview</span>
+          <span class="sidebar-nav-item-text fw-medium fs-6" data-en="Overview" data-ar="الرئيسية">Overview</span>
         </a>
 
         <!-- Academic Management -->
@@ -92,45 +92,48 @@
         </ul>
 
         <!-- Reports -->
-        <a href="#" class="sidebar-nav-item">
+        <a href="#" class="sidebar-nav-item rounded-3 mb-1">
           <i class="bi bi-bar-chart sidebar-nav-item-icon"></i>
-          <span class="sidebar-nav-item-text" data-en="Reports" data-ar="التقارير">Reports</span>
+          <span class="sidebar-nav-item-text fw-medium fs-6" data-en="Reports" data-ar="التقارير">Reports</span>
         </a>
 
         <!-- Communication -->
-        <a href="#menuComm" class="sidebar-nav-item accordion-trigger"  aria-expanded="false" aria-controls="menuComm">
+        <a href="#menuComm" class="sidebar-nav-item accordion-trigger rounded-3 mb-1"  aria-expanded="false" aria-controls="menuComm">
           <i class="bi bi-chat-left-dots sidebar-nav-item-icon"></i>
-          <span class="sidebar-nav-item-text" data-en="Communication" data-ar="التواصل">Communication</span>
+          <span class="sidebar-nav-item-text fw-medium fs-6" data-en="Communication" data-ar="التواصل">Communication</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuComm">
-          <li><a href="#" class="sidebar-submenu-item" data-en="Messages" data-ar="الرسائل">Messages</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Announcements" data-ar="الإعلانات">Announcements</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Mass Notification" data-ar="إرسال إشعار جماعي">Mass Notification</a></li>
+          <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Messages" data-ar="الرسائل">Messages</a></li>
+          <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Announcements" data-ar="الإعلانات">Announcements</a></li>
+          <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Mass Notification" data-ar="إرسال إشعار جماعي">Mass Notification</a></li>
         </ul>
 
         <!-- Profile -->
-        <a href="#menuProfile" class="sidebar-nav-item accordion-trigger"  aria-expanded="false" aria-controls="menuProfile">
+        <a href="#menuProfile" class="sidebar-nav-item accordion-trigger rounded-3 mb-1"  aria-expanded="false" aria-controls="menuProfile">
           <i class="bi bi-person sidebar-nav-item-icon"></i>
-          <span class="sidebar-nav-item-text" data-en="My Account" data-ar="حسابي">My Account</span>
+          <span class="sidebar-nav-item-text fw-medium fs-6" data-en="My Account" data-ar="حسابي">My Account</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuProfile">
-          <li><a href="#" class="sidebar-submenu-item" data-en="Profile" data-ar="الملف الشخصي">Profile</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Resume & Certs" data-ar="الشهادات والخبرات">Resume & Certs</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Settings" data-ar="إعدادات الحساب">Settings</a></li>
-          <li><a href="{{ route('home') }}" class="sidebar-submenu-item text-danger" data-en="Logout" data-ar="تسجيل الخروج">Logout</a></li>
+          <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Profile" data-ar="الملف الشخصي">Profile</a></li>
+          <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Resume & Certs" data-ar="الشهادات والخبرات">Resume & Certs</a></li>
+          <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Settings" data-ar="إعدادات الحساب">Settings</a></li>
         </ul>
       </nav>
 
-      <div class="mt-4 pt-4 border-t d-flex flex-column gap-2" style="border-color: var(--separator-color) !important;">
-        <a href="#" class="sidebar-nav-item">
-          <i class="bi bi-gear"></i>
-          <span data-en="Settings" data-ar="الإعدادات">Settings</span>
+      <div class="mt-4 pt-4 border-t d-flex flex-column gap-2 px-3" style="border-color: var(--separator-color) !important;">
+        <a href="#" class="sidebar-nav-item rounded-3">
+          <i class="bi bi-gear sidebar-nav-item-icon"></i>
+          <span class="sidebar-nav-item-text fw-medium fs-6" data-en="Settings" data-ar="الإعدادات">Settings</span>
         </a>
-        <a href="{{ route('home') }}" class="sidebar-nav-item text-danger">
-          <i class="bi bi-box-arrow-left"></i>
-          <span data-en="Logout" data-ar="تسجيل الخروج">Logout</span>
-        </a>
+        
+        <form method="POST" action="{{ route('teacher.logout') }}">
+          @csrf
+          <button type="submit" class="btn btn-glass w-100 d-flex justify-content-center align-items-center gap-2 text-danger fw-bold rounded-pill mt-2">
+            <i class="bi bi-box-arrow-left rtl:rotate-180"></i>
+            <span data-en="Logout" data-ar="تسجيل الخروج">Logout</span>
+          </button>
+        </form>
       </div>
     </aside>
