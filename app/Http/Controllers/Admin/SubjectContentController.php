@@ -49,7 +49,10 @@ class SubjectContentController extends AdminController
 
         $processingResources = \App\Models\SubjectResource::where('subject_id', $subject->id)
             ->where('processing_status', 'processing')
-            ->pluck('id')
+            ->get()
+            ->map(function ($resource) {
+                return $resource->getRouteKey();
+            })
             ->toArray();
 
         return view('admin.subject_content.manage', self::$data + compact('subject', 'units', 'processingResources'));
@@ -154,7 +157,7 @@ class SubjectContentController extends AdminController
             'is_active' => true,
         ]);
 
-        return response()->json(['success' => true, 'id' => $resource->id]);
+        return response()->json(['success' => true, 'id' => $resource->getRouteKey()]);
     }
 
     public function viewResourceFile(SubjectResource $resource)

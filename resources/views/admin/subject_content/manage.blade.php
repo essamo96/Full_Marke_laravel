@@ -409,7 +409,7 @@
 
         @if(isset($processingResources) && count($processingResources) > 0)
             @foreach($processingResources as $resId)
-                showProcessingDrawer({{ $resId }});
+                showProcessingDrawer('{{ $resId }}');
             @endforeach
         @endif
     });
