@@ -4,6 +4,14 @@
         <button class="btn btn-glass icon-btn d-lg-none me-3" onclick="toggleSidebar()">
           <i class="bi bi-list fs-4"></i>
         </button>
+
+        @if(!Request::is('student/dashboard') && !Request::is('student'))
+        <!-- Back Button -->
+        <button class="btn btn-glass icon-btn me-3" onclick="history.back()" title="عودة">
+          <i class="bi bi-arrow-right rtl:rotate-180"></i>
+        </button>
+        @endif
+
         <h2 class="h5 mb-0 fw-bold d-none d-md-block" style="color: var(--text-primary);"
             data-en="@yield('page_title_en', 'Overview')" data-ar="@yield('page_title_ar', 'نظرة عامة')">@yield('page_title_en', 'Overview')</h2>
       </div>
@@ -11,11 +19,23 @@
       @php($headerStudent = auth('student')->user())
       @php($headerUnreadNotifications = $headerStudent ? $headerStudent->unreadNotifications()->latest()->limit(10)->get() : collect())
       @php($headerUnreadCount = $headerStudent ? $headerStudent->unreadNotifications()->count() : 0)
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center gap-1 gap-md-3">
         <!-- Language Switcher -->
         <button id="langToggleBtn" class="btn btn-glass icon-btn" onclick="toggleLanguage()" title="Toggle language">
           <i class="bi bi-globe2"></i>
         </button>
+
+        <!-- Accessibility Menu (سهولة الوصول) -->
+        <div class="dropdown">
+          <button class="btn btn-glass icon-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="سهولة الوصول">
+            <i class="bi bi-universal-access"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end p-2 shadow-lg" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
+            <li><button class="dropdown-item rounded d-flex align-items-center gap-2 mb-1" onclick="document.documentElement.style.fontSize='110%'" style="color: var(--text-primary); transition: all 0.2s;"><i class="bi bi-zoom-in"></i> <span data-en="Increase Font" data-ar="تكبير الخط">تكبير الخط</span></button></li>
+            <li><button class="dropdown-item rounded d-flex align-items-center gap-2 mb-1" onclick="document.documentElement.style.fontSize='100%'" style="color: var(--text-primary); transition: all 0.2s;"><i class="bi bi-type"></i> <span data-en="Default Font" data-ar="الخط الافتراضي">الخط الافتراضي</span></button></li>
+            <li><button class="dropdown-item rounded d-flex align-items-center gap-2" onclick="document.documentElement.style.fontSize='90%'" style="color: var(--text-primary); transition: all 0.2s;"><i class="bi bi-zoom-out"></i> <span data-en="Decrease Font" data-ar="تصغير الخط">تصغير الخط</span></button></li>
+          </ul>
+        </div>
 
         <!-- Theme Cycle -->
         <button id="themeCycleBtn" class="btn btn-glass icon-btn" type="button" title="Switch theme">

@@ -6,6 +6,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>@yield('title', 'Teacher Dashboard | FULL MARK ACADEMY')</title>
   <meta name="description" content="Teacher Dashboard for Full Mark Academy">
 
@@ -103,6 +104,55 @@
       });
     });
   </script>
+
+  @auth('teacher')
+  <!-- Notifications: mark-read handlers -->
+  <script>
+    (function () {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+      function postJson(url) {
+        return fetch(url, {
+          method: 'POST',
+          keepalive: true,
+          headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+          }
+        });
+      }
+
+      document.addEventListener('click', function (e) {
+        const item = e.target.closest('.teacher-notification-item');
+        if (item) {
+          postJson(`/teacher/notifications/${item.dataset.id}/read`);
+        }
+      });
+
+      const markAllBtn = document.getElementById('teacherMarkAllReadBtn');
+      if (markAllBtn) {
+        markAllBtn.addEventListener('click', function () {
+          postJson('{{ route("teacher.notifications.read-all") }}').then(function () {
+            document.querySelectorAll('.teacher-notification-item').forEach(el => el.remove());
+            const list = document.getElementById('teacherNotificationsList');
+            if (list && !document.getElementById('teacherNoNotificationsMsg')) {
+              const p = document.createElement('p');
+              p.className = 'text-muted text-center py-6 mb-0';
+              p.id = 'teacherNoNotificationsMsg';
+              p.textContent = 'لا توجد إشعارات جديدة';
+              list.appendChild(p);
+            }
+            const badge = document.getElementById('teacherNotificationsBadge');
+            if (badge) {
+              badge.classList.add('d-none');
+              badge.textContent = '0';
+            }
+          });
+        });
+      }
+    })();
+  </script>
+  @endauth
 </body>
 </html>
 @stack('scripts')

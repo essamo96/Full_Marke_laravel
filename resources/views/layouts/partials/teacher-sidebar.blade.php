@@ -19,7 +19,7 @@
 
       <nav class="flex-1 d-flex flex-column gap-2 w-100 px-3 pb-4" style="font-family: 'Tajawal', 'Almarai', sans-serif;">
         <!-- Overview -->
-        <a href="{{ route('teacher.dashboard') }}" class="sidebar-nav-item active rounded-3 mb-1">
+        <a href="{{ route('teacher.dashboard') }}" class="sidebar-nav-item {{ request()->routeIs('teacher.dashboard') ? 'active' : '' }} rounded-3 mb-1">
           <i class="bi bi-grid-1x2-fill sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text fw-medium fs-6" data-en="Overview" data-ar="الرئيسية">Overview</span>
         </a>
@@ -31,10 +31,10 @@
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuAcademic">
-          <li><a href="#" class="sidebar-submenu-item" data-en="Programs" data-ar="البرامج الدراسية">Programs</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Courses" data-ar="المواد التعليمية">Courses</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Study Groups" data-ar="المجموعات الدراسية">Study Groups</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Academic Schedule" data-ar="الجدول الأكاديمي">Academic Schedule</a></li>
+          <li><a href="{{ route('teacher.subjects.index') }}" class="sidebar-submenu-item" data-en="Programs" data-ar="البرامج الدراسية">Programs</a></li>
+          <li><a href="{{ route('teacher.subjects.index') }}" class="sidebar-submenu-item" data-en="Courses" data-ar="المواد التعليمية">Courses</a></li>
+          <li><a href="{{ route('teacher.groups.index') }}" class="sidebar-submenu-item" data-en="Study Groups" data-ar="المجموعات الدراسية">Study Groups</a></li>
+          <li><a href="{{ route('teacher.exams.index') }}" class="sidebar-submenu-item" data-en="Academic Schedule" data-ar="الجدول الأكاديمي">Academic Schedule</a></li>
         </ul>
 
         <!-- Students -->
@@ -44,11 +44,11 @@
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuStudents">
-          <li><a href="#" class="sidebar-submenu-item" data-en="All Students" data-ar="جميع الطلاب">All Students</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Course Students" data-ar="طلاب المادة">Course Students</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Attendance" data-ar="الحضور والغياب">Attendance</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Performance" data-ar="الأداء الأكاديمي">Performance</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Academic Notes" data-ar="الملاحظات الأكاديمية">Academic Notes</a></li>
+          <li><a href="{{ route('teacher.groups.index') }}" class="sidebar-submenu-item" data-en="All Students" data-ar="جميع الطلاب">All Students</a></li>
+          <li><a href="{{ route('teacher.subjects.index') }}" class="sidebar-submenu-item" data-en="Course Students" data-ar="طلاب المادة">Course Students</a></li>
+          <li><a href="{{ route('teacher.groups.index') }}" class="sidebar-submenu-item" data-en="Attendance" data-ar="الحضور والغياب">Attendance</a></li>
+          <li><a href="{{ route('teacher.grading.index') }}" class="sidebar-submenu-item" data-en="Performance" data-ar="الأداء الأكاديمي">Performance</a></li>
+          <li><a href="{{ route('teacher.groups.index') }}" class="sidebar-submenu-item" data-en="Academic Notes" data-ar="الملاحظات الأكاديمية">Academic Notes</a></li>
         </ul>
 
         <!-- Educational Content -->
@@ -58,11 +58,11 @@
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuContent">
-          <li><a href="#" class="sidebar-submenu-item" data-en="Files" data-ar="الملفات التعليمية">Files</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Videos" data-ar="الفيديوهات">Videos</a></li>
+          <li><a href="{{ route('teacher.content.index') }}" class="sidebar-submenu-item" data-en="Files" data-ar="الملفات التعليمية">Files</a></li>
+          <li><a href="{{ route('teacher.content.index') }}" class="sidebar-submenu-item" data-en="Videos" data-ar="الفيديوهات">Videos</a></li>
           <li><a href="#" class="sidebar-submenu-item" data-en="Recordings" data-ar="التسجيلات">Recordings</a></li>
           <li><a href="#" class="sidebar-submenu-item" data-en="Assignments" data-ar="الواجبات">Assignments</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Resources" data-ar="الموارد التعليمية">Resources</a></li>
+          <li><a href="{{ route('teacher.content.index') }}" class="sidebar-submenu-item" data-en="Resources" data-ar="الموارد التعليمية">Resources</a></li>
         </ul>
 
         <!-- Sessions -->
@@ -85,9 +85,9 @@
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuExams">
-          <li><a href="#" class="sidebar-submenu-item" data-en="Tests Management" data-ar="الامتحانات">Tests Management</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Grading" data-ar="التصحيح">Grading</a></li>
-          <li><a href="#" class="sidebar-submenu-item" data-en="Scores" data-ar="الدرجات">Scores</a></li>
+          <li><a href="{{ route('teacher.exams.index') }}" class="sidebar-submenu-item" data-en="Tests Management" data-ar="الامتحانات">Tests Management</a></li>
+          <li><a href="{{ route('teacher.grading.index') }}" class="sidebar-submenu-item" data-en="Grading" data-ar="التصحيح">Grading</a></li>
+          <li><a href="{{ route('teacher.grading.index') }}" class="sidebar-submenu-item" data-en="Scores" data-ar="الدرجات">Scores</a></li>
           <li><a href="#" class="sidebar-submenu-item" data-en="Surveys" data-ar="الاستبيانات والتقييمات">Surveys</a></li>
         </ul>
 
@@ -116,7 +116,7 @@
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuProfile">
-          <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Profile" data-ar="الملف الشخصي">Profile</a></li>
+          <li><a href="{{ route('teacher.profile.edit') }}" class="sidebar-submenu-item rounded-3" data-en="Profile" data-ar="الملف الشخصي">Profile</a></li>
           <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Resume & Certs" data-ar="الشهادات والخبرات">Resume & Certs</a></li>
           <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Settings" data-ar="إعدادات الحساب">Settings</a></li>
         </ul>

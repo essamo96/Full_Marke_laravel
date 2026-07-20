@@ -13,5 +13,5 @@ Route::prefix('exams')->name('exams.')->group(function () {
     Route::get('/{exam}/results', [ExamController::class, 'results'])->name('results');
     Route::post('/{exam}/reorder-questions', [ExamController::class, 'reorderQuestions'])->name('reorder-questions');
     Route::get('/ajax/subject/{subject}/groups', [ExamController::class, 'getSubjectGroups'])->name('ajax.groups');
-    Route::get('/ajax/group/{group}/students', [ExamController::class, 'getGroupStudents'])->name('ajax.students');
+    Route::get('/ajax/group/{groupId}/students', [ExamController::class, 'getGroupStudents'])->name('ajax.students');
 });

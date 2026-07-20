@@ -127,6 +127,8 @@ class GroupsController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return view('student.groups.show', compact('group', 'subject', 'generalResources'));
+        $notes = $group->notes()->latest()->get();
+
+        return view('student.groups.show', compact('group', 'subject', 'generalResources', 'notes'));
     }
 }

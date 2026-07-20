@@ -93,13 +93,15 @@ class ExamController extends AdminController
         return response()->json($groups);
     }
 
-    public function getGroupStudents(\App\Models\Group $group)
+    public function getGroupStudents($groupId)
     {
-        // Get students registered in this group
-        $students = \App\Models\Student::whereHas('registrations', function ($query) use ($group) {
-            $query->where('group_id', $group->id)->where('status', 'active');
+        // Note: $groupId here is the raw `groups.id` FK value submitted by the group_id
+        // select on this same form (not Group's encrypted route key), so this endpoint
+        // intentionally takes a plain id instead of route-model-binding Group.
+        $students = \App\Models\Student::whereHas('registrations', function ($query) use ($groupId) {
+            $query->where('group_id', $groupId)->whereIn('status', ['pending', 'partially_paid', 'fully_paid']);
         })->select('id', 'full_name_ar', 'full_name_en')->get();
-        
+
         return response()->json($students);
     }
 

@@ -59,6 +59,22 @@
 @endpush
 
 @section('content')
+
+@if($notes->isNotEmpty())
+<div class="glass-panel rounded-4 p-4 mb-4">
+    <h5 class="fw-bold mb-3" style="color: var(--text-primary);" data-en="Group Notes" data-ar="ملاحظات المجموعة">ملاحظات المجموعة</h5>
+    <div class="d-flex flex-column gap-2">
+        @foreach($notes as $note)
+            <div class="rounded-3 p-3" style="background: var(--bg-secondary);">
+                <div class="fw-bold fs-7 mb-1" style="color: var(--accent-color);">{{ $note->title }}</div>
+                <div class="text-sm text-white">{{ $note->content }}</div>
+                <div class="text-muted fs-7 mt-1">{{ $note->created_at->diffForHumans() }}</div>
+            </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 <div class="row g-4 h-100 fade-in-up">
     <!-- Left Sidebar: Curriculum -->
     <div class="col-lg-4 col-xl-3 order-2 order-lg-1">

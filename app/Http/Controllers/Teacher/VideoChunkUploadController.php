@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Teacher;
 
+use App\Http\Controllers\Controller;
 use App\Traits\HandlesChunkedUploads;
 use Illuminate\Http\Request;
 
-class VideoChunkUploadController extends AdminController
+class VideoChunkUploadController extends Controller
 {
     use HandlesChunkedUploads;
 

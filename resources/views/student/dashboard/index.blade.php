@@ -63,10 +63,10 @@
             <!-- ===================== OVERVIEW TAB ===================== -->
             <div class="tab-pane fade show active fade-in-up delay-2" id="overview" role="tabpanel" aria-labelledby="overview-tab">
                 <!-- Welcome Banner -->
-                <section class="glass-panel bg-pattern-gold rounded-4 p-5 mb-5 position-relative overflow-hidden d-flex flex-column flex-md-row align-items-center justify-content-between gap-5 border-1 border-white/10" style="box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-                  <div class="position-absolute top-0 end-0 w-50 h-100 bg-gold/10 blur-[80px]"></div>
+                <section class="glass-panel bg-pattern-gold bg-pattern-animated rounded-4 p-5 mb-5 position-relative overflow-hidden d-flex flex-column flex-md-row align-items-center justify-content-between gap-5 border-1 border-white/10" style="box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                  <div class="position-absolute top-0 end-0 w-50 h-100 bg-gold/10 blur-[80px] floating-orb"></div>
                   <div class="position-relative z-1 text-center text-md-start">
-                    <h1 class="display-5 fw-bold mb-3" style="color: var(--text-off-white, #fdfbf7); font-family: 'Tajawal', 'Almarai', sans-serif;">
+                    <h1 class="display-5 fw-bold mb-3" style="color: var(--text-primary); font-family: 'Tajawal', 'Almarai', sans-serif;">
                       <span data-en="Welcome back," data-ar="مرحباً بعودتك،">Welcome back,</span> <span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ $student->name }}</span>
                     </h1>
                     @if($registrations->isEmpty())
@@ -97,7 +97,7 @@
                 </section>
 
                 <!-- Stats Grid -->
-                <section class="row g-4 mb-4">
+                <section class="row g-4 mb-4 fade-in-up delay-3">
                   <!-- Stat 1: Enrolled Subjects -->
                   <div class="col-md-6">
                     <div class="glass-panel rounded-4 p-4 h-100 tilt-card glow-card">
@@ -128,7 +128,7 @@
                 </section>
 
                 <!-- Join Group By Code Section -->
-                <div class="glass-panel bg-pattern-gold border border-white/10 rounded-4 p-4 mb-4">
+                <div class="glass-panel bg-pattern-gold border border-white/10 rounded-4 p-4 mb-4 fade-in-up delay-4">
                   <div class="row align-items-center">
                     <div class="col-md-6 mb-3 mb-md-0">
                       <h4 class="fw-bold mb-1" style="color: var(--accent-color);" data-en="Join Group with Code" data-ar="الانضمام لمجموعة عبر الكود">الانضمام لمجموعة عبر الكود</h4>
@@ -149,7 +149,7 @@
                 </div>
 
                 <!-- My Registered Subjects -->
-                <div class="d-flex align-items-center justify-content-between mb-4 mt-5">
+                <div class="d-flex align-items-center justify-content-between mb-4 mt-5 fade-in-up delay-5">
                   <h3 class="h4 fw-bold mb-0 border-start border-4 ps-3" style="border-color: var(--accent-color) !important;" data-en="My Registered Subjects" data-ar="موادي المسجلة">موادي المسجلة</h3>
                   <a href="{{ route('student.registrations') }}" class="text-decoration-none text-sm fw-medium d-flex align-items-center gap-1" style="color: var(--accent-color);">
                     <span data-en="View All" data-ar="عرض الكل">عرض الكل</span>

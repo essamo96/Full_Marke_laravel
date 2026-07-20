@@ -5,8 +5,8 @@
 @section('content')
         
         <!-- Welcome Banner -->
-        <section class="glass-panel bg-pattern-gold rounded-4 p-5 mb-5 position-relative overflow-hidden d-flex flex-column flex-md-row align-items-center justify-content-between gap-5 border-1 border-white/10" style="box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-          <div class="position-absolute top-0 end-0 w-50 h-100 bg-gold/10 blur-[80px]"></div>
+        <section class="fade-in-up glass-panel bg-pattern-gold bg-pattern-animated rounded-4 p-5 mb-5 position-relative overflow-hidden d-flex flex-column flex-md-row align-items-center justify-content-between gap-5 border-1 border-white/10" style="box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+          <div class="position-absolute top-0 end-0 w-50 h-100 bg-gold/10 blur-[80px] floating-orb"></div>
           <div class="position-relative z-1 text-center text-md-start w-100">
             <h1 class="display-5 fw-bold mb-3" style="color: var(--text-primary); font-family: 'Tajawal', 'Almarai', sans-serif;">
               <span data-en="Hello," data-ar="مرحباً،">Hello,</span> <span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Dr. Sarah</span>
@@ -21,7 +21,7 @@
         </section>
 
         <!-- Stats Grid -->
-        <section class="row g-4 g-lg-5 mb-5">
+        <section class="row g-4 g-lg-5 mb-5 fade-in-up delay-1">
           <!-- Stat 1 -->
           <div class="col-md-6 col-xl-3">
             <div class="glass-panel rounded-4 p-4 p-xl-5 h-100 tilt-card glow-card transition-all hover-glow" style="border: 1px solid var(--separator-color);">
@@ -76,7 +76,7 @@
 
         <div class="row g-4 g-lg-5">
           <!-- Upcoming Sessions -->
-          <div class="col-xl-8">
+          <div class="col-xl-8 fade-in-up delay-2">
             <div class="d-flex align-items-center justify-content-between mb-4">
               <h3 class="h4 fw-bold mb-0 border-start border-4 ps-3" style="border-color: var(--accent-color) !important; font-family: 'Tajawal', 'Almarai', sans-serif;" data-en="Today's Sessions" data-ar="جلسات اليوم">Today's Sessions</h3>
               <a href="#" class="text-decoration-none text-sm fw-medium d-flex align-items-center gap-1" style="color: var(--accent-color);">
@@ -89,7 +89,7 @@
               <!-- Session Item -->
               <div class="glass-panel rounded-4 p-4 p-md-5 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-4 transition-all hover-glow border-start border-4" style="border-left-color: #ff4757 !important;">
                 <div class="d-flex align-items-center gap-4">
-                  <div class="rounded-circle p-3 d-flex align-items-center justify-content-center shadow-sm" style="background: rgba(255,71,87,0.1); width: 64px; height: 64px;">
+                  <div class="rounded-circle p-3 d-flex align-items-center justify-content-center shadow-sm pulse-glow" style="background: rgba(255,71,87,0.1); width: 64px; height: 64px;">
                     <i class="bi bi-camera-video fs-3" style="color: #ff4757;"></i>
                   </div>
                   <div>
@@ -117,7 +117,7 @@
           </div>
 
           <!-- Quick Actions -->
-          <div class="col-xl-4">
+          <div class="col-xl-4 fade-in-up delay-3">
             <h3 class="h4 fw-bold mb-4 border-start border-4 ps-3" style="border-color: var(--accent-color) !important; font-family: 'Tajawal', 'Almarai', sans-serif;" data-en="Quick Actions" data-ar="إجراءات سريعة">Quick Actions</h3>
             
             <div class="d-flex flex-column gap-4">

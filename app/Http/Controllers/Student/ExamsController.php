@@ -56,28 +56,46 @@ class ExamsController extends Controller
         
         $totalPoints = 0;
         $earnedPoints = 0;
-        
+        $answerRows = [];
+
         foreach ($exam->questions as $question) {
             $totalPoints += $question->points;
-            
+
             $answerId = $request->input('answers.' . $question->id);
-            
+
             if ($question->type === 'multiple_choice' || $question->type === 'true_false') {
                 $correctOption = $question->options->where('is_correct', true)->first();
-                if ($correctOption && $answerId == $correctOption->id) {
+                $isCorrect = $correctOption && $answerId == $correctOption->id;
+                $pointsEarned = $isCorrect ? $question->points : 0;
+                if ($isCorrect) {
                     $earnedPoints += $question->points;
                 }
+
+                $answerRows[] = [
+                    'question_id' => $question->id,
+                    'selected_option_id' => $answerId ?: null,
+                    'essay_answer' => null,
+                    'is_correct' => $isCorrect,
+                    'points_earned' => $pointsEarned,
+                ];
             } else if ($question->type === 'essay') {
-                // Essay needs manual grading later. We just record 0 for now or store it.
+                // Essay needs manual grading later by the teacher; no points recorded yet.
+                $answerRows[] = [
+                    'question_id' => $question->id,
+                    'selected_option_id' => null,
+                    'essay_answer' => $request->input('answers.' . $question->id),
+                    'is_correct' => null,
+                    'points_earned' => null,
+                ];
             }
         }
-        
+
         $cacheKey = 'exam_start_' . $student->id . '_' . $exam->id;
         $startTime = \Illuminate\Support\Facades\Cache::get($cacheKey);
         $timeTaken = $startTime ? now()->diffInMinutes($startTime) : null;
-        
+
         // Save the result to grades table
-        \App\Models\Grade::create([
+        $grade = \App\Models\Grade::create([
             'student_id' => $student->id,
             'group_id' => $exam->group_id,
             'exam_id' => $exam->id,
@@ -88,7 +106,15 @@ class ExamsController extends Controller
             'started_at' => $startTime,
             'time_taken_minutes' => $timeTaken,
         ]);
-        
+
+        foreach ($answerRows as $row) {
+            \App\Models\ExamAnswer::create($row + [
+                'grade_id' => $grade->id,
+                'exam_id' => $exam->id,
+                'student_id' => $student->id,
+            ]);
+        }
+
         \Illuminate\Support\Facades\Cache::forget($cacheKey);
 
         return redirect()->route('student.exams.index')->with('success', "تم استلام امتحانك بنجاح. نتيجتك المبدئية: {$earnedPoints} من {$totalPoints}.");

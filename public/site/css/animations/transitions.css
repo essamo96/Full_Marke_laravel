@@ -27,3 +27,70 @@
 .smooth-transition {
   transition: all var(--transition-normal);
 }
+
+/* --- Dashboard Specific Animations --- */
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInUpAnim 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes fadeInUpAnim {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Staggered Delays for Entry Animations */
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+
+/* Floating Orbs Animation */
+.floating-orb {
+  animation: floatOrb 15s infinite ease-in-out alternate;
+}
+
+@keyframes floatOrb {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-30px, 20px) scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(20px, -30px) scale(0.9);
+    opacity: 0.5;
+  }
+}
+
+/* Subtle Pulse Glow for Badges/Icons */
+.pulse-glow {
+  animation: pulseGlowAnim 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes pulseGlowAnim {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(var(--accent-color-rgb, 197, 168, 128), 0.4);
+  }
+  50% {
+    opacity: .8;
+    box-shadow: 0 0 10px 5px rgba(var(--accent-color-rgb, 197, 168, 128), 0);
+  }
+}
+
+/* Animated Pattern Background */
+.bg-pattern-animated {
+  animation: patternMove 40s linear infinite;
+}
+
+@keyframes patternMove {
+  from { background-position: 0 0, 8px 8px; }
+  to { background-position: 100px 100px, 108px 108px; }
+}

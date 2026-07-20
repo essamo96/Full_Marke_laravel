@@ -242,7 +242,7 @@
             return;
         }
 
-        fetch(`/admin/exams/ajax/subject/${subjectId}/groups`)
+        fetch(`{{ $subjectGroupsAjaxBase ?? '/admin/exams/ajax/subject' }}/${subjectId}/groups`)
             .then(res => res.json())
             .then(groups => {
                 groupSelect.innerHTML = '<option></option>';
@@ -267,7 +267,7 @@
             return;
         }
 
-        fetch(`/admin/exams/ajax/group/${groupId}/students`)
+        fetch(`{{ $groupStudentsAjaxBase ?? '/admin/exams/ajax/group' }}/${groupId}/students`)
             .then(res => res.json())
             .then(students => {
                 const existingExcluded = @json(old('excluded_student_ids', isset($exam) ? $exam->excluded_student_ids ?? [] : []));
@@ -438,7 +438,7 @@
                 const orderedIds = this.questions.map(q => q.id).filter(id => !String(id).startsWith('new_'));
                 if (orderedIds.length === 0) return;
 
-                fetch(`{{ isset($exam) ? route('exams.reorder-questions', $exam->id ?? 0) : '' }}`, {
+                fetch(`{{ isset($exam) ? route($examReorderRouteName ?? 'exams.reorder-questions', $exam->id ?? 0) : '' }}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

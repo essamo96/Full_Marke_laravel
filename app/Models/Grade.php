@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\EncryptsRouteKey;
 
 class Grade extends Model
 {
+    use EncryptsRouteKey;
+
     protected $fillable = [
         'student_id',
         'group_id',
@@ -37,5 +40,10 @@ class Grade extends Model
     public function exam()
     {
         return $this->belongsTo(Exam::class);
+    }
+
+    public function answers()
+    {
+        return $this->hasMany(ExamAnswer::class);
     }
 }
