@@ -21,6 +21,10 @@ class EnsureEmailIsVerified
                 return response()->json(['message' => 'Your email address is not verified.'], 403);
             }
 
+            if ($request->routeIs('apply.create') || $request->routeIs('student.register')) {
+                return $next($request);
+            }
+
             // Redirect back to apply form with intent to show OTP modal
             return redirect()->route('apply.create')->with([
                 'show_otp_modal' => true,
