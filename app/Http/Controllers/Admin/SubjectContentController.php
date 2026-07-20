@@ -47,7 +47,12 @@ class SubjectContentController extends AdminController
             ->orderBy('sort_order')
             ->get();
 
-        return view('admin.subject_content.manage', self::$data + compact('subject', 'units'));
+        $processingResources = \App\Models\SubjectResource::where('subject_id', $subject->id)
+            ->where('processing_status', 'processing')
+            ->pluck('id')
+            ->toArray();
+
+        return view('admin.subject_content.manage', self::$data + compact('subject', 'units', 'processingResources'));
     }
 
     private function stageFor(Subject $subject): EducationalStage
@@ -189,5 +194,15 @@ class SubjectContentController extends AdminController
         $resource->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    public function progress(SubjectResource $resource)
+    {
+        $percentage = \Illuminate\Support\Facades\Cache::get("video_progress_{$resource->id}", 0);
+        
+        return response()->json([
+            'status' => $resource->processing_status, // 'processing', 'ready', 'failed'
+            'percentage' => $percentage
+        ]);
     }
 }

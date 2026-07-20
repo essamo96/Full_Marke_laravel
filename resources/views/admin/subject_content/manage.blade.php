@@ -406,6 +406,12 @@
         document.getElementById('resource_type').addEventListener('change', toggleResourceFields);
         toggleResourceFields();
         initVideoResumable();
+
+        @if(isset($processingResources) && count($processingResources) > 0)
+            @foreach($processingResources as $resId)
+                showProcessingDrawer({{ $resId }});
+            @endforeach
+        @endif
     });
 
     function showProcessingDrawer(resourceId) {
@@ -415,30 +421,34 @@
         
         document.getElementById('kt_processing_progress_toast').classList.remove('d-none');
 
-        if (window.pusherInstance) {
-            var channel = window.pusherInstance.subscribe('system-jobs');
-            channel.bind('video.processing', function(data) {
-                if (data.resourceId === resourceId) {
-                    const pct = data.percentage;
+        const pollInterval = setInterval(() => {
+            $.ajax({
+                url: '{{ url('admin/subject-content/resources') }}/' + resourceId + '/progress',
+                type: 'GET',
+                success: function(data) {
+                    const pct = data.percentage || 0;
                     document.getElementById('processing_drawer_progress').style.width = pct + '%';
                     document.getElementById('processing_drawer_percentage').textContent = pct + '%';
                     document.getElementById('processing_drawer_time_remaining').textContent = 'تتم المعالجة الآن...';
 
-                    if (pct >= 100) {
+                    if (data.status === 'ready' || pct >= 100) {
+                        clearInterval(pollInterval);
+                        document.getElementById('processing_drawer_progress').style.width = '100%';
+                        document.getElementById('processing_drawer_percentage').textContent = '100%';
                         document.getElementById('processing_drawer_time_remaining').textContent = 'اكتملت المعالجة!';
                         setTimeout(() => {
                             document.getElementById('kt_processing_progress_toast').classList.add('d-none');
                             showSuccess(function () { location.reload(); });
                         }, 2000);
+                    } else if (data.status === 'failed') {
+                        clearInterval(pollInterval);
+                        document.getElementById('processing_drawer_time_remaining').textContent = 'فشلت المعالجة!';
+                        document.getElementById('processing_drawer_time_remaining').classList.add('text-danger');
                     }
-                }
+                },
+                error: function() {}
             });
-        } else {
-            // fallback if pusher not configured
-            setTimeout(() => {
-                showSuccess(function () { location.reload(); });
-            }, 3000);
-        }
+        }, 3000);
     }
 
     function toggleResourceFields() {
@@ -542,7 +552,11 @@
             document.getElementById('upload_drawer_time_remaining').textContent = 'اكتمل الرفع!';
             document.getElementById('upload_drawer_uploaded').textContent = formatBytes(file.size) + ' / ' + formatBytes(file.size);
 
-            setTimeout(() => { if (uploadDrawer) uploadDrawer.hide(); }, 4000);
+            setTimeout(() => { 
+                if (uploadDrawer) uploadDrawer.hide(); 
+                // Auto-submit the form once upload reaches 100%
+                $('#kt_form_add_resource').submit();
+            }, 1000);
         });
 
         videoUploadResumable.on('fileError', function (file, message) {

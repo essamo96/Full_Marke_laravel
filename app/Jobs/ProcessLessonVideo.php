@@ -49,8 +49,9 @@ class ProcessLessonVideo implements ShouldQueue
                 ->open($sourcePath)
                 ->exportForHLS()
                 ->onProgress(function ($percentage) use ($resource) {
-                    // Send progress event every few percent or at least send it
-                    // Laravel FFMpeg's onProgress closure gets called continuously
+                    // Save progress in Cache for AJAX polling
+                    \Illuminate\Support\Facades\Cache::put("video_progress_{$resource->id}", $percentage, 3600);
+                    // Also broadcast event for those using WebSockets
                     \App\Events\VideoProcessingProgress::dispatch($resource->id, $percentage);
                 })
                 // One key per 6 segments (~60s of video at the default 10s segment length) instead of
