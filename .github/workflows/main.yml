@@ -44,12 +44,15 @@ jobs:
 
       - name: 📂 Sync files to Server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        env:
+          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
         with:
           server: 92.113.19.218
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
-          protocol: ftp
+          protocol: ftps
+          security: loose
           server-dir: /domains/fullmarkacademy.com/public_html/
           exclude: |
             **/.git*
