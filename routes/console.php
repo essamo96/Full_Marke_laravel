@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('students:delete-unverified')->hourly();
+Schedule::command('exams:notify-starting')->everyMinute();

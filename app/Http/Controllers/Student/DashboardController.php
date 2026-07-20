@@ -68,6 +68,7 @@ class DashboardController extends Controller
             'needsGroupCount' => $needsGroupCount,
             'upcomingSessions' => $upcomingSessions,
             'recentPayments' => $recentPayments,
+            'paymentMethods' => \App\Models\PaymentMethod::active()->orderBy('sort_order')->get(),
         ]);
     }
 }

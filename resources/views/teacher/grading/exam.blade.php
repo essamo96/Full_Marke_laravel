@@ -17,6 +17,7 @@
             <th data-en="Student" data-ar="الطالب">Student</th>
             <th data-en="Status" data-ar="الحالة">Status</th>
             <th data-en="Score" data-ar="العلامة">Score</th>
+            <th data-en="Exits" data-ar="مرات الخروج">Exits</th>
             <th></th>
           </tr>
         </thead>
@@ -35,12 +36,27 @@
               <td>{{ $grade ? $grade->score . ' / ' . $grade->max_score : '-' }}</td>
               <td>
                 @if($grade)
+                  @php($exits = $grade->tab_switch_count + $grade->fullscreen_exit_count)
+                  @if($exits > 0)
+                    <span class="badge {{ $exits >= 3 ? 'bg-danger' : 'bg-warning text-dark' }}">
+                      <i class="bi bi-eye-fill me-1"></i>{{ $exits }}
+                    </span>
+                  @else
+                    <span class="text-muted fs-7">0</span>
+                  @endif
+                  @if($grade->auto_submitted)
+                    <span class="badge bg-danger ms-1" title="تسليم تلقائي بسبب مخالفة">تلقائي</span>
+                  @endif
+                @endif
+              </td>
+              <td>
+                @if($grade)
                   <a href="{{ route('teacher.grading.show', $grade) }}" class="btn btn-sm btn-outline-primary" data-en="View Answers" data-ar="عرض الإجابات">عرض الإجابات</a>
                 @endif
               </td>
             </tr>
           @empty
-            <tr><td colspan="4" class="text-center text-muted py-4" data-en="No students in this group." data-ar="لا يوجد طلاب في هذه المجموعة.">لا يوجد طلاب في هذه المجموعة.</td></tr>
+            <tr><td colspan="5" class="text-center text-muted py-4" data-en="No students in this group." data-ar="لا يوجد طلاب في هذه المجموعة.">لا يوجد طلاب في هذه المجموعة.</td></tr>
           @endforelse
         </tbody>
       </table>

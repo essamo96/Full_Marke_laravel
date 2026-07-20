@@ -55,6 +55,7 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('groups', [GroupsController::class, 'index'])->name('groups');
         Route::get('groups/{group}', [GroupsController::class, 'show'])->name('groups.show');
         Route::post('groups/join-by-code', [GroupsController::class, 'joinByCode'])->name('groups.join-by-code');
+        Route::post('groups/register-and-join-by-code', [GroupsController::class, 'registerAndJoinDirectly'])->name('groups.register-and-join-by-code');
         Route::get('resources', [ResourcesController::class, 'index'])->name('resources');
         Route::post('videos/{resource}/start', [VideoStreamController::class, 'startSession'])->name('video.start');
         Route::get('videos/{resource}/stream', [VideoStreamController::class, 'stream'])->name('video.stream');
@@ -64,7 +65,9 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('exams', [\App\Http\Controllers\Student\ExamsController::class, 'index'])->name('exams.index');
         Route::get('exams/{exam}/take', [\App\Http\Controllers\Student\ExamsController::class, 'take'])->name('exams.take');
         Route::post('exams/{exam}/submit', [\App\Http\Controllers\Student\ExamsController::class, 'submit'])->name('exams.submit');
+        Route::post('exams/{exam}/violation', [\App\Http\Controllers\Student\ExamsController::class, 'recordViolation'])->name('exams.violation');
         Route::get('results', [\App\Http\Controllers\Student\ResultsController::class, 'index'])->name('results.index');
+        Route::get('results/{grade}', [\App\Http\Controllers\Student\ResultsController::class, 'show'])->name('results.show');
         Route::get('attendance', [\App\Http\Controllers\Student\AttendanceController::class, 'index'])->name('attendance.index');
 
         Route::post('notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');

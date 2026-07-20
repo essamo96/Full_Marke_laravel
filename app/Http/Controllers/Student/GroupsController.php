@@ -65,7 +65,12 @@ class GroupsController extends Controller
                 'success' => false,
                 'needs_registration' => true,
                 'program_url' => route('programs.show', $group->subject->program->slug ?? ''),
-                'message' => 'أنت غير مسجل في المادة التابعة لهذه المجموعة أو لم تقم بتأكيد دفعاتك المالية.'
+                'subject_id' => $group->subject_id,
+                'subject_name' => $group->subject->name,
+                'group_id' => $group->id,
+                'group_name' => $group->name,
+                'fee' => $group->subject->fee,
+                'message' => 'أنت غير مسجل في المادة التابعة لهذه المجموعة أو لم تقم بتأكيد دفعاتك المالية. الرسوم المستحقة للانضمام هي ' . $group->subject->fee . ' JOD.'
             ], 400);
         }
 
@@ -130,5 +135,76 @@ class GroupsController extends Controller
         $notes = $group->notes()->latest()->get();
 
         return view('student.groups.show', compact('group', 'subject', 'generalResources', 'notes'));
+    }
+
+    public function registerAndJoinDirectly(Request $request, \App\Services\PaymentService $paymentService)
+    {
+        $request->validate([
+            'subject_id' => 'required|exists:subjects,id',
+            'group_id' => 'required|exists:groups,id',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method_id' => 'required|exists:payment_methods,id',
+            'receipt' => 'required|file|mimes:png,jpg,jpeg,pdf|max:5120',
+        ]);
+
+        $student = Auth::guard('student')->user();
+        $subject = \App\Models\Subject::findOrFail($request->subject_id);
+        
+        $alreadyActive = Registration::where('student_id', $student->id)
+            ->where('subject_id', $subject->id)
+            ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
+            ->exists();
+
+        if ($alreadyActive) {
+            return response()->json(['success' => false, 'message' => 'أنت مسجل بالفعل في هذه المادة أو قمت بتقديم طلب مسبقاً.'], 400);
+        }
+
+        $minPayment = $subject->min_payment ?? $subject->fee;
+        if ($request->amount < $minPayment) {
+            return response()->json(['success' => false, 'message' => 'المبلغ المدفوع أقل من الحد الأدنى المطلوب (' . $minPayment . ' JOD).'], 400);
+        }
+
+        $group = Group::findOrFail($request->group_id);
+        if (!$group->hasAvailableCapacity()) {
+            return response()->json(['success' => false, 'message' => 'المجموعة ممتلئة. لا يوجد مقاعد متاحة.'], 400);
+        }
+
+        $receiptPath = $request->file('receipt')->store('receipts', 'local');
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($student, $subject, $group, $request, $receiptPath, $paymentService) {
+            // Create pending registration
+            $registration = Registration::create([
+                'registration_number' => Registration::generateNumber(),
+                'student_id' => $student->id,
+                'subject_id' => $subject->id,
+                'group_id' => $group->id,
+                'fee_snapshot' => $subject->fee,
+                'amount_paid' => 0,
+                'status' => 'pending',
+            ]);
+
+            // Create pending payment
+            $payment = \App\Models\Payment::create([
+                'payment_number' => \App\Models\Payment::generateNumber(),
+                'student_id' => $student->id,
+                'method' => (string) $request->payment_method_id,
+                'amount' => $request->amount,
+                'receipt_image' => $receiptPath,
+                'notes' => 'مقدم عبر كود التشعيب للمجموعة: ' . $group->name,
+                'status' => 'pending',
+            ]);
+
+            // Link payment to registration
+            \App\Models\PaymentItem::create([
+                'payment_id' => $payment->id,
+                'registration_id' => $registration->id,
+                'allocated_amount' => $request->amount,
+            ]);
+
+            // Notify Admin
+            $paymentService->notifyPaymentSubmitted($payment->load('items'), $student);
+        });
+        
+        return response()->json(['success' => true, 'message' => 'تم تقديم طلب التسجيل ودفع الرسوم. سيتم تفعيل حسابك في المجموعة فور تأكيد الإدارة للدفع.']);
     }
 }

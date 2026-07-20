@@ -20,11 +20,15 @@ class Grade extends Model
         'max_score',
         'notes',
         'started_at',
-        'time_taken_minutes'
+        'time_taken_minutes',
+        'tab_switch_count',
+        'fullscreen_exit_count',
+        'auto_submitted',
     ];
 
     protected $casts = [
         'started_at' => 'datetime',
+        'auto_submitted' => 'boolean',
     ];
 
     public function student()

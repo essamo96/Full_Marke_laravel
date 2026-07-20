@@ -115,7 +115,7 @@ class PaymentService
      * Mail templates #2 and #3 from academy_system_analysis.md §"القوالب البريدية" —
      * confirms receipt to the student and alerts active admins of a new pending payment.
      */
-    protected function notifyPaymentSubmitted(Payment $payment, Student $student): void
+    public function notifyPaymentSubmitted(Payment $payment, Student $student): void
     {
         Mail::to($student->email)->send(new PaymentReceivedMail($payment));
 

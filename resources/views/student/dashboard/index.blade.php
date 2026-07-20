@@ -178,7 +178,7 @@
                             </div>
                             <div class="flex-1 w-100">
                               <div class="d-flex justify-content-between align-items-start mb-1 gap-2">
-                                <h5 class="mb-0 fs-6 fw-bold" style="color: var(--text-primary);">{{ $registration->subject->name }}</h5>
+                                <h5 class="mb-0 fs-6 fw-bold" style="color: var(--text-primary);">{{ $registration->subject?->name ?? '-' }}</h5>
                                 @if($registration->status === 'fully_paid')
                                   <span class="badge bg-success bg-opacity-25 text-success" data-en="Fully Paid" data-ar="مدفوع بالكامل">مدفوع بالكامل</span>
                                 @elseif($registration->status === 'partially_paid')
@@ -351,6 +351,67 @@
             </div>
         </div>
 
+        <!-- Join Group Register Modal -->
+        <div class="modal fade" id="joinGroupRegisterModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content glass-panel border-1 border-white/10" style="background: var(--bg-primary);">
+                    <div class="modal-header border-bottom border-white/10">
+                        <h5 class="modal-title fw-bold" style="color: var(--text-primary);" data-en="Join & Pay" data-ar="تسجيل ودفع">تسجيل ودفع</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="joinGroupRegisterForm" enctype="multipart/form-data">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="alert alert-warning text-dark mb-4 fs-7">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <span data-en="You are not registered in this subject. Please pay the required fees to join." data-ar="أنت غير مسجل في هذه المادة. يرجى سداد الرسوم المطلوبة لتتمكن من الانضمام للمجموعة.">أنت غير مسجل في هذه المادة. يرجى سداد الرسوم المطلوبة لتتمكن من الانضمام للمجموعة.</span>
+                            </div>
+                            
+                            <input type="hidden" id="modalSubjectId" name="subject_id">
+                            <input type="hidden" id="modalGroupId" name="group_id">
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-muted fs-7" data-en="Subject & Group" data-ar="المادة والمجموعة">المادة والمجموعة</label>
+                                <div class="form-control bg-white/5 border-white/10 text-white" readonly>
+                                    <span id="modalSubjectName" class="fw-bold text-gold"></span> 
+                                    - <span id="modalGroupName"></span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted fs-7" data-en="Required Fee (JOD)" data-ar="الرسوم المطلوبة (دينار)">الرسوم المطلوبة (دينار)</label>
+                                <input type="number" id="modalFee" name="amount" class="form-control bg-white/5 border-white/10 text-white" readonly>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted fs-7" data-en="Payment Method" data-ar="طريقة الدفع">طريقة الدفع</label>
+                                <select name="payment_method_id" class="form-select bg-white/5 border-white/10 text-white" required>
+                                    <option value="">-- اختر طريقة الدفع --</option>
+                                    @foreach($paymentMethods ?? [] as $pm)
+                                        <option value="{{ $pm->id }}">{{ $pm->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted fs-7" data-en="Payment Receipt" data-ar="صورة إيصال الدفع">صورة إيصال الدفع</label>
+                                <input type="file" name="receipt" class="form-control bg-white/5 border-white/10 text-white" accept="image/*,.pdf" required>
+                            </div>
+                            
+                            <div id="modalFeedback" class="mt-2 text-sm d-none"></div>
+                        </div>
+                        <div class="modal-footer border-top border-white/10 d-flex justify-content-between">
+                            <a href="#" id="modalProgramUrl" class="btn btn-outline-secondary" data-en="View Details" data-ar="عرض التفاصيل">عرض التفاصيل</a>
+                            <button type="submit" class="btn btn-luxury px-4" id="submitRegisterBtn">
+                                <span class="indicator-label" data-en="Pay & Join" data-ar="تأكيد ودفع">تأكيد ودفع</span>
+                                <span class="indicator-progress d-none"><i class="fas fa-circle-notch fa-spin"></i></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
 @push('scripts')
 <script>
   document.getElementById('joinGroupForm')?.addEventListener('submit', function (e) {
@@ -391,8 +452,16 @@
         feedback.textContent = body.message || 'حدث خطأ غير متوقع.';
         
         if (body.needs_registration && body.program_url) {
-          registerBtn.href = body.program_url;
-          registerBtn.classList.remove('d-none');
+          // Open Modal
+          document.getElementById('modalProgramUrl').href = body.program_url;
+          document.getElementById('modalSubjectId').value = body.subject_id;
+          document.getElementById('modalGroupId').value = body.group_id;
+          document.getElementById('modalSubjectName').textContent = body.subject_name;
+          document.getElementById('modalGroupName').textContent = body.group_name;
+          document.getElementById('modalFee').value = body.fee;
+          
+          const modal = new bootstrap.Modal(document.getElementById('joinGroupRegisterModal'));
+          modal.show();
         }
       }
     })
@@ -403,6 +472,54 @@
       
       feedback.classList.remove('d-none');
       feedback.className = 'mt-2 text-sm text-danger';
+      feedback.textContent = 'حدث خطأ في الاتصال بالخادم.';
+    });
+  });
+
+  document.getElementById('joinGroupRegisterForm')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const form = this;
+    const btn = document.getElementById('submitRegisterBtn');
+    const feedback = document.getElementById('modalFeedback');
+    
+    btn.disabled = true;
+    btn.querySelector('.indicator-label').classList.add('d-none');
+    btn.querySelector('.indicator-progress').classList.remove('d-none');
+    feedback.classList.add('d-none');
+
+    const formData = new FormData(form);
+
+    fetch('{{ route("student.groups.register-and-join-by-code") }}', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'Accept': 'application/json'
+      },
+      body: formData
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(({ status, body }) => {
+      btn.disabled = false;
+      btn.querySelector('.indicator-label').classList.remove('d-none');
+      btn.querySelector('.indicator-progress').classList.add('d-none');
+
+      feedback.classList.remove('d-none');
+      if (status === 200 && body.success) {
+        feedback.className = 'mt-3 text-sm text-success fw-bold p-2 bg-success bg-opacity-10 rounded';
+        feedback.textContent = body.message;
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        feedback.className = 'mt-3 text-sm text-danger p-2 bg-danger bg-opacity-10 rounded';
+        feedback.textContent = body.message || 'حدث خطأ غير متوقع.';
+      }
+    })
+    .catch(error => {
+      btn.disabled = false;
+      btn.querySelector('.indicator-label').classList.remove('d-none');
+      btn.querySelector('.indicator-progress').classList.add('d-none');
+      
+      feedback.classList.remove('d-none');
+      feedback.className = 'mt-3 text-sm text-danger p-2 bg-danger bg-opacity-10 rounded';
       feedback.textContent = 'حدث خطأ في الاتصال بالخادم.';
     });
   });

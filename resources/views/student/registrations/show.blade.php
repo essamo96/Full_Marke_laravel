@@ -18,7 +18,7 @@
     <div class="row">
       <div class="col-md-6">
         <div class="text-muted fs-7" data-en="Subject" data-ar="المادة">Subject</div>
-        <div class="fw-bold" style="color: var(--text-primary);">{{ $registration->subject->name }}</div>
+        <div class="fw-bold" style="color: var(--text-primary);">{{ $registration->subject?->name ?? '-' }}</div>
       </div>
       <div class="col-md-6">
         <div class="text-muted fs-7" data-en="Group" data-ar="المجموعة">Group</div>
@@ -106,7 +106,7 @@
   @if ($registration->status === 'fully_paid')
     <div class="glass-panel rounded-4 p-4">
       <h5 class="fw-bold mb-3" style="color: var(--text-primary);" data-en="Learning Resources" data-ar="الموارد التعليمية">Learning Resources</h5>
-      @forelse ($registration->subject->resources->where('is_active', true) as $resource)
+      @forelse (($registration->subject?->resources ?? collect())->where('is_active', true) as $resource)
         @php
             $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
             $resUrl = $isUrl ? $resource->url : route('student.resources');

@@ -11,8 +11,22 @@
       <h1 class="h3 fw-bold mb-1" style="color: var(--text-primary);">{{ $grade->student?->full_name_ar ?? $grade->student?->full_name_en }}</h1>
       <p class="text-muted mb-0">{{ $grade->exam?->title }}</p>
     </div>
-    <div class="glass-panel rounded-4 px-4 py-2">
-      <span class="fw-bold" style="color: var(--accent-color);">{{ $grade->score }} / {{ $grade->max_score }}</span>
+    <div class="d-flex gap-3 flex-wrap">
+      <div class="glass-panel rounded-4 px-4 py-2">
+        <span class="fw-bold" style="color: var(--accent-color);">{{ $grade->score }} / {{ $grade->max_score }}</span>
+      </div>
+      @if($grade->tab_switch_count > 0 || $grade->fullscreen_exit_count > 0)
+        <div class="glass-panel rounded-4 px-4 py-2" title="عدد مرات الخروج من الصفحة / وضع ملء الشاشة">
+          <i class="bi bi-eye-fill text-warning me-1"></i>
+          <span class="fw-bold text-warning">{{ $grade->tab_switch_count + $grade->fullscreen_exit_count }}</span>
+          <span class="fs-7 text-muted">مرات مغادرة</span>
+        </div>
+      @endif
+      @if($grade->auto_submitted)
+        <div class="glass-panel rounded-4 px-4 py-2">
+          <span class="badge bg-danger">تسليم تلقائي (مخالفة)</span>
+        </div>
+      @endif
     </div>
   </div>
 
@@ -24,7 +38,7 @@
     @forelse($grade->answers as $answer)
       <div class="glass-panel rounded-4 p-4" style="border: 1px solid var(--separator-color);">
         <div class="d-flex justify-content-between align-items-start mb-3">
-          <div class="fw-bold" style="color: var(--text-primary);">{{ $answer->question?->content }}</div>
+          <div class="fw-bold content-area" style="color: var(--text-primary);">{!! $answer->question?->content !!}</div>
           <span class="badge bg-gold text-dark">{{ $answer->question?->points }} <span data-en="pts" data-ar="نقطة">نقطة</span></span>
         </div>
 
@@ -62,3 +76,9 @@
   </div>
 
 @endsection
+
+@push('styles')
+<style>
+.content-area img { max-width: 100%; height: auto; border-radius: 0.5rem; }
+</style>
+@endpush

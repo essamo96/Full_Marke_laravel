@@ -46,6 +46,9 @@
                         <div class="fs-8 text-white opacity-50">
                             تاريخ التقديم: {{ $result->created_at->format('Y-m-d') }}
                         </div>
+                        <a href="{{ route('student.results.show', $result) }}" class="btn btn-sm btn-outline-light rounded-pill">
+                            عرض التفاصيل
+                        </a>
                     </div>
                 </div>
             </div>
