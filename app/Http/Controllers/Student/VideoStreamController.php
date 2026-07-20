@@ -126,6 +126,13 @@ class VideoStreamController extends Controller
         abort_if($resource->isExternalLink() || ! $resource->url, 404);
         abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404);
 
+        // Referer Protection: Block direct URL sharing or IDM downloads for documents and PDFs
+        $referer = $request->headers->get('referer');
+        $host = $request->getHost();
+        if (!$referer || !str_contains(parse_url($referer, PHP_URL_HOST) ?? '', $host)) {
+            abort(403, 'Unauthorized access: Invalid Referer.');
+        }
+
         $student = Auth::guard('student')->user();
 
         DocumentAccessLog::create([

@@ -47,14 +47,14 @@
                   <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197,168,128,0.1); color: var(--accent-color);">
                     <i class="bi bi-{{ $icon }} fs-5"></i>
                   </div>
-                  <div class="flex-grow-1">
+                  <div class="flex-grow-1" dir="auto">
                     <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
                     @if($isProcessing)
                       <div class="text-xs opacity-75" data-en="Still processing — check back soon" data-ar="جاري تجهيز الفيديو، حاول لاحقًا">جاري تجهيز الفيديو، حاول لاحقًا</div>
                     @elseif($isFailed)
                       <div class="text-xs text-danger" data-en="Processing failed" data-ar="تعذّرت معالجة الفيديو">تعذّرت معالجة الفيديو</div>
                     @elseif($resource->description)
-                      <div class="text-xs opacity-75">{{ $resource->description }}</div>
+                      <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
                     @endif
                   </div>
                 </button>
@@ -66,10 +66,10 @@
                   <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197,168,128,0.1); color: var(--accent-color);">
                     <i class="bi bi-{{ $icon }} fs-5"></i>
                   </div>
-                  <div class="flex-grow-1">
+                  <div class="flex-grow-1" dir="auto">
                     <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
                     @if($resource->description)
-                      <div class="text-xs opacity-75">{{ $resource->description }}</div>
+                      <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
                     @endif
                   </div>
                 </button>
@@ -78,10 +78,10 @@
                   <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197,168,128,0.1); color: var(--accent-color);">
                     <i class="bi bi-{{ $icon }} fs-5"></i>
                   </div>
-                  <div class="flex-grow-1">
+                  <div class="flex-grow-1" dir="auto">
                     <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
                     @if($resource->description)
-                      <div class="text-xs opacity-75">{{ $resource->description }}</div>
+                      <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
                     @endif
                   </div>
                   <i class="bi bi-box-arrow-up-right opacity-50"></i>
@@ -94,10 +94,10 @@
                   <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197,168,128,0.1); color: var(--accent-color);">
                     <i class="bi bi-image-fill fs-5"></i>
                   </div>
-                  <div class="flex-grow-1">
+                  <div class="flex-grow-1" dir="auto">
                     <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
                     @if($resource->description)
-                      <div class="text-xs opacity-75">{{ $resource->description }}</div>
+                      <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
                     @endif
                   </div>
                 </button>
@@ -112,10 +112,10 @@
                   <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197,168,128,0.1); color: var(--accent-color);">
                     <i class="bi bi-{{ $icon }} fs-5"></i>
                   </div>
-                  <div class="flex-grow-1">
+                  <div class="flex-grow-1" dir="auto">
                     <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
                     @if($resource->description)
-                      <div class="text-xs opacity-75">{{ $resource->description }}</div>
+                      <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
                     @endif
                   </div>
                 </button>
