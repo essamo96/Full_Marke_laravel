@@ -5,18 +5,18 @@
 @section('content')
         
         <!-- Welcome Banner -->
-        <section class="glass-panel rounded-4 p-4 p-md-5 mb-4 position-relative overflow-hidden d-flex flex-column flex-md-row align-items-center justify-content-between gap-4">
+        <section class="glass-panel bg-pattern-gold rounded-4 p-5 mb-5 position-relative overflow-hidden d-flex flex-column flex-md-row align-items-center justify-content-between gap-5 border-1 border-white/10" style="box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
           <div class="position-absolute top-0 end-0 w-50 h-100 bg-gold/10 blur-[80px]"></div>
           <div class="position-relative z-1 text-center text-md-start w-100">
-            <h1 class="display-6 fw-bold mb-2" style="color: var(--text-primary);">
+            <h1 class="display-5 fw-bold mb-3" style="color: var(--text-off-white, #fdfbf7); font-family: 'Tajawal', 'Almarai', sans-serif;">
               <span data-en="Hello," data-ar="مرحباً،">Hello,</span> <span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Dr. Sarah</span>
             </h1>
             <p class="fs-5 opacity-75 mb-0" data-en="You have 3 assignments waiting for review and 2 upcoming sessions today." data-ar="لديك 3 واجبات بانتظار التقييم وجلستين مباشرتين مبرمجتين لليوم.">
               You have 3 assignments waiting for review and 2 upcoming sessions today.
             </p>
           </div>
-          <div class="position-relative z-1 d-flex flex-wrap gap-3 mt-3 mt-md-0 ms-md-auto align-items-center justify-content-center">
-             <button class="btn btn-luxury px-4 py-2 d-flex align-items-center gap-2"><i class="bi bi-file-earmark-check"></i> <span data-en="Grade Now" data-ar="قيّم الآن">Grade Now</span></button>
+          <div class="position-relative z-1 d-flex flex-wrap gap-3 mt-4 mt-md-0 ms-md-auto align-items-center justify-content-center">
+             <button class="btn btn-luxury px-4 py-3 d-flex align-items-center gap-2 fw-bold"><i class="bi bi-file-earmark-check fs-5"></i> <span data-en="Grade Now" data-ar="قيّم الآن">Grade Now</span></button>
           </div>
         </section>
 

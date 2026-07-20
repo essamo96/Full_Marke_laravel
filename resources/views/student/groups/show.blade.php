@@ -49,6 +49,12 @@
     position: relative;
     border: 1px solid rgba(255,255,255,0.1);
 }
+/* Tailwind's CDN build also ships a `.collapse { visibility: collapse }` utility
+   (for table rows), which collides with Bootstrap's `.collapse` accordion class
+   and hides the panel body even after Bootstrap adds `.show`. Force it back. */
+.curriculum-accordion .accordion-collapse {
+    visibility: visible !important;
+}
 </style>
 @endpush
 
@@ -72,7 +78,7 @@
                                 $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
                                 $resUrl = $isUrl ? $resource->url : asset('storage/'.$resource->url);
                             @endphp
-                            <a href="javascript:void(0)" class="resource-item" onclick="loadResource({{ json_encode(['id' => $resource->id, 'title' => $resource->title, 'type' => $resource->type, 'url' => $resUrl, 'description' => $resource->description]) }})">
+                            <a href="javascript:void(0)" class="resource-item" onclick="loadResource({{ json_encode(['id' => $resource->getRouteKey(), 'title' => $resource->title, 'type' => $resource->type, 'url' => $resUrl, 'description' => $resource->description]) }})">
                                 <i class="bi bi-{{ $resource->type === 'video' ? 'play-circle-fill text-danger' : ($resource->type === 'zoom' ? 'camera-video-fill text-primary' : 'file-earmark-text-fill text-info') }}"></i>
                                 <span class="text-sm">{{ $resource->title }}</span>
                             </a>
@@ -100,7 +106,7 @@
                                                       $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
                                                       $resUrl = $isUrl ? $resource->url : asset('storage/'.$resource->url);
                                                     @endphp
-                                                    <a href="javascript:void(0)" class="resource-item ps-4" onclick="loadResource({{ json_encode(['id' => $resource->id, 'title' => $resource->title, 'type' => $resource->type, 'url' => $resUrl, 'description' => $resource->description]) }})">
+                                                    <a href="javascript:void(0)" class="resource-item ps-4" onclick="loadResource({{ json_encode(['id' => $resource->getRouteKey(), 'title' => $resource->title, 'type' => $resource->type, 'url' => $resUrl, 'description' => $resource->description]) }})">
                                                         <i class="bi bi-{{ $resource->type === 'video' ? 'play-circle-fill text-danger' : ($resource->type === 'zoom' ? 'camera-video-fill text-primary' : 'file-earmark-text-fill text-info') }}"></i>
                                                         <span class="text-sm">{{ $resource->title }}</span>
                                                     </a>
@@ -192,7 +198,8 @@
 
         // Set Metadata
         document.getElementById('contentTitle').innerText = resource.title;
-        document.getElementById('contentDescription').innerText = resource.description || 'لا يوجد وصف متاح.';
+        const plainDescription = (resource.description || '').replace(/<[^>]*>/g, '').trim();
+        document.getElementById('contentDescription').innerText = plainDescription || 'لا يوجد وصف متاح.';
         
         let badge = document.getElementById('contentTypeBadge');
         let playerContainer = document.getElementById('playerContainer');
