@@ -261,32 +261,16 @@
       openWrap.classList.add('d-none');
       errorEl.classList.add('d-none');
       loadingEl.classList.remove('d-none');
-      iframe.src = 'about:blank';
       document.getElementById('lessonLinkTitle').textContent = title;
       lessonLinkModal.show();
 
-      fetch('{{ url('student/resources') }}/' + resourceId + '/link', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
-        .then(function (res) {
-          if (!res.ok) throw new Error('تعذّر الوصول لهذا الرابط');
-          return res.json();
-        })
-        .then(function (data) {
-          loadingEl.classList.add('d-none');
-          if (data.embed_url) {
-            iframe.src = data.embed_url;
-            embedWrap.classList.remove('d-none');
-          } else {
-            openWrap.classList.remove('d-none');
-            document.getElementById('lessonLinkOpenBtn').onclick = function () {
-              window.open(data.url, '_blank', 'noopener');
-            };
-          }
-        })
-        .catch(function (err) {
-          loadingEl.classList.add('d-none');
-          errorEl.textContent = err.message || 'حدث خطأ أثناء فتح الرابط';
-          errorEl.classList.remove('d-none');
-        });
+      // Load the secure embed view
+      iframe.src = '{{ url('student/secure-embed') }}/' + resourceId;
+      
+      iframe.onload = function() {
+        loadingEl.classList.add('d-none');
+        embedWrap.classList.remove('d-none');
+      };
     }
 
     lessonLinkModalEl.addEventListener('hidden.bs.modal', function () {

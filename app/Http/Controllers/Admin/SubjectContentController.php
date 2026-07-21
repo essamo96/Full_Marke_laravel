@@ -121,6 +121,7 @@ class SubjectContentController extends AdminController
             'uploaded_path' => 'nullable|string|starts_with:incoming/',
             'original_filename' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'allow_download' => 'nullable|boolean',
         ]);
 
         $unit = $lesson->unit;
@@ -154,6 +155,7 @@ class SubjectContentController extends AdminController
             'original_filename' => $data['original_filename'] ?? null,
             'processing_status' => $processingStatus,
             'description' => $data['description'] ?? null,
+            'allow_download' => $data['allow_download'] ?? false,
             'is_active' => true,
         ]);
 

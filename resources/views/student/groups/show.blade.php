@@ -188,10 +188,14 @@
 
                 <div id="zoomWrapper" class="d-none mb-4 text-center py-5 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(197,168,128,0.3);">
                     <i class="bi bi-camera-video-fill fs-1 d-block mb-3 text-primary"></i>
-                    <h4 class="fw-bold mb-3 text-white" data-en="External Link / Live Session" data-ar="رابط خارجي / جلسة مباشرة">رابط خارجي / جلسة مباشرة</h4>
+                    <h4 class="fw-bold mb-3 text-white" data-en="Live Session" data-ar="جلسة مباشرة">جلسة مباشرة</h4>
                     <a id="zoomLink" href="#" target="_blank" class="btn btn-primary px-5 py-3 rounded-pill">
                         <i class="bi bi-box-arrow-up-right me-2"></i> <span data-en="Open Link" data-ar="فتح الرابط">فتح الرابط</span>
                     </a>
+                </div>
+
+                <div id="iframeWrapper" class="d-none mb-4 shadow-lg" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;">
+                    <iframe id="iframePlayer" style="width: 100%; height: 100%; border: 0;" allow="accelerated-video; encrypted-media; picture-in-picture" allowfullscreen></iframe>
                 </div>
 
                 <div class="glass-panel rounded-4 p-4 mt-4 bg-pattern-gold" style="border: 1px solid rgba(255,255,255,0.1);">
@@ -219,6 +223,7 @@
         document.getElementById('videoWrapper').classList.add('d-none');
         document.getElementById('documentWrapper').classList.add('d-none');
         document.getElementById('zoomWrapper').classList.add('d-none');
+        document.getElementById('iframeWrapper').classList.add('d-none');
 
         // Set Metadata
         document.getElementById('contentTitle').innerText = resource.title;
@@ -232,6 +237,9 @@
 
         const videoPlayer = document.getElementById('videoPlayer');
         videoPlayer.pause();
+        
+        const iframePlayer = document.getElementById('iframePlayer');
+        iframePlayer.src = 'about:blank';
 
         if (resource.type === 'video') {
             badge.innerText = 'فيديو';
@@ -255,11 +263,17 @@
             })
             .catch(err => console.error(err));
             
-        } else if (resource.type === 'zoom' || resource.type === 'link') {
+        } else if (resource.type === 'zoom') {
             badge.innerText = 'رابط خارجي';
             badge.className = 'badge bg-primary text-white px-3 py-2 rounded-pill';
             document.getElementById('zoomWrapper').classList.remove('d-none');
             document.getElementById('zoomLink').href = resource.url;
+        } else if (resource.type === 'link') {
+            badge.innerText = 'رابط محمي';
+            badge.className = 'badge bg-primary text-white px-3 py-2 rounded-pill';
+            document.getElementById('iframeWrapper').classList.remove('d-none');
+            // Load the secure embed route
+            iframePlayer.src = '{{ url("student/secure-embed") }}/' + resource.id;
         } else {
             badge.innerText = 'ملف مقروء';
             badge.className = 'badge bg-info text-dark px-3 py-2 rounded-pill';

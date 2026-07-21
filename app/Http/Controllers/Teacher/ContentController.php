@@ -139,6 +139,7 @@ class ContentController extends Controller
             'uploaded_path' => 'nullable|string|starts_with:incoming/',
             'original_filename' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'allow_download' => 'nullable|boolean',
         ]);
 
         $storedPath = null;
@@ -164,6 +165,7 @@ class ContentController extends Controller
             'original_filename' => $data['original_filename'] ?? null,
             'processing_status' => 'ready',
             'description' => $data['description'] ?? null,
+            'allow_download' => $data['allow_download'] ?? false,
             'is_active' => true,
         ]);
 

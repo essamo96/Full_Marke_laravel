@@ -268,6 +268,14 @@
                         <label class="form-label">وصف مختصر</label>
                         <textarea name="description" class="form-control" rows="2"></textarea>
                     </div>
+                    <div class="mb-5">
+                        <div class="form-check form-switch form-check-custom form-check-solid">
+                            <input class="form-check-input" type="checkbox" value="1" id="allow_download_check" name="allow_download"/>
+                            <label class="form-check-label" for="allow_download_check">
+                                السماح للطلاب بالتحميل
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
