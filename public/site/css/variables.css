@@ -58,4 +58,15 @@ body {
     --navbar-height-scroll: 64px;
   }
 }
+}
 
+/* Override Bootstrap text colors to use theme variables */
+.text-primary {
+  color: var(--text-primary) !important;
+}
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+.text-muted {
+  color: var(--text-muted) !important;
+}
