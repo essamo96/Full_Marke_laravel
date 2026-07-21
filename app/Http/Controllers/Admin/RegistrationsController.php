@@ -127,10 +127,22 @@ class RegistrationsController extends AdminController
                     return '<span class="badge badge-light-secondary fs-7 fw-bold">قيد الانتظار</span>';
                 }
             })
+            ->addColumn('group_status_select', function ($row) {
+                if (!$row->group_id) {
+                    return '<span class="text-muted fs-8">-</span>';
+                }
+                $options = '';
+                foreach (\App\Models\Registration::GROUP_STATUSES as $value) {
+                    $selected = $row->group_status === $value ? 'selected' : '';
+                    $label = \App\Models\Registration::groupStatusLabel($value);
+                    $options .= '<option value="' . $value . '" ' . $selected . '>' . $label . '</option>';
+                }
+                return '<select class="form-select form-select-sm group-status-select" data-id="' . $row->id . '" style="min-width: 150px;">' . $options . '</select>';
+            })
             ->addColumn('created_date', function ($row) {
                 return '<span class="text-muted fw-semibold">' . $row->created_at->format('Y-m-d H:i') . '</span>';
             })
-            ->rawColumns(['registration_number', 'student_info', 'subject_name', 'group_name', 'remaining_amount', 'status_badge', 'created_date'])
+            ->rawColumns(['registration_number', 'student_info', 'subject_name', 'group_name', 'remaining_amount', 'status_badge', 'group_status_select', 'created_date'])
             ->make(true);
     }
 
@@ -206,6 +218,22 @@ class RegistrationsController extends AdminController
         return response()->json([
             'status' => false,
             'message' => 'Not implemented yet.'
+        ]);
+    }
+
+    public function updateGroupStatus(Request $request)
+    {
+        $data = $request->validate([
+            'id' => 'required|exists:registrations,id',
+            'group_status' => 'required|in:' . implode(',', Registration::GROUP_STATUSES),
+        ]);
+
+        $registration = Registration::findOrFail($data['id']);
+        $registration->update(['group_status' => $data['group_status']]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تحديث حالة الطالب في المجموعة بنجاح.',
         ]);
     }
 }

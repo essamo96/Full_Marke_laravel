@@ -27,6 +27,27 @@
     <div class="alert alert-danger">{{ $errors->first() }}</div>
   @endif
 
+  <!-- Join Group By Code Section -->
+  <div class="glass-panel bg-pattern-gold border border-white/10 rounded-4 p-4 mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-3 mb-md-0">
+        <h4 class="fw-bold mb-1" style="color: var(--accent-color);" data-en="Join Group with Code" data-ar="الانضمام لمجموعة عبر الكود">الانضمام لمجموعة عبر الكود</h4>
+        <p class="text-sm opacity-75 mb-0" style="color: var(--text-primary);" data-en="Enter the branching code provided by your teacher to join a study group directly." data-ar="أدخل كود التشعيب الخاص بالمجموعة للانضمام إليها مباشرة.">أدخل كود التشعيب الخاص بالمجموعة للانضمام إليها مباشرة.</p>
+      </div>
+      <div class="col-md-6">
+        <form id="joinGroupForm" class="d-flex gap-2">
+          <input type="text" id="groupJoinCodeInput" class="form-control form-control-solid bg-white/5 border-1 border-white/10 text-white" placeholder="أدخل الكود هنا (مثال: G-12345)" required>
+          <button type="submit" class="btn btn-luxury px-4 flex-shrink-0" id="joinGroupBtn">
+            <span class="indicator-label" data-en="Join" data-ar="انضمام">انضمام</span>
+            <span class="indicator-progress d-none"><i class="fas fa-circle-notch fa-spin"></i></span>
+          </button>
+        </form>
+        <div id="joinGroupFeedback" class="mt-2 text-sm d-none"></div>
+        <a href="#" id="joinGroupRegisterBtn" class="btn btn-sm btn-outline-warning mt-2 d-none" data-en="Go to Registration" data-ar="الانتقال إلى حجز المقعد">الانتقال إلى حجز المقعد</a>
+      </div>
+    </div>
+  </div>
+
   @if($withGroup->isEmpty() && $withoutGroup->isEmpty())
     <div class="glass-panel rounded-4 p-5 text-center">
       <i class="bi bi-people fs-1 mb-3 d-block" style="color: var(--accent-color);"></i>
@@ -37,9 +58,14 @@
     @if($withGroup->isNotEmpty())
       <div class="row g-4 mb-4">
         @foreach($withGroup as $registration)
-          @php $group = $registration->group; @endphp
+          @php
+            $group = $registration->group;
+            $isSuspended = $registration->group_status === \App\Models\Registration::GROUP_STATUS_SUSPENDED;
+          @endphp
           <div class="col-md-6 col-xl-4 group-card-animate" style="animation-delay: {{ $loop->index * 0.1 }}s">
-            <a href="{{ route('student.groups.show', $group) }}" class="text-decoration-none d-block h-100 group-card-link">
+            <a href="{{ $isSuspended ? '#' : route('student.groups.show', $group) }}"
+               @if($isSuspended) onclick="event.preventDefault();" title="تم إيقاف حالتك في هذه المجموعة من قبل الإدارة" @endif
+               class="text-decoration-none d-block h-100 group-card-link {{ $isSuspended ? 'opacity-50' : '' }}" style="{{ $isSuspended ? 'cursor: not-allowed;' : '' }}">
               <div class="glass-panel rounded-4 h-100 tilt-card overflow-hidden position-relative group-card d-flex flex-column" style="border: 1px solid var(--separator-color); box-shadow: 0 4px 20px rgba(0,0,0,0.15); background-color: var(--bg-primary);">
                 
                 <!-- Background Image & Gradient -->
@@ -64,7 +90,11 @@
                     <div class="p-2 rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px; background: var(--bg-secondary); color: var(--accent-color); border: 1px solid var(--separator-color);">
                       <i class="bi bi-people-fill fs-4"></i>
                     </div>
-                    <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2 shadow-sm fs-6" style="backdrop-filter: blur(4px);" data-en="Joined" data-ar="منضم">منضم</span>
+                    @if($isSuspended)
+                      <span class="badge bg-danger bg-opacity-25 text-danger rounded-pill px-3 py-2 shadow-sm fs-6" style="backdrop-filter: blur(4px);" data-en="Suspended" data-ar="موقوف">موقوف</span>
+                    @else
+                      <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2 shadow-sm fs-6" style="backdrop-filter: blur(4px);" data-en="Joined" data-ar="منضم">منضم</span>
+                    @endif
                   </div>
                   
                   <div class="mb-4">
@@ -139,6 +169,183 @@
     @endif
   @endif
 @endsection
+
+<!-- Join Group Register Modal -->
+<div class="modal fade" id="joinGroupRegisterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-panel border-1 border-white/10" style="background: var(--bg-primary);">
+            <div class="modal-header border-bottom border-white/10">
+                <h5 class="modal-title fw-bold" style="color: var(--text-primary);" data-en="Join & Pay" data-ar="تسجيل ودفع">تسجيل ودفع</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="joinGroupRegisterForm" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="alert alert-warning text-dark mb-4 fs-7">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <span data-en="You are not registered in this subject. Please pay the required fees to join." data-ar="أنت غير مسجل في هذه المادة. يرجى سداد الرسوم المطلوبة لتتمكن من الانضمام للمجموعة.">أنت غير مسجل في هذه المادة. يرجى سداد الرسوم المطلوبة لتتمكن من الانضمام للمجموعة.</span>
+                    </div>
+                    
+                    <input type="hidden" id="modalSubjectId" name="subject_id">
+                    <input type="hidden" id="modalGroupId" name="group_id">
+                    <input type="hidden" id="modalJoinCode" name="join_code">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Subject & Group" data-ar="المادة والمجموعة">المادة والمجموعة</label>
+                        <div class="form-control bg-white/5 border-white/10 text-white" readonly>
+                            <span id="modalSubjectName" class="fw-bold text-gold"></span> 
+                            - <span id="modalGroupName"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Required Fee (JOD)" data-ar="الرسوم المطلوبة (دينار)">الرسوم المطلوبة (دينار)</label>
+                        <input type="number" id="modalFee" name="amount" class="form-control bg-white/5 border-white/10 text-white" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Payment Method" data-ar="طريقة الدفع">طريقة الدفع</label>
+                        <select name="payment_method_id" class="form-select bg-white/5 border-white/10 text-white" required>
+                            <option value="">-- اختر طريقة الدفع --</option>
+                            @foreach($paymentMethods ?? \App\Models\PaymentMethod::active()->orderBy('sort_order')->get() as $pm)
+                                <option value="{{ $pm->id }}">{{ $pm->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Payment Receipt" data-ar="صورة إيصال الدفع">صورة إيصال الدفع</label>
+                        <input type="file" name="receipt" class="form-control bg-white/5 border-white/10 text-white" accept="image/*,.pdf" required>
+                    </div>
+                    
+                    <div id="modalFeedback" class="mt-2 text-sm d-none"></div>
+                </div>
+                <div class="modal-footer border-top border-white/10 d-flex justify-content-between">
+                    <a href="#" id="modalProgramUrl" class="btn btn-outline-secondary" data-en="View Details" data-ar="عرض التفاصيل">عرض التفاصيل</a>
+                    <button type="submit" class="btn btn-luxury px-4" id="submitRegisterBtn">
+                        <span class="indicator-label" data-en="Pay & Join" data-ar="تأكيد ودفع">تأكيد ودفع</span>
+                        <span class="indicator-progress d-none"><i class="fas fa-circle-notch fa-spin"></i></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+  document.getElementById('joinGroupForm')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const btn = document.getElementById('joinGroupBtn');
+    const input = document.getElementById('groupJoinCodeInput');
+    const feedback = document.getElementById('joinGroupFeedback');
+    const registerBtn = document.getElementById('joinGroupRegisterBtn');
+    
+    btn.disabled = true;
+    btn.querySelector('.indicator-label').classList.add('d-none');
+    btn.querySelector('.indicator-progress').classList.remove('d-none');
+    feedback.classList.add('d-none');
+    registerBtn.classList.add('d-none');
+
+    fetch('{{ route("student.groups.join-by-code") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ code: input.value })
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(({ status, body }) => {
+      btn.disabled = false;
+      btn.querySelector('.indicator-label').classList.remove('d-none');
+      btn.querySelector('.indicator-progress').classList.add('d-none');
+
+      feedback.classList.remove('d-none');
+      if (status === 200 && body.success) {
+        feedback.className = 'mt-2 text-sm text-success';
+        feedback.textContent = body.message;
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        feedback.className = 'mt-2 text-sm text-danger';
+        feedback.textContent = body.message || 'حدث خطأ غير متوقع.';
+        
+        if (body.needs_registration && body.program_url) {
+          // Open Modal
+          document.getElementById('modalProgramUrl').href = body.program_url;
+          document.getElementById('modalSubjectId').value = body.subject_id;
+          document.getElementById('modalGroupId').value = body.group_id;
+          document.getElementById('modalJoinCode').value = body.join_code;
+          document.getElementById('modalSubjectName').textContent = body.subject_name;
+          document.getElementById('modalGroupName').textContent = body.group_name;
+          document.getElementById('modalFee').value = body.fee;
+          
+          const modal = new bootstrap.Modal(document.getElementById('joinGroupRegisterModal'));
+          modal.show();
+        }
+      }
+    })
+    .catch(error => {
+      btn.disabled = false;
+      btn.querySelector('.indicator-label').classList.remove('d-none');
+      btn.querySelector('.indicator-progress').classList.add('d-none');
+      
+      feedback.classList.remove('d-none');
+      feedback.className = 'mt-2 text-sm text-danger';
+      feedback.textContent = 'حدث خطأ في الاتصال بالخادم.';
+    });
+  });
+
+  document.getElementById('joinGroupRegisterForm')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const form = this;
+    const btn = document.getElementById('submitRegisterBtn');
+    const feedback = document.getElementById('modalFeedback');
+    
+    btn.disabled = true;
+    btn.querySelector('.indicator-label').classList.add('d-none');
+    btn.querySelector('.indicator-progress').classList.remove('d-none');
+    feedback.classList.add('d-none');
+
+    const formData = new FormData(form);
+
+    fetch('{{ route("student.groups.register-and-join-by-code") }}', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'Accept': 'application/json'
+      },
+      body: formData
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(({ status, body }) => {
+      btn.disabled = false;
+      btn.querySelector('.indicator-label').classList.remove('d-none');
+      btn.querySelector('.indicator-progress').classList.add('d-none');
+
+      feedback.classList.remove('d-none');
+      if (status === 200 && body.success) {
+        feedback.className = 'mt-3 text-sm text-success fw-bold p-2 bg-success bg-opacity-10 rounded';
+        feedback.textContent = body.message;
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        feedback.className = 'mt-3 text-sm text-danger p-2 bg-danger bg-opacity-10 rounded';
+        feedback.textContent = body.message || 'حدث خطأ غير متوقع.';
+      }
+    })
+    .catch(error => {
+      btn.disabled = false;
+      btn.querySelector('.indicator-label').classList.remove('d-none');
+      btn.querySelector('.indicator-progress').classList.add('d-none');
+      
+      feedback.classList.remove('d-none');
+      feedback.className = 'mt-3 text-sm text-danger p-2 bg-danger bg-opacity-10 rounded';
+      feedback.textContent = 'حدث خطأ في الاتصال بالخادم.';
+    });
+  });
+</script>
+@endpush
 
 @push('styles')
 <style>

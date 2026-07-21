@@ -369,23 +369,25 @@
                             
                             <input type="hidden" id="modalSubjectId" name="subject_id">
                             <input type="hidden" id="modalGroupId" name="group_id">
-                            
+                            <input type="hidden" id="modalJoinCode" name="join_code">
+
                             <div class="mb-3">
-                                <label class="form-label text-muted fs-7" data-en="Subject & Group" data-ar="المادة والمجموعة">المادة والمجموعة</label>
-                                <div class="form-control bg-white/5 border-white/10 text-white" readonly>
-                                    <span id="modalSubjectName" class="fw-bold text-gold"></span> 
+                                <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Subject & Group" data-ar="المادة والمجموعة">المادة والمجموعة</label>
+                                <div class="form-control" style="color: var(--text-primary);" readonly>
+                                    <span id="modalSubjectName" class="fw-bold text-gold"></span>
                                     - <span id="modalGroupName"></span>
                                 </div>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label text-muted fs-7" data-en="Required Fee (JOD)" data-ar="الرسوم المطلوبة (دينار)">الرسوم المطلوبة (دينار)</label>
-                                <input type="number" id="modalFee" name="amount" class="form-control bg-white/5 border-white/10 text-white" readonly>
+                                <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Required Fee (JOD)" data-ar="الرسوم المطلوبة (دينار)">الرسوم المطلوبة (دينار)</label>
+                                <input type="number" id="modalFee" name="amount" class="form-control" style="color: var(--text-primary);" readonly>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label text-muted fs-7" data-en="Payment Method" data-ar="طريقة الدفع">طريقة الدفع</label>
-                                <select name="payment_method_id" class="form-select bg-white/5 border-white/10 text-white" required>
+                                <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Payment Method" data-ar="طريقة الدفع">طريقة الدفع</label>
+                                <select name="payment_method_id" class="form-select" style="color: var(--text-primary);" required
+                                        onchange="document.querySelectorAll('.pm-details-dashboard').forEach(e=>e.classList.add('d-none')); document.getElementById('pm-dash-'+this.value)?.classList.remove('d-none');">
                                     <option value="">-- اختر طريقة الدفع --</option>
                                     @foreach($paymentMethods ?? [] as $pm)
                                         <option value="{{ $pm->id }}">{{ $pm->name }}</option>
@@ -393,11 +395,28 @@
                                 </select>
                             </div>
 
+                            @foreach($paymentMethods ?? [] as $pm)
+                                <div id="pm-dash-{{ $pm->id }}" class="pm-details-dashboard d-none mb-3 p-3 rounded-3 fs-7"
+                                     style="background: var(--bg-secondary); color: var(--text-secondary);">
+                                    @if(!empty($pm->credentials) && is_array($pm->credentials))
+                                        <strong class="d-block mb-2" style="color: var(--text-primary);" data-en="Payment Credentials:" data-ar="بيانات الاعتماد:">بيانات الاعتماد:</strong>
+                                        <ul class="list-unstyled ms-3 mb-0">
+                                            @foreach($pm->credentials as $cred)
+                                                <li class="mb-1"><span class="fw-bold" style="color: var(--text-primary);">{{ $cred['name'] ?? '' }}:</span> <span dir="ltr">{{ $cred['value'] ?? '' }}</span></li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                    @if($pm->details)
+                                        <div class="mt-2 text-wrap">{!! $pm->details !!}</div>
+                                    @endif
+                                </div>
+                            @endforeach
+
                             <div class="mb-3">
-                                <label class="form-label text-muted fs-7" data-en="Payment Receipt" data-ar="صورة إيصال الدفع">صورة إيصال الدفع</label>
-                                <input type="file" name="receipt" class="form-control bg-white/5 border-white/10 text-white" accept="image/*,.pdf" required>
+                                <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Payment Receipt" data-ar="صورة إيصال الدفع">صورة إيصال الدفع</label>
+                                <input type="file" name="receipt" class="form-control" accept="image/*,.pdf" required>
                             </div>
-                            
+
                             <div id="modalFeedback" class="mt-2 text-sm d-none"></div>
                         </div>
                         <div class="modal-footer border-top border-white/10 d-flex justify-content-between">
@@ -456,6 +475,7 @@
           document.getElementById('modalProgramUrl').href = body.program_url;
           document.getElementById('modalSubjectId').value = body.subject_id;
           document.getElementById('modalGroupId').value = body.group_id;
+          document.getElementById('modalJoinCode').value = body.join_code;
           document.getElementById('modalSubjectName').textContent = body.subject_name;
           document.getElementById('modalGroupName').textContent = body.group_name;
           document.getElementById('modalFee').value = body.fee;

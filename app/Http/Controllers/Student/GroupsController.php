@@ -48,6 +48,17 @@ class GroupsController extends Controller
             return response()->json(['success' => false, 'message' => 'المجموعة غير متاحة حالياً.'], 400);
         }
 
+        $subject = $group->subject;
+        if (!$subject || !$subject->is_active) {
+            return response()->json(['success' => false, 'message' => 'التسجيل غير متاح حالياً لهذه المادة.'], 400);
+        }
+        if ($subject->reg_start_date && now()->lt($subject->reg_start_date)) {
+            return response()->json(['success' => false, 'message' => 'لم يبدأ التسجيل لهذه المادة بعد.'], 400);
+        }
+        if ($subject->reg_end_date && now()->gt($subject->reg_end_date)) {
+            return response()->json(['success' => false, 'message' => 'انتهى موعد التسجيل لهذه المادة.'], 400);
+        }
+
         if (!$group->hasAvailableCapacity()) {
             return response()->json(['success' => false, 'message' => 'المجموعة ممتلئة. تم تجاوز الحد الأقصى للمستخدمين.'], 400);
         }
@@ -70,6 +81,7 @@ class GroupsController extends Controller
                 'group_id' => $group->id,
                 'group_name' => $group->name,
                 'fee' => $group->subject->fee,
+                'join_code' => $code,
                 'message' => 'أنت غير مسجل في المادة التابعة لهذه المجموعة أو لم تقم بتأكيد دفعاتك المالية. الرسوم المستحقة للانضمام هي ' . $group->subject->fee . ' JOD.'
             ], 400);
         }
@@ -105,6 +117,10 @@ class GroupsController extends Controller
 
         if (!$registration) {
             return redirect()->route('student.groups')->withErrors(['error' => 'أنت غير مسجل في هذه المجموعة.']);
+        }
+
+        if ($registration->group_status === \App\Models\Registration::GROUP_STATUS_SUSPENDED) {
+            return redirect()->route('student.groups')->withErrors(['error' => 'تم إيقاف حالتك في هذه المجموعة من قبل الإدارة. يرجى التواصل مع الإدارة لمزيد من التفاصيل.']);
         }
 
         $group->load('teacher', 'subject');
@@ -145,11 +161,22 @@ class GroupsController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'payment_method_id' => 'required|exists:payment_methods,id',
             'receipt' => 'required|file|mimes:png,jpg,jpeg,pdf|max:5120',
+            'join_code' => 'required|string',
         ]);
 
         $student = Auth::guard('student')->user();
         $subject = \App\Models\Subject::findOrFail($request->subject_id);
-        
+
+        if (!$subject->is_active) {
+            return response()->json(['success' => false, 'message' => 'التسجيل غير متاح حالياً لهذه المادة.'], 400);
+        }
+        if ($subject->reg_start_date && now()->lt($subject->reg_start_date)) {
+            return response()->json(['success' => false, 'message' => 'لم يبدأ التسجيل لهذه المادة بعد.'], 400);
+        }
+        if ($subject->reg_end_date && now()->gt($subject->reg_end_date)) {
+            return response()->json(['success' => false, 'message' => 'انتهى موعد التسجيل لهذه المادة.'], 400);
+        }
+
         $alreadyActive = Registration::where('student_id', $student->id)
             ->where('subject_id', $subject->id)
             ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
@@ -169,9 +196,14 @@ class GroupsController extends Controller
             return response()->json(['success' => false, 'message' => 'المجموعة ممتلئة. لا يوجد مقاعد متاحة.'], 400);
         }
 
+        $joinCode = \App\Models\GroupJoinCode::where('code', $request->join_code)->first();
+        if (!$joinCode || !$joinCode->isValid()) {
+            return response()->json(['success' => false, 'message' => 'الكود غير صالح أو منتهي الصلاحية.'], 400);
+        }
+
         $receiptPath = $request->file('receipt')->store('receipts', 'local');
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($student, $subject, $group, $request, $receiptPath, $paymentService) {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($student, $subject, $group, $request, $receiptPath, $paymentService, $joinCode) {
             // Create pending registration
             $registration = Registration::create([
                 'registration_number' => Registration::generateNumber(),
@@ -203,6 +235,9 @@ class GroupsController extends Controller
 
             // Notify Admin
             $paymentService->notifyPaymentSubmitted($payment->load('items'), $student);
+
+            // Increment join code usage
+            $joinCode->increment('used_count');
         });
         
         return response()->json(['success' => true, 'message' => 'تم تقديم طلب التسجيل ودفع الرسوم. سيتم تفعيل حسابك في المجموعة فور تأكيد الإدارة للدفع.']);

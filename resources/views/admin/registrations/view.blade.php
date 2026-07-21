@@ -90,6 +90,7 @@
                                         <th>@lang('app.group')</th>
                                         <th>@lang('app.remaining_amount')</th>
                                         <th>@lang('app.status')</th>
+                                        <th>@lang('app.group_status')</th>
                                         <th>@lang('app.date')</th>
                                     </tr>
                                 </thead>
@@ -112,6 +113,7 @@
         {data: 'group_name', name: 'group_name', orderable: false, searchable: false, className: 'text-start'},
         {data: 'remaining_amount', name: 'remaining_amount', orderable: false, searchable: false, className: 'text-start'},
         {data: 'status_badge', name: 'status_badge', orderable: false, searchable: false, className: 'text-start'},
+        {data: 'group_status_select', name: 'group_status_select', orderable: false, searchable: false, className: 'text-start'},
         {data: 'created_date', name: 'created_date', orderable: false, searchable: false, className: 'text-start'}
     ];
 
@@ -137,5 +139,34 @@
     }
 
     @include('admin.layout.masterLayouts.datatableMaster')
+
+    $(document).on('change', '.group-status-select', function () {
+        const select = $(this);
+        const id = select.data('id');
+        const groupStatus = select.val();
+
+        $.ajax({
+            url: "{{ route('registrations.update-group-status') }}",
+            type: 'POST',
+            data: {
+                _token: "{{ csrf_token() }}",
+                id: id,
+                group_status: groupStatus
+            },
+            success: function (response) {
+                if (typeof toastr === 'undefined') return;
+                if (response.status) {
+                    toastr.success(response.message);
+                } else {
+                    toastr.error(response.message || 'حدث خطأ.');
+                }
+            },
+            error: function (xhr) {
+                if (typeof toastr === 'undefined') return;
+                const message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'حدث خطأ.';
+                toastr.error(message);
+            }
+        });
+    });
 </script>
 @endsection

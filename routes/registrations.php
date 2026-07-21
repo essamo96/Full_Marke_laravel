@@ -8,3 +8,4 @@ Route::get('registrations/list', [RegistrationsController::class, 'getList'])->n
 Route::get('registrations/export', [RegistrationsController::class, 'exportExcel'])->name('registrations.export')->middleware('permission:admin.registrations.view');
 Route::post('registrations/delete', [RegistrationsController::class, 'delete'])->name('registrations.delete')->middleware('permission:admin.registrations.delete');
 Route::post('registrations/status', [RegistrationsController::class, 'status'])->name('registrations.status')->middleware('permission:admin.registrations.edit');
+Route::post('registrations/group-status', [RegistrationsController::class, 'updateGroupStatus'])->name('registrations.update-group-status')->middleware('permission:admin.registrations.edit');
