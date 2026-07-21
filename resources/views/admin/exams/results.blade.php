@@ -50,6 +50,7 @@
                                 <th>اسم الطالب</th>
                                 <th>حالة التسليم</th>
                                 <th>الدرجة</th>
+                                <th>حالة الاعتماد</th>
                                 <th>وقت البدء</th>
                                 <th>الوقت المنقضي</th>
                             </tr>
@@ -83,6 +84,23 @@
                                         @endif
                                     </td>
                                     <td>
+                                        @if($grade && $grade->admin_approved_at)
+                                            <span class="badge badge-light-success">معتمدة</span>
+                                        @elseif($grade && $grade->teacher_reviewed_at)
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge badge-light-warning">بانتظار الاعتماد</span>
+                                                <form method="POST" action="{{ route('exams.grades.approve', $grade) }}">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-light-success">اعتماد</button>
+                                                </form>
+                                            </div>
+                                        @elseif($grade)
+                                            <span class="badge badge-light-secondary">بانتظار مراجعة المدرّس</span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
                                         @if($grade && $grade->started_at)
                                             {{ $grade->started_at->format('Y-m-d h:i A') }}
                                         @else
@@ -99,7 +117,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted">لا يوجد طلاب في هذه المجموعة.</td>
+                                    <td colspan="6" class="text-center text-muted">لا يوجد طلاب في هذه المجموعة.</td>
                                 </tr>
                             @endforelse
                         </tbody>

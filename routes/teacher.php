@@ -10,6 +10,8 @@ use App\Http\Controllers\Teacher\GroupNoteController;
 use App\Http\Controllers\Teacher\GroupsController;
 use App\Http\Controllers\Teacher\NotificationsController;
 use App\Http\Controllers\Teacher\ProfileController;
+use App\Http\Controllers\Teacher\ScheduleController;
+use App\Http\Controllers\Teacher\StudentsController;
 use App\Http\Controllers\Teacher\SubjectsController;
 use App\Http\Controllers\Teacher\VideoChunkUploadController;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +31,11 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::get('groups/{group}', [GroupsController::class, 'show'])->name('groups.show');
         Route::post('groups/{group}/notes', [GroupNoteController::class, 'store'])->name('group-notes.store');
 
+        Route::get('schedule', [ScheduleController::class, 'index'])->name('schedule.index');
+
+        Route::get('students', [StudentsController::class, 'index'])->name('students.index');
+        Route::post('students/notes', [GroupNoteController::class, 'storeStudentNote'])->name('student-notes.store');
+
         Route::get('attendance/{group}', [AttendanceController::class, 'show'])->name('attendance.show');
         Route::post('attendance/{group}', [AttendanceController::class, 'store'])->name('attendance.store');
 
@@ -45,6 +52,7 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::get('grading/exams/{exam}', [GradingController::class, 'exam'])->name('grading.exam');
         Route::get('grading/{grade}', [GradingController::class, 'show'])->name('grading.show');
         Route::post('grading/answers/{answer}', [GradingController::class, 'gradeEssay'])->name('grading.grade-essay');
+        Route::post('grading/{grade}/approve', [GradingController::class, 'approve'])->name('grading.approve');
 
         Route::get('content', [ContentController::class, 'index'])->name('content.index');
         Route::get('content/{subject}', [ContentController::class, 'manage'])->name('content.manage');

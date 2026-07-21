@@ -143,6 +143,13 @@ class ExamController extends AdminController
         return view('admin.exams.results', self::$data + compact('exam', 'students', 'grades'));
     }
 
+    public function approveGrade(\App\Models\Grade $grade)
+    {
+        $grade->update(['admin_approved_at' => now()]);
+
+        return back()->with('success', 'تم اعتماد علامة الطالب بنجاح.');
+    }
+
     public function allResults(Request $request)
     {
         $query = \App\Models\Grade::with(['student', 'exam', 'group']);

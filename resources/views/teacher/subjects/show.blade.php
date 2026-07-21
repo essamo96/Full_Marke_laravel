@@ -19,22 +19,9 @@
 
   <div class="row g-4 mb-4">
     @forelse($groups as $group)
+      @php($group->setRelation('subject', $subject))
       <div class="col-md-6 col-xl-4">
-        <div class="glass-panel rounded-4 p-4 h-100" style="border: 1px solid var(--separator-color);">
-          <h5 class="fw-bold mb-2" style="color: var(--text-primary);">{{ $group->name }}</h5>
-          <div class="text-muted fs-7 mb-2">
-            <i class="bi bi-people-fill me-1"></i>{{ $group->students_count }} <span data-en="students" data-ar="طالب">طالب</span>
-          </div>
-          <div class="text-muted fs-7 mb-3">
-            <i class="bi bi-clock me-1"></i>
-            {{ $group->days ? implode(', ', (array) $group->days) : '-' }}
-            @if($group->start_time) — {{ $group->start_time }} - {{ $group->end_time }} @endif
-          </div>
-          <div class="d-flex gap-2 flex-wrap">
-            <a href="{{ route('teacher.groups.show', $group) }}" class="btn btn-luxury btn-sm" data-en="Open Group" data-ar="فتح المجموعة">فتح المجموعة</a>
-            <a href="{{ route('teacher.attendance.show', $group) }}" class="btn btn-glass btn-sm" data-en="Attendance" data-ar="الحضور">الحضور</a>
-          </div>
-        </div>
+        @include('teacher.groups._card', ['group' => $group])
       </div>
     @empty
       <div class="col-12">

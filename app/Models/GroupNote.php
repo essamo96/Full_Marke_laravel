@@ -10,7 +10,11 @@ class GroupNote extends Model
 {
     use EncryptsRouteKey;
 
-    protected $fillable = ['group_id', 'teacher_id', 'title', 'content'];
+    protected $fillable = ['group_id', 'teacher_id', 'student_id', 'title', 'content', 'is_alert'];
+
+    protected $casts = [
+        'is_alert' => 'boolean',
+    ];
 
     public function group(): BelongsTo
     {
@@ -20,5 +24,10 @@ class GroupNote extends Model
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(Teacher::class);
+    }
+
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(Student::class);
     }
 }

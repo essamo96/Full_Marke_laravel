@@ -24,11 +24,15 @@ class Grade extends Model
         'tab_switch_count',
         'fullscreen_exit_count',
         'auto_submitted',
+        'teacher_reviewed_at',
+        'admin_approved_at',
     ];
 
     protected $casts = [
         'started_at' => 'datetime',
         'auto_submitted' => 'boolean',
+        'teacher_reviewed_at' => 'datetime',
+        'admin_approved_at' => 'datetime',
     ];
 
     public function student()

@@ -23,6 +23,15 @@ class NotifyGroupOfNewNote implements ShouldQueue
 
     public function handle(): void
     {
+        if ($this->note->student_id) {
+            $student = $this->note->student;
+            if ($student) {
+                $student->notify(new NewGroupNoteNotification($this->note, $student->id));
+            }
+
+            return;
+        }
+
         $students = $this->note->group->registrations()
             ->whereIn('status', ['partially_paid', 'fully_paid'])
             ->with('student')

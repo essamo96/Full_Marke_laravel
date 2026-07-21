@@ -148,7 +148,12 @@ class GroupsController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        $notes = $group->notes()->latest()->get();
+        $notes = $group->notes()
+            ->where(function ($q) use ($student) {
+                $q->whereNull('student_id')->orWhere('student_id', $student->id);
+            })
+            ->latest()
+            ->get();
 
         return view('student.groups.show', compact('group', 'subject', 'generalResources', 'notes'));
     }

@@ -13,7 +13,7 @@ class Group extends Model
     use HasFactory, EncryptsRouteKey;
 
     protected $fillable = [
-        'subject_id', 'teacher_id', 'name', 'days', 'start_time', 'end_time',
+        'subject_id', 'teacher_id', 'name', 'image', 'days', 'start_time', 'end_time',
         'max_capacity', 'current_count', 'start_date', 'end_date', 'zoom_link', 'is_active',
     ];
 

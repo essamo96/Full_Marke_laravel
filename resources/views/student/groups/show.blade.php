@@ -65,11 +65,19 @@
     <h5 class="fw-bold mb-3" style="color: var(--text-primary);" data-en="Group Notes" data-ar="ملاحظات المجموعة">ملاحظات المجموعة</h5>
     <div class="d-flex flex-column gap-2">
         @foreach($notes as $note)
-            <div class="rounded-3 p-3" style="background: var(--bg-secondary);">
-                <div class="fw-bold fs-7 mb-1" style="color: var(--accent-color);">{{ $note->title }}</div>
-                <div class="text-sm text-white">{{ $note->content }}</div>
-                <div class="text-muted fs-7 mt-1">{{ $note->created_at->diffForHumans() }}</div>
-            </div>
+            @if($note->is_alert)
+                <div class="rounded-3 p-3" style="background: rgba(220,53,69,0.12); border-inline-start: 3px solid #dc3545;">
+                    <div class="fw-bold fs-7 mb-1 text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $note->title }}</div>
+                    <div class="text-sm text-white">{{ $note->content }}</div>
+                    <div class="text-muted fs-7 mt-1">{{ $note->created_at->diffForHumans() }}</div>
+                </div>
+            @else
+                <div class="rounded-3 p-3" style="background: var(--bg-secondary);">
+                    <div class="fw-bold fs-7 mb-1" style="color: var(--accent-color);">{{ $note->title }}</div>
+                    <div class="text-sm text-white">{{ $note->content }}</div>
+                    <div class="text-muted fs-7 mt-1">{{ $note->created_at->diffForHumans() }}</div>
+                </div>
+            @endif
         @endforeach
     </div>
 </div>

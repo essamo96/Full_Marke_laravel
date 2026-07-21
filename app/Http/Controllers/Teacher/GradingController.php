@@ -87,4 +87,14 @@ class GradingController extends Controller
 
         return back()->with('success', 'تم حفظ العلامة بنجاح.');
     }
+
+    public function approve(Grade $grade)
+    {
+        $teacher = Auth::guard('teacher')->user();
+        abort_unless($grade->group && $grade->group->teacher_id === $teacher->id, 403);
+
+        $grade->update(['teacher_reviewed_at' => now()]);
+
+        return back()->with('success', 'تم اعتماد العلامة وإرسالها للإدارة.');
+    }
 }

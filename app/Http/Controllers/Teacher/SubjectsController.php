@@ -15,9 +15,31 @@ class SubjectsController extends Controller
     {
         $teacher = Auth::guard('teacher')->user();
 
-        $subjects = $teacher->subjects()->with('program')->get()->groupBy(fn ($s) => $s->program->title ?? 'بدون برنامج');
+        $subjects = $teacher->subjects()->with('program')->get();
 
-        return view('teacher.subjects.index', compact('subjects'));
+        $subjectStats = [];
+        foreach ($subjects as $subject) {
+            $groups = Group::where('subject_id', $subject->id)->where('teacher_id', $teacher->id)
+                ->withCount(['registrations as students_count' => function ($q) {
+                    $q->whereIn('status', self::ACTIVE_STATUSES);
+                }])
+                ->get();
+
+            $subjectStats[$subject->id] = [
+                'groups_count' => $groups->count(),
+                'students_count' => $groups->sum('students_count'),
+            ];
+        }
+
+        $programs = $subjects->groupBy(fn ($s) => $s->program->id ?? 0)
+            ->map(function ($programSubjects) {
+                return [
+                    'program' => $programSubjects->first()->program,
+                    'subjects' => $programSubjects,
+                ];
+            });
+
+        return view('teacher.subjects.index', compact('programs', 'subjectStats'));
     }
 
     public function show(Subject $subject)

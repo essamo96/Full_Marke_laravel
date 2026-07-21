@@ -11,12 +11,7 @@
   <div class="row g-4">
     @forelse($groups as $group)
       <div class="col-md-6 col-xl-4">
-        <div class="glass-panel rounded-4 p-4 h-100" style="border: 1px solid var(--separator-color);">
-          <h5 class="fw-bold mb-1" style="color: var(--text-primary);">{{ $group->name }}</h5>
-          <div class="text-muted fs-7 mb-2">{{ $group->subject->name ?? '' }} — {{ $group->subject->program->title ?? '' }}</div>
-          <div class="text-muted fs-7 mb-3"><i class="bi bi-people-fill me-1"></i>{{ $group->students_count }} <span data-en="students" data-ar="طالب">طالب</span></div>
-          <a href="{{ route('teacher.groups.show', $group) }}" class="btn btn-luxury btn-sm" data-en="Open" data-ar="فتح">فتح</a>
-        </div>
+        @include('teacher.groups._card', ['group' => $group])
       </div>
     @empty
       <div class="col-12">
@@ -26,3 +21,10 @@
   </div>
 
 @endsection
+
+@push('styles')
+<style>
+.teacher-group-card-link:hover .teacher-group-card { border-color: var(--accent-color) !important; transform: translateY(-4px); box-shadow: 0 12px 30px rgba(197,168,128,0.12); }
+.teacher-group-card { transition: all 0.3s ease; }
+</style>
+@endpush

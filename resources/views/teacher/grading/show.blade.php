@@ -34,6 +34,23 @@
     <div class="alert alert-success">{{ session('success') }}</div>
   @endif
 
+  <div class="glass-panel rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    @if($grade->admin_approved_at)
+      <span class="badge bg-success px-3 py-2"><i class="bi bi-check2-all me-1"></i> معتمدة من الإدارة</span>
+    @elseif($grade->teacher_reviewed_at)
+      <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-hourglass-split me-1"></i> بانتظار اعتماد الإدارة</span>
+    @else
+      <span class="badge bg-secondary px-3 py-2">لم تتم المراجعة بعد</span>
+    @endif
+
+    @if(!$grade->teacher_reviewed_at)
+      <form method="POST" action="{{ route('teacher.grading.approve', $grade) }}">
+        @csrf
+        <button type="submit" class="btn btn-luxury btn-sm"><i class="bi bi-send-check-fill me-1"></i> اعتماد وإرسال للإدارة</button>
+      </form>
+    @endif
+  </div>
+
   <div class="d-flex flex-column gap-4">
     @forelse($grade->answers as $answer)
       <div class="glass-panel rounded-4 p-4" style="border: 1px solid var(--separator-color);">

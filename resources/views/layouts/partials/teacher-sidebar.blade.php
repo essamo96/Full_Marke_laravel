@@ -11,10 +11,14 @@
 
     <!-- ════ SIDEBAR ════ -->
     <aside id="dashboardSidebar" class="dashboard-sidebar">
+      @php($sidebarTeacher = auth('teacher')->user())
       <div class="d-flex flex-column align-items-center mb-5 border-b pb-4" style="border-color: var(--separator-color) !important;">
         <div class="w-24 h-24 rounded-circle border-2 p-1 mb-3 position-relative overflow-hidden shadow-lg" style="border-color: var(--accent-color);">
-          <img src="{{ asset('site/images/img/logo_backup.png') }}" alt="Teacher Profile" class="w-100 h-100 object-contain rounded-circle">
+          <img src="{{ $sidebarTeacher && $sidebarTeacher->photo ? asset('storage/'.$sidebarTeacher->photo) : asset('site/images/img/logo_backup.png') }}" alt="Teacher Profile" class="w-100 h-100 object-cover rounded-circle">
         </div>
+        @if($sidebarTeacher)
+          <span class="fw-bold fs-6 text-center" style="color: var(--text-primary);">{{ $sidebarTeacher->name }}</span>
+        @endif
       </div>
 
       <nav class="flex-1 d-flex flex-column gap-2 w-100 px-3 pb-4" style="font-family: 'Tajawal', 'Almarai', sans-serif;">
@@ -34,7 +38,7 @@
           <li><a href="{{ route('teacher.subjects.index') }}" class="sidebar-submenu-item" data-en="Programs" data-ar="البرامج الدراسية">Programs</a></li>
           <li><a href="{{ route('teacher.subjects.index') }}" class="sidebar-submenu-item" data-en="Courses" data-ar="المواد التعليمية">Courses</a></li>
           <li><a href="{{ route('teacher.groups.index') }}" class="sidebar-submenu-item" data-en="Study Groups" data-ar="المجموعات الدراسية">Study Groups</a></li>
-          <li><a href="{{ route('teacher.exams.index') }}" class="sidebar-submenu-item" data-en="Academic Schedule" data-ar="الجدول الأكاديمي">Academic Schedule</a></li>
+          <li><a href="{{ route('teacher.schedule.index') }}" class="sidebar-submenu-item" data-en="Academic Schedule" data-ar="الجدول الأكاديمي">Academic Schedule</a></li>
         </ul>
 
         <!-- Students -->
@@ -44,8 +48,8 @@
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuStudents">
-          <li><a href="{{ route('teacher.groups.index') }}" class="sidebar-submenu-item" data-en="All Students" data-ar="جميع الطلاب">All Students</a></li>
-          <li><a href="{{ route('teacher.subjects.index') }}" class="sidebar-submenu-item" data-en="Course Students" data-ar="طلاب المادة">Course Students</a></li>
+          <li><a href="{{ route('teacher.students.index') }}" class="sidebar-submenu-item" data-en="All Students" data-ar="جميع الطلاب">All Students</a></li>
+          <li><a href="{{ route('teacher.students.index') }}" class="sidebar-submenu-item" data-en="Course Students" data-ar="طلاب المادة">Course Students</a></li>
           <li><a href="{{ route('teacher.groups.index') }}" class="sidebar-submenu-item" data-en="Attendance" data-ar="الحضور والغياب">Attendance</a></li>
           <li><a href="{{ route('teacher.grading.index') }}" class="sidebar-submenu-item" data-en="Performance" data-ar="الأداء الأكاديمي">Performance</a></li>
           <li><a href="{{ route('teacher.groups.index') }}" class="sidebar-submenu-item" data-en="Academic Notes" data-ar="الملاحظات الأكاديمية">Academic Notes</a></li>

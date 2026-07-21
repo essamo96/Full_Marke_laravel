@@ -28,9 +28,13 @@ class NewGroupNoteNotification extends Notification implements ShouldBroadcastNo
 
     public function toArray(object $notifiable): array
     {
+        $message = $this->note->is_alert
+            ? 'تنبيه من المدرّس: ' . $this->note->title
+            : 'ملاحظة جديدة في مجموعتك: ' . $this->note->title;
+
         return [
             'group_id' => $this->note->group_id,
-            'message' => 'ملاحظة جديدة في مجموعتك: ' . $this->note->title,
+            'message' => $message,
             'url' => route('student.groups.show', $this->note->group),
         ];
     }

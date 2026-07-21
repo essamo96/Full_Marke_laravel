@@ -75,8 +75,13 @@ class GroupsController extends AdminController
     {
         $subId = $subjectId ? Crypt::decrypt($subjectId) : $request->input('subject_id');
         $subject = Subject::findOrFail($subId);
-        
-        Group::create($request->validated() + [
+
+        $data = $request->validated();
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('groups', 'public');
+        }
+
+        Group::create($data + [
             'subject_id' => $subject->id,
             'is_active' => $request->boolean('is_active', true)]);
 
@@ -108,7 +113,12 @@ class GroupsController extends AdminController
             return redirect()->route('subjects.groups.view', Crypt::encrypt($subject->id))->with('danger', __('app.not_found'));
         }
 
-        $group->update($request->validated() + [
+        $data = $request->validated();
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('groups', 'public');
+        }
+
+        $group->update($data + [
             'is_active' => $request->boolean('is_active', true)]);
 
         return redirect()->route('subjects.groups.view', Crypt::encrypt($subject->id))->with('success', __('app.update_success'));
