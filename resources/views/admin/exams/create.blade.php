@@ -20,7 +20,7 @@
         <div>
             <a href="{{ route('exams.view') }}" class="btn btn-light me-2">إلغاء</a>
             <button type="submit" class="btn btn-primary" id="saveExamBtn">
-                <i class="ki-duotone ki-save-2 fs-2"></i>حفظ الامتحان
+                <i class="bi bi-save fs-2 me-2"></i>حفظ الامتحان
             </button>
         </div>
     </div>

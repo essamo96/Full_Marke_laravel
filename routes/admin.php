@@ -93,6 +93,7 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     Route::post('/subject-content/units/{unit}/lessons', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeLesson'])->name('subject_content.lessons.store');
     Route::delete('/subject-content/lessons/{lesson}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyLesson'])->name('subject_content.lessons.destroy');
     Route::post('/subject-content/lessons/{lesson}/resources', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeResource'])->name('subject_content.resources.store');
+    Route::put('/subject-content/resources/{resource}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'updateResource'])->name('subject_content.resources.update');
     Route::delete('/subject-content/resources/{resource}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyResource'])->name('subject_content.resources.destroy');
     Route::get('/subject-content/resources/{resource}/file', [\App\Http\Controllers\Admin\SubjectContentController::class, 'viewResourceFile'])->name('subject_content.resources.file');
     Route::post('/subject-content/upload-chunk', [\App\Http\Controllers\Admin\VideoChunkUploadController::class, 'upload'])->name('subject_content.upload_chunk');

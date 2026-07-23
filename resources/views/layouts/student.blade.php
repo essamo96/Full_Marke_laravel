@@ -208,10 +208,24 @@
         if (list) {
           const item = document.createElement('a');
           item.href = url;
-          item.className = 'd-block text-decoration-none p-2 rounded mb-1 student-notification-item';
-          item.style.background = 'var(--bg-secondary)';
+          item.className = 'd-block text-decoration-none p-3 rounded-3 mb-2 student-notification-item';
+          item.dataset.id = data.id || ''; // Wait, data.id might not be available, but just in case
           item.style.color = 'var(--text-primary)';
-          item.innerHTML = `<div class="fs-7">${message}</div><div class="text-muted" style="font-size: 0.7rem;">الآن</div>`;
+          item.innerHTML = `
+            <div class="d-flex gap-3 align-items-start">
+              <div class="flex-shrink-0 mt-1">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: rgba(197, 168, 128, 0.15);">
+                  <i class="bi bi-info-circle-fill" style="color: var(--accent-color); font-size: 1.1rem;"></i>
+                </div>
+              </div>
+              <div>
+                <div class="fs-7 fw-medium mb-1" style="line-height: 1.4;">${message}</div>
+                <div class="d-flex align-items-center gap-1 opacity-75" style="font-size: 0.75rem;">
+                  <i class="bi bi-clock"></i> الآن
+                </div>
+              </div>
+            </div>
+          `;
           list.insertAdjacentElement('afterbegin', item);
         }
 

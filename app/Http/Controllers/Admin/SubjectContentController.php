@@ -172,6 +172,72 @@ class SubjectContentController extends AdminController
         return response()->json(['success' => true, 'id' => $resource->getRouteKey()]);
     }
 
+    public function updateResource(Request $request, SubjectResource $resource)
+    {
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'type' => 'required|in:video,document,image,link,zoom',
+            'url' => 'nullable|string|max:500',
+            'file' => 'nullable|file|max:51200|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,webp,gif',
+            'uploaded_path' => 'nullable|string|starts_with:incoming/',
+            'original_filename' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'allow_download' => 'nullable|boolean',
+        ]);
+
+        $storedPath = $resource->url;
+        $originalFilename = $resource->original_filename;
+        $fileChanged = false;
+
+        if (! empty($data['uploaded_path'])) {
+            if (! Storage::disk('protected_videos')->exists($data['uploaded_path'])) {
+                return response()->json(['success' => false, 'message' => 'الملف المرفوع غير موجود، يرجى إعادة الرفع'], 422);
+            }
+            $extension = pathinfo($data['uploaded_path'], PATHINFO_EXTENSION);
+            if (!$extension) $extension = $data['type'] === 'video' ? 'mp4' : 'bin';
+            $storedPath = 'resources/'.Str::uuid().'.'.$extension;
+            Storage::disk('protected_videos')->move($data['uploaded_path'], $storedPath);
+            $originalFilename = $data['original_filename'] ?? null;
+            $fileChanged = true;
+        } elseif ($request->hasFile('file')) {
+            $storedPath = $request->file('file')->store('resources', 'protected_videos');
+            $originalFilename = $request->file('file')->getClientOriginalName();
+            $fileChanged = true;
+        } elseif (!empty($data['url']) && in_array($data['type'], ['link', 'zoom'])) {
+            if ($data['url'] !== $resource->url) {
+                $storedPath = $data['url'];
+                $fileChanged = true;
+            }
+        }
+
+        if ($fileChanged) {
+            if (!preg_match('#^https?://#i', (string) $resource->url)) {
+                Storage::disk('protected_videos')->delete($resource->url);
+                Storage::disk('protected_videos')->deleteDirectory("resources/{$resource->id}");
+            }
+            $processingStatus = ($data['type'] === 'video' && ! preg_match('#^https?://#i', (string) $storedPath)) ? 'processing' : 'ready';
+        } else {
+            $processingStatus = $resource->processing_status;
+        }
+
+        $resource->update([
+            'title' => $data['title'],
+            'type' => $data['type'],
+            'category' => $data['type'],
+            'url' => $storedPath,
+            'original_filename' => $originalFilename,
+            'processing_status' => $processingStatus,
+            'description' => $data['description'] ?? null,
+            'allow_download' => $data['allow_download'] ?? false,
+        ]);
+
+        if ($fileChanged && $processingStatus === 'processing') {
+            ProcessLessonVideo::dispatch($resource->id);
+        }
+
+        return response()->json(['success' => true, 'id' => $resource->getRouteKey(), 'processing_status' => $processingStatus]);
+    }
+
     public function viewResourceFile(SubjectResource $resource)
     {
         abort_if($resource->isVideo() || $resource->isExternalLink() || ! $resource->url, 404);

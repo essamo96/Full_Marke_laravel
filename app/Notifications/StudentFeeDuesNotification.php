@@ -29,7 +29,7 @@ class StudentFeeDuesNotification extends Notification implements ShouldBroadcast
     {
         return [
             'message' => $this->message,
-            'url' => url('/student')
+            'url' => route('student.dashboard')
         ];
     }
 
@@ -37,7 +37,7 @@ class StudentFeeDuesNotification extends Notification implements ShouldBroadcast
     {
         return new BroadcastMessage([
             'message' => $this->message,
-            'url' => url('/student')
+            'url' => route('student.dashboard')
         ]);
     }
 

@@ -29,7 +29,7 @@ class StudentPaymentConfirmedNotification extends Notification implements Should
         return [
             'payment_id' => $this->payment->id,
             'message' => 'تم تأكيد دفعتك المالية بقيمة ' . $this->payment->amount . ' JOD بنجاح. شكراً لك!',
-            'url' => url('/student')
+            'url' => route('student.dashboard')
         ];
     }
 
@@ -38,7 +38,7 @@ class StudentPaymentConfirmedNotification extends Notification implements Should
         return new BroadcastMessage([
             'payment_id' => $this->payment->id,
             'message' => 'تم تأكيد دفعتك المالية بقيمة ' . $this->payment->amount . ' JOD بنجاح. شكراً لك!',
-            'url' => url('/student')
+            'url' => route('student.dashboard')
         ]);
     }
 

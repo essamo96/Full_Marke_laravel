@@ -48,19 +48,70 @@
             <i class="bi bi-bell-fill"></i>
             <span id="studentNotificationsBadge" class="position-absolute badge rounded-pill bg-danger {{ $headerUnreadCount > 0 ? '' : 'd-none' }}" style="top: -2px; inset-inline-end: -2px; font-size: 0.65rem;">{{ $headerUnreadCount }}</span>
           </button>
-          <div class="dropdown-menu dropdown-menu-end p-0" style="width: 340px; max-width: 90vw;" aria-labelledby="studentNotificationsBell">
-            <div class="d-flex align-items-center justify-content-between p-3 border-bottom" style="border-color: var(--separator-color) !important;">
-              <span class="fw-bold" style="color: var(--text-primary);">الإشعارات</span>
-              <button type="button" class="btn btn-link btn-sm p-0" id="studentMarkAllReadBtn">تعليم الكل كمقروء</button>
+          <div class="dropdown-menu dropdown-menu-end p-0 shadow-lg border-0 notification-dropdown" style="width: 360px; max-width: 90vw; background: var(--bg-primary); overflow: hidden; border-radius: 1rem;" aria-labelledby="studentNotificationsBell">
+            <style>
+              .notification-dropdown {
+                background-image: radial-gradient(var(--separator-color) 1px, transparent 1px);
+                background-size: 20px 20px;
+                background-position: 0 0, 10px 10px;
+              }
+              .student-notification-item {
+                background: var(--bg-secondary);
+                border: 1px solid var(--separator-color);
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+              }
+              .student-notification-item::before {
+                content: '';
+                position: absolute;
+                top: 0; right: 0; bottom: 0; left: 0;
+                background: linear-gradient(45deg, transparent, rgba(197, 168, 128, 0.05), transparent);
+                transform: translateX(100%);
+                transition: 0.5s ease;
+              }
+              .student-notification-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                border-color: var(--accent-color);
+              }
+              .student-notification-item:hover::before {
+                transform: translateX(-100%);
+              }
+            </style>
+            <div class="d-flex align-items-center justify-content-between p-3 border-bottom" style="border-color: var(--separator-color) !important; background: var(--bg-secondary); backdrop-filter: blur(10px);">
+              <span class="fw-bold" style="color: var(--text-primary);"><i class="bi bi-bell-fill me-2" style="color: var(--accent-color);"></i>الإشعارات</span>
+              <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" id="studentMarkAllReadBtn" style="color: var(--accent-color);">تعليم الكل كمقروء</button>
             </div>
-            <div id="studentNotificationsList" class="p-2" style="max-height: 360px; overflow-y: auto;">
+            <div id="studentNotificationsList" class="p-3" style="max-height: 380px; overflow-y: auto;">
               @forelse($headerUnreadNotifications as $notification)
-                <a href="{{ $notification->data['url'] ?? '#' }}" class="d-block text-decoration-none p-2 rounded mb-1 student-notification-item" data-id="{{ $notification->id }}" style="background: var(--bg-secondary); color: var(--text-primary);">
-                  <div class="fs-7">{{ $notification->data['message'] ?? '' }}</div>
-                  <div class="text-muted" style="font-size: 0.7rem;">{{ $notification->created_at->diffForHumans() }}</div>
+                @php
+                  $notificationUrl = $notification->data['url'] ?? '#';
+                  if (str_contains($notificationUrl, '/public/student')) {
+                      $notificationUrl = str_replace('/public/student', '/student', $notificationUrl);
+                  }
+                @endphp
+                <a href="{{ $notificationUrl }}" class="d-block text-decoration-none p-3 rounded-3 mb-2 student-notification-item" data-id="{{ $notification->id }}" style="color: var(--text-primary);">
+                  <div class="d-flex gap-3 align-items-start">
+                    <div class="flex-shrink-0 mt-1">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: rgba(197, 168, 128, 0.15);">
+                        <i class="bi bi-info-circle-fill" style="color: var(--accent-color); font-size: 1.1rem;"></i>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="fs-7 fw-medium mb-1" style="line-height: 1.4;">{{ $notification->data['message'] ?? '' }}</div>
+                      <div class="d-flex align-items-center gap-1 opacity-75" style="font-size: 0.75rem;">
+                        <i class="bi bi-clock"></i>
+                        {{ $notification->created_at->diffForHumans() }}
+                      </div>
+                    </div>
+                  </div>
                 </a>
               @empty
-                <p class="text-muted text-center py-6 mb-0" id="studentNoNotificationsMsg">لا توجد إشعارات جديدة</p>
+                <div class="text-center py-5" id="studentNoNotificationsMsg">
+                  <i class="bi bi-bell-slash text-muted mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
+                  <p class="text-muted mb-0">لا توجد إشعارات جديدة</p>
+                </div>
               @endforelse
             </div>
           </div>

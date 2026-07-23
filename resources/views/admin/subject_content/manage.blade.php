@@ -116,6 +116,7 @@
                                                                             @endif
                                                                         </td>
                                                                         <td class="text-end">
+                                                                            <button type="button" class="btn btn-icon btn-sm btn-light-primary me-1" onclick="openEditResourceModal('{{ $resource->getRouteKey() }}', {{ $resource->toJson() }})"><i class="bi bi-pencil"></i></button>
                                                                             <button type="button" class="btn btn-icon btn-sm btn-light-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                                                                         </td>
                                                                     </tr>
@@ -126,7 +127,7 @@
                                                         </table>
                                                     </div>
                                                     <button type="button" class="btn btn-sm btn-light-success" onclick="openResourceModal({{ $lesson->id }})">
-                                                        <i class="ki-duotone ki-plus fs-4"></i> إضافة مرفق (فيديو / PDF / رابط)
+                                                        <i class="bi bi-plus-lg fs-4 me-2"></i> إضافة مرفق (فيديو / PDF / رابط)
                                                     </button>
                                                 </div>
                                             </div>
@@ -286,6 +287,87 @@
     </div>
 </div>
 
+<!-- Edit Resource Modal -->
+<div class="modal fade" tabindex="-1" id="kt_modal_edit_resource">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">تعديل المرفق التعليمي</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <form id="kt_form_edit_resource" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="_method" value="PUT">
+                    <div class="mb-5">
+                        <label class="form-label required">عنوان المرفق</label>
+                        <input type="text" name="title" id="edit_resource_title" class="form-control" required/>
+                    </div>
+                    <div class="mb-5">
+                        <label class="form-label required">نوع المرفق</label>
+                        <select name="type" id="edit_resource_type" class="form-select" required>
+                            <option value="video">فيديو</option>
+                            <option value="document">ملف / PDF</option>
+                            <option value="image">صورة</option>
+                            <option value="link">رابط خارجي (يوتيوب، إلخ)</option>
+                            <option value="zoom">رابط Zoom</option>
+                        </select>
+                    </div>
+                    
+                    <div class="alert alert-info d-flex align-items-center p-3 mb-5">
+                        <i class="bi bi-info-circle fs-2 text-info me-3"></i>
+                        <span>للاحتفاظ بالملف الحالي، اترك حقل الرفع/الرابط فارغاً. عند رفع ملف جديد سيتم مسح الملف القديم نهائياً.</span>
+                    </div>
+
+                    <div class="mb-5" id="edit_resource_video_field">
+                        <label class="form-label">رفع فيديو جديد</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <button type="button" id="edit_resource_video_browse" class="btn btn-light-primary btn-sm">
+                                <i class="ki-duotone ki-folder-up fs-3"></i> اختر ملف الفيديو
+                            </button>
+                            <span id="edit_resource_video_filename" class="text-muted fs-7"></span>
+                        </div>
+                        <div class="progress mt-3 d-none" id="edit_resource_video_progress_wrap" style="height: 8px;">
+                            <div class="progress-bar" id="edit_resource_video_progress" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-5" id="edit_resource_document_field">
+                        <label class="form-label">رفع ملف جديد (PDF / مستند)</label>
+                        <input type="file" name="file" id="edit_resource_file_doc" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"/>
+                    </div>
+                    <div class="mb-5 d-none" id="edit_resource_image_field">
+                        <label class="form-label">رفع صورة جديدة</label>
+                        <input type="file" name="file" id="edit_resource_file_img" class="form-control" accept=".jpg,.jpeg,.png,.webp,.gif"/>
+                    </div>
+                    <div class="mb-5" id="edit_resource_url_field">
+                        <label class="form-label">رابط خارجي</label>
+                        <input type="text" name="url" id="edit_resource_url" class="form-control" placeholder="https://..."/>
+                    </div>
+                    <input type="hidden" name="uploaded_path" id="edit_resource_uploaded_path"/>
+                    <input type="hidden" name="original_filename" id="edit_resource_original_filename"/>
+                    <div class="mb-5">
+                        <label class="form-label">وصف مختصر</label>
+                        <textarea name="description" id="edit_resource_description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-5">
+                        <div class="form-check form-switch form-check-custom form-check-solid">
+                            <input class="form-check-input" type="checkbox" value="1" id="edit_allow_download_check" name="allow_download"/>
+                            <label class="form-check-label" for="edit_allow_download_check">
+                                السماح للطلاب بالتحميل
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Upload Progress Drawer -->
 <div id="kt_upload_progress_drawer" class="bg-body" data-kt-drawer="true" data-kt-drawer-name="upload_progress" data-kt-drawer-activate="true" data-kt-drawer-overlay="false" data-kt-drawer-width="{default:'300px', 'md': '400px'}" data-kt-drawer-direction="end" data-kt-drawer-close="#kt_upload_progress_close">
     <div class="card w-100 rounded-0 border-0 h-100">
@@ -387,11 +469,14 @@
 
     const chunkUploadUrl = '{{ route('subject_content.upload_chunk') }}';
 
-    let modalAddUnit, modalAddLesson, modalAddResource;
+    let modalAddUnit, modalAddLesson, modalAddResource, modalEditResource;
     let currentUnitId = null;
     let currentLessonId = null;
+    let currentEditResourceId = null;
     let videoUploadResumable = null;
     let videoUploadDone = false;
+    let editVideoUploadResumable = null;
+    let editVideoUploadDone = true;
 
     let uploadStartTime = 0;
     let uploadDrawer;
@@ -401,6 +486,7 @@
         modalAddUnit = new bootstrap.Modal(document.getElementById('kt_modal_add_unit'));
         modalAddLesson = new bootstrap.Modal(document.getElementById('kt_modal_add_lesson'));
         modalAddResource = new bootstrap.Modal(document.getElementById('kt_modal_add_resource'));
+        modalEditResource = new bootstrap.Modal(document.getElementById('kt_modal_edit_resource'));
 
         // Initialize Drawer
         const drawerEl = document.getElementById('kt_upload_progress_drawer');
@@ -412,8 +498,11 @@
         // We no longer need KTDrawer for processing toast
 
         document.getElementById('resource_type').addEventListener('change', toggleResourceFields);
+        document.getElementById('edit_resource_type').addEventListener('change', toggleEditResourceFields);
         toggleResourceFields();
+        toggleEditResourceFields();
         initVideoResumable();
+        initEditVideoResumable();
 
         @if(isset($processingResources) && count($processingResources) > 0)
             @foreach($processingResources as $resId)
@@ -730,5 +819,161 @@
             });
         });
     }
+    function toggleEditResourceFields() {
+        const type = document.getElementById('edit_resource_type').value;
+        const videoField = document.getElementById('edit_resource_video_field');
+        const docField = document.getElementById('edit_resource_document_field');
+        const imageField = document.getElementById('edit_resource_image_field');
+        const urlField = document.getElementById('edit_resource_url_field');
+
+        videoField.classList.add('d-none');
+        docField.classList.add('d-none');
+        imageField.classList.add('d-none');
+        urlField.classList.add('d-none');
+
+        if (type === 'video') videoField.classList.remove('d-none');
+        else if (type === 'document') docField.classList.remove('d-none');
+        else if (type === 'image') imageField.classList.remove('d-none');
+        else urlField.classList.remove('d-none');
+    }
+
+    function initEditVideoResumable() {
+        editVideoUploadResumable = new Resumable({
+            target: chunkUploadUrl,
+            chunkSize: 5 * 1024 * 1024,
+            simultaneousUploads: 3,
+            testChunks: false,
+            maxChunkRetries: 8,
+            chunkRetryInterval: 3000,
+            query: { _token: csrfToken },
+        });
+
+        editVideoUploadResumable.assignBrowse(document.getElementById('edit_resource_video_browse'));
+
+        editVideoUploadResumable.on('fileAdded', function (file) {
+            editVideoUploadDone = false;
+            uploadStartTime = Date.now();
+            document.getElementById('edit_resource_uploaded_path').value = '';
+            document.getElementById('edit_resource_video_filename').textContent = file.fileName;
+            document.getElementById('edit_resource_video_progress_wrap').classList.remove('d-none');
+            document.getElementById('edit_resource_video_progress').style.width = '0%';
+
+            // Update Drawer Info
+            document.getElementById('upload_drawer_filename').textContent = file.fileName;
+            document.getElementById('upload_drawer_size').textContent = formatBytes(file.size);
+            document.getElementById('upload_drawer_progress').style.width = '0%';
+            document.getElementById('upload_drawer_percentage').textContent = '0%';
+            document.getElementById('upload_drawer_time_remaining').textContent = 'جارِ الحساب...';
+            document.getElementById('upload_drawer_uploaded').textContent = '0 MB / ' + formatBytes(file.size);
+            document.getElementById('upload_drawer_speed').textContent = '0 KB/s';
+
+            if (uploadDrawer) uploadDrawer.show();
+
+            editVideoUploadResumable.upload();
+        });
+
+        editVideoUploadResumable.on('fileProgress', function (file) {
+            const progress = editVideoUploadResumable.progress();
+            const pct = Math.floor(progress * 100);
+            document.getElementById('edit_resource_video_progress').style.width = pct + '%';
+
+            // Calculate Speed and ETA
+            const uploadedBytes = progress * file.size;
+            const elapsedTime = (Date.now() - uploadStartTime) / 1000;
+            let speedBps = 0;
+            if (elapsedTime > 0) speedBps = uploadedBytes / elapsedTime;
+
+            const remainingBytes = file.size - uploadedBytes;
+            let remainingTimeSec = 0;
+            if (speedBps > 0) remainingTimeSec = remainingBytes / speedBps;
+
+            document.getElementById('upload_drawer_progress').style.width = pct + '%';
+            document.getElementById('upload_drawer_percentage').textContent = pct + '%';
+            document.getElementById('upload_drawer_uploaded').textContent = formatBytes(uploadedBytes) + ' / ' + formatBytes(file.size);
+            document.getElementById('upload_drawer_speed').textContent = formatBytes(speedBps) + '/s';
+            document.getElementById('upload_drawer_time_remaining').textContent = formatTime(remainingTimeSec);
+        });
+
+        editVideoUploadResumable.on('fileSuccess', function (file, response) {
+            const data = JSON.parse(response);
+            document.getElementById('edit_resource_uploaded_path').value = data.path;
+            document.getElementById('edit_resource_original_filename').value = data.original_filename;
+            document.getElementById('edit_resource_video_progress').style.width = '100%';
+            editVideoUploadDone = true;
+
+            document.getElementById('upload_drawer_progress').style.width = '100%';
+            document.getElementById('upload_drawer_percentage').textContent = '100%';
+            document.getElementById('upload_drawer_time_remaining').textContent = 'اكتمل الرفع!';
+            document.getElementById('upload_drawer_uploaded').textContent = formatBytes(file.size) + ' / ' + formatBytes(file.size);
+
+            setTimeout(() => { 
+                if (uploadDrawer) uploadDrawer.hide(); 
+                $('#kt_form_edit_resource').submit();
+            }, 1000);
+        });
+
+        editVideoUploadResumable.on('fileError', function (file, message) {
+            showError('تعذّر رفع الفيديو. سيتم إعادة المحاولة تلقائيًا عند استعادة الاتصال بالإنترنت.');
+            document.getElementById('upload_drawer_time_remaining').textContent = 'حدث خطأ في الرفع';
+            document.getElementById('upload_drawer_time_remaining').classList.add('text-danger');
+        });
+    }
+
+    function openEditResourceModal(resourceId, resourceObj) {
+        currentEditResourceId = resourceId;
+        $('#kt_form_edit_resource')[0].reset();
+        
+        document.getElementById('edit_resource_title').value = resourceObj.title || '';
+        document.getElementById('edit_resource_type').value = resourceObj.type || 'video';
+        document.getElementById('edit_resource_description').value = resourceObj.description || '';
+        if (resourceObj.allow_download) {
+            document.getElementById('edit_allow_download_check').checked = true;
+        }
+        if (resourceObj.is_external_link || resourceObj.type === 'link' || resourceObj.type === 'zoom') {
+            document.getElementById('edit_resource_url').value = resourceObj.url || '';
+        }
+
+        document.getElementById('edit_resource_uploaded_path').value = '';
+        document.getElementById('edit_resource_original_filename').value = '';
+        document.getElementById('edit_resource_video_filename').textContent = '';
+        document.getElementById('edit_resource_video_progress_wrap').classList.add('d-none');
+        editVideoUploadDone = true; // allow save without new upload
+        if (editVideoUploadResumable) editVideoUploadResumable.files = [];
+        toggleEditResourceFields();
+        modalEditResource.show();
+    }
+
+    $('#kt_form_edit_resource').on('submit', function (e) {
+        e.preventDefault();
+
+        const type = document.getElementById('edit_resource_type').value;
+        if (type === 'video' && !editVideoUploadDone) {
+            showError('يرجى الانتظار حتى ينتهي رفع الفيديو قبل الحفظ.');
+            return;
+        }
+
+        const formData = new FormData(this);
+        formData.append('_token', csrfToken);
+        
+        $.ajax({
+            url: subjectContentResourcesBaseUrl + '/' + currentEditResourceId,
+            type: 'POST', // using POST with _method=PUT
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (response) {
+                modalEditResource.hide();
+                if (type === 'video' && response.id && response.processing_status === 'processing') {
+                    showProcessingDrawer(response.id);
+                } else {
+                    showSuccess(function () { location.reload(); });
+                }
+            },
+            error: function (xhr) {
+                const message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : null;
+                showError(message);
+            }
+        });
+    });
 </script>
 @endpush

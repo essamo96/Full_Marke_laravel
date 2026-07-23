@@ -44,7 +44,7 @@
             <div class="glass-panel rounded-4 p-5 mb-4 text-center">
                 <h2 class="text-white fw-bold mb-3">{{ $exam->title }}</h2>
                 @if($exam->description)
-                    <p class="text-white opacity-75 mb-0">{{ $exam->description }}</p>
+                    <p class="text-white opacity-75 mb-0">{{ strip_tags($exam->description) }}</p>
                 @endif
                 <div class="mt-4 pt-4 border-top border-white/10 d-flex justify-content-center gap-4">
                     <div class="text-white">
@@ -265,12 +265,7 @@
         }
     });
 
-    window.addEventListener('beforeunload', (e) => {
-        if (examStarted && !autoSubmitting) {
-            e.preventDefault();
-            e.returnValue = '';
-        }
-    });
+    // Removed beforeunload listener as requested
 
     // Entry animation flow
     document.getElementById('examStartBtn').addEventListener('click', function () {

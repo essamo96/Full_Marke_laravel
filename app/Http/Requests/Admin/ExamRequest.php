@@ -47,4 +47,35 @@ class ExamRequest extends FormRequest
             'questions.*.options.*.is_correct' => 'required_with:questions.*.options|boolean',
         ];
     }
+
+    public function attributes(): array
+    {
+        return [
+            'subject_id' => 'المادة الدراسية',
+            'group_id' => 'المجموعة',
+            'title' => 'عنوان الامتحان',
+            'description' => 'الوصف',
+            'start_time' => 'وقت البدء',
+            'end_time' => 'وقت الانتهاء',
+            'duration_minutes' => 'مدة الامتحان',
+            'status' => 'حالة الامتحان',
+            'excluded_student_ids' => 'الطلاب المستثنون',
+            'questions.*.type' => 'نوع السؤال',
+            'questions.*.content' => 'نص السؤال',
+            'questions.*.points' => 'نقاط السؤال',
+            'questions.*.options' => 'خيارات السؤال',
+            'questions.*.options.*.option_text' => 'نص الخيار',
+            'questions.*.options.*.is_correct' => 'حالة الإجابة الصحيحة',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'questions.*.content.required' => 'حقل نص السؤال رقم :position مطلوب.',
+            'questions.*.points.required' => 'حقل نقاط السؤال رقم :position مطلوب.',
+            'questions.*.options.required_if' => 'الخيارات مطلوبة للسؤال رقم :position.',
+            'questions.*.options.*.option_text.required_with' => 'نص الخيار مطلوب في السؤال رقم :position.',
+        ];
+    }
 }

@@ -52,9 +52,9 @@
         @auth('student')
           <div class="dropdown">
             <button class="btn btn-glass d-flex align-items-center gap-1 px-2 py-1 rounded-lg" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: {{ $btnFontSize }};">
-              <img src="{{ Auth::guard('student')->user()->image ? asset('storage/'.Auth::guard('student')->user()->image) : asset('site/images/img/logo_backup.png') }}"
-                   alt="{{ Auth::guard('student')->user()->full_name_en }}" class="rounded-circle" style="width: 24px; height: 24px; object-fit: cover;">
-              <span class="d-none d-sm-inline font-medium" style="color: var(--text-primary);">{{ Auth::guard('student')->user()->full_name_en }}</span>
+              <img src="{{ Auth::guard('student')->user()->image ? asset('storage/'.Auth::guard('student')->user()->image) : asset('assets/admin/media/avatars/blank.png') }}"
+                   alt="{{ Auth::guard('student')->user()->full_name_en }}" class="rounded-circle border border-secondary" style="width: 24px; height: 24px; object-fit: cover;">
+              <span class="d-none d-sm-inline font-medium">{{ Auth::guard('student')->user()->full_name_en }}</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="{{ route('student.profile') }}" data-en="My Profile" data-ar="ملفي الشخصي">My Profile</a></li>
