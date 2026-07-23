@@ -22,6 +22,11 @@ Route::middleware(['site.locale', 'site.maintenance'])->group(function () {
     Route::get('/news/{id}', [SiteController::class, 'newsDetails'])->name('site.news.show');
     Route::middleware(['student.verified'])->group(function () {
         Route::get('/programs/{program:slug}', [SiteController::class, 'programDetails'])->name('programs.show');
+        Route::get('/fix-cache', function() {
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+            return 'Cache cleared successfully! Please go back and try again.';
+        });
         Route::get('/apply-now', [SiteController::class, 'applyNow'])->name('apply.create');
         Route::post('/apply-now', [SiteController::class, 'storeApplication'])->name('apply.store');
     });
