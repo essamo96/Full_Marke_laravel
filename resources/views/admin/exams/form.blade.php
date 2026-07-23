@@ -72,14 +72,24 @@
                     </select>
                 </div>
 
+                @if(!isset($exam))
+                <div class="alert alert-primary d-flex align-items-center p-4 mb-5 rounded border-primary border-dashed">
+                    <i class="ki-duotone ki-information-5 fs-2hx text-primary me-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                    <div class="d-flex flex-column">
+                        <h4 class="mb-1 text-primary">تنبيه: التواريخ الافتراضية</h4>
+                        <span>تم ضبط وقت البدء الافتراضي ليكون الوقت الحالي، ووقت الانتهاء ليكون بعد نصف ساعة من وقت البدء. يُرجى تعديلها بما يتناسب مع موعد الامتحان.</span>
+                    </div>
+                </div>
+                @endif
+
                 <div class="mb-5">
                     <label class="form-label">وقت البدء</label>
-                    <input class="form-control flatpickr" name="start_time" placeholder="اختر وقت البدء" value="{{ old('start_time', isset($exam->start_time) ? $exam->start_time->format('Y-m-d H:i') : '') }}" />
+                    <input class="form-control flatpickr" name="start_time" placeholder="اختر وقت البدء" value="{{ old('start_time', isset($exam->start_time) ? $exam->start_time->format('Y-m-d H:i') : now()->format('Y-m-d H:i')) }}" />
                 </div>
 
                 <div class="mb-5">
                     <label class="form-label">وقت الانتهاء</label>
-                    <input class="form-control flatpickr" name="end_time" placeholder="اختر وقت الانتهاء" value="{{ old('end_time', isset($exam->end_time) ? $exam->end_time->format('Y-m-d H:i') : '') }}" />
+                    <input class="form-control flatpickr" name="end_time" placeholder="اختر وقت الانتهاء" value="{{ old('end_time', isset($exam->end_time) ? $exam->end_time->format('Y-m-d H:i') : now()->addMinutes(30)->format('Y-m-d H:i')) }}" />
                 </div>
 
                 <div class="mb-5">
