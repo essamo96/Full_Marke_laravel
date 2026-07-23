@@ -328,7 +328,7 @@
       if (status === 200 && body.success) {
         feedback.className = 'mt-3 text-sm text-success fw-bold p-2 bg-success bg-opacity-10 rounded';
         feedback.textContent = body.message;
-        setTimeout(() => window.location.reload(), 2000);
+        setTimeout(() => window.location.href = '{{ route("student.registrations") }}', 1000);
       } else {
         feedback.className = 'mt-3 text-sm text-danger p-2 bg-danger bg-opacity-10 rounded';
         feedback.textContent = body.message || 'حدث خطأ غير متوقع.';

@@ -57,7 +57,7 @@
   @if ($registration->remaining_amount > 0 && $registration->status !== 'cancelled')
     <div class="glass-panel rounded-4 p-4 mb-4">
       <h5 class="fw-bold mb-3" style="color: var(--text-primary);" data-en="Pay Remaining Balance" data-ar="سداد الباقي">Pay Remaining Balance</h5>
-      <form method="POST" action="{{ route('student.registrations.pay-remaining', $registration) }}" enctype="multipart/form-data">
+      <form id="payRemainingForm" method="POST" action="{{ route('student.registrations.pay-remaining', $registration) }}" enctype="multipart/form-data">
         @csrf
         <div class="row g-3">
           <div class="col-md-4">
@@ -102,6 +102,20 @@
       </form>
     </div>
   @endif
+
+@push('scripts')
+<script>
+document.getElementById('payRemainingForm')?.addEventListener('submit', function(e) {
+  if (this.checkValidity()) {
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    const currentLang = document.documentElement.lang || 'ar';
+    const loadingText = currentLang === 'en' ? 'Submitting...' : 'جاري الإرسال...';
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${loadingText}`;
+  }
+});
+</script>
+@endpush
 
   @if ($registration->status === 'fully_paid')
     <div class="glass-panel rounded-4 p-4">

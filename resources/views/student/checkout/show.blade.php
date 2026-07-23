@@ -152,16 +152,24 @@
 @push('scripts')
 <script>
 // Sync group selectors into checkout form as hidden inputs on submit
-document.getElementById('checkoutForm').addEventListener('submit', function() {
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+  if (this.checkValidity()) {
+    const btn = document.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    const currentLang = document.documentElement.lang || 'ar';
+    const loadingText = currentLang === 'en' ? 'Confirming...' : 'جاري التأكيد...';
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${loadingText}`;
+  }
+
   document.querySelectorAll('.group-selector').forEach(function(sel) {
     if (sel.value) {
       const hidden = document.createElement('input');
       hidden.type = 'hidden';
       hidden.name = sel.name;
       hidden.value = sel.value;
-      // Already set via sel name attribute group_ids[itemId]
+      this.appendChild(hidden);
     }
-  });
+  }.bind(this));
 });
 </script>
 @endpush
