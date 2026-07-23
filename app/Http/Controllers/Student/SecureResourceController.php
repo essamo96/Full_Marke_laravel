@@ -24,4 +24,7 @@ class SecureResourceController extends Controller
 
         return view('student.resources.embed', compact('resource', 'student'));
     }
+
+    // add video link secure
+    
 }
