@@ -212,6 +212,11 @@
   <script src="{{ asset('assets/js/student-document-viewer.js') }}"></script>
   <script src="{{ asset('assets/js/student-image-viewer.js') }}"></script>
   <script>
+    // Disable right-click context menu on the entire page
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+
     var lessonImageDestroy = null;
     var lessonImageModalEl = document.getElementById('lessonImageModal');
     var lessonImageModal = new bootstrap.Modal(lessonImageModalEl);
