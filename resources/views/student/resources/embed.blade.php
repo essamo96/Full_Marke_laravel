@@ -74,7 +74,11 @@
     @endphp
 
     @if($resource->type === 'link' || $resource->isExternalLink())
-        <iframe src="{{ $embedUrl }}" allow="accelerated-video; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        <div style="position: relative; width: 100%; height: 100%;">
+            <iframe src="{{ $embedUrl }}" allow="accelerated-video; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+            {{-- Shield to block the 'Open in new window' button in Google Drive (top right) --}}
+            <div style="position: absolute; top: 0; right: 0; width: 80px; height: 80px; z-index: 9999; background: transparent; cursor: not-allowed;" title="{{ __('app.protected') }}"></div>
+        </div>
     @elseif($resource->type === 'video' && $resource->url)
         <video controls controlsList="{{ $resource->allow_download ? '' : 'nodownload' }}" playsinline>
             <source src="{{ route('student.resources.file', $resource) }}" type="video/mp4">
