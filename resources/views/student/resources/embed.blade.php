@@ -55,8 +55,26 @@
         {{ $student->phone ?? $student->id }}
     </div>
 
+    @php
+        $embedUrl = $resource->url;
+        // Fix Google Drive links for iframe embedding
+        if (str_contains($embedUrl, 'drive.google.com/file/d/')) {
+            $embedUrl = preg_replace('/\/view(\?.*)?$/', '/preview', $embedUrl);
+        }
+        // Fix YouTube links for iframe embedding
+        elseif (str_contains($embedUrl, 'youtube.com/watch')) {
+            parse_str(parse_url($embedUrl, PHP_URL_QUERY), $vars);
+            if (isset($vars['v'])) {
+                $embedUrl = 'https://www.youtube.com/embed/' . $vars['v'] . '?rel=0';
+            }
+        } elseif (str_contains($embedUrl, 'youtu.be/')) {
+            $path = parse_url($embedUrl, PHP_URL_PATH);
+            $embedUrl = 'https://www.youtube.com/embed' . $path . '?rel=0';
+        }
+    @endphp
+
     @if($resource->type === 'link' || $resource->isExternalLink())
-        <iframe src="{{ $resource->url }}" allow="accelerated-video; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        <iframe src="{{ $embedUrl }}" allow="accelerated-video; encrypted-media; picture-in-picture" allowfullscreen></iframe>
     @elseif($resource->type === 'video' && $resource->url)
         <video controls controlsList="{{ $resource->allow_download ? '' : 'nodownload' }}" playsinline>
             <source src="{{ route('student.resources.file', $resource) }}" type="video/mp4">
