@@ -57,9 +57,11 @@
 
     @php
         $embedUrl = $resource->url;
-        // Fix Google Drive links for iframe embedding
-        if (str_contains($embedUrl, 'drive.google.com/file/d/')) {
-            $embedUrl = preg_replace('/\/view(\?.*)?$/', '/preview', $embedUrl);
+        // Fix Google Drive links for iframe embedding (Extract ID and force /preview)
+        if (preg_match('#drive\.google\.com/file/d/([a-zA-Z0-9_-]+)#', $embedUrl, $matches)) {
+            $embedUrl = 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
+        } elseif (preg_match('#drive\.google\.com/open\?id=([a-zA-Z0-9_-]+)#', $embedUrl, $matches)) {
+            $embedUrl = 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
         }
         // Fix YouTube links for iframe embedding
         elseif (str_contains($embedUrl, 'youtube.com/watch')) {
@@ -75,7 +77,7 @@
 
     @if($resource->type === 'link' || $resource->isExternalLink())
         <div style="position: relative; width: 100%; height: 100%;">
-            <iframe src="{{ $embedUrl }}" allow="accelerated-video; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+            <iframe src="{{ $embedUrl }}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
             {{-- Shield to block the 'Open in new window' button in Google Drive (top right) --}}
             <div style="position: absolute; top: 0; right: 0; width: 80px; height: 80px; z-index: 9999; background: transparent; cursor: not-allowed;" title="{{ __('app.protected') }}"></div>
         </div>
