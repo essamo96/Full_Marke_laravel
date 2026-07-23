@@ -200,6 +200,33 @@ class VideoStreamController extends Controller
         ]);
     }
 
+    /**
+     * Downloads the original resource file if allowed by the admin.
+     */
+    public function download(Request $request, SubjectResource $resource)
+    {
+        $this->authorizeAccess($resource);
+
+        abort_unless($resource->allow_download, 403, 'غير مسموح بالتحميل');
+
+        if ($resource->isExternalLink()) {
+            return redirect()->away($resource->url);
+        }
+
+        abort_unless($resource->url, 404);
+
+        if ($resource->isVideo()) {
+            abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404, 'الملف الأصلي غير متوفر للتحميل');
+        } else {
+            abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404, 'الملف غير متوفر');
+        }
+
+        return Storage::disk('protected_videos')->download(
+            $resource->url,
+            $resource->original_filename ?: basename($resource->url)
+        );
+    }
+
     private function toYoutubeEmbed(string $url): ?string
     {
         if (preg_match('#youtu\.be/([A-Za-z0-9_-]{6,})#i', $url, $m)

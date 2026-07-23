@@ -35,7 +35,7 @@
               $isImage = $resource->isImage();
               $isLinkLike = $resource->isExternalLink();
             @endphp
-            <div class="col-md-6">
+            <div class="col-md-6 position-relative">
               @if($isVideo)
                 <button type="button"
                         class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none h-100 w-100 border-0 text-start"
@@ -47,7 +47,7 @@
                   <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197,168,128,0.1); color: var(--accent-color);">
                     <i class="bi bi-{{ $icon }} fs-5"></i>
                   </div>
-                  <div class="flex-grow-1" dir="auto">
+                  <div class="flex-grow-1" dir="auto" style="padding-left: 50px;">
                     <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
                     @if($isProcessing)
                       <div class="text-xs opacity-75" data-en="Still processing — check back soon" data-ar="جاري تجهيز الفيديو، حاول لاحقًا">جاري تجهيز الفيديو، حاول لاحقًا</div>
@@ -66,7 +66,7 @@
                   <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197,168,128,0.1); color: var(--accent-color);">
                     <i class="bi bi-{{ $icon }} fs-5"></i>
                   </div>
-                  <div class="flex-grow-1" dir="auto">
+                  <div class="flex-grow-1" dir="auto" style="padding-left: 50px;">
                     <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
                     @if($resource->description)
                       <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
@@ -78,13 +78,13 @@
                   <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197,168,128,0.1); color: var(--accent-color);">
                     <i class="bi bi-{{ $icon }} fs-5"></i>
                   </div>
-                  <div class="flex-grow-1" dir="auto">
+                  <div class="flex-grow-1" dir="auto" style="padding-left: 50px;">
                     <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
                     @if($resource->description)
                       <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
                     @endif
                   </div>
-                  <i class="bi bi-box-arrow-up-right opacity-50"></i>
+                  <i class="bi bi-box-arrow-up-right opacity-50" style="margin-left: 50px;"></i>
                 </a>
               @elseif($isImage)
                 <button type="button"
@@ -94,7 +94,7 @@
                   <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197,168,128,0.1); color: var(--accent-color);">
                     <i class="bi bi-image-fill fs-5"></i>
                   </div>
-                  <div class="flex-grow-1" dir="auto">
+                  <div class="flex-grow-1" dir="auto" style="padding-left: 50px;">
                     <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
                     @if($resource->description)
                       <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
@@ -102,9 +102,6 @@
                   </div>
                 </button>
               @elseif($isLinkLike)
-                {{-- Never a plain <a href> here: the raw external URL (YouTube/Zoom/etc.)
-                     must not sit in static page source where it can be copied and shared
-                     with anyone who never registered for this subject. --}}
                 <button type="button"
                         class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none h-100 w-100 border-0 text-start"
                         style="background: var(--bg-secondary); border: 1px solid var(--separator-color);"
@@ -112,13 +109,19 @@
                   <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197,168,128,0.1); color: var(--accent-color);">
                     <i class="bi bi-{{ $icon }} fs-5"></i>
                   </div>
-                  <div class="flex-grow-1" dir="auto">
+                  <div class="flex-grow-1" dir="auto" style="padding-left: 50px;">
                     <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
                     @if($resource->description)
                       <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
                     @endif
                   </div>
                 </button>
+              @endif
+
+              @if($resource->allow_download)
+                <a href="{{ route('student.resources.download', $resource) }}" target="_blank" class="position-absolute d-flex align-items-center justify-content-center rounded-circle" style="top: 50%; left: 1.5rem; transform: translateY(-50%); z-index: 10; width: 40px; height: 40px; background: rgba(197,168,128,0.15); color: var(--accent-color); text-decoration: none; transition: background 0.2s;" title="تحميل">
+                  <i class="bi bi-download fs-5"></i>
+                </a>
               @endif
             </div>
           @endforeach

@@ -62,6 +62,7 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('videos/{resource}/stream', [VideoStreamController::class, 'stream'])->name('video.stream');
         Route::get('resources/{resource}/file', [VideoStreamController::class, 'file'])->name('resources.file');
         Route::get('resources/{resource}/link', [VideoStreamController::class, 'link'])->name('resources.link');
+        Route::get('resources/{resource}/download', [VideoStreamController::class, 'download'])->name('resources.download');
 
         Route::get('exams', [\App\Http\Controllers\Student\ExamsController::class, 'index'])->name('exams.index');
         Route::get('exams/{exam}/take', [\App\Http\Controllers\Student\ExamsController::class, 'take'])->name('exams.take');
