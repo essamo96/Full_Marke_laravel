@@ -432,7 +432,8 @@
 
                 ClassicEditor
                     .create(el, {
-                        language: 'ar'
+                        language: 'ar',
+                        initialData: q.content || ''
                     })
                     .then(editor => {
                         this.editors[q.id] = editor;
