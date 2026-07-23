@@ -55,9 +55,10 @@
       if (width && height) {
         ctx.clearRect(0, 0, width, height);
 
-        var t = Date.now() / 4500;
-        var x = width * (0.5 + 0.36 * Math.cos(t));
-        var y = height * (0.5 + 0.36 * Math.sin(t * 1.3));
+        var t = (Date.now() % 14000) / 14000 * Math.PI * 2;
+        var wave = Math.cos(t) * -0.5 + 0.5;
+        var x = width * (0.15 + 0.7 * wave);
+        var y = height * 0.15;
 
         // Photo sized relative to the video frame so it stays legible on any player size.
         var photoSize = Math.max(28, Math.round(height * 0.09));
@@ -75,11 +76,11 @@
         var fontSize = Math.max(13, Math.round(height * 0.038));
         ctx.font = '700 ' + fontSize + 'px "Segoe UI", Tahoma, sans-serif';
         ctx.textAlign = 'center';
-        ctx.lineWidth = Math.max(2, fontSize * 0.16);
-        ctx.strokeStyle = '#ffffff';
-        ctx.fillStyle = '#e6231e';
-        ctx.shadowColor = 'rgba(0,0,0,0.45)';
-        ctx.shadowBlur = 3;
+        ctx.lineWidth = Math.max(3, fontSize * 0.2);
+        ctx.strokeStyle = '#000000';
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 4;
         ctx.strokeText(studentName, x, y + fontSize * 0.3);
         ctx.fillText(studentName, x, y + fontSize * 0.3);
       }

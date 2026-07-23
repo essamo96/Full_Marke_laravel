@@ -47,9 +47,10 @@
       if (width && height) {
         ctx.clearRect(0, 0, width, height);
 
-        var t = Date.now() / 5000;
-        var x = width * (0.5 + 0.4 * Math.cos(t));
-        var y = height * (0.15 + 0.7 * ((Math.sin(t * 1.15) + 1) / 2));
+        var t = (Date.now() % 14000) / 14000 * Math.PI * 2;
+        var wave = Math.cos(t) * -0.5 + 0.5;
+        var x = width * (0.15 + 0.7 * wave);
+        var y = height * 0.15;
 
         var photoSize = Math.max(24, Math.round(width * 0.05));
 
@@ -66,9 +67,9 @@
         var fontSize = Math.max(12, Math.round(width * 0.018));
         ctx.font = '700 ' + fontSize + 'px "Segoe UI", Tahoma, sans-serif';
         ctx.textAlign = 'center';
-        ctx.lineWidth = Math.max(2, fontSize * 0.16);
-        ctx.strokeStyle = '#ffffff';
-        ctx.fillStyle = '#e6231e';
+        ctx.lineWidth = Math.max(3, fontSize * 0.2);
+        ctx.strokeStyle = '#000000';
+        ctx.fillStyle = '#ffffff';
         ctx.strokeText(studentName, x, y + fontSize * 0.3);
         ctx.fillText(studentName, x, y + fontSize * 0.3);
       }

@@ -24,28 +24,34 @@
         }
         .watermark {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.15;
+            top: 15%;
+            left: 5%;
+            opacity: 0.25;
             pointer-events: none;
-            font-size: 5vw;
+            font-size: 4vw;
             color: #ffffff;
             z-index: 9999;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            /* إضافة Stroke أسود حول النص */
+            -webkit-text-stroke: 1.5px #000;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             user-select: none;
             white-space: nowrap;
             font-family: sans-serif;
             font-weight: bold;
+            /* الحركة: 14 ثانية كاملة = 7 ثواني للذهاب + 7 ثواني للعودة */
+            animation: moveSideToSide 14s ease-in-out infinite;
         }
-        /* Moving watermark animation to make it harder to remove statically */
-        @keyframes drift {
-            0% { transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
-            50% { transform: translate(-50%, -60%) rotate(5deg) scale(1.1); }
-            100% { transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
-        }
-        .watermark {
-            animation: drift 20s infinite ease-in-out;
+
+        /* تحريك من اليسار لليمين والعكس دون الخروج من الشاشة */
+        @keyframes moveSideToSide {
+            0%, 100% { 
+                left: 5%; 
+                transform: translateX(0);
+            }
+            50% { 
+                left: 95%; 
+                transform: translateX(-100%);
+            }
         }
     </style>
 </head>
