@@ -85,13 +85,7 @@
             </div>
             <div id="studentNotificationsList" class="p-3" style="max-height: 380px; overflow-y: auto;">
               @forelse($headerUnreadNotifications as $notification)
-                @php
-                  $notificationUrl = $notification->data['url'] ?? '#';
-                  if (str_contains($notificationUrl, '/public/student')) {
-                      $notificationUrl = str_replace('/public/student', '/student', $notificationUrl);
-                  }
-                @endphp
-                <a href="{{ $notificationUrl }}" class="d-block text-decoration-none p-3 rounded-3 mb-2 student-notification-item" data-id="{{ $notification->id }}" style="color: var(--text-primary);">
+                <a href="{{ str_replace('/public/student', '/student', $notification->data['url'] ?? '#') }}" class="d-block text-decoration-none p-3 rounded-3 mb-2 student-notification-item" data-id="{{ $notification->id }}" style="color: var(--text-primary);">
                   <div class="d-flex gap-3 align-items-start">
                     <div class="flex-shrink-0 mt-1">
                       <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: rgba(197, 168, 128, 0.15);">
