@@ -159,7 +159,7 @@
 
                                     <div class="mb-4">
                                         <label class="form-label required">نص السؤال</label>
-                                        <textarea :name="`questions[${qIndex}][content]`" class="form-control editor-textarea" x-init="$nextTick(() => { $el.value = q.content; initEditor($el, q) })"></textarea>
+                                        <textarea :name="`questions[${qIndex}][content]`" class="form-control editor-textarea" x-init="$nextTick(() => { $el.value = q.content; initEditor($el, q) }); return () => { if ($el.ckeditorInstance) { $el.ckeditorInstance.destroy(); delete $el.ckeditorInstance; $el.removeAttribute('data-editor-init'); } }"></textarea>
                                     </div>
 
                                     <!-- Options Area -->
@@ -435,6 +435,7 @@
                     })
                     .then(editor => {
                         this.editors[q.id] = editor;
+                        el.ckeditorInstance = editor;
                         editor.model.document.on('change:data', () => {
                             q.content = editor.getData();
                             el.value = editor.getData(); // forcefully update the textarea value for form submission
