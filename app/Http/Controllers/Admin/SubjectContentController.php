@@ -131,10 +131,10 @@ class SubjectContentController extends AdminController
             return response()->json(['success' => false, 'message' => __('app.not_found')], 422);
         }
 
-        $processingStatus = 'ready';
-        $storedPath = null;
-
-        if (! empty($data['uploaded_path']) && Storage::disk('protected_videos')->exists($data['uploaded_path'])) {
+        if (! empty($data['uploaded_path'])) {
+            if (! Storage::disk('protected_videos')->exists($data['uploaded_path'])) {
+                return response()->json(['success' => false, 'message' => 'الملف المرفوع غير موجود، يرجى إعادة الرفع'], 422);
+            }
             $extension = pathinfo($data['uploaded_path'], PATHINFO_EXTENSION);
             if (!$extension) $extension = $data['type'] === 'video' ? 'mp4' : 'bin';
             $storedPath = 'resources/'.Str::uuid().'.'.$extension;
@@ -144,6 +144,12 @@ class SubjectContentController extends AdminController
         } else {
             $storedPath = $data['url'] ?? null;
         }
+
+        if (! $storedPath) {
+            return response()->json(['success' => false, 'message' => 'يرجى إرفاق ملف أو رابط صحيح'], 422);
+        }
+
+        $processingStatus = ($data['type'] === 'video' && ! preg_match('#^https?://#i', (string) $storedPath)) ? 'processing' : 'ready';
 
         $resource = SubjectResource::create([
             'subject_id' => $subjectId,
@@ -158,6 +164,10 @@ class SubjectContentController extends AdminController
             'allow_download' => $data['allow_download'] ?? false,
             'is_active' => true,
         ]);
+
+        if ($processingStatus === 'processing') {
+            ProcessLessonVideo::dispatch($resource->id);
+        }
 
         return response()->json(['success' => true, 'id' => $resource->getRouteKey()]);
     }
