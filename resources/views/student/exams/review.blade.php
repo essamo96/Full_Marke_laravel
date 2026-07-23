@@ -46,7 +46,7 @@
       </div>
 
       <div class="text-white fs-5 lh-lg mb-4 content-area">
-        {{ strip_tags($answer->question?->content) }}
+        {{ strip_tags($answer->question?->content ?? '') }}
       </div>
 
       @if($answer->question?->type === 'essay')
