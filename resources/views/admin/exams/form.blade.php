@@ -159,9 +159,7 @@
 
                                     <div class="mb-4">
                                         <label class="form-label required">نص السؤال</label>
-                                        <div wire:ignore x-ignore>
-                                            <textarea :name="`questions[${qIndex}][content]`" class="form-control editor-textarea" x-init="$nextTick(() => { $el.value = q.content; initEditor($el, q) })"></textarea>
-                                        </div>
+                                        <textarea :name="`questions[${qIndex}][content]`" class="form-control editor-textarea" x-init="$nextTick(() => { $el.value = q.content; initEditor($el, q) })"></textarea>
                                     </div>
 
                                     <!-- Options Area -->
