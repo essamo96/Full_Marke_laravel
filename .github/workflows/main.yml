@@ -42,30 +42,24 @@ jobs:
           npm ci # أفضل من npm install في بيئات الـ CI/CD
           npm run build
 
-      - name: 📂 Sync files to Server
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: 📂 Sync files to Server (rsync via SSH)
         env:
-          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-        with:
-          server: 92.113.19.218
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          protocol: ftp
-          security: loose
-          server-dir: /domains/fullmarkacademy.com/public_html/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            vendor/**
-            **/tests/**
-            **/storage/*.key
-            .env
-            .env.example
-            phpunit.xml
-            README.md
-            docker-compose.yml
-            docker-compose.override.yml
-            .editorconfig
-            .styleci.yml
+          SSHPASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y sshpass rsync
+          sshpass -e rsync -avz --delete \
+            --exclude='.git/' \
+            --exclude='node_modules/' \
+            --exclude='vendor/' \
+            --exclude='tests/' \
+            --exclude='storage/*.key' \
+            --exclude='.env' \
+            --exclude='.env.example' \
+            --exclude='phpunit.xml' \
+            --exclude='README.md' \
+            --exclude='docker-compose.yml' \
+            --exclude='docker-compose.override.yml' \
+            --exclude='.editorconfig' \
+            --exclude='.styleci.yml' \
+            -e "ssh -p 65002 -o StrictHostKeyChecking=no" \
+            ./ ${{ secrets.FTP_USERNAME }}@92.113.19.218:/home/${{ secrets.FTP_USERNAME }}/domains/fullmarkacademy.com/public_html/
