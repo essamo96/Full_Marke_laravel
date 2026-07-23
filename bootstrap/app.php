@@ -23,8 +23,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'student.verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
         ]);
 
-        // /login now redirects to /admin/login (route named 'login' = admin login)
-        $middleware->redirectGuestsTo(fn () => route('login'));
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('admin') || $request->is('admin/*')) {
+                return route('admin.login');
+            }
+            if ($request->is('teacher') || $request->is('teacher/*')) {
+                return route('teacher.login');
+            }
+            return route('student.login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
