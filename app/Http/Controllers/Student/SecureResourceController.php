@@ -14,14 +14,8 @@ class SecureResourceController extends Controller
      * Embed a secure link or resource within an iframe.
      * Prevents direct access to the URL by wrapping it in a protected view.
      */
-    public function embed(Request $request, $id)
+    public function embed(Request $request, SubjectResource $resource)
     {
-        try {
-            $resourceId = Crypt::decrypt($id);
-            $resource = SubjectResource::findOrFail($resourceId);
-        } catch (\Exception $e) {
-            abort(404);
-        }
 
         $student = Auth::guard('student')->user();
         if (!$student) {
