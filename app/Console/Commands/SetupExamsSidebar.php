@@ -17,20 +17,27 @@ class SetupExamsSidebar extends Command
     {
         $this->info('Setting up Exams sidebar and permissions...');
 
-        // 1. Create Parent Menu (الامتحانات)
+        // 1. Remove old "exams" parent if it exists to avoid conflicts
+        $oldExams = PermissionsGroup::where('name', 'exams')->where('parent_id', 0)->first();
+        if ($oldExams) {
+            $oldExams->delete();
+            $this->info('Old Exams root menu removed.');
+        }
+
+        // 2. Create Parent Menu (الامتحانات)
         $parent = PermissionsGroup::updateOrCreate(
             ['name' => 'exams_parent', 'parent_id' => 0],
             [
                 'name_ar' => 'الامتحانات',
                 'name_en' => 'Exams',
                 'icon' => 'bi-journal-check',
-                'sort' => 60, // Adjust sort order as needed
+                'sort' => 60,
                 'status' => 1
             ]
         );
 
-        // 2. Create Child Menu (إدارة الامتحانات)
-        $child = PermissionsGroup::updateOrCreate(
+        // 3. Create Child Menu (إدارة الامتحانات)
+        $child1 = PermissionsGroup::updateOrCreate(
             ['name' => 'exams', 'parent_id' => $parent->id],
             [
                 'name_ar' => 'إدارة الامتحانات',
@@ -41,16 +48,29 @@ class SetupExamsSidebar extends Command
             ]
         );
 
-        // 3. Generate CRUD permissions for the parent and child menu
-        $parent->generateCrudPermissions();
-        $child->generateCrudPermissions();
+        // 4. Move/Create Child Menu (نتائج الامتحانات)
+        $child2 = PermissionsGroup::updateOrCreate(
+            ['name' => 'exams_results'],
+            [
+                'parent_id' => $parent->id,
+                'name_ar' => 'نتائج الامتحانات',
+                'name_en' => 'Exam Results',
+                'icon' => 'bi-file-earmark-bar-graph',
+                'sort' => 2,
+                'status' => 1
+            ]
+        );
 
-        // 4. Assign permissions to Super Admin (Role ID: 1)
+        // 5. Generate CRUD permissions
+        $parent->generateCrudPermissions();
+        $child1->generateCrudPermissions();
+        $child2->generateCrudPermissions();
+
+        // 6. Assign permissions to Super Admin (Role ID: 1)
         $superAdmin = Role::where('guard_name', 'admin')->where('name', 'Super Admin')->first();
         
         if ($superAdmin) {
-            // Give all newly created permissions for "exams_parent" and "exams" to the Super Admin
-            $permissions = Permission::whereIn('group_id', [$parent->id, $child->id])->get();
+            $permissions = Permission::whereIn('group_id', [$parent->id, $child1->id, $child2->id])->get();
             $superAdmin->givePermissionTo($permissions);
             $this->info('Permissions assigned to Super Admin successfully.');
         } else {
