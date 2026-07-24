@@ -57,8 +57,13 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
+        $todayStr = strtolower(now()->format('D'));
+        $todaysSessions = $groups->filter(function ($g) use ($todayStr) {
+            return is_array($g->days) && in_array($todayStr, $g->days);
+        })->sortBy('start_time');
+
         return view('teacher.dashboard.index', compact(
-            'teacher', 'groups', 'programBreakdown', 'totalStudents', 'upcomingExams', 'mostAbsentStudents'
+            'teacher', 'groups', 'programBreakdown', 'totalStudents', 'upcomingExams', 'mostAbsentStudents', 'todaysSessions'
         ));
     }
 }
