@@ -63,12 +63,31 @@
 
     @php
         $embedUrl = $resource->url;
+        
         // Fix Google Drive links for iframe embedding (Extract ID and force /preview)
+        // Matches /file/d/ID
         if (preg_match('#drive\.google\.com/file/d/([a-zA-Z0-9_-]+)#', $embedUrl, $matches)) {
             $embedUrl = 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
-        } elseif (preg_match('#drive\.google\.com/open\?id=([a-zA-Z0-9_-]+)#', $embedUrl, $matches)) {
+        } 
+        // Matches /open?id=ID or /uc?id=ID
+        elseif (preg_match('#drive\.google\.com/(?:open|uc)\?(?:export=\w+&)?id=([a-zA-Z0-9_-]+)#', $embedUrl, $matches)) {
             $embedUrl = 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
         }
+        // Matches Google Docs/Sheets/Slides
+        elseif (preg_match('#docs\.google\.com/(?:document|spreadsheets|presentation)/d/([a-zA-Z0-9_-]+)#', $embedUrl, $matches)) {
+            // keep the base url and append /preview
+            $parsed = parse_url($embedUrl);
+            $embedUrl = $parsed['scheme'] . '://' . $parsed['host'] . $parsed['path'];
+            $embedUrl = preg_replace('#/(edit|view).*$#', '/preview', $embedUrl);
+            if (!str_ends_with($embedUrl, '/preview')) {
+                $embedUrl = rtrim($embedUrl, '/') . '/preview';
+            }
+        }
+        // Matches Drive Folders
+        elseif (preg_match('#drive\.google\.com/drive/(?:u/\d+/)?folders/([a-zA-Z0-9_-]+)#', $embedUrl, $matches)) {
+            $embedUrl = 'https://drive.google.com/embeddedfolderview?id=' . $matches[1] . '#list';
+        }
+
         // Fix YouTube links for iframe embedding
         elseif (str_contains($embedUrl, 'youtube.com/watch')) {
             parse_str(parse_url($embedUrl, PHP_URL_QUERY), $vars);

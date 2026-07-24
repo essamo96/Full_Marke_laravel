@@ -195,7 +195,7 @@
                 </div>
 
                 <div id="iframeWrapper" class="d-none mb-4 shadow-lg" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;">
-                    <iframe id="iframePlayer" style="width: 100%; height: 100%; border: 0;" allow="accelerated-video; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+                    <iframe id="iframePlayer" style="width: 100%; height: 100%; border: 0;" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>
                 </div>
 
                 <div class="glass-panel rounded-4 p-4 mt-4 bg-pattern-gold" style="border: 1px solid rgba(255,255,255,0.1);">
