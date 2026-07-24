@@ -241,11 +241,37 @@
         }
       }
 
+      function handleNewExam(data) {
+          // First, do the regular processing (add to dropdown list, badge, sound)
+          handleIncoming(data);
+          
+          const message = typeof data.message === 'object' ? data.message.message : data.message;
+          const url = data.url || '#';
+          
+          // Show a large SweetAlert popup
+          if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                  title: 'امتحان جديد متاح!',
+                  text: message,
+                  icon: 'info',
+                  showCancelButton: true,
+                  confirmButtonText: 'الذهاب للامتحان الآن',
+                  cancelButtonText: 'إغلاق',
+                  confirmButtonColor: 'var(--accent-color)',
+                  backdrop: `rgba(0,0,0,0.8)`
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      window.location.href = url;
+                  }
+              });
+          }
+      }
+
       channel.bind('StudentFeeDuesEvent', handleIncoming);
       channel.bind('StudentPaymentConfirmedEvent', handleIncoming);
-      channel.bind('NewExamPublishedEvent', handleIncoming);
+      channel.bind('NewExamPublishedEvent', handleNewExam);
       channel.bind('NewGroupNoteEvent', handleIncoming);
-      channel.bind('ExamStartingNowEvent', handleIncoming);
+      channel.bind('ExamStartingNowEvent', handleNewExam);
     })();
 
     function showStudentToast(message) {

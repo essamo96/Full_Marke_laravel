@@ -33,10 +33,20 @@ class ExamsController extends Controller
 
     public function take(Exam $exam)
     {
-        // TODO: Validate if student can take this exam (not excluded, in time, didn't submit before)
+        $student = auth('student')->user();
+
+        // Check if student already submitted this exam
+        $existingGrade = \App\Models\Grade::where('student_id', $student->id)
+                            ->where('exam_id', $exam->id)
+                            ->first();
+                            
+        if ($existingGrade) {
+            return redirect()->route('student.results.show', $existingGrade->id) // assuming this route exists or we can just redirect to index
+                ->with('error', 'لقد قمت بتقديم هذا الامتحان مسبقاً.');
+        }
+
         $exam->load('questions.options');
         
-        $student = auth('student')->user();
         $cacheKey = 'exam_start_' . $student->id . '_' . $exam->id;
         
         if (!\Illuminate\Support\Facades\Cache::has($cacheKey)) {
@@ -66,10 +76,18 @@ class ExamsController extends Controller
 
     public function submit(Request $request, Exam $exam)
     {
-        // Ideally we should record this in an `exam_submissions` or `grades` table.
-        // We will assume a simple Grade recording for now.
         $student = auth('student')->user();
         
+        // Prevent re-submission
+        $existingGrade = \App\Models\Grade::where('student_id', $student->id)
+                            ->where('exam_id', $exam->id)
+                            ->first();
+                            
+        if ($existingGrade) {
+            return redirect()->route('student.results.show', $existingGrade->id)
+                ->with('error', 'لا يمكنك تسليم الامتحان أكثر من مرة. تم احتساب نتيجتك السابقة.');
+        }
+
         $exam->load('questions.options');
         
         $totalPoints = 0;

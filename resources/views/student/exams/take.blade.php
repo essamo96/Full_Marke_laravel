@@ -4,14 +4,20 @@
 @section('exam_title', $exam->title)
 
 @section('exam_timer')
-    @if($exam->duration_minutes)
-        <div class="d-flex align-items-center gap-2 bg-dark rounded-pill px-4 py-2 border border-secondary" id="timerContainer">
-            <i class="bi bi-stopwatch text-gold fs-4"></i>
-            <span class="fw-bold fs-4 text-white" id="countdownTimer">--:--:--</span>
+    <div class="d-flex align-items-center gap-3">
+        <div id="violationBadge" class="badge bg-danger rounded-pill px-3 py-2 d-none" style="font-size: 1rem;">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> المخالفات: <span id="violationCountSpan">0</span> / 3
         </div>
-    @else
-        <div class="badge bg-success rounded-pill px-3 py-2">مفتوح الوقت</div>
-    @endif
+        
+        @if($exam->duration_minutes)
+            <div class="d-flex align-items-center gap-2 bg-dark rounded-pill px-4 py-2 border border-secondary" id="timerContainer">
+                <i class="bi bi-stopwatch text-gold fs-4"></i>
+                <span class="fw-bold fs-4 text-white" id="countdownTimer">--:--:--</span>
+            </div>
+        @else
+            <div class="badge bg-success rounded-pill px-3 py-2">مفتوح الوقت</div>
+        @endif
+    </div>
 @endsection
 
 @section('content')
@@ -227,12 +233,21 @@
                 return;
             }
 
+            // Show warning badge
+            const badge = document.getElementById('violationBadge');
+            const countSpan = document.getElementById('violationCountSpan');
+            if (badge && countSpan) {
+                badge.classList.remove('d-none');
+                countSpan.textContent = totalViolations;
+            }
+
             Swal.fire({
                 title: 'تنبيه مراقبة',
                 text: message + ' (' + totalViolations + ' من ' + VIOLATION_LIMIT + ')',
                 icon: 'warning',
-                timer: 3000,
-                showConfirmButton: false
+                confirmButtonText: 'أتعهد بعدم التكرار',
+                confirmButtonColor: '#d33',
+                allowOutsideClick: false
             });
         }).catch(() => {});
     }

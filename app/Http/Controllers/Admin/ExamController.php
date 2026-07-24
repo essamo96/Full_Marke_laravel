@@ -39,7 +39,7 @@ class ExamController extends AdminController
         $exam = $this->examService->saveExam($request->validated());
 
         if ($exam->status === 'published') {
-            NotifyStudentsOfNewExam::dispatch($exam);
+            NotifyStudentsOfNewExam::dispatchSync($exam);
         }
 
         return redirect()->route('exams.view')
@@ -59,7 +59,7 @@ class ExamController extends AdminController
         $exam = $this->examService->saveExam($request->validated(), $exam);
 
         if ($oldStatus !== 'published' && $exam->status === 'published') {
-            NotifyStudentsOfNewExam::dispatch($exam);
+            NotifyStudentsOfNewExam::dispatchSync($exam);
         }
 
         return redirect()->route('exams.view')
