@@ -32,6 +32,16 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             return route('student.login');
         });
+
+        $middleware->redirectUsersTo(function (Request $request) {
+            if ($request->is('admin') || $request->is('admin/*')) {
+                return route('admin.dashboard');
+            }
+            if ($request->is('teacher') || $request->is('teacher/*')) {
+                return route('teacher.dashboard');
+            }
+            return route('student.dashboard');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

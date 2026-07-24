@@ -37,7 +37,7 @@
           </div>
           
           <div class="position-relative z-1 d-flex flex-wrap gap-3 mt-4 mt-md-0 align-items-center justify-content-center">
-             <a href="{{ route('teacher.profile.index') }}" class="btn btn-luxury px-4 py-3 d-flex align-items-center gap-2 fw-bold">
+             <a href="{{ route('teacher.profile.edit') }}" class="btn btn-luxury px-4 py-3 d-flex align-items-center gap-2 fw-bold">
                <i class="bi bi-person-gear fs-5"></i> <span data-en="Edit Profile" data-ar="تعديل الملف">Edit Profile</span>
              </a>
           </div>
