@@ -52,13 +52,13 @@
         </div>
 
         <div class="text-white fs-5 lh-lg mb-4 content-area no-select">
-          {{ strip_tags($answer->question?->content ?? '') }}
+          {!! $answer->question?->content ?? '' !!}
         </div>
 
         @if($answer->question?->type === 'essay')
           <div class="rounded-3 p-3 mb-2" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
             <div class="text-white opacity-50 fs-8 mb-1">إجابتك:</div>
-            <div class="text-white no-select">{{ $answer->essay_answer ?: 'لم تُجب' }}</div>
+            <div class="text-white no-select">{!! $answer->essay_answer ?: 'لم تُجب' !!}</div>
           </div>
           @if($answer->points_earned === null)
             <div class="text-warning fs-7"><i class="bi bi-hourglass-split me-1"></i> بانتظار التصحيح اليدوي من المدرّس</div>
@@ -72,11 +72,15 @@
               @endphp
               <div class="d-flex align-items-center gap-2 p-3 rounded-3 border no-select"
                    style="{{ $isCorrectOpt ? 'background: rgba(40,167,69,0.15); border-color: rgba(40,167,69,0.4) !important;' : ($isSelected ? 'background: rgba(220,53,69,0.15); border-color: rgba(220,53,69,0.4) !important;' : 'border-color: rgba(255,255,255,0.08) !important;') }}">
-                @if($isCorrectOpt) <i class="bi bi-check-circle-fill text-success"></i>
-                @elseif($isSelected) <i class="bi bi-x-circle-fill text-danger"></i>
-                @else <i class="bi bi-circle text-white opacity-25"></i> @endif
-                <span class="text-white">{{ $option->option_text }}</span>
-                @if($isSelected) <span class="fs-8 text-white opacity-50 ms-auto">(إجابتك)</span> @endif
+                @if($isCorrectOpt) <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                @elseif($isSelected) <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                @else <i class="bi bi-circle text-white opacity-25 fs-5"></i> @endif
+                
+                <span class="{{ $isCorrectOpt ? 'text-success fw-bold' : ($isSelected ? 'text-danger fw-bold' : 'text-white') }}">
+                  {!! $option->option_text !!}
+                </span>
+                
+                @if($isSelected) <span class="fs-8 {{ $isCorrectOpt ? 'text-success' : 'text-danger' }} opacity-75 ms-auto">(إجابتك)</span> @endif
               </div>
             @endforeach
           </div>
