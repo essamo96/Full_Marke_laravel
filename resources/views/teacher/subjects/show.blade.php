@@ -30,42 +30,6 @@
     @endforelse
   </div>
 
-  <h3 class="h5 fw-bold mb-3" style="color: var(--text-primary);" data-en="Educational Resources" data-ar="الموارد التعليمية">الموارد التعليمية</h3>
-  <div class="glass-panel rounded-4 p-2">
-    <div class="accordion teacher-accordion" id="stagesAccordion">
-      @forelse($subject->stages as $stageIndex => $stage)
-        <div class="accordion-item">
-          <h2 class="accordion-header">
-            <button class="accordion-button {{ $stageIndex === 0 ? '' : 'collapsed' }}" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStage{{ $stage->id }}">
-              {{ $stage->name_ar ?? $stage->name_en }}
-            </button>
-          </h2>
-          <div id="collapseStage{{ $stage->id }}" class="accordion-collapse collapse {{ $stageIndex === 0 ? 'show' : '' }}">
-            <div class="accordion-body p-3">
-              @foreach($stage->units as $unit)
-                <div class="fw-bold fs-7 text-uppercase opacity-50 mb-2" style="color: var(--text-primary);">{{ $unit->name_ar ?? $unit->name_en }}</div>
-                @foreach($unit->lessons as $lesson)
-                  <div class="mb-2 ps-3">
-                    <div class="fw-medium fs-7 mb-1" style="color: var(--text-primary);">{{ $lesson->name_ar ?? $lesson->name_en }}</div>
-                    @forelse($lesson->resources as $resource)
-                      <div class="text-muted fs-7 d-flex align-items-center gap-2 ps-3">
-                        <i class="bi bi-{{ $resource->type === 'video' ? 'play-circle-fill text-danger' : 'file-earmark-text-fill text-info' }}"></i>
-                        <span>{{ $resource->title }}</span>
-                      </div>
-                    @empty
-                      <div class="text-muted fs-7 ps-3" data-en="No resources yet." data-ar="لا توجد موارد بعد.">لا توجد موارد بعد.</div>
-                    @endforelse
-                  </div>
-                @endforeach
-              @endforeach
-            </div>
-          </div>
-        </div>
-      @empty
-        <div class="p-4 text-center text-muted" data-en="No curriculum structure yet." data-ar="لا يوجد هيكل مناهج بعد.">لا يوجد هيكل مناهج بعد.</div>
-      @endforelse
-    </div>
-  </div>
 
   <div class="mt-4">
     <a href="{{ route('teacher.content.manage', $subject) }}" class="btn btn-luxury" data-en="Manage Resources" data-ar="إدارة الموارد">إدارة الموارد</a>

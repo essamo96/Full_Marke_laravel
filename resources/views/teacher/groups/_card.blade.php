@@ -15,7 +15,17 @@
           <i class="bi bi-people-fill" style="font-size: 2.5rem; color: var(--accent-color); opacity: 0.6;"></i>
         </div>
       @endif
-      <span class="badge {{ $group->is_active ? 'bg-success' : 'bg-secondary' }} position-absolute top-0 end-0 m-2">{{ $group->is_active ? 'نشطة' : 'غير نشطة' }}</span>
+      @if($group->is_active)
+        <div class="position-absolute top-0 end-0 m-3 px-3 py-1 rounded-pill d-flex align-items-center gap-2 shadow-sm" style="background: rgba(32, 201, 151, 0.9); backdrop-filter: blur(4px); font-size: 0.75rem; font-weight: 700; color: #fff; z-index: 2;">
+          <span class="spinner-grow spinner-grow-sm text-white" style="width: 10px; height: 10px;" role="status" aria-hidden="true"></span>
+          <span data-en="Active" data-ar="مجموعة نشطة">مجموعة نشطة</span>
+        </div>
+      @else
+        <div class="position-absolute top-0 end-0 m-3 px-3 py-1 rounded-pill d-flex align-items-center gap-2 shadow-sm" style="background: rgba(108, 117, 125, 0.9); backdrop-filter: blur(4px); font-size: 0.75rem; font-weight: 700; color: #fff; z-index: 2;">
+          <i class="bi bi-pause-circle-fill"></i>
+          <span data-en="Inactive" data-ar="غير نشطة">غير نشطة</span>
+        </div>
+      @endif
     </div>
     <div class="p-4">
       <h5 class="fw-bold mb-1" style="color: var(--text-primary);">{{ $group->name }}</h5>

@@ -62,8 +62,14 @@ class DashboardController extends Controller
             return is_array($g->days) && in_array($todayStr, $g->days);
         })->sortBy('start_time');
 
+        $activeClassesCount = $groups->where('is_active', true)->count();
+        $pendingReviewsCount = \App\Models\Grade::whereIn('group_id', $groupIds)
+            ->whereNull('teacher_reviewed_at')
+            ->count();
+        $averageRating = 4.9;
+
         return view('teacher.dashboard.index', compact(
-            'teacher', 'groups', 'programBreakdown', 'totalStudents', 'upcomingExams', 'mostAbsentStudents', 'todaysSessions'
+            'teacher', 'groups', 'programBreakdown', 'totalStudents', 'upcomingExams', 'mostAbsentStudents', 'todaysSessions', 'activeClassesCount', 'pendingReviewsCount', 'averageRating'
         ));
     }
 }

@@ -22,11 +22,11 @@
           </div>
 
           <!-- Teacher Details -->
-          <div class="position-relative z-1 text-center text-md-start flex-grow-1">
+          <div class="position-relative z-1 flex-grow-1" style="text-align: {{ app()->getLocale() == 'ar' ? 'right' : 'left' }};">
             <h1 class="display-6 fw-bold mb-2" style="color: var(--text-primary); font-family: 'Tajawal', 'Almarai', sans-serif;">
               <span data-en="Welcome," data-ar="مرحباً،">Welcome,</span> <span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ $teacher->name }}</span>
             </h1>
-            <div class="d-flex flex-column flex-sm-row align-items-center justify-content-center justify-content-md-start gap-3 mt-3">
+            <div class="d-flex flex-column flex-sm-row align-items-center justify-content-start gap-3 mt-3">
               <span class="fs-6 opacity-75 fw-medium d-flex align-items-center gap-2">
                 <i class="bi bi-envelope text-gold fs-5"></i> {{ $teacher->email ?? '-' }}
               </span>
@@ -52,10 +52,9 @@
                 <div class="p-3 rounded-circle shadow-sm" style="background: rgba(197, 168, 128, 0.1); color: var(--accent-color);">
                   <i class="bi bi-people fs-4"></i>
                 </div>
-                <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2">+15 <i class="bi bi-arrow-up"></i></span>
               </div>
               <p class="mb-2 text-sm opacity-75 fw-medium" data-en="Total Students" data-ar="إجمالي الطلاب">Total Students</p>
-              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">240</h3>
+              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">{{ $totalStudents }}</h3>
             </div>
           </div>
           <!-- Stat 2 -->
@@ -67,7 +66,7 @@
                 </div>
               </div>
               <p class="mb-2 text-sm opacity-75 fw-medium" data-en="Active Classes" data-ar="الصفوف النشطة">Active Classes</p>
-              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">8</h3>
+              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">{{ $activeClassesCount }}</h3>
             </div>
           </div>
           <!-- Stat 3 -->
@@ -79,7 +78,7 @@
                 </div>
               </div>
               <p class="mb-2 text-sm opacity-75 fw-medium" data-en="Pending Reviews" data-ar="مراجعات معلقة">Pending Reviews</p>
-              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">12</h3>
+              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">{{ $pendingReviewsCount }}</h3>
             </div>
           </div>
           <!-- Stat 4 -->
@@ -92,7 +91,7 @@
                 <span class="text-sm fw-bold px-3 py-2 rounded-pill" style="background: rgba(197,168,128,0.1); color: var(--accent-color);">/ 5.0</span>
               </div>
               <p class="mb-2 text-sm opacity-75 fw-medium" data-en="Average Rating" data-ar="متوسط التقييم">Average Rating</p>
-              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">4.9</h3>
+              <h3 class="fw-bold mb-0 display-6" style="color: var(--text-primary);">{{ number_format($averageRating, 1) }}</h3>
             </div>
           </div>
         </section>
