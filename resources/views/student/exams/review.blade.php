@@ -28,65 +28,78 @@
       <button type="button" class="btn btn-glass" onclick="window.print()">
         <i class="bi bi-printer-fill me-1"></i> طباعة / تحميل النتيجة
       </button>
+      <button type="button" class="btn btn-outline-light" onclick="toggleReviewSection()">
+        <i class="bi bi-search me-1"></i> مراجعة الاخطاء
+      </button>
       <a href="{{ route('student.results.index') }}" class="btn btn-gold">
         <i class="bi bi-arrow-right me-1"></i> رجوع للنتائج
       </a>
     </div>
   </div>
 
-  @php($orderedAnswers = $grade->answers->sortBy(fn($a) => $a->question?->sort_order ?? 0)->values())
+  <div id="mistakesReviewSection" style="display: none;">
+    @php
+      $orderedAnswers = $grade->answers->sortBy(fn($a) => $a->question?->sort_order ?? 0)->values();
+    @endphp
 
-  @forelse($orderedAnswers as $index => $answer)
-    <div class="glass-panel rounded-4 p-4 p-md-5 mb-4">
-      <div class="d-flex justify-content-between align-items-start mb-4">
-        <h5 class="text-gold fw-bold m-0">سؤال {{ $index + 1 }}</h5>
-        <span class="badge {{ $answer->is_correct === true ? 'bg-success' : ($answer->is_correct === false ? 'bg-danger' : 'bg-secondary') }} text-white">
-          {{ $answer->points_earned !== null ? $answer->points_earned : '؟' }} / {{ $answer->question?->points }}
-        </span>
-      </div>
-
-      <div class="text-white fs-5 lh-lg mb-4 content-area">
-        {{ strip_tags($answer->question?->content ?? '') }}
-      </div>
-
-      @if($answer->question?->type === 'essay')
-        <div class="rounded-3 p-3 mb-2" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
-          <div class="text-white opacity-50 fs-8 mb-1">إجابتك:</div>
-          <div class="text-white">{{ $answer->essay_answer ?: 'لم تُجب' }}</div>
+    @forelse($orderedAnswers as $index => $answer)
+      <div class="glass-panel rounded-4 p-4 p-md-5 mb-4">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+          <h5 class="text-gold fw-bold m-0">سؤال {{ $index + 1 }}</h5>
+          <span class="badge {{ $answer->is_correct === true ? 'bg-success' : ($answer->is_correct === false ? 'bg-danger' : 'bg-secondary') }} text-white">
+            {{ $answer->points_earned !== null ? $answer->points_earned : '؟' }} / {{ $answer->question?->points }}
+          </span>
         </div>
-        @if($answer->points_earned === null)
-          <div class="text-warning fs-7"><i class="bi bi-hourglass-split me-1"></i> بانتظار التصحيح اليدوي من المدرّس</div>
+
+        <div class="text-white fs-5 lh-lg mb-4 content-area no-select">
+          {{ strip_tags($answer->question?->content ?? '') }}
+        </div>
+
+        @if($answer->question?->type === 'essay')
+          <div class="rounded-3 p-3 mb-2" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+            <div class="text-white opacity-50 fs-8 mb-1">إجابتك:</div>
+            <div class="text-white no-select">{{ $answer->essay_answer ?: 'لم تُجب' }}</div>
+          </div>
+          @if($answer->points_earned === null)
+            <div class="text-warning fs-7"><i class="bi bi-hourglass-split me-1"></i> بانتظار التصحيح اليدوي من المدرّس</div>
+          @endif
+        @else
+          <div class="d-flex flex-column gap-2">
+            @foreach($answer->question?->options ?? [] as $option)
+              @php
+                $isSelected = $option->id === $answer->selected_option_id;
+                $isCorrectOpt = $option->is_correct;
+              @endphp
+              <div class="d-flex align-items-center gap-2 p-3 rounded-3 border no-select"
+                   style="{{ $isCorrectOpt ? 'background: rgba(40,167,69,0.15); border-color: rgba(40,167,69,0.4) !important;' : ($isSelected ? 'background: rgba(220,53,69,0.15); border-color: rgba(220,53,69,0.4) !important;' : 'border-color: rgba(255,255,255,0.08) !important;') }}">
+                @if($isCorrectOpt) <i class="bi bi-check-circle-fill text-success"></i>
+                @elseif($isSelected) <i class="bi bi-x-circle-fill text-danger"></i>
+                @else <i class="bi bi-circle text-white opacity-25"></i> @endif
+                <span class="text-white">{{ $option->option_text }}</span>
+                @if($isSelected) <span class="fs-8 text-white opacity-50 ms-auto">(إجابتك)</span> @endif
+              </div>
+            @endforeach
+          </div>
         @endif
-      @else
-        <div class="d-flex flex-column gap-2">
-          @foreach($answer->question?->options ?? [] as $option)
-            @php
-              $isSelected = $option->id === $answer->selected_option_id;
-              $isCorrectOpt = $option->is_correct;
-            @endphp
-            <div class="d-flex align-items-center gap-2 p-3 rounded-3 border"
-                 style="{{ $isCorrectOpt ? 'background: rgba(40,167,69,0.15); border-color: rgba(40,167,69,0.4) !important;' : ($isSelected ? 'background: rgba(220,53,69,0.15); border-color: rgba(220,53,69,0.4) !important;' : 'border-color: rgba(255,255,255,0.08) !important;') }}">
-              @if($isCorrectOpt) <i class="bi bi-check-circle-fill text-success"></i>
-              @elseif($isSelected) <i class="bi bi-x-circle-fill text-danger"></i>
-              @else <i class="bi bi-circle text-white opacity-25"></i> @endif
-              <span class="text-white">{{ $option->option_text }}</span>
-              @if($isSelected) <span class="fs-8 text-white opacity-50 ms-auto">(إجابتك)</span> @endif
-            </div>
-          @endforeach
-        </div>
-      @endif
-    </div>
-  @empty
-    <div class="glass-panel rounded-4 p-5 text-center text-white opacity-75">
-      لا تتوفر تفاصيل الإجابات لهذا التقديم.
-    </div>
-  @endforelse
+      </div>
+    @empty
+      <div class="glass-panel rounded-4 p-5 text-center text-white opacity-75">
+        لا تتوفر تفاصيل الإجابات لهذا التقديم.
+      </div>
+    @endforelse
+  </div>
 
 </div>
 @endsection
 
 @push('styles')
 <style>
+  .no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
   .text-gold { color: var(--accent-color); }
   .btn-gold { background: var(--accent-color); color: #000; border: none; }
   .btn-gold:hover { background: #d4af37; color: #000; }
@@ -101,4 +114,31 @@
     .no-print { display: none !important; }
   }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+  function toggleReviewSection() {
+      const section = document.getElementById('mistakesReviewSection');
+      if (section.style.display === 'none') {
+          section.style.display = 'block';
+          section.scrollIntoView({ behavior: 'smooth' });
+      } else {
+          section.style.display = 'none';
+      }
+  }
+
+  // Anti-cheat deterrents
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('copy', e => e.preventDefault());
+  document.addEventListener('cut', e => e.preventDefault());
+  document.addEventListener('selectstart', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+      const blockedKey = e.key === 'F12'
+          || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C', 'i', 'j', 'c'].includes(e.key))
+          || (e.ctrlKey && ['u', 'U', 's', 'S'].includes(e.key))
+          || (e.ctrlKey && ['c', 'C', 'v', 'V'].includes(e.key));
+      if (blockedKey) e.preventDefault();
+  });
+</script>
 @endpush
