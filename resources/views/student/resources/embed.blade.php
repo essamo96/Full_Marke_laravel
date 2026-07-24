@@ -82,10 +82,10 @@
     @endphp
 
     @if($resource->type === 'link' || $resource->isExternalLink())
-        <div style="position: relative; width: 100%; height: 100%;">
-            <iframe src="{{ $embedUrl }}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        <div style="position: relative; width: 100%; height: 100%;" oncontextmenu="return false;">
+            <iframe src="{{ $embedUrl }}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen oncontextmenu="return false;"></iframe>
             {{-- Shield to block the 'Open in new window' button in Google Drive (top right) --}}
-            <div style="position: absolute; top: 0; right: 0; width: 80px; height: 80px; z-index: 9999; background: transparent; cursor: not-allowed;" title="{{ __('app.protected') }}"></div>
+            <div style="position: absolute; top: 0; right: 0; width: 80px; height: 80px; z-index: 9999; background: transparent; cursor: not-allowed;" title="{{ __('app.protected') }}" oncontextmenu="return false;"></div>
         </div>
     @elseif($resource->type === 'video' && $resource->url)
         <video controls controlsList="{{ $resource->allow_download ? '' : 'nodownload' }}" playsinline>
