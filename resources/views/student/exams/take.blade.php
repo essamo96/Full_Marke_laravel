@@ -263,6 +263,13 @@
             || (e.ctrlKey && ['u', 'U', 's', 'S'].includes(e.key));
         if (blockedKey) e.preventDefault();
     });
+    
+    // Prevent loading from bfcache when user clicks back button
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
 
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {

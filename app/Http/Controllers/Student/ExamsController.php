@@ -25,6 +25,9 @@ class ExamsController extends Controller
                 $query->whereNull('excluded_student_ids')
                       ->orWhereJsonDoesntContain('excluded_student_ids', $student->id);
             })
+            ->with(['grades' => function ($query) use ($student) {
+                $query->where('student_id', $student->id);
+            }])
             ->latest()
             ->get();
             

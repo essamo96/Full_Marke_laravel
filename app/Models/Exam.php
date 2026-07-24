@@ -44,4 +44,9 @@ class Exam extends Model
     {
         return $this->hasMany(Question::class)->orderBy('sort_order');
     }
+
+    public function grades()
+    {
+        return $this->hasMany(Grade::class);
+    }
 }

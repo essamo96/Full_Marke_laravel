@@ -53,10 +53,21 @@
                                 <div class="fs-8 text-white opacity-50">تاريخ: {{ $exam->start_time->format('Y-m-d') }}</div>
                             @endif
                         </div>
-                        <a href="{{ $isAvailable ? route('student.exams.take', $exam) : '#' }}" 
-                           class="btn btn-sm btn-gold rounded-pill {{ !$isAvailable ? 'disabled opacity-50' : '' }}">
-                            <i class="bi bi-play-circle-fill me-1"></i> بدء الامتحان
-                        </a>
+                        
+                        @php
+                            $hasSubmitted = $exam->grades->isNotEmpty();
+                        @endphp
+                        
+                        @if($hasSubmitted)
+                            <a href="{{ route('student.results.show', $exam->grades->first()->id) }}" class="btn btn-sm btn-success rounded-pill">
+                                <i class="bi bi-check-circle-fill me-1"></i> تم التسليم
+                            </a>
+                        @else
+                            <a href="{{ $isAvailable ? route('student.exams.take', $exam) : '#' }}" 
+                               class="btn btn-sm btn-gold rounded-pill {{ !$isAvailable ? 'disabled opacity-50' : '' }}">
+                                <i class="bi bi-play-circle-fill me-1"></i> بدء الامتحان
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>

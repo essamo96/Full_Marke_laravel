@@ -94,6 +94,17 @@
   </div>
 
 </div>
+@push('scripts')
+<script>
+    // Prevent user from going back to the exam submission page
+    if (window.history && window.history.pushState) {
+        window.history.pushState('forward', null, window.location.href);
+        window.addEventListener('popstate', function(e) {
+            window.history.pushState('forward', null, window.location.href);
+        });
+    }
+</script>
+@endpush
 @endsection
 
 @push('styles')
