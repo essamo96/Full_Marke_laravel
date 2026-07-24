@@ -12,6 +12,68 @@
 
 @section('content')
 
+  <style>
+    .teacher-content-modal .modal-content {
+      background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+      backdrop-filter: blur(24px);
+      color: var(--text-primary);
+    }
+
+    .teacher-content-modal .modal-header,
+    .teacher-content-modal .modal-footer {
+      border-color: rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .teacher-content-modal .modal-title,
+    .teacher-content-modal .form-label {
+      color: var(--text-primary);
+    }
+
+    .teacher-content-modal .form-control,
+    .teacher-content-modal .form-select,
+    .teacher-content-modal .form-control:focus,
+    .teacher-content-modal .form-select:focus {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.16);
+      color: var(--text-primary);
+      box-shadow: none;
+    }
+
+    .teacher-content-modal .form-control::placeholder {
+      color: rgba(255,255,255,0.55);
+    }
+
+    .teacher-content-modal .btn-glass {
+      background: rgba(255,255,255,0.08);
+      color: var(--text-primary);
+      border-color: rgba(255,255,255,0.14);
+    }
+
+    .teacher-content-modal .btn-luxury {
+      box-shadow: 0 12px 30px rgba(197, 168, 128, 0.18);
+    }
+
+    .teacher-content-modal .btn-close {
+      filter: brightness(0) invert(1);
+      opacity: 0.8;
+    }
+
+    .teacher-content-accordion .teacher-content-collapse {
+      visibility: visible !important;
+    }
+
+    .teacher-content-accordion .teacher-content-collapse:not(.show) {
+      display: none;
+    }
+
+    .teacher-content-accordion .teacher-content-collapse.show {
+      display: block;
+    }
+  </style>
+
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h1 class="h3 fw-bold mb-0" style="color: var(--text-primary);">{{ $subject->name }}</h1>
     <button type="button" class="btn btn-luxury" onclick="openUnitModal()">
@@ -19,7 +81,7 @@
     </button>
   </div>
 
-  <div class="accordion teacher-accordion" id="unitsAccordion">
+  <div class="accordion teacher-accordion teacher-content-accordion" id="unitsAccordion">
     @forelse($units as $unit)
       <div class="glass-panel rounded-4 p-3 mb-3">
         <div class="d-flex justify-content-between align-items-center" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#unit_{{ $unit->id }}">
@@ -29,7 +91,7 @@
             <button type="button" class="btn btn-sm btn-outline-danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit({{ $unit->id }})"><i class="bi bi-trash"></i></button>
           </div>
         </div>
-        <div id="unit_{{ $unit->id }}" class="collapse mt-3">
+        <div id="unit_{{ $unit->id }}" class="collapse mt-3 teacher-content-collapse">
           @forelse($unit->lessons as $lesson)
             <div class="rounded-3 p-3 mb-2" style="background: var(--bg-secondary);">
               <div class="d-flex justify-content-between align-items-center">
@@ -40,7 +102,7 @@
                   <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteLesson({{ $lesson->id }})"><i class="bi bi-trash"></i></button>
                 </div>
               </div>
-              <div id="lesson_res_{{ $lesson->id }}" class="collapse mt-3">
+              <div id="lesson_res_{{ $lesson->id }}" class="collapse mt-3 teacher-content-collapse">
                 <div class="table-responsive mb-2">
                   <table class="table table-borderless text-white align-middle mb-0">
                     <thead>
@@ -95,7 +157,7 @@
   </div>
 
   <!-- Add Unit Modal -->
-  <div class="modal fade" tabindex="-1" id="modal_add_unit">
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_add_unit">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -123,7 +185,7 @@
   </div>
 
   <!-- Add Lesson Modal -->
-  <div class="modal fade" tabindex="-1" id="modal_add_lesson">
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_add_lesson">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -151,7 +213,7 @@
   </div>
 
   <!-- Add Resource Modal -->
-  <div class="modal fade" tabindex="-1" id="modal_add_resource">
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_add_resource">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">

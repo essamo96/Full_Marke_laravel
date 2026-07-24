@@ -55,6 +55,7 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::post('grading/{grade}/approve', [GradingController::class, 'approve'])->name('grading.approve');
 
         Route::get('content', [ContentController::class, 'index'])->name('content.index');
+        Route::get('content-hub', [ContentController::class, 'hub'])->name('content.hub');
         Route::get('content/{subject}', [ContentController::class, 'manage'])->name('content.manage');
         Route::post('content/{subject}/units', [ContentController::class, 'storeUnit'])->name('content.store-unit');
         Route::delete('content/units/{unit}', [ContentController::class, 'destroyUnit'])->name('content.destroy-unit');

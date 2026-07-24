@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\EducationalLesson;
 use App\Models\EducationalStage;
 use App\Models\EducationalUnit;
+use App\Models\Group;
 use App\Models\Subject;
 use App\Models\SubjectResource;
 use Illuminate\Http\Request;
@@ -43,6 +44,22 @@ class ContentController extends Controller
         $subjects = $this->teacher()->subjects()->with('program')->get();
 
         return view('teacher.content.index', compact('subjects'));
+    }
+
+    public function hub()
+    {
+        $teacher = $this->teacher();
+
+        $subjects = $teacher->subjects()->with('program')->get();
+        $groups = Group::where('teacher_id', $teacher->id)
+            ->with(['subject.program'])
+            ->withCount(['registrations as students_count' => function ($q) {
+                $q->whereIn('status', ['pending', 'partially_paid', 'fully_paid']);
+            }])
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('teacher.content.hub', compact('subjects', 'groups'));
     }
 
     public function manage(Subject $subject)
@@ -179,7 +196,11 @@ class ContentController extends Controller
         abort_if($resource->isVideo() || $resource->isExternalLink() || ! $resource->url, 404);
         abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404);
 
-        return Storage::disk('protected_videos')->response($resource->url, $resource->original_filename);
+        $path = Storage::disk('protected_videos')->path($resource->url);
+
+        return response()->file($path, [
+            'Content-Disposition' => 'inline; filename="' . ($resource->original_filename ?: basename($path)) . '"',
+        ]);
     }
 
     public function destroyResource(SubjectResource $resource)

@@ -3,11 +3,11 @@
 @section('title', 'Teacher Dashboard | FULL MARK ACADEMY')
 
 @section('content')
-        
+
         <!-- Teacher Profile Card -->
         <section class="fade-in-up glass-panel rounded-4 p-4 p-md-5 mb-5 position-relative overflow-hidden d-flex flex-column flex-md-row align-items-center gap-5 border-1 border-white/10" style="background: linear-gradient(135deg, var(--bg-tertiary) 0%, rgba(197, 168, 128, 0.15) 100%); box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
           <div class="position-absolute top-0 end-0 w-50 h-100 blur-[80px] floating-orb" style="background: rgba(197, 168, 128, 0.2);"></div>
-          
+
           <!-- Profile Image -->
           <div class="position-relative z-1 flex-shrink-0">
             <div class="rounded-circle p-1" style="background: linear-gradient(135deg, var(--accent-color), transparent); width: 120px; height: 120px;">
@@ -35,7 +35,7 @@
               </span>
             </div>
           </div>
-          
+
           <div class="position-relative z-1 d-flex flex-wrap gap-3 mt-4 mt-md-0 align-items-center justify-content-center">
              <a href="{{ route('teacher.profile.edit') }}" class="btn btn-luxury px-4 py-3 d-flex align-items-center gap-2 fw-bold">
                <i class="bi bi-person-gear fs-5"></i> <span data-en="Edit Profile" data-ar="تعديل الملف">Edit Profile</span>
@@ -106,7 +106,7 @@
                 <i class="bi bi-arrow-right rtl:rotate-180"></i>
               </a>
             </div>
-            
+
             <div class="d-flex flex-column gap-4">
               @forelse($todaysSessions as $sessionGroup)
               <!-- Session Item -->
@@ -118,7 +118,7 @@
                   <div>
                     <h5 class="mb-2 fs-5 fw-bold" style="color: var(--text-primary);">{{ $sessionGroup->name }} - {{ $sessionGroup->subject->name ?? '' }}</h5>
                     <span class="text-sm opacity-75 fw-medium">
-                        <i class="bi bi-clock me-2 text-gold"></i> 
+                        <i class="bi bi-clock me-2 text-gold"></i>
                         {{ \Carbon\Carbon::parse($sessionGroup->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($sessionGroup->end_time)->format('h:i A') }}
                     </span>
                   </div>
@@ -137,8 +137,18 @@
           <!-- Quick Actions -->
           <div class="col-xl-4 fade-in-up delay-3">
             <h3 class="h4 fw-bold mb-4 border-start border-4 ps-3" style="border-color: var(--accent-color) !important; font-family: 'Tajawal', 'Almarai', sans-serif;" data-en="Quick Actions" data-ar="إجراءات سريعة">Quick Actions</h3>
-            
+
             <div class="d-flex flex-column gap-4">
+              <a href="{{ route('teacher.content.hub') }}" class="btn glass-panel text-start p-4 w-100 d-flex align-items-center gap-4 glow-hover tilt-card rounded-4 border-1 text-decoration-none" style="border-color: var(--separator-color);">
+                <div class="rounded-circle p-3 shadow-sm d-flex justify-content-center align-items-center" style="background: rgba(197, 168, 128, 0.1); color: var(--accent-color); width: 56px; height: 56px;">
+                  <i class="bi bi-journal-richtext fs-4"></i>
+                </div>
+                <div>
+                  <span class="fw-bold d-block mb-1 fs-5" style="color: var(--text-primary);" data-en="Content & Groups" data-ar="المحتوى والمجموعات">Content & Groups</span>
+                  <span class="text-sm opacity-75" data-en="Add content and manage your teaching groups" data-ar="أضف محتوى وادرس مجموعاتك التعليمية">Add content and manage your teaching groups</span>
+                </div>
+              </a>
+
               <a href="{{ route('teacher.exams.create') }}" class="btn glass-panel text-start p-4 w-100 d-flex align-items-center gap-4 glow-hover tilt-card rounded-4 border-1 text-decoration-none" style="border-color: var(--separator-color);">
                 <div class="rounded-circle p-3 shadow-sm d-flex justify-content-center align-items-center" style="background: rgba(197, 168, 128, 0.1); color: var(--accent-color); width: 56px; height: 56px;">
                   <i class="bi bi-journal-plus fs-4"></i>

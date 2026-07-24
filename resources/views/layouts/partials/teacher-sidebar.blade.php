@@ -62,6 +62,7 @@
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuContent">
+          <li><a href="{{ route('teacher.content.hub') }}" class="sidebar-submenu-item" data-en="Content Hub" data-ar="مركز المحتوى">Content Hub</a></li>
           <li><a href="{{ route('teacher.content.index') }}" class="sidebar-submenu-item" data-en="Files" data-ar="الملفات التعليمية">Files</a></li>
           <li><a href="{{ route('teacher.content.index') }}" class="sidebar-submenu-item" data-en="Videos" data-ar="الفيديوهات">Videos</a></li>
           <li><a href="#" class="sidebar-submenu-item" data-en="Recordings" data-ar="التسجيلات">Recordings</a></li>
@@ -131,7 +132,7 @@
           <i class="bi bi-gear sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text fw-medium fs-6" data-en="Settings" data-ar="الإعدادات">Settings</span>
         </a>
-        
+
         <form method="POST" action="{{ route('teacher.logout') }}">
           @csrf
           <button type="submit" class="btn btn-glass w-100 d-flex justify-content-center align-items-center gap-2 text-danger fw-bold rounded-pill mt-2">
