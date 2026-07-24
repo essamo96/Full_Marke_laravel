@@ -34,6 +34,19 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $middleware->redirectUsersTo(function (Request $request) {
+            if (\Illuminate\Support\Facades\Auth::guard('admin')->check()) {
+                return route('admin.dashboard');
+            }
+            if (\Illuminate\Support\Facades\Auth::guard('teacher')->check()) {
+                return route('teacher.dashboard');
+            }
+            if (\Illuminate\Support\Facades\Auth::guard('guardian')->check()) {
+                return route('guardian.dashboard');
+            }
+            if (\Illuminate\Support\Facades\Auth::guard('student')->check()) {
+                return route('student.dashboard');
+            }
+
             if ($request->is('admin') || $request->is('admin/*')) {
                 return route('admin.dashboard');
             }
