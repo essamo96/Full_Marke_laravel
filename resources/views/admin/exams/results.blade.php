@@ -53,6 +53,7 @@
                                 <th>حالة الاعتماد</th>
                                 <th>وقت البدء</th>
                                 <th>الوقت المنقضي</th>
+                                <th>المخالفات</th>
                             </tr>
                         </thead>
                         <tbody class="fw-semibold text-gray-600">
@@ -109,7 +110,23 @@
                                     </td>
                                     <td>
                                         @if($grade && $grade->time_taken_minutes !== null)
-                                            {{ $grade->time_taken_minutes }} دقيقة
+                                            {{ abs($grade->time_taken_minutes) }} دقيقة
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($grade)
+                                            @php
+                                                $violations = ($grade->tab_switch_count ?? 0) + ($grade->fullscreen_exit_count ?? 0);
+                                            @endphp
+                                            @if($violations > 0)
+                                                <span class="badge badge-light-danger" title="خروج المتصفح: {{ $grade->tab_switch_count ?? 0 }} | خروج الشاشة: {{ $grade->fullscreen_exit_count ?? 0 }}">
+                                                    {{ $violations }} مخالفة
+                                                </span>
+                                            @else
+                                                <span class="badge badge-light-success">ملتزم</span>
+                                            @endif
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif

@@ -131,7 +131,7 @@ class ExamsController extends Controller
 
         $cacheKey = 'exam_start_' . $student->id . '_' . $exam->id;
         $startTime = \Illuminate\Support\Facades\Cache::get($cacheKey);
-        $timeTaken = $startTime ? now()->diffInMinutes($startTime) : null;
+        $timeTaken = $startTime ? abs(now()->diffInMinutes($startTime)) : null;
 
         $tabViolationKey = "exam_violation_tab_{$student->id}_{$exam->id}";
         $fullscreenViolationKey = "exam_violation_fullscreen_{$student->id}_{$exam->id}";
