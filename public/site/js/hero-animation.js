@@ -47,13 +47,22 @@
     };
     Object.entries(map).forEach(([id, src]) => {
       const el = document.getElementById(id);
-      if (el) {
-        // Compare fully resolved URLs to avoid redundant calls to load()
-        const targetSrc = new URL(src, window.location.origin).href;
-        if (el.src !== targetSrc) {
-          el.setAttribute('src', src);
-          try { el.load(); } catch (_) { }
-        }
+      if (!el) return;
+      // Compare fully resolved URLs to avoid redundant calls to load()
+      const targetSrc = new URL(src, window.location.origin).href;
+      if (el.src === targetSrc) return;
+
+      const applySource = () => {
+        el.setAttribute('src', src);
+        try { el.load(); } catch (_) { }
+      };
+
+      // Don't reload a video mid-playback (e.g. on orientation change) —
+      // that causes a visible stutter/black-frame. Defer until it pauses.
+      if (el.paused) {
+        applySource();
+      } else {
+        el.addEventListener('pause', applySource, { once: true });
       }
     });
   }
@@ -122,8 +131,23 @@
         }
         try { v2.currentTime = 0; } catch (_) { }
         const p = v2.play();
-        if (p && p.catch) p.catch(() => { });
-        
+        if (p && p.catch) {
+          p.catch((err) => {
+            console.warn("Autoplay blocked for video 2. Waiting for interaction to play it.", err);
+
+            const forcePlayV2 = () => {
+              v2.play().catch(() => { });
+              document.removeEventListener('click', forcePlayV2);
+              document.removeEventListener('touchstart', forcePlayV2);
+              document.removeEventListener('scroll', forcePlayV2);
+            };
+
+            document.addEventListener('click', forcePlayV2, { once: true });
+            document.addEventListener('touchstart', forcePlayV2, { once: true });
+            document.addEventListener('scroll', forcePlayV2, { once: true });
+          });
+        }
+
         // Wait for v2 to actually be playing before hiding v1 to avoid black screen
         let v2Started = false;
         const completeHandoff = () => {

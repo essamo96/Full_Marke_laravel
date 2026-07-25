@@ -38,4 +38,7 @@
   
   /* Separator */
   --separator-color: rgba(15, 23, 42, 0.06);
+
+  /* Hero academy title (sits over the dark hero video, not the light page bg) */
+  --hero-title-color: #ffffff;
 }

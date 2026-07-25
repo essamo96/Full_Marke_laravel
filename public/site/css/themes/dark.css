@@ -38,4 +38,7 @@
   
   /* Separator */
   --separator-color: rgba(255, 255, 255, 0.05);
+
+  /* Hero academy title */
+  --hero-title-color: #3b82f6;
 }

@@ -10,10 +10,12 @@
             Empowering academic horizons under international standards. Full Mark Academy is committed to shaping the next generation of achievers.
           </p>
           <div class="d-flex space-x-3">
-            <a href="#" class="w-10 h-10 bg-gold bg-opacity-10 text-gold rounded-full d-flex align-items-center justify-content-center text-lg hover:bg-gold hover:text-black transition-colors"><i class="bi bi-facebook"></i></a>
-            <a href="#" class="w-10 h-10 bg-gold bg-opacity-10 text-gold rounded-full d-flex align-items-center justify-content-center text-lg hover:bg-gold hover:text-black transition-colors"><i class="bi bi-instagram"></i></a>
-            <a href="#" class="w-10 h-10 bg-gold bg-opacity-10 text-gold rounded-full d-flex align-items-center justify-content-center text-lg hover:bg-gold hover:text-black transition-colors"><i class="bi bi-linkedin"></i></a>
-            <a href="#" class="w-10 h-10 bg-gold bg-opacity-10 text-gold rounded-full d-flex align-items-center justify-content-center text-lg hover:bg-gold hover:text-black transition-colors"><i class="bi bi-youtube"></i></a>
+            <a href="https://www.facebook.com/share/1D3QtpomBs/" target="_blank" rel="noopener" class="w-10 h-10 bg-gold bg-opacity-10 text-gold rounded-full d-flex align-items-center justify-content-center text-lg hover:bg-gold hover:text-black transition-colors"><i class="bi bi-facebook"></i></a>
+            {{-- TODO: add Instagram profile URL --}}
+            <a href="#" target="_blank" rel="noopener" class="w-10 h-10 bg-gold bg-opacity-10 text-gold rounded-full d-flex align-items-center justify-content-center text-lg hover:bg-gold hover:text-black transition-colors"><i class="bi bi-instagram"></i></a>
+            <a href="https://wa.me/970566959697" target="_blank" rel="noopener" class="w-10 h-10 bg-gold bg-opacity-10 text-gold rounded-full d-flex align-items-center justify-content-center text-lg hover:bg-gold hover:text-black transition-colors"><i class="bi bi-whatsapp"></i></a>
+            {{-- TODO: add Telegram channel/profile URL --}}
+            <a href="#" target="_blank" rel="noopener" class="w-10 h-10 bg-gold bg-opacity-10 text-gold rounded-full d-flex align-items-center justify-content-center text-lg hover:bg-gold hover:text-black transition-colors"><i class="bi bi-telegram"></i></a>
           </div>
         </div>
 

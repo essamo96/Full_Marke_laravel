@@ -23,6 +23,10 @@
     localStorage.setItem(LOAD_TIME_STORAGE_KEY, String(next));
   }
 
+  // How long the watermark roams the frame before it locks into its
+  // compact static position. Kept inside the requested 3-5s window.
+  var WATERMARK_STATIC_AFTER_MS = 4000;
+
   function mountWatermark(container, studentName, studentPhotoUrl) {
     var canvas = document.createElement('canvas');
     canvas.className = 'video-watermark-overlay';
@@ -36,6 +40,7 @@
     var ctx = canvas.getContext('2d');
     var raf = null;
     var photo = null;
+    var startedAt = Date.now();
 
     if (studentPhotoUrl) {
       photo = new Image();
@@ -55,34 +60,53 @@
       if (width && height) {
         ctx.clearRect(0, 0, width, height);
 
-        var t = (Date.now() % 14000) / 14000 * Math.PI * 2;
-        var wave = Math.cos(t) * -0.5 + 0.5;
-        var x = width * (0.15 + 0.7 * wave);
-        var y = height * 0.15;
+        var elapsed = Date.now() - startedAt;
 
-        // Photo sized relative to the video frame so it stays legible on any player size.
-        var photoSize = Math.max(28, Math.round(height * 0.09));
+        if (elapsed < WATERMARK_STATIC_AFTER_MS) {
+          // Roaming phase: one full sweep across the frame during the window above.
+          var t = (elapsed / WATERMARK_STATIC_AFTER_MS) * Math.PI * 2;
+          var wave = Math.cos(t) * -0.5 + 0.5;
+          var x = width * (0.15 + 0.7 * wave);
+          var y = height * 0.15;
 
-        ctx.globalAlpha = 0.55;
-        if (photo && photo.complete && photo.naturalWidth) {
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(x, y - photoSize * 0.75, photoSize / 2, 0, Math.PI * 2);
-          ctx.clip();
-          ctx.drawImage(photo, x - photoSize / 2, y - photoSize * 0.75 - photoSize / 2, photoSize, photoSize);
-          ctx.restore();
+          // Photo sized relative to the video frame so it stays legible on any player size.
+          var photoSize = Math.max(28, Math.round(height * 0.09));
+
+          ctx.globalAlpha = 0.55;
+          if (photo && photo.complete && photo.naturalWidth) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(x, y - photoSize * 0.75, photoSize / 2, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(photo, x - photoSize / 2, y - photoSize * 0.75 - photoSize / 2, photoSize, photoSize);
+            ctx.restore();
+          }
+
+          var fontSize = Math.max(13, Math.round(height * 0.038));
+          ctx.font = '700 ' + fontSize + 'px "Segoe UI", Tahoma, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.lineWidth = Math.max(3, fontSize * 0.2);
+          ctx.strokeStyle = '#000000';
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = 'rgba(0,0,0,0.6)';
+          ctx.shadowBlur = 4;
+          ctx.strokeText(studentName, x, y + fontSize * 0.3);
+          ctx.fillText(studentName, x, y + fontSize * 0.3);
+        } else {
+          // Locked phase: small, thin, clean text pinned to the top-left corner.
+          var pad = Math.max(10, Math.round(width * 0.015));
+          var staticFontSize = Math.max(11, Math.round(height * 0.022));
+          ctx.globalAlpha = 0.5;
+          ctx.font = '400 ' + staticFontSize + 'px "Segoe UI", Tahoma, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.lineWidth = Math.max(1, staticFontSize * 0.12);
+          ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = 'rgba(0,0,0,0.45)';
+          ctx.shadowBlur = 2;
+          ctx.strokeText(studentName, pad, pad + staticFontSize);
+          ctx.fillText(studentName, pad, pad + staticFontSize);
         }
-
-        var fontSize = Math.max(13, Math.round(height * 0.038));
-        ctx.font = '700 ' + fontSize + 'px "Segoe UI", Tahoma, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.lineWidth = Math.max(3, fontSize * 0.2);
-        ctx.strokeStyle = '#000000';
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = 'rgba(0,0,0,0.6)';
-        ctx.shadowBlur = 4;
-        ctx.strokeText(studentName, x, y + fontSize * 0.3);
-        ctx.fillText(studentName, x, y + fontSize * 0.3);
       }
       raf = requestAnimationFrame(draw);
     }

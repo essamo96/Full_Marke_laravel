@@ -140,7 +140,7 @@
         </div>
         <div class="modal-body pt-0">
           <div id="lessonVideoContainer" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;">
-            <video id="lessonVideoEl" style="width: 100%; height: 100%;" controls playsinline></video>
+            <video id="lessonVideoEl" style="width: 100%; height: 100%; object-fit: cover;" controls playsinline></video>
           </div>
           <p id="lessonVideoError" class="text-danger mt-3 mb-0 d-none"></p>
         </div>

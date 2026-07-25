@@ -38,6 +38,9 @@
   
   /* Separator */
   --separator-color: rgba(197, 168, 128, 0.08);
+
+  /* Hero academy title */
+  --hero-title-color: #8b5e34;
 }
 
 .bg-pattern-gold {

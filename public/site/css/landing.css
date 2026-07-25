@@ -1,5 +1,11 @@
 /* landing.css */
 
+/* Hero academy title: solid color driven by the active theme's --hero-title-color */
+.hero-academy-title {
+  color: var(--hero-title-color, #c5a880);
+  -webkit-text-fill-color: var(--hero-title-color, #c5a880);
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;

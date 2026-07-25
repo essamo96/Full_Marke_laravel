@@ -38,28 +38,49 @@
             white-space: nowrap;
             font-family: sans-serif;
             font-weight: bold;
-            /* الحركة: 14 ثانية كاملة = 7 ثواني للذهاب + 7 ثواني للعودة */
-            animation: moveSideToSide 14s ease-in-out infinite;
+            /* تتحرك مرة واحدة خلال أول 4 ثوانٍ فقط، ثم تثبت (انظر watermark.static أدناه) */
+            animation: moveSideToSide 4s ease-in-out 1;
         }
 
         /* تحريك من اليسار لليمين والعكس دون الخروج من الشاشة */
         @keyframes moveSideToSide {
-            0%, 100% { 
-                left: 5%; 
+            0%, 100% {
+                left: 5%;
                 transform: translateX(0);
             }
-            50% { 
-                left: 95%; 
+            50% {
+                left: 95%;
                 transform: translateX(-100%);
             }
+        }
+
+        /* الحالة الثابتة: تُضاف بعد انتهاء الحركة عبر JS - حجم مصغر، خط نقي، الزاوية العلوية اليسرى */
+        .watermark.static {
+            animation: none;
+            top: 12px;
+            left: 12px;
+            transform: none;
+            opacity: 0.5;
+            font-size: 13px;
+            font-weight: 400;
+            -webkit-text-stroke: 0.5px #000;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
         }
     </style>
 </head>
 <body oncontextmenu="return false;">
-    <div class="watermark">
+    <div class="watermark" id="videoWatermark">
         {{ $student->full_name_ar ?? $student->full_name_en }}<br>
         {{ $student->phone ?? $student->id }}
     </div>
+    <script>
+        // بعد انتهاء الحركة (4 ثوانٍ) تتحول العلامة المائية لحالة ثابتة مصغرة في الزاوية العلوية اليسرى
+        setTimeout(function () {
+            var wm = document.getElementById('videoWatermark');
+            if (wm) wm.classList.add('static');
+        }, 4000);
+    </script>
 
     @php
         $embedUrl = $resource->url;

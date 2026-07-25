@@ -35,7 +35,7 @@
             <div id="hero-content-overlay-{{ $slider->id }}" class="hero-content container px-4 text-center">
               <div class="reveal-scale">
                 <h1 class="hero-stagger text-3xl md:text-5xl font-extrabold tracking-tight mb-3 uppercase" style="color: var(--text-primary);">
-                  <span class="bg-clip-text text-transparent bg-gradient-to-r from-gold via-gold-light to-gold-dark" data-en="{{ $slider->title_en }}" data-ar="{{ $slider->title_ar }}">
+                  <span class="hero-academy-title" data-en="{{ $slider->title_en }}" data-ar="{{ $slider->title_ar }}">
                     {{ app()->getLocale() == 'ar' ? $slider->title_ar : $slider->title_en }}
                   </span>
                 </h1>
@@ -140,11 +140,11 @@
         <div class="reveal-scale">
           <h1 class="hero-stagger text-3xl md:text-5xl font-extrabold tracking-tight mb-3 uppercase" data-stagger="1" style="color: var(--text-primary);">
             @if($firstSlider)
-                <span class="bg-clip-text text-transparent bg-gradient-to-r from-gold via-gold-light to-gold-dark" data-en="{{ $firstSlider->title_en }}" data-ar="{{ $firstSlider->title_ar }}">
+                <span class="hero-academy-title" data-en="{{ $firstSlider->title_en }}" data-ar="{{ $firstSlider->title_ar }}">
                     {{ app()->getLocale() == 'ar' ? $firstSlider->title_ar : $firstSlider->title_en }}
                 </span>
             @else
-                <span class="bg-clip-text text-transparent bg-gradient-to-r from-gold via-gold-light to-gold-dark" data-en="FULL MARKS ACADEMY" data-ar="أكاديمية العلامة الكاملة">FULL MARKS ACADEMY</span>
+                <span class="hero-academy-title" data-en="FULL MARKS ACADEMY" data-ar="أكاديمية العلامة الكاملة">FULL MARKS ACADEMY</span>
             @endif
           </h1>
           
@@ -255,7 +255,7 @@
               </div>
             </div>
           </div>
-          <a href="{{ asset('site/images/doc/brochur.pdf') }}" target="_blank" class="btn btn-luxury px-4 py-3 rounded-lg" data-en="Download Academy Brochure" data-ar="تحميل كتيب الأكاديمية">Download Academy Brochure</a>
+          <a href="#contact" class="btn btn-luxury px-4 py-3 rounded-lg" data-en="Contact Us" data-ar="تواصل معنا">Contact Us</a>
         </div>
 
         <!-- Video/Image Column -->
@@ -452,21 +452,21 @@
       </div>
 
       <div class="row g-4 reveal">
-        <!-- Brochure -->
+        <!-- Contact Us -->
         <div class="col-lg-4">
           <div class="glass-panel hover-premium-card text-center h-100 d-flex flex-column justify-content-between">
             <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between h-100">
               <div>
                 <div class="w-16 h-16 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
-                  <i class="bi bi-file-pdf"></i>
+                  <i class="bi bi-chat-dots-fill"></i>
                 </div>
-                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Our Syllabus" data-ar="منهج الأكاديمية">Our Syllabus</h4>
-                <p class="opacity-75 text-sm mb-6" data-en="Download the comprehensive academy brochure detailing levels, learning paths, pricing, and OTE structure."
-                   data-ar="قم بتحميل كتيب الأكاديمية الشامل لاستعراض المستويات، الخطط التعليمية، الأسعار، وبنية اختبارات OTE المعتمدة.">
-                  Download the comprehensive academy brochure detailing levels, learning paths, pricing, and OTE structure.
+                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Get In Touch" data-ar="تواصل معنا">Get In Touch</h4>
+                <p class="opacity-75 text-sm mb-6" data-en="Have a question about levels, learning paths, pricing, or our OTE structure? Reach out and we'll help you directly."
+                   data-ar="لديك سؤال حول المستويات، الخطط التعليمية، الأسعار، أو بنية اختبارات OTE؟ تواصل معنا وسنساعدك مباشرة.">
+                  Have a question about levels, learning paths, pricing, or our OTE structure? Reach out and we'll help you directly.
                 </p>
               </div>
-              <a href="{{ asset('site/images/doc/brochur.pdf') }}" target="_blank" class="btn btn-luxury w-100 py-3 rounded-lg" data-en="Download PDF" data-ar="تحميل الكتيب">Download PDF</a>
+              <a href="#contact" class="btn btn-luxury w-100 py-3 rounded-lg" data-en="Contact Us" data-ar="تواصل معنا">Contact Us</a>
             </div>
           </div>
         </div>
@@ -733,7 +733,12 @@
               <div class="glass-panel testimonial-card-swiper">
                 <div class="d-flex align-items-center mb-4">
                   <div class="testimonial-avatar">
-                    <img src="{{ Str::startsWith($testimonial->image, ['http', 'site/']) ? asset($testimonial->image) : asset('storage/' . $testimonial->image) }}" alt="{{ app()->getLocale() == 'ar' ? ($testAr->name ?? '') : ($testEn->name ?? '') }}" loading="lazy">
+                    @php
+                        $testimonialImage = $testimonial->image
+                            ? (Str::startsWith($testimonial->image, ['http', 'site/']) ? asset($testimonial->image) : asset('storage/' . $testimonial->image))
+                            : asset('assets/admin/media/avatars/blank.png');
+                    @endphp
+                    <img src="{{ $testimonialImage }}" alt="{{ app()->getLocale() == 'ar' ? ($testAr->name ?? '') : ($testEn->name ?? '') }}" loading="lazy">
                   </div>
                   <div>
                     <h5 class="font-bold mb-1" style="color: var(--text-primary);" data-en="{{ $testEn->name ?? '' }}" data-ar="{{ $testAr->name ?? '' }}">
@@ -829,7 +834,17 @@
               </div>
               <div>
                 <h6 class="font-bold mb-1" style="color: var(--text-primary);" data-en="Call Us" data-ar="اتصل بنا">Call Us</h6>
-                <a href="tel:+96279000000" class="text-decoration-none opacity-75 text-sm" style="color: var(--text-primary);">+962 79 123 4567</a>
+                <a href="tel:+970566959697" class="text-decoration-none opacity-75 text-sm" style="color: var(--text-primary);">+970 56 695 9697</a>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center p-4 glass-panel">
+              <div class="w-12 h-12 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-2xl me-4">
+                <i class="bi bi-whatsapp"></i>
+              </div>
+              <div>
+                <h6 class="font-bold mb-1" style="color: var(--text-primary);" data-en="WhatsApp" data-ar="واتساب">WhatsApp</h6>
+                <a href="https://wa.me/970566959697" target="_blank" class="text-decoration-none opacity-75 text-sm" style="color: var(--text-primary);">+970 56 695 9697</a>
               </div>
             </div>
 
@@ -849,7 +864,7 @@
               </div>
               <div>
                 <h6 class="font-bold mb-1" style="color: var(--text-primary);" data-en="Location" data-ar="موقعنا">Location</h6>
-                <p class="opacity-75 text-sm mb-0" style="color: var(--text-primary);" data-en="University Street, Building 45, Amman, Jordan" data-ar="شارع الجامعة، مبنى 45، عمان، الأردن">University Street, Building 45, Amman, Jordan</p>
+                <p class="opacity-75 text-sm mb-0" style="color: var(--text-primary);" data-en="Gaza Strip - Khan Yunis, Palestine" data-ar="قطاع غزة - خانيونس">Gaza Strip - Khan Yunis, Palestine</p>
               </div>
             </div>
           </div>
