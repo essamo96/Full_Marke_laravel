@@ -58,7 +58,10 @@ class FileManagerController extends AdminController
             $breadcrumbs[] = ['name' => $part, 'path' => $path];
         }
 
-        return view('admin.file_manager.index', self::$data + compact('directories', 'files', 'currentFolder', 'breadcrumbs'));
+        $picker = $request->boolean('picker');
+        $target = $request->get('target', '');
+
+        return view('admin.file_manager.index', self::$data + compact('directories', 'files', 'currentFolder', 'breadcrumbs', 'picker', 'target'));
     }
 
     public function upload(Request $request)
@@ -72,7 +75,12 @@ class FileManagerController extends AdminController
         $file = $request->file('file');
 
         $extension = strtolower($file->getClientOriginalExtension());
-        $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'zip', 'rar', 'mp3', 'mp4', 'wav'];
+        $allowed = [
+            'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp',
+            'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv',
+            'zip', 'rar', '7z',
+            'mp3', 'mp4', 'wav',
+        ];
         if (! in_array($extension, $allowed)) {
             return response()->json(['error' => 'نوع الملف غير مسموح به.'], 422);
         }

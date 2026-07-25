@@ -74,14 +74,9 @@ class TestimonialsController extends AdminController
     public function postAdd(TestimonialRequest $request)
     {
         $status = $request->get('status') ? 1 : 0;
-        
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('testimonials', 'public');
-        }
 
         $testimonial = Testimonial::create([
-            'image' => $imagePath,
+            'image' => $request->get('image'),
             'status' => $status,
             'display_order' => $request->get('display_order', 0)
         ]);
@@ -122,8 +117,8 @@ class TestimonialsController extends AdminController
         $testimonial->status = $request->get('status') ? 1 : 0;
         $testimonial->display_order = $request->get('display_order', $testimonial->display_order);
 
-        if ($request->hasFile('image')) {
-            $testimonial->image = $request->file('image')->store('testimonials', 'public');
+        if ($request->filled('image')) {
+            $testimonial->image = $request->get('image');
         }
         $testimonial->save();
 

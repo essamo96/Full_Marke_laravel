@@ -31,7 +31,11 @@
                             <div class="d-flex flex-column">
                                 <h2 class="mb-1">@lang('app.file_manager')</h2>
                                 <div class="text-muted fw-bold">
-                                    {{ count($directories) + count($files) }} @lang('app.items')
+                                    @if($picker)
+                                        <span class="text-primary">@lang('app.pick_a_file_hint')</span>
+                                    @else
+                                        {{ count($directories) + count($files) }} @lang('app.items')
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -66,7 +70,7 @@
                                 <div class="d-flex align-items-center flex-wrap">
                                     <i class="ki-duotone ki-abstract-32 fs-2 text-primary me-3"><span class="path1"></span><span class="path2"></span></i>
                                     @foreach($breadcrumbs as $crumb)
-                                        <a href="{{ route('file_manager.view', ['folder' => $crumb['path']]) }}" class="text-primary fw-bold text-hover-dark">{{ $crumb['name'] }}</a>
+                                        <a href="{{ route('file_manager.view', array_filter(['folder' => $crumb['path'], 'picker' => $picker ? 1 : null, 'target' => $picker ? $target : null])) }}" class="text-primary fw-bold text-hover-dark">{{ $crumb['name'] }}</a>
                                         @if(!$loop->last)
                                             <i class="ki-duotone ki-right fs-4 text-primary mx-2"><span class="path1"></span><span class="path2"></span></i>
                                         @endif
@@ -92,7 +96,7 @@
                                     @foreach($directories as $dir)
                                     <tr class="fm-row">
                                         <td data-order="{{ $dir['name'] }}">
-                                            <a href="{{ route('file_manager.view', ['folder' => $dir['path']]) }}" class="d-flex align-items-center text-gray-800 text-hover-primary fm-file-item">
+                                            <a href="{{ route('file_manager.view', array_filter(['folder' => $dir['path'], 'picker' => $picker ? 1 : null, 'target' => $picker ? $target : null])) }}" class="d-flex align-items-center text-gray-800 text-hover-primary fm-file-item">
                                                 <div class="symbol symbol-40px me-4">
                                                     <div class="symbol-label bg-light-primary">
                                                         <i class="ki-duotone ki-folder fs-2x text-primary"><span class="path1"></span><span class="path2"></span></i>
@@ -123,13 +127,23 @@
                                     @foreach($files as $file)
                                     <tr class="fm-row">
                                         <td data-order="{{ $file['name'] }}">
+                                            @if($picker)
+                                            <a href="javascript:void(0)" class="d-flex align-items-center text-gray-800 text-hover-primary fm-file-item fm-pick-file" data-url="{{ $file['url'] }}" data-path="{{ $file['path'] }}">
+                                            @else
                                             <a href="{{ $file['url'] }}" target="_blank" class="d-flex align-items-center text-gray-800 text-hover-primary fm-file-item">
+                                            @endif
                                                 <div class="symbol symbol-40px me-4">
                                                     <div class="symbol-label bg-light">
-                                                        @if(in_array($file['extension'], ['jpg','jpeg','png','webp','gif']))
+                                                        @if(in_array($file['extension'], ['jpg','jpeg','png','webp','gif','bmp']))
                                                             <img src="{{ $file['url'] }}" class="h-30px" alt="{{ $file['name'] }}" style="border-radius:4px;object-fit:cover;" />
                                                         @elseif($file['extension'] == 'pdf')
                                                             <i class="ki-duotone ki-file-down fs-2x text-danger"><span class="path1"></span><span class="path2"></span></i>
+                                                        @elseif(in_array($file['extension'], ['doc','docx']))
+                                                            <i class="ki-duotone ki-file-added fs-2x text-primary"><span class="path1"></span><span class="path2"></span></i>
+                                                        @elseif(in_array($file['extension'], ['xls','xlsx','csv']))
+                                                            <i class="ki-duotone ki-file-added fs-2x text-success"><span class="path1"></span><span class="path2"></span></i>
+                                                        @elseif(in_array($file['extension'], ['ppt','pptx']))
+                                                            <i class="ki-duotone ki-file-added fs-2x text-warning"><span class="path1"></span><span class="path2"></span></i>
                                                         @elseif(in_array($file['extension'], ['zip','rar','7z']))
                                                             <i class="ki-duotone ki-archive fs-2x text-warning"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
                                                         @else
@@ -138,6 +152,9 @@
                                                     </div>
                                                 </div>
                                                 <span class="fw-bold fm-file-name">{{ $file['name'] }}</span>
+                                                @if($picker)
+                                                    <span class="badge badge-light-primary ms-3">@lang('app.select')</span>
+                                                @endif
                                             </a>
                                         </td>
                                         <td>{{ $file['size'] }}</td>
@@ -235,6 +252,19 @@
 <script>
     $(document).ready(function () {
         const currentFolder = @json($currentFolder);
+        const isPicker = @json($picker);
+        const pickerTarget = @json($target);
+
+        if (isPicker) {
+            $(document).on('click', '.fm-pick-file', function () {
+                const url = $(this).data('url');
+                const path = $(this).data('path');
+                if (window.opener && typeof window.opener.fmPickerCallback === 'function') {
+                    window.opener.fmPickerCallback(url, path, pickerTarget);
+                }
+                window.close();
+            });
+        }
 
         // Client-side search filter (small folder listings, no server pagination needed)
         $('#fm_search').on('keyup', function () {

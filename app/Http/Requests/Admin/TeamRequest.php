@@ -15,7 +15,7 @@ class TeamRequest extends FormRequest
     {
         return [
             'id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => 'nullable|string|max:255',
             'socials' => 'nullable|array',
             'member_type' => 'nullable|in:board,team',
             'display_order' => 'nullable|integer',

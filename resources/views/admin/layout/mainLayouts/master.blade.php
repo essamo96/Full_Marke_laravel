@@ -235,9 +235,52 @@
         });
     </script>
     
+    {{-- Global "pick from File Manager" popup helper — available on every admin page.
+         Used by the admin.components.file-picker component so any upload field in
+         the project can route through the shared File Manager screen. --}}
+    <script>
+        function openFileManagerPicker(targetInputId, options) {
+            options = options || {};
+            const width = 1100, height = 720;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            let url = "{{ route('file_manager.view') }}?picker=1&target=" + encodeURIComponent(targetInputId);
+            if (options.folder) url += "&folder=" + encodeURIComponent(options.folder);
+            window.open(url, 'fileManagerPicker', `width=${width},height=${height},left=${left},top=${top}`);
+        }
+
+        window.fmPickerCallback = function (url, path, target) {
+            const input = document.getElementById(target);
+            if (input) {
+                input.value = path;
+                input.dispatchEvent(new Event('change'));
+            }
+            const isImage = /\.(jpe?g|png|webp|gif|svg|bmp)$/i.test(path);
+            const previewImg = document.getElementById(target + '_preview_img');
+            const previewIcon = document.getElementById(target + '_preview_icon');
+            if (previewImg) {
+                if (isImage) {
+                    previewImg.src = url;
+                    previewImg.classList.remove('d-none');
+                    if (previewIcon) previewIcon.classList.add('d-none');
+                } else {
+                    previewImg.classList.add('d-none');
+                    if (previewIcon) previewIcon.classList.remove('d-none');
+                }
+            }
+            const previewName = document.getElementById(target + '_preview_name');
+            if (previewName) previewName.textContent = path.split('/').pop();
+            const viewLink = document.getElementById(target + '_view_link');
+            if (viewLink) {
+                viewLink.href = url;
+                viewLink.classList.remove('d-none');
+            }
+        };
+    </script>
+
     @stack('scripts')
     @yield('js')
-    
+
     @if(auth('admin')->check())
     <!-- Pusher via JSDelivr to resolve ERR_TIMED_OUT on js.pusher.com -->
     <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.3.0/dist/web/pusher.min.js"></script>

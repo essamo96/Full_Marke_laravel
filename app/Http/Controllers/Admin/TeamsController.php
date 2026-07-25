@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Admin\TeamRequest;
 use Auth;
 
@@ -207,11 +206,6 @@ class TeamsController extends AdminController
         $data['is_chairman'] = $request->has('is_chairman') ? 1 : 0;
         $data['display_order'] = $request->input('display_order', 0);
 
-        // رفع الصورة
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('teams', 'public');
-        }
-
         // حفظ الـ socials كـ JSON (مع تصفية العناصر الفارغة)
         if ($request->has('socials')) {
             $socials = array_filter($request->input('socials'), function ($item) {
@@ -289,15 +283,8 @@ class TeamsController extends AdminController
         $data['is_chairman'] = $request->has('is_chairman') ? 1 : 0;
         $data['display_order'] = $request->input('display_order', 0);
 
-        // تحديث الصورة
-        if ($request->hasFile('image')) {
-            if ($team->image && Storage::disk('public')->exists($team->image)) {
-                Storage::disk('public')->delete($team->image);
-            }
-            $data['image'] = $request->file('image')->store('teams', 'public');
-        } else {
-            $data['image'] = $team->image;
-        }
+        // الصورة مُختارة من مدير الملفات — ملف مشترك، لا يُحذف عند التغيير
+        $data['image'] = $request->filled('image') ? $request->get('image') : $team->image;
 
         // تحديث الـ socials (مع تصفية العناصر الفارغة)
         if ($request->has('socials')) {

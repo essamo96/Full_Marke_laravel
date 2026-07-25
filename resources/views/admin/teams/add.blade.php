@@ -63,15 +63,7 @@
                             <div class="row mb-5">
                                 {{-- صورة العضو --}}
                                 <div class="col-md-6 fv-row">
-                                    <label class="fs-5 fw-semibold mb-2 required">{{ \App\Helpers\translate('image') }}</label>
-                                    <div class="mb-2">
-                                        <img id="imagePreview" 
-                                             src="{{ $info && $info->image ? (Str::startsWith($info->image, ['http', 'site/']) ? asset($info->image) : asset('storage/' . $info->image)) : '#' }}" 
-                                             alt="Image Preview"
-                                             class="img-thumbnail" 
-                                             style="max-height: 100px; display: {{ $info && $info->image ? 'block' : 'none' }};">
-                                    </div>
-                                    <input type="file" name="image" id="imageInput" class="form-control file-Input" accept="image/*">
+                                    @include('admin.components.file-picker', ['name' => 'image', 'value' => $info->image ?? old('image'), 'label' => \App\Helpers\translate('image'), 'folder' => 'teams'])
                                 </div>
 
                                 {{-- نوع العضوية --}}
@@ -307,17 +299,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Trigger change on load to set initial state
     $('#memberTypeSelect').trigger('change');
 
-    // Image preview
-    $('#imageInput').on('change', function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                $('#imagePreview').attr('src', e.target.result).show();
-            }
-            reader.readAsDataURL(file);
-        }
-    });
 });
 </script>
 @stop

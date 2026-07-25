@@ -56,23 +56,7 @@
                                             <div class="tab-pane fade show active" id="basic" role="tabpanel">
                                                 <div class="row mb-5">
                                                     <div class="col-md-4 fv-row">
-                                                        <label class="form-label">{{ \App\Helpers\translate('image') }}</label>
-                                                        @php
-                                                            $imageSrc = '';
-                                                            if (isset($info) && $info->image) {
-                                                                $imageSrc = \Illuminate\Support\Str::startsWith($info->image, ['http', 'site/']) ? asset($info->image) : asset('storage/' . $info->image);
-                                                            }
-                                                        @endphp
-                                                        <input type="file" name="image" id="imageInput" class="form-control form-control-solid mb-4" accept="image/*">
-                                                        
-                                                        <div class="text-center" id="imagePreviewContainer" style="{{ $imageSrc ? '' : 'display: none;' }}">
-                                                            <div class="d-inline-block position-relative shadow-sm rounded border border-gray-300 p-2 bg-light">
-                                                                <img src="{{ $imageSrc }}" alt="Preview" id="imagePreview" class="rounded" style="max-width: 100%; max-height: 150px; object-fit: cover;">
-                                                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary shadow-sm" style="font-size: 0.75rem;">
-                                                                    <i class="bi bi-eye-fill text-white ms-1"></i>معاينة
-                                                                </span>
-                                                            </div>
-                                                        </div>
+                                                        @include('admin.components.file-picker', ['name' => 'image', 'value' => (isset($info) ? $info->image : null) ?? old('image'), 'label' => \App\Helpers\translate('image'), 'folder' => 'testimonials'])
                                                     </div>
 
                                                     <div class="col-md-4 fv-row">
@@ -142,18 +126,6 @@
 
 @section('js')
 <script>
-    document.getElementById('imageInput').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('imagePreviewContainer').style.display = 'block';
-                document.getElementById('imagePreview').src = e.target.result;
-            }
-            reader.readAsDataURL(file);
-        }
-    });
-
     // Next Tab Button functionality
     document.querySelectorAll('.next-tab').forEach(button => {
         button.addEventListener('click', function() {

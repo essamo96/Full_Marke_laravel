@@ -31,7 +31,7 @@ class ProgramRequest extends FormRequest
             'type' => 'required|in:primary,middle,high,university,general',
             'short_description' => 'nullable|string|max:2000',
             'long_description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|string|max:255',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
         ];

@@ -24,7 +24,7 @@ class TestimonialRequest extends FormRequest
             'status' => 'nullable',
         ];
 
-        $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048';
+        $rules['image'] = 'nullable|string|max:255';
 
         return $rules;
     }
@@ -36,8 +36,6 @@ class TestimonialRequest extends FormRequest
             'name_en.required' => __('validation.required'),
             'message_ar.required' => __('validation.required'),
             'message_en.required' => __('validation.required'),
-            'image.image' => __('validation.image'),
-            'image.mimes' => __('validation.mimes'),
             'image.max' => __('validation.max'),
         ];
     }

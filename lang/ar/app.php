@@ -548,6 +548,10 @@ return [
     'empty_folder' => 'هذا المجلد فارغ',
     'copy_link' => 'نسخ الرابط',
     'link_copied' => 'تم نسخ الرابط إلى الحافظة',
+    'pick_a_file_hint' => 'اختر ملفاً من القائمة أو ارفع ملفاً جديداً',
+    'select' => 'اختيار',
+    'browse_file_manager' => 'اختيار من مدير الملفات',
+    'no_file_selected' => 'لم يتم اختيار ملف',
 
     // POS Points
     'pos_points' => 'نقاط بيع الكتب',

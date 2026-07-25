@@ -54,12 +54,8 @@ class ProgramsController extends AdminController
 
     public function postAdd(ProgramRequest $request)
     {
-        $program = Program::create($request->safe()->except('image') + [
+        Program::create($request->safe()->all() + [
             'is_active' => $request->boolean('is_active', true)]);
-
-        if ($request->hasFile('image')) {
-            $program->update(['image' => $request->file('image')->store('programs', 'public')]);
-        }
 
         return redirect()->route('programs.view')->with('success', __('app.insert_success'));
     }
@@ -83,14 +79,8 @@ class ProgramsController extends AdminController
             return redirect()->route('programs.view')->with('danger', __('app.not_found'));
         }
 
-        $data = $request->safe()->except('image') + [
-            'is_active' => $request->boolean('is_active', true)];
-
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('programs', 'public');
-        }
-
-        $program->update($data);
+        $program->update($request->safe()->all() + [
+            'is_active' => $request->boolean('is_active', true)]);
 
         return redirect()->route('programs.view')->with('success', __('app.update_success'));
     }

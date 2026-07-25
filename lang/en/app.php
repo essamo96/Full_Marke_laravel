@@ -77,6 +77,10 @@ return [
     'empty_folder' => 'This folder is empty',
     'copy_link' => 'Copy Link',
     'link_copied' => 'Link copied to clipboard',
+    'pick_a_file_hint' => 'Pick a file from the list or upload a new one',
+    'select' => 'Select',
+    'browse_file_manager' => 'Choose from File Manager',
+    'no_file_selected' => 'No file selected',
 
     // POS Points
     'pos_points' => 'Book Sale Points',
