@@ -80,6 +80,52 @@
     .teacher-content-accordion .teacher-content-collapse.show {
       display: block;
     }
+
+    .teacher-resource-card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 1rem;
+      padding: 1rem;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(14px);
+      height: 100%;
+    }
+
+    .teacher-resource-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,0.24);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.16);
+    }
+
+    .teacher-resource-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .teacher-resource-icon.video { background: linear-gradient(135deg, #ff6b6b, #ff3d71); }
+    .teacher-resource-icon.document { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .teacher-resource-icon.image { background: linear-gradient(135deg, #10b981, #059669); }
+    .teacher-resource-icon.link { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .teacher-resource-icon.zoom { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+    .teacher-resource-badge {
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(255,255,255,0.12);
+      color: var(--text-primary);
+    }
   </style>
 
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -111,47 +157,78 @@
                 </div>
               </div>
               <div id="lesson_res_{{ $lesson->id }}" class="collapse mt-3 teacher-content-collapse">
-                <div class="table-responsive mb-2">
-                  <table class="table table-borderless text-white align-middle mb-0">
-                    <thead>
-                      <tr class="text-muted fs-7">
-                        <th data-en="Title" data-ar="العنوان">Title</th>
-                        <th data-en="Type" data-ar="النوع">Type</th>
-                        <th data-en="File / Link" data-ar="الملف / الرابط">File / Link</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @forelse($lesson->resources as $resource)
-                        <tr>
-                          <td>{{ $resource->title }}</td>
-                          <td><span class="badge bg-secondary">{{ $resource->type }}</span></td>
-                          <td>
-                            @if($resource->isExternalLink())
-                              <a href="{{ $resource->url }}" target="_blank" class="btn btn-sm btn-outline-primary">فتح</a>
-                            @elseif($resource->type === 'document' || $resource->isImage())
-                              <a href="{{ route('teacher.content.view-file', $resource) }}" target="_blank" class="btn btn-sm btn-outline-primary">فتح</a>
-                            @elseif($resource->processing_status === 'processing')
-                              <span class="badge bg-warning text-dark">جاري المعالجة...</span>
-                            @elseif($resource->processing_status === 'failed')
-                              <span class="badge bg-danger">فشلت المعالجة</span>
-                            @else
-                              <span class="badge bg-success">جاهز</span>
-                            @endif
-                          </td>
-                          <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
-                          </td>
-                        </tr>
-                      @empty
-                        <tr><td colspan="4" class="text-center text-muted py-3" data-en="No resources for this lesson." data-ar="لا توجد مرفقات لهذا الدرس.">لا توجد مرفقات لهذا الدرس.</td></tr>
-                      @endforelse
-                    </tbody>
-                  </table>
+                <div class="row g-3 mb-3">
+                  @forelse($lesson->resources as $resource)
+                    @php
+                      $resourceType = $resource->type ?? 'link';
+                      $iconMap = [
+                        'video' => 'bi-play-circle-fill',
+                        'document' => 'bi-file-earmark-pdf-fill',
+                        'image' => 'bi-image-fill',
+                        'link' => 'bi-link-45deg',
+                        'zoom' => 'bi-camera-video-fill',
+                      ];
+                      $icon = $iconMap[$resourceType] ?? 'bi-link-45deg';
+                      $title = match($resourceType) {
+                        'video' => 'فيديو',
+                        'document' => 'ملف',
+                        'image' => 'صورة',
+                        'zoom' => 'Zoom',
+                        default => 'رابط',
+                      };
+                    @endphp
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="teacher-resource-card">
+                        <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+                          <div class="d-flex align-items-center gap-2">
+                            <span class="teacher-resource-icon {{ $resourceType }}"><i class="{{ $icon }}"></i></span>
+                            <div>
+                              <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
+                              <div class="teacher-resource-badge mt-1">{{ $title }}</div>
+                            </div>
+                          </div>
+                          <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
+                        </div>
+
+                        <div class="small text-muted mb-3">
+                          @if($resource->isExternalLink())
+                            <span>رابط خارجي</span>
+                          @elseif($resource->processing_status === 'processing')
+                            <span class="text-warning">جاري المعالجة...</span>
+                          @elseif($resource->processing_status === 'failed')
+                            <span class="text-danger">فشلت المعالجة</span>
+                          @else
+                            <span class="text-success">متاح للطلاب</span>
+                          @endif
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                          @if($resource->isExternalLink())
+                            <a href="{{ $resource->url }}" target="_blank" class="btn btn-sm btn-outline-primary">فتح الرابط</a>
+                          @elseif($resource->type === 'document' || $resource->isImage())
+                            <a href="{{ route('teacher.content.view-file', $resource) }}" target="_blank" class="btn btn-sm btn-outline-primary">فتح الملف</a>
+                          @elseif($resource->type === 'video')
+                            <a href="{{ route('teacher.content.view-file', $resource) }}" target="_blank" class="btn btn-sm btn-outline-primary">مشاهدة الفيديو</a>
+                          @else
+                            <span class="btn btn-sm btn-outline-secondary disabled">لا يوجد محتوى</span>
+                          @endif
+                        </div>
+                      </div>
+                    </div>
+                  @empty
+                    <div class="col-12">
+                      <div class="text-center text-muted py-3" data-en="No resources for this lesson." data-ar="لا توجد مرفقات لهذا الدرس.">لا توجد مرفقات لهذا الدرس.</div>
+                    </div>
+                  @endforelse
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-success" onclick="openResourceModal({{ $lesson->id }})">
-                  <i class="bi bi-plus-lg me-1"></i> إضافة مرفق (فيديو / PDF / رابط)
-                </button>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="button" class="btn btn-sm btn-outline-success" onclick="selectVideoForLesson({{ $lesson->id }})">
+                    <i class="bi bi-cloud-arrow-up me-1"></i> رفع فيديو
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-primary" onclick="openResourceModal({{ $lesson->id }})">
+                    <i class="bi bi-plus-lg me-1"></i> إضافة مرفق (PDF / رابط)
+                  </button>
+                </div>
               </div>
             </div>
           @empty
@@ -306,6 +383,7 @@
   let modalAddUnit, modalAddLesson, modalAddResource;
   let currentUnitId = null;
   let currentLessonId = null;
+  let pendingLessonId = null;
   let videoUploadResumable = null;
   let videoUploadDone = false;
 
@@ -391,12 +469,45 @@
       document.getElementById('resource_original_filename').value = data.original_filename;
       document.getElementById('resource_video_progress').style.width = '100%';
       videoUploadDone = true;
-      $('#form_add_resource').submit();
+
+      const targetLessonId = pendingLessonId || currentLessonId;
+      if (!targetLessonId) {
+        Swal.fire('تنبيه', 'لم يتم تحديد درس لربط الفيديو.', 'warning');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('_token', csrfToken);
+      formData.append('title', (data.original_filename || file.fileName || file.name || 'فيديو جديد').replace(/\.[^/.]+$/, ''));
+      formData.append('type', 'video');
+      formData.append('uploaded_path', data.path);
+      formData.append('original_filename', data.original_filename || file.fileName || file.name || 'video');
+      formData.append('description', '');
+      formData.append('allow_download', 0);
+
+      $.ajax({
+        url: lessonsBaseUrl + '/' + targetLessonId + '/resources',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function () { location.reload(); },
+        error: function (xhr) {
+          const message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'حدث خطأ أثناء حفظ الفيديو.';
+          Swal.fire('خطأ', message, 'error');
+        }
+      });
     });
 
     videoUploadResumable.on('fileError', function () {
       Swal.fire('خطأ', 'تعذّر رفع الفيديو. سيتم إعادة المحاولة تلقائيًا عند استعادة الاتصال.', 'error');
     });
+  }
+
+  function selectVideoForLesson(lessonId) {
+    pendingLessonId = lessonId;
+    currentLessonId = lessonId;
+    document.getElementById('resource_video_input').click();
   }
 
   function openUnitModal() {
