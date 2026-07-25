@@ -822,6 +822,77 @@
     </div>
   </section>
 
+  @if($posPoints->count() > 0)
+  <!-- Section Separator -->
+  <div class="section-separator reveal">
+    <div class="separator-icon"></div>
+  </div>
+
+  <!-- Book Sale Points Section -->
+  <section id="pos-points" style="background: var(--bg-primary);">
+    <div class="container px-4">
+      <div class="text-center max-w-2xl mx-auto mb-16 reveal">
+        <h5 class="section-subtitle" data-en="WHERE TO BUY" data-ar="أين تجدنا">WHERE TO BUY</h5>
+        <h2 class="section-title" data-en="Book Sale Points" data-ar="نقاط بيع الكتب">Book Sale Points</h2>
+        <div class="section-divider mx-auto"></div>
+        <p class="mt-4 opacity-75" data-en="Get your academy booklets from any of our nearest sale points."
+           data-ar="احصل على ملازم الأكاديمية من أقرب نقطة بيع لك.">
+           Get your academy booklets from any of our nearest sale points.
+        </p>
+      </div>
+
+      <div class="row g-4 justify-content-center reveal">
+        @foreach($posPoints as $point)
+        <div class="col-md-6 col-lg-4">
+          <div class="glass-panel news-card hover-premium-card h-100 d-flex flex-column justify-content-between overflow-hidden">
+            <div class="news-img-wrapper d-block overflow-hidden">
+              <img src="{{ $point->image ? asset('storage/' . $point->image) : asset('site/images/img/programs/prog1.png') }}" alt="{{ $point->name_ar }}" class="news-img">
+            </div>
+            <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between">
+              <div>
+                <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="{{ $point->name_en }}" data-ar="{{ $point->name_ar }}">
+                  {{ app()->getLocale() == 'ar' ? $point->name_ar : $point->name_en }}
+                </h4>
+                <div class="d-flex align-items-start mb-2">
+                  <i class="bi bi-geo-alt-fill text-gold me-2 mt-1"></i>
+                  <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary);"
+                     data-en="{{ $point->address_en }}" data-ar="{{ $point->address_ar }}">
+                    {{ app()->getLocale() == 'ar' ? $point->address_ar : $point->address_en }}
+                  </p>
+                </div>
+                @if($point->working_hours_ar || $point->working_hours_en)
+                <div class="d-flex align-items-start mb-2">
+                  <i class="bi bi-clock-fill text-gold me-2 mt-1"></i>
+                  <p class="opacity-75 text-sm mb-0" style="color: var(--text-secondary);"
+                     data-en="{{ $point->working_hours_en }}" data-ar="{{ $point->working_hours_ar }}">
+                    {{ app()->getLocale() == 'ar' ? $point->working_hours_ar : $point->working_hours_en }}
+                  </p>
+                </div>
+                @endif
+                <div class="d-flex align-items-center mb-4">
+                  <i class="bi bi-telephone-fill text-gold me-2"></i>
+                  <a href="tel:{{ $point->phone }}" class="opacity-75 text-sm text-decoration-none" style="color: var(--text-secondary);" dir="ltr">{{ $point->phone }}</a>
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="tel:{{ $point->phone }}" class="btn btn-glass flex-grow-1 py-2 rounded-lg text-center text-decoration-none" data-en="Call" data-ar="اتصال">
+                  <i class="bi bi-telephone me-1"></i> {{ app()->getLocale() == 'ar' ? 'اتصال' : 'Call' }}
+                </a>
+                @if($point->latitude && $point->longitude)
+                <a href="https://www.google.com/maps/search/?api=1&query={{ $point->latitude }},{{ $point->longitude }}" target="_blank" class="btn btn-luxury flex-grow-1 py-2 rounded-lg text-center text-decoration-none" data-en="Directions" data-ar="الاتجاهات">
+                  <i class="bi bi-signpost-split-fill me-1"></i> {{ app()->getLocale() == 'ar' ? 'الاتجاهات' : 'Directions' }}
+                </a>
+                @endif
+              </div>
+            </div>
+          </div>
+        </div>
+        @endforeach
+      </div>
+    </div>
+  </section>
+  @endif
+
   <!-- Section Separator -->
   <div class="section-separator reveal">
     <div class="separator-icon"></div>

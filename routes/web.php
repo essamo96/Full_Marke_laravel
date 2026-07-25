@@ -15,7 +15,8 @@ Route::middleware(['site.locale', 'site.maintenance'])->group(function () {
         $testimonials = \App\Models\Testimonial::where('status', 1)->with('translations')->orderBy('display_order')->get();
         $latestNews = \App\Models\News::where('status', 1)->with('translations')->latest()->take(6)->get();
         $programs = \App\Models\Program::where('is_active', true)->orderBy('sort_order')->get();
-        return view('site.home', compact('sliders', 'pages', 'teams', 'faqs', 'testimonials', 'latestNews', 'programs'));
+        $posPoints = \App\Models\PosPoint::active()->orderBy('sort_order')->get();
+        return view('site.home', compact('sliders', 'pages', 'teams', 'faqs', 'testimonials', 'latestNews', 'programs', 'posPoints'));
     })->name('site.home');
 
     Route::get('/lang/{locale}', [SiteLocaleController::class, 'switch'])->name('site.lang');
