@@ -110,20 +110,23 @@
     @else
       <!-- Static Hero (either has media from db or original fallback) -->
       <div class="hero-frame-stage" aria-hidden="true">
+        @php
+            $heroPoster = ($hasMedia && $firstSlider->image) ? asset('storage/' . $firstSlider->image) : asset('site/images/bg-main.jpg');
+        @endphp
         @if($hasMedia)
             @if($firstSlider->video1)
-            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('storage/' . $firstSlider->video1) }}" muted playsinline preload="auto"></video>
+            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('storage/' . $firstSlider->video1) }}" poster="{{ $heroPoster }}" muted playsinline preload="auto" fetchpriority="high"></video>
             @endif
             @if($firstSlider->video2)
-            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video {{ !$firstSlider->video1 ? 'is-active' : '' }}" src="{{ asset('storage/' . $firstSlider->video2) }}" muted playsinline preload="auto"></video>
+            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video {{ !$firstSlider->video1 ? 'is-active' : '' }}" src="{{ asset('storage/' . $firstSlider->video2) }}" poster="{{ $heroPoster }}" muted playsinline preload="auto"></video>
             @endif
             @if($firstSlider->image)
             <img id="hero-bg-still" class="hero-frame-stage__media hero-frame-stage__still {{ (!$firstSlider->video1 && !$firstSlider->video2) ? 'is-active' : '' }}" src="{{ asset('storage/' . $firstSlider->image) }}" alt="">
             @endif
         @else
             <!-- Fallback to original backgrounds -->
-            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('site/images/slider1.mp4') }}" muted playsinline preload="auto"></video>
-            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video" src="{{ asset('site/images/slider1.mp4') }}" muted playsinline preload="auto"></video>
+            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('site/images/slider1.mp4') }}" poster="{{ $heroPoster }}" muted playsinline preload="auto" fetchpriority="high"></video>
+            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video" src="{{ asset('site/images/slider1.mp4') }}" poster="{{ $heroPoster }}" muted playsinline preload="auto"></video>
             <img id="hero-bg-still" class="hero-frame-stage__media hero-frame-stage__still" src="{{ asset('site/images/bg-main.jpg') }}" alt="">
         @endif
       </div>
