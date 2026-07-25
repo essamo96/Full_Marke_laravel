@@ -61,6 +61,14 @@
       opacity: 0.8;
     }
 
+    .teacher-content-modal {
+      z-index: 1060;
+    }
+
+    .teacher-content-modal .modal-backdrop {
+      z-index: 1050;
+    }
+
     .teacher-content-accordion .teacher-content-collapse {
       visibility: visible !important;
     }
@@ -238,7 +246,8 @@
             </div>
             <div class="mb-3" id="resource_video_field">
               <label class="form-label">رفع فيديو</label>
-              <div class="d-flex align-items-center gap-3">
+              <div class="d-flex align-items-center gap-3 flex-wrap">
+                <input type="file" id="resource_video_input" class="d-none" accept="video/*">
                 <button type="button" id="resource_video_browse" class="btn btn-outline-primary btn-sm">اختر ملف الفيديو</button>
                 <span id="resource_video_filename" class="text-muted fs-7"></span>
               </div>
@@ -338,6 +347,9 @@
   }
 
   function initVideoResumable() {
+    const videoInput = document.getElementById('resource_video_input');
+    const videoBrowse = document.getElementById('resource_video_browse');
+
     videoUploadResumable = new Resumable({
       target: chunkUploadUrl,
       chunkSize: 5 * 1024 * 1024,
@@ -348,7 +360,16 @@
       query: { _token: csrfToken },
     });
 
-    videoUploadResumable.assignBrowse(document.getElementById('resource_video_browse'));
+    videoBrowse.addEventListener('click', function () {
+      videoInput.click();
+    });
+
+    videoInput.addEventListener('change', function () {
+      if (!videoInput.files || !videoInput.files.length) return;
+      const file = videoInput.files[0];
+      videoUploadResumable.addFile(file);
+      document.getElementById('resource_video_filename').textContent = file.name;
+    });
 
     videoUploadResumable.on('fileAdded', function (file) {
       videoUploadDone = false;
@@ -398,6 +419,7 @@
     document.getElementById('resource_video_progress_wrap').classList.add('d-none');
     videoUploadDone = false;
     if (videoUploadResumable) videoUploadResumable.files = [];
+    document.getElementById('resource_video_input').value = '';
     toggleResourceFields();
     modalAddResource.show();
   }
