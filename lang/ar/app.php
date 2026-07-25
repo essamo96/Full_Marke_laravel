@@ -219,6 +219,19 @@ return [
     'mail_payment_confirmed_body' => 'تم تأكيد دفعتك رقم :number بمبلغ :amount وتفعيل تسجيلك بنجاح.',
     'mail_payment_rejected_subject' => 'تم رفض طلب الدفع',
     'mail_payment_rejected_body' => 'نأسف، تم رفض طلب دفعك رقم :number.',
+    'mail_group_suspended_subject' => 'تم إيقاف وصولك إلى المجموعة',
+    'mail_group_suspended_body' => 'نود إعلامك بأنه تم إيقاف وصولك إلى مجموعة ":group" في مادة ":subject" من قبل الإدارة لحين تسديد الرسوم المتبقية البالغة :amount. لن تتمكن من الدخول لمحتوى هذه المجموعة حتى تتم تسوية المستحقات وإعادة تفعيل حسابك من قبل الإدارة.',
+    'mail_group_reactivated_subject' => 'تم إعادة تفعيل وصولك إلى المجموعة',
+    'mail_group_reactivated_body' => 'يسعدنا إعلامك بأنه تم إعادة تفعيل وصولك إلى مجموعة ":group" في مادة ":subject". يمكنك الآن الدخول لمحتوى المجموعة كالمعتاد.',
+    'mail_account_suspended_subject' => 'تم إغلاق حسابك في بوابة الطالب',
+    'mail_account_suspended_body' => 'نود إعلامك بأنه تم إغلاق حسابك بالكامل من قبل الإدارة لحين تسديد الرسوم المتبقية البالغة :amount. لن تتمكن من تسجيل الدخول إلى بوابة الطالب حتى تتم تسوية المستحقات.',
+    'mail_account_reactivated_subject' => 'تم إعادة تفعيل حسابك',
+    'mail_account_reactivated_body' => 'يسعدنا إعلامك بأنه تم إعادة تفعيل حسابك بالكامل من قبل الإدارة. يمكنك الآن تسجيل الدخول إلى بوابة الطالب.',
+    'account_suspended_fees' => 'تم إغلاق حسابك من قبل الإدارة لحين تسديد الرسوم المستحقة (:amount). يرجى التواصل مع الإدارة.',
+    'notification_group_suspended' => 'تم إيقاف وصولك إلى مجموعة ":group" لحين تسديد الرسوم المتبقية البالغة :amount.',
+    'notification_group_reactivated' => 'تم إعادة تفعيل وصولك إلى مجموعة ":group".',
+    'notification_account_suspended' => 'تم إغلاق حسابك من قبل الإدارة لحين تسديد الرسوم المستحقة البالغة :amount.',
+    'notification_account_reactivated' => 'تم إعادة تفعيل حسابك بالكامل من قبل الإدارة.',
 
     'lang' => 'اللغة',
     'language' => 'اللغة',
@@ -521,6 +534,24 @@ return [
     'new' => 'جديد',
     'now' => 'الآن',
     
+    // File Manager
+    'file_manager' => 'مدير الملفات',
+    'items' => 'عناصر',
+    'new_folder' => 'مجلد جديد',
+    'upload_files' => 'رفع ملفات',
+    'drop_files_here' => 'أفلت الملفات هنا أو انقر للرفع',
+    'upload_up_to_10' => 'يمكنك رفع حتى 10 ملفات مرة واحدة',
+    'folder_name' => 'اسم المجلد',
+    'size' => 'الحجم',
+    'last_modified' => 'آخر تعديل',
+    'rename' => 'إعادة تسمية',
+    'empty_folder' => 'هذا المجلد فارغ',
+    'copy_link' => 'نسخ الرابط',
+    'link_copied' => 'تم نسخ الرابط إلى الحافظة',
+
+    // POS Points
+    'pos_points' => 'نقاط بيع الكتب',
+
     // Programs
     'programs' => 'البرامج',
     'type_primary' => 'ابتدائي',

@@ -73,6 +73,14 @@ class Student extends Authenticatable
         return $query->where('status', true);
     }
 
+    /**
+     * Total remaining fees across all this student's registrations (fee_snapshot - amount_paid).
+     */
+    public function getTotalDueAttribute(): float
+    {
+        return $this->registrations->sum(fn (Registration $r) => $r->remaining_amount);
+    }
+
     public function isEmailVerified(): bool
     {
         return !is_null($this->email_verified_at);

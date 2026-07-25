@@ -69,6 +69,7 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/teams.php';
     require __DIR__.'/news.php';
     require __DIR__.'/testimonials.php';
+    require __DIR__.'/pos-points.php';
     require __DIR__.'/contacts.php';
     require __DIR__.'/regions.php';
     require __DIR__.'/branches.php';
@@ -84,6 +85,7 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/pending_requests.php';
     require __DIR__.'/payments.php';
     require __DIR__.'/financial-reports.php';
+    require __DIR__.'/file-manager.php';
     require __DIR__.'/enrolments.php';
     require __DIR__.'/exams.php';
     Route::get('/exams-results', [\App\Http\Controllers\Admin\ExamController::class, 'allResults'])->name('exams_results.view');

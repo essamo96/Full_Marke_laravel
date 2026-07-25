@@ -20,6 +20,7 @@
         "pion/laravel-chunk-upload": "^1.6",
         "pusher/pusher-php-server": "^7.2",
         "spatie/laravel-permission": "^6.25",
+        "unisharp/laravel-filemanager": "^2.15",
         "yajra/laravel-datatables-oracle": "^12"
     },
     "require-dev": {

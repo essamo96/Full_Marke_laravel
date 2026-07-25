@@ -120,7 +120,11 @@ class GroupsController extends Controller
         }
 
         if ($registration->group_status === \App\Models\Registration::GROUP_STATUS_SUSPENDED) {
-            return redirect()->route('student.groups')->withErrors(['error' => 'تم إيقاف حالتك في هذه المجموعة من قبل الإدارة. يرجى التواصل مع الإدارة لمزيد من التفاصيل.']);
+            return redirect()->route('student.groups')->withErrors([
+                'error' => 'تم إيقاف حالتك في هذه المجموعة من قبل الإدارة لحين تسديد الرسوم المتبقية البالغة '
+                    . number_format($registration->remaining_amount, 2)
+                    . '. يرجى التواصل مع الإدارة لمزيد من التفاصيل.',
+            ]);
         }
 
         $group->load('teacher', 'subject');

@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\StudentRequest;
+use App\Mail\AccountStatusMail;
 use App\Models\Student;
 use App\Models\Branch;
 use App\Models\Region;
 use App\Models\Guardian;
+use App\Notifications\StudentFeeDuesNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Yajra\DataTables\Facades\DataTables;
 
 class StudentsController extends AdminController
@@ -181,8 +185,22 @@ class StudentsController extends AdminController
     public function postStatus(Request $request)
     {
         try {
-            $student = Student::findOrFail(Crypt::decrypt($request->id));
-            $student->update(['status' => ! $student->status]);
+            $student = Student::with('registrations')->findOrFail(Crypt::decrypt($request->id));
+            $wasVerified = $student->isEmailVerified();
+            $newStatus = ! $student->status;
+            $student->update(['status' => $newStatus]);
+
+            // Only notify for verified accounts being suspended/reactivated for fees —
+            // a freshly-registered, never-verified account toggling status isn't a fees event.
+            if ($wasVerified && $student->email) {
+                $totalDue = $student->total_due;
+                Mail::to($student->email)->send(new AccountStatusMail($student, ! $newStatus, $totalDue));
+
+                $message = __($newStatus ? 'app.notification_account_reactivated' : 'app.notification_account_suspended', [
+                    'amount' => number_format($totalDue, 2),
+                ]);
+                Notification::send($student, new StudentFeeDuesNotification($student->id, $message));
+            }
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {

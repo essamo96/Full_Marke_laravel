@@ -128,9 +128,30 @@
             <div style="position: absolute; top: 0; right: 0; width: 80px; height: 80px; z-index: 9999; background: transparent; cursor: not-allowed;" title="{{ __('app.protected') }}" oncontextmenu="return false;"></div>
         </div>
     @elseif($resource->type === 'video' && $resource->url)
-        <video controls controlsList="{{ $resource->allow_download ? '' : 'nodownload' }}" playsinline>
+        <video id="embedVideoEl" controls controlsList="{{ $resource->allow_download ? '' : 'nodownload' }}" playsinline>
             <source src="{{ route('student.resources.file', $resource) }}" type="video/mp4">
         </video>
+        <script>
+            // Native video fullscreen leaves the sibling .watermark div behind (it's not
+            // a child of <video>), so the watermark visually vanishes when zoomed.
+            // Redirect fullscreen to <body> instead, which contains both.
+            (function () {
+                var videoEl = document.getElementById('embedVideoEl');
+                function onFullscreenChange() {
+                    var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+                    if (fsEl !== videoEl) return;
+                    var exit = document.exitFullscreen
+                        ? document.exitFullscreen()
+                        : (document.webkitExitFullscreen ? Promise.resolve(document.webkitExitFullscreen()) : Promise.resolve());
+                    Promise.resolve(exit).catch(function () {}).then(function () {
+                        var request = document.body.requestFullscreen || document.body.webkitRequestFullscreen;
+                        if (request) request.call(document.body).catch(function () {});
+                    });
+                }
+                document.addEventListener('fullscreenchange', onFullscreenChange);
+                document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+            })();
+        </script>
     @else
         <div style="color: white; text-align: center; padding-top: 20%;">
             <h3>{{ __('app.not_found') }}</h3>

@@ -63,6 +63,24 @@ return [
     'site_phone' => 'Site Phone',
     'site_address' => 'Site Address',
 
+    // File Manager
+    'file_manager' => 'File Manager',
+    'items' => 'items',
+    'new_folder' => 'New Folder',
+    'upload_files' => 'Upload Files',
+    'drop_files_here' => 'Drop files here or click to upload',
+    'upload_up_to_10' => 'You can upload up to 10 files at once',
+    'folder_name' => 'Folder Name',
+    'size' => 'Size',
+    'last_modified' => 'Last Modified',
+    'rename' => 'Rename',
+    'empty_folder' => 'This folder is empty',
+    'copy_link' => 'Copy Link',
+    'link_copied' => 'Link copied to clipboard',
+
+    // POS Points
+    'pos_points' => 'Book Sale Points',
+
     // Academy modules
     'programs' => 'Programs',
     'study_branches' => 'Study Branches',
@@ -220,6 +238,19 @@ return [
     'mail_payment_confirmed_body' => 'Your payment #:number for the amount of :amount has been confirmed and your registration is successfully activated.',
     'mail_payment_rejected_subject' => 'Payment request rejected',
     'mail_payment_rejected_body' => 'We apologize, your payment request #:number has been rejected.',
+    'mail_group_suspended_subject' => 'Your access to the group has been suspended',
+    'mail_group_suspended_body' => 'We would like to inform you that your access to group ":group" in subject ":subject" has been suspended by the administration pending payment of the remaining fees of :amount. You will not be able to access this group\'s content until the dues are settled and your account is reactivated by the administration.',
+    'mail_group_reactivated_subject' => 'Your access to the group has been reactivated',
+    'mail_group_reactivated_body' => 'We are pleased to inform you that your access to group ":group" in subject ":subject" has been reactivated. You can now access the group\'s content as usual.',
+    'mail_account_suspended_subject' => 'Your student portal account has been closed',
+    'mail_account_suspended_body' => 'We would like to inform you that your account has been fully closed by the administration pending payment of the remaining fees of :amount. You will not be able to log in to the student portal until the dues are settled.',
+    'mail_account_reactivated_subject' => 'Your account has been reactivated',
+    'mail_account_reactivated_body' => 'We are pleased to inform you that your account has been fully reactivated by the administration. You can now log in to the student portal.',
+    'account_suspended_fees' => 'Your account has been closed by the administration pending payment of due fees (:amount). Please contact the administration.',
+    'notification_group_suspended' => 'Your access to group ":group" has been suspended pending payment of the remaining fees of :amount.',
+    'notification_group_reactivated' => 'Your access to group ":group" has been reactivated.',
+    'notification_account_suspended' => 'Your account has been closed by the administration pending payment of due fees of :amount.',
+    'notification_account_reactivated' => 'Your account has been fully reactivated by the administration.',
 
     'lang' => 'Language',
     'language' => 'Language',

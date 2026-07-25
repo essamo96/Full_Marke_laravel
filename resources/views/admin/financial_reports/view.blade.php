@@ -227,6 +227,87 @@
                     </div>
                 </div>
 
+                {{-- Overdue Students Table (unpaid > 1 month since last confirmed payment) --}}
+                <div class="card mb-6">
+                    <div class="card-header border-0 pt-5">
+                        <h3 class="card-title align-items-start flex-column">
+                            <span class="card-label fw-bold fs-5 mb-1">الطلاب المتأخرون عن السداد</span>
+                            <span class="text-muted mt-1 fw-semibold fs-7">لم يسدّدوا رسومهم المتبقية منذ أكثر من شهر على تاريخ آخر دفعة مؤكدة</span>
+                        </h3>
+                    </div>
+                    <div class="card-body py-3">
+                        <div class="table-responsive">
+                            <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+                                <thead>
+                                    <tr class="fw-bold text-muted bg-light text-start">
+                                        <th class="ps-4 rounded-start">الطالب</th>
+                                        <th>البرنامج</th>
+                                        <th>المادة</th>
+                                        <th>المجموعة</th>
+                                        <th>المبلغ المستحق</th>
+                                        <th>آخر دفعة مؤكدة</th>
+                                        <th class="rounded-end">حالة الطالب في المجموعة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($overdueStudents as $reg)
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="symbol symbol-40px me-3">
+                                                        @if($reg->student?->image)
+                                                            <img src="{{ asset('storage/' . $reg->student->image) }}" alt="" class="rounded-circle w-40px h-40px object-fit-cover">
+                                                        @else
+                                                            <span class="symbol-label bg-light-danger text-danger fw-bold fs-6">{{ substr($reg->student?->name ?? 'S', 0, 1) }}</span>
+                                                        @endif
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-dark fw-bold d-block">{{ $reg->student?->name ?? 'غير معروف' }}</span>
+                                                        <span class="text-muted fw-semibold fs-7">{{ $reg->student?->email }}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-dark fw-semibold">{{ app()->getLocale() == 'ar' ? ($reg->subject?->program?->name_ar ?? '-') : ($reg->subject?->program?->name_en ?? '-') }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-light-primary fw-bold">{{ app()->getLocale() == 'ar' ? $reg->subject?->name_ar : $reg->subject?->name_en }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-light-info fw-bold">{{ $reg->group?->name ?? '-' }}</span>
+                                            </td>
+                                            <td><span class="text-danger fw-bold">{{ number_format($reg->remaining_amount, 2) }} JOD</span></td>
+                                            <td>
+                                                <span class="text-muted fw-semibold">{{ \Illuminate\Support\Carbon::parse($reg->last_confirmed_at)->format('Y-m-d') }}</span>
+                                            </td>
+                                            <td>
+                                                @if(!$reg->group_id)
+                                                    <span class="text-muted fs-8">-</span>
+                                                @else
+                                                    <select class="form-select form-select-sm group-status-select" data-id="{{ $reg->id }}" style="min-width: 150px;">
+                                                        @foreach(\App\Models\Registration::GROUP_STATUSES as $value)
+                                                            <option value="{{ $value }}" {{ $reg->group_status === $value ? 'selected' : '' }}>
+                                                                {{ \App\Models\Registration::groupStatusLabel($value) }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted py-6">
+                                                <i class="bi bi-check-circle fs-2 text-success d-block mb-2"></i>
+                                                لا يوجد طلاب متأخرون عن السداد حالياً
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Debtors Table --}}
                 <div class="card">
                     <div class="card-header border-0 pt-5">
@@ -254,8 +335,8 @@
                                             <td class="ps-4">
                                                 <div class="d-flex align-items-center">
                                                     <div class="symbol symbol-40px me-3">
-                                                        @if($reg->student?->photo)
-                                                            <img src="{{ Storage::url($reg->student->photo) }}" alt="" class="rounded-circle w-40px h-40px object-fit-cover">
+                                                        @if($reg->student?->image)
+                                                            <img src="{{ asset('storage/' . $reg->student->image) }}" alt="" class="rounded-circle w-40px h-40px object-fit-cover">
                                                         @else
                                                             <span class="symbol-label bg-light-primary text-primary fw-bold fs-6">{{ substr($reg->student?->name ?? 'S', 0, 1) }}</span>
                                                         @endif
@@ -336,6 +417,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
+    });
+
+    $(document).on('change', '.group-status-select', function () {
+        const select = $(this);
+        const id = select.data('id');
+        const groupStatus = select.val();
+
+        $.ajax({
+            url: "{{ route('registrations.update-group-status') }}",
+            type: 'POST',
+            data: {
+                _token: "{{ csrf_token() }}",
+                id: id,
+                group_status: groupStatus
+            },
+            success: function (response) {
+                if (typeof toastr === 'undefined') return;
+                if (response.status) {
+                    toastr.success(response.message);
+                } else {
+                    toastr.error(response.message || 'حدث خطأ.');
+                }
+            },
+            error: function (xhr) {
+                if (typeof toastr === 'undefined') return;
+                const message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'حدث خطأ.';
+                toastr.error(message);
+            }
+        });
     });
 });
 </script>

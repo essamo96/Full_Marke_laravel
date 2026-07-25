@@ -31,11 +31,20 @@ class LoginController extends Controller
 
             if (! $student->status) {
                 Auth::guard('student')->logout();
-                $request->session()->put('otp.student.email', $student->email);
 
-                return redirect()->route('student.verify')->withErrors([
-                    'email' => __('app.account_not_verified'),
-                ]);
+                // A never-verified account still needs the OTP flow; a previously-verified
+                // account with status=0 was suspended by the admin (fees) — block it outright.
+                if (! $student->isEmailVerified()) {
+                    $request->session()->put('otp.student.email', $student->email);
+
+                    return redirect()->route('student.verify')->withErrors([
+                        'email' => __('app.account_not_verified'),
+                    ]);
+                }
+
+                return back()->withErrors([
+                    'email' => __('app.account_suspended_fees', ['amount' => number_format($student->total_due, 2)]),
+                ])->onlyInput('email');
             }
 
             $request->session()->regenerate();

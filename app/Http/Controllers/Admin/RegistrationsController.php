@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Mail\GroupAccessStatusMail;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\Subject;
+use App\Notifications\StudentFeeDuesNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Yajra\DataTables\Facades\DataTables;
 
 class RegistrationsController extends AdminController
@@ -228,8 +232,30 @@ class RegistrationsController extends AdminController
             'group_status' => 'required|in:' . implode(',', Registration::GROUP_STATUSES),
         ]);
 
-        $registration = Registration::findOrFail($data['id']);
+        $registration = Registration::with(['student', 'group', 'subject'])->findOrFail($data['id']);
+        $previousStatus = $registration->group_status;
         $registration->update(['group_status' => $data['group_status']]);
+
+        $becameSuspended = $data['group_status'] === Registration::GROUP_STATUS_SUSPENDED && $previousStatus !== Registration::GROUP_STATUS_SUSPENDED;
+        $becameActive = $data['group_status'] === Registration::GROUP_STATUS_ACTIVE && $previousStatus === Registration::GROUP_STATUS_SUSPENDED;
+
+        if ($becameSuspended || $becameActive) {
+            $suspended = $becameSuspended;
+            $student = $registration->student;
+
+            if ($student && $student->email) {
+                Mail::to($student->email)->send(new GroupAccessStatusMail($registration, $suspended));
+            }
+
+            if ($student) {
+                $message = __($suspended ? 'app.notification_group_suspended' : 'app.notification_group_reactivated', [
+                    'group' => $registration->group->name ?? '-',
+                    'amount' => number_format($registration->remaining_amount, 2),
+                ]);
+
+                Notification::send($student, new StudentFeeDuesNotification($student->id, $message));
+            }
+        }
 
         return response()->json([
             'status' => true,

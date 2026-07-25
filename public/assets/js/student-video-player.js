@@ -123,6 +123,35 @@
     };
   }
 
+  /**
+   * Native video fullscreen (the button in the browser's own <video controls>)
+   * makes the <video> itself the fullscreen element, which leaves sibling
+   * overlays — like the watermark canvas — behind on the non-fullscreen page,
+   * so the watermark visually "disappears" while zoomed. Redirect fullscreen
+   * to the wrapping container instead, which keeps the canvas layered on top.
+   */
+  function keepOverlayInFullscreen(container, videoEl) {
+    function onFullscreenChange() {
+      var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+      if (fsEl !== videoEl) return;
+
+      var exit = document.exitFullscreen
+        ? document.exitFullscreen()
+        : (document.webkitExitFullscreen ? Promise.resolve(document.webkitExitFullscreen()) : Promise.resolve());
+
+      Promise.resolve(exit).catch(function () {}).then(function () {
+        var request = container.requestFullscreen || container.webkitRequestFullscreen;
+        if (request) request.call(container).catch(function () {});
+      });
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    return function destroy() {
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+    };
+  }
+
   function applyDeterrents(videoEl) {
     videoEl.setAttribute('controlsList', 'nodownload noremoteplayback');
     videoEl.setAttribute('disablePictureInPicture', 'true');
@@ -263,6 +292,7 @@
 
         cleanupFns.push(mountWatermark(opts.container, opts.studentName, opts.studentPhotoUrl));
         cleanupFns.push(applyDeterrents(opts.videoEl));
+        cleanupFns.push(keepOverlayInFullscreen(opts.container, opts.videoEl));
       })
       .catch(function (err) {
         loader.destroy();

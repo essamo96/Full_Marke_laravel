@@ -54,6 +54,25 @@ class FinancialReportsController extends AdminController
             ->sortByDesc(fn (Registration $r) => $r->remaining_amount)
             ->values();
 
+        // Students overdue: they still owe money and their last CONFIRMED payment
+        // was more than a month ago (i.e. they stopped paying and never cleared the balance).
+        $lastConfirmedPayments = DB::table('payment_registrations')
+            ->join('payments', 'payments.id', '=', 'payment_registrations.payment_id')
+            ->where('payments.status', 'confirmed')
+            ->select('payment_registrations.registration_id', DB::raw('MAX(payments.reviewed_at) as last_confirmed_at'))
+            ->groupBy('payment_registrations.registration_id');
+
+        $overdueStudents = Registration::query()
+            ->with(['student', 'subject.program', 'group'])
+            ->joinSub($lastConfirmedPayments, 'last_payments', function ($join) {
+                $join->on('registrations.id', '=', 'last_payments.registration_id');
+            })
+            ->where('last_payments.last_confirmed_at', '<=', now()->subMonth())
+            ->whereColumn('registrations.fee_snapshot', '>', 'registrations.amount_paid')
+            ->select('registrations.*', 'last_payments.last_confirmed_at')
+            ->orderBy('last_payments.last_confirmed_at')
+            ->get();
+
         $studentStats = [
             'active' => \App\Models\Student::active()->count(),
             'inactive' => \App\Models\Student::where('status', false)->count(),
@@ -68,6 +87,7 @@ class FinancialReportsController extends AdminController
             'revenueByMethod' => $revenueByMethod,
             'monthlyRevenue' => $monthlyRevenue,
             'debtors' => $debtors,
+            'overdueStudents' => $overdueStudents,
             'studentStats' => $studentStats
         ]);
     }

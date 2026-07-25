@@ -130,6 +130,23 @@
     @endforeach
   @endif
 
+  <!-- Fullscreen is redirected from the <video> to #lessonVideoContainer (see
+       keepOverlayInFullscreen in student-video-player.js) so the watermark
+       canvas — a sibling of the video, not a child — stays visible when zoomed. -->
+  <style>
+    #lessonVideoContainer:fullscreen,
+    #lessonVideoContainer:-webkit-full-screen {
+      width: 100vw;
+      height: 100vh;
+      aspect-ratio: auto;
+      border-radius: 0;
+    }
+    #lessonVideoContainer:fullscreen #lessonVideoEl,
+    #lessonVideoContainer:-webkit-full-screen #lessonVideoEl {
+      object-fit: contain;
+    }
+  </style>
+
   <!-- Secure lesson video modal -->
   <div class="modal fade" id="lessonVideoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
