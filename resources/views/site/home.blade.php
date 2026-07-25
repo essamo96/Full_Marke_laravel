@@ -358,8 +358,11 @@
         <div class="section-divider mx-auto"></div>
       </div>
 
-      @php $featDetails = app()->getLocale() == 'ar' ? $featuresAr?->details : $featuresEn?->details; @endphp
-      @if(!empty(trim(strip_tags($featDetails))))
+      @php
+          $featDetails = app()->getLocale() == 'ar' ? $featuresAr?->details : $featuresEn?->details;
+          $featDetailsPlain = trim(str_replace("\xc2\xa0", '', strip_tags(html_entity_decode($featDetails ?? ''))));
+      @endphp
+      @if(!empty($featDetailsPlain))
           <div class="reveal mt-4">
               {!! $featDetails !!}
           </div>
@@ -443,8 +446,11 @@
             {{ app()->getLocale() == 'ar' ? ($servicesAr?->title ?? 'بوابات التسجيل والحجز الفوري') : ($servicesEn?->title ?? 'Enroll and Booking Gateways') }}
         </h2>
         <div class="section-divider mx-auto"></div>
-        @php $servDetails = app()->getLocale() == 'ar' ? $servicesAr?->details : $servicesEn?->details; @endphp
-        @if(!empty(trim(strip_tags($servDetails))))
+        @php
+            $servDetails = app()->getLocale() == 'ar' ? $servicesAr?->details : $servicesEn?->details;
+            $servDetailsPlain = trim(str_replace("\xc2\xa0", '', strip_tags(html_entity_decode($servDetails ?? ''))));
+        @endphp
+        @if(!empty($servDetailsPlain))
         <div class="text-center mt-4 mb-8">
             {!! $servDetails !!}
         </div>
@@ -516,16 +522,17 @@
   <section class="counter-section" style="background-image: url('{{ asset('site/images/img/banner/nos.jpg') }}');">
     <div class="counter-overlay"></div>
     <div class="container relative z-2 px-4">
-      @php 
+      @php
          $trainTitle = app()->getLocale() == 'ar' ? $trainingAr?->title : $trainingEn?->title;
          $trainDetails = app()->getLocale() == 'ar' ? $trainingAr?->details : $trainingEn?->details;
+         $trainDetailsPlain = trim(str_replace("\xc2\xa0", '', strip_tags(html_entity_decode($trainDetails ?? ''))));
       @endphp
-      @if(!empty(trim($trainTitle)) || !empty(trim(strip_tags($trainDetails))))
+      @if(!empty(trim($trainTitle)) || !empty($trainDetailsPlain))
       <div class="text-center mb-8">
          @if(!empty(trim($trainTitle)))
          <h2 class="text-white text-3xl font-bold mb-4">{{ $trainTitle }}</h2>
          @endif
-         @if(!empty(trim(strip_tags($trainDetails))))
+         @if(!empty($trainDetailsPlain))
          <div class="text-white opacity-75">
              {!! $trainDetails !!}
          </div>
