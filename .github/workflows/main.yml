@@ -9,7 +9,7 @@ jobs:
   web-deploy:
     name: 🎉 Running Deployment Process
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 720
 
     steps:
       - name: 🚚 Get latest code
@@ -29,7 +29,8 @@ jobs:
             ${{ runner.os }}-composer-
 
       - name: 📦 Install Composer dependencies
-        run: composer install --no-dev --optimize-autoloader --prefer-dist
+        timeout-minutes: 60
+        run: composer install --no-interaction --no-progress --no-dev --optimize-autoloader --prefer-dist
 
       - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v3
@@ -38,8 +39,9 @@ jobs:
           cache: "npm" # تفعيل الكاش لـ Node.js لتسريع العملية
 
       - name: 🔨 Build Frontend Assets (Vite)
+        timeout-minutes: 90
         run: |
-          npm ci # أفضل من npm install في بيئات الـ CI/CD
+          npm ci --no-audit --no-fund
           npm run build
 
       - name: 📂 Sync files to Server (lftp)
