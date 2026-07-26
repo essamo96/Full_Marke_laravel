@@ -221,6 +221,11 @@
           <div class="modal-body pb-8 d-flex flex-column align-items-center justify-content-center">
             <img src="{{ route('qr.subject', $subject->id) }}" alt="QR Code" class="rounded-lg d-block mx-auto" style="width: 220px; height: 220px; background: #fff; padding: 10px;">
             <p class="opacity-75 text-sm mt-4 mb-0" data-en="Scan to open this subject" data-ar="امسح الرمز للانتقال إلى هذه المادة">Scan to open this subject</p>
+            <button type="button" class="btn btn-luxury btn-sm mt-4 qr-download-btn"
+                    data-qr-url="{{ route('qr.subject', $subject->id) }}"
+                    data-file-name="qr-{{ \Illuminate\Support\Str::slug($subject->name_en ?: $subject->name) }}.png">
+              <i class="bi bi-download me-2"></i><span data-en="Download QR Code" data-ar="تحميل رمز QR">Download QR Code</span>
+            </button>
           </div>
         </div>
       </div>
@@ -230,6 +235,47 @@
 
 @push('scripts')
 <script>
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.qr-download-btn');
+    if (!btn) return;
+
+    const qrUrl = btn.dataset.qrUrl;
+    const fileName = btn.dataset.fileName || 'qr-code.png';
+    // The QR is generated server-side as an SVG (vector), so rasterizing it at a
+    // large fixed size loses nothing — the PNG comes out crisp at print sizes too.
+    const exportSize = 1200;
+
+    fetch(qrUrl)
+      .then(function (res) { return res.text(); })
+      .then(function (svgText) {
+        const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        const img = new Image();
+        img.onload = function () {
+          const canvas = document.createElement('canvas');
+          canvas.width = exportSize;
+          canvas.height = exportSize;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, exportSize, exportSize);
+          ctx.drawImage(img, 0, 0, exportSize, exportSize);
+          URL.revokeObjectURL(svgUrl);
+          canvas.toBlob(function (blob) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(a.href);
+          }, 'image/png');
+        };
+        img.onerror = function () { window.open(qrUrl, '_blank'); };
+        img.src = svgUrl;
+      })
+      .catch(function () { window.open(qrUrl, '_blank'); });
+  });
+
   document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
       btn.addEventListener('click', function() {
