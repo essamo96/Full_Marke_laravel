@@ -74,10 +74,12 @@ jobs:
           timeout 5100s lftp -c "
             set ftp:ssl-allow no;
             set ftp:passive-mode yes;
-            set net:timeout 30;
-            set net:max-retries 3;
+            set ftp:use-epsv no;
+            set net:timeout 60;
+            set net:max-retries 10;
             set net:reconnect-interval-base 5;
-            set net:reconnect-interval-max 10;
+            set net:reconnect-interval-max 30;
+            set net:persist-retries 5;
             set xfer:clobber boolean true;
             open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" ftp://92.113.19.218;
             mirror -R -v --only-newer --parallel=1 --no-empty-dirs \
