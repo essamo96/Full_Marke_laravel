@@ -47,7 +47,7 @@ return [
             'throw' => false,
             'report' => false,
         ],
-
+ 
         'protected_videos' => [
             'driver' => 'local',
             'root' => storage_path('app/private/protected_videos'),
