@@ -229,7 +229,7 @@
           <!-- OTP Verification Modal -->
           <div class="modal fade" id="otpVerificationModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
-              <div class="modal-content">
+              <div class="modal-content glass-panel">
                 <div class="modal-header border-0 pb-0">
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="display:none;"></button>
                 </div>
@@ -238,9 +238,9 @@
                     <i class="bi bi-envelope-check text-success" style="font-size: 3rem;"></i>
                   </div>
                   <h4 class="mb-3" id="otpModalLabel" data-en="Verify Your Email" data-ar="تحقق من بريدك الإلكتروني">Verify Your Email</h4>
-                  <p class="text-muted mb-4">
+                  <p class="mb-4" style="color: var(--text-secondary);">
                     <span data-en="A verification code has been sent to:" data-ar="تم إرسال رمز التحقق إلى:">A verification code has been sent to:</span><br>
-                    <strong id="sentEmailAddress" class="text-dark"></strong>
+                    <strong id="sentEmailAddress" style="color: var(--text-primary);"></strong>
                   </p>
 
                   <div id="otpErrorMsg" class="alert alert-danger d-none" style="font-size: 0.9rem;"></div>

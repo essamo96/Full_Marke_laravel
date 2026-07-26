@@ -150,7 +150,7 @@
   <!-- Secure lesson video modal -->
   <div class="modal fade" id="lessonVideoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
+      <div class="modal-content glass-panel">
         <div class="modal-header border-0">
           <h5 class="modal-title fw-bold" id="lessonVideoTitle" style="color: var(--text-primary);"></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -168,7 +168,7 @@
   <!-- Secure document (PDF) modal -->
   <div class="modal fade" id="lessonDocumentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
+      <div class="modal-content glass-panel">
         <div class="modal-header border-0">
           <h5 class="modal-title fw-bold" id="lessonDocumentTitle" style="color: var(--text-primary);"></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -186,7 +186,7 @@
   <!-- Secure image modal -->
   <div class="modal fade" id="lessonImageModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
+      <div class="modal-content glass-panel">
         <div class="modal-header border-0">
           <h5 class="modal-title fw-bold" id="lessonImageTitle" style="color: var(--text-primary);"></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -204,7 +204,7 @@
   <!-- External link modal (YouTube embed, or a gated "open" action for non-embeddable links like Zoom) -->
   <div class="modal fade" id="lessonLinkModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
+      <div class="modal-content glass-panel">
         <div class="modal-header border-0">
           <h5 class="modal-title fw-bold" id="lessonLinkTitle" style="color: var(--text-primary);"></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

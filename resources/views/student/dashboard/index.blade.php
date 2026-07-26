@@ -354,10 +354,10 @@
         <!-- Join Group Register Modal -->
         <div class="modal fade" id="joinGroupRegisterModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content glass-panel border-1 border-white/10" style="background: var(--bg-primary);">
-                    <div class="modal-header border-bottom border-white/10">
-                        <h5 class="modal-title fw-bold" style="color: var(--text-primary);" data-en="Join & Pay" data-ar="تسجيل ودفع">تسجيل ودفع</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-content glass-panel">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold" data-en="Join & Pay" data-ar="تسجيل ودفع">تسجيل ودفع</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form id="joinGroupRegisterForm" enctype="multipart/form-data">
                         @csrf
@@ -419,7 +419,7 @@
 
                             <div id="modalFeedback" class="mt-2 text-sm d-none"></div>
                         </div>
-                        <div class="modal-footer border-top border-white/10 d-flex justify-content-between">
+                        <div class="modal-footer d-flex justify-content-between">
                             <a href="#" id="modalProgramUrl" class="btn btn-outline-secondary" data-en="View Details" data-ar="عرض التفاصيل">عرض التفاصيل</a>
                             <button type="submit" class="btn btn-luxury px-4" id="submitRegisterBtn">
                                 <span class="indicator-label" data-en="Pay & Join" data-ar="تأكيد ودفع">تأكيد ودفع</span>

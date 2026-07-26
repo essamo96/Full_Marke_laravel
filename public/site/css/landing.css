@@ -41,10 +41,10 @@
 }
 
 .btn-glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(197, 168, 128, 0.3);
+  border: 1px solid var(--glass-border);
   color: var(--text-primary) !important;
   transition: all 0.3s ease;
 }
@@ -75,6 +75,93 @@
   background: var(--glass-glow);
   pointer-events: none;
   z-index: -1;
+}
+
+/* ==========================================================================
+   Liquid Glass Modal Design
+   Applies the .glass-panel treatment to Bootstrap modals across the
+   teacher/student portals so every modal automatically adapts to whichever
+   of the three themes (dark / light / gold) is active — no per-theme rules
+   needed here since everything reads the shared --glass-*/--text-*/--input-*
+   custom properties already defined per theme.
+   ========================================================================== */
+.modal-backdrop.show {
+  opacity: 0.55;
+  background: var(--bg-primary);
+}
+
+.modal-content.glass-panel {
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.modal-content.glass-panel .modal-header,
+.modal-content.glass-panel .modal-footer {
+  border-color: var(--glass-border);
+}
+
+.modal-content.glass-panel .modal-title {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.modal-content.glass-panel .modal-body {
+  color: var(--text-secondary);
+}
+
+/* Bootstrap's default .btn-close is a fixed-color SVG mask that goes
+   invisible against dark/gold glass backgrounds; replace it with a
+   theme-colored glyph instead of relying on the .btn-close-white hack,
+   since that hack would break the light theme. */
+.modal-content.glass-panel .btn-close {
+  background: none;
+  opacity: 1;
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full, 50%);
+  transition: background 0.2s ease;
+}
+.modal-content.glass-panel .btn-close::before {
+  content: '\2715';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  transition: color 0.2s ease;
+}
+.modal-content.glass-panel .btn-close:hover {
+  background: var(--accent-glow);
+}
+.modal-content.glass-panel .btn-close:hover::before {
+  color: var(--accent-color);
+}
+
+.modal-content.glass-panel .form-control,
+.modal-content.glass-panel .form-select {
+  background: var(--input-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}
+.modal-content.glass-panel .form-control::placeholder {
+  color: var(--text-muted);
+}
+.modal-content.glass-panel .form-control:focus,
+.modal-content.glass-panel .form-select:focus {
+  background: var(--input-bg);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 0.2rem var(--accent-glow);
+  color: var(--text-primary);
+}
+.modal-content.glass-panel label {
+  color: var(--text-secondary);
+}
+.modal-content.glass-panel hr {
+  border-color: var(--glass-border);
+  opacity: 1;
 }
 
 /* Sticky transparent Header */

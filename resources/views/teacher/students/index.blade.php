@@ -49,10 +49,10 @@
       <!-- Note/Alert Modal -->
       <div class="modal fade" id="noteModal{{ $student->id }}" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content glass-panel" style="background: var(--bg-primary);">
+          <div class="modal-content glass-panel">
             <div class="modal-header">
-              <h5 class="modal-title" style="color: var(--text-primary);">إرسال ملاحظة إلى {{ $student->full_name_ar ?? $student->full_name_en }}</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              <h5 class="modal-title">إرسال ملاحظة إلى {{ $student->full_name_ar ?? $student->full_name_en }}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ route('teacher.student-notes.store') }}">
               @csrf

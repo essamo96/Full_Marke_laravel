@@ -173,10 +173,10 @@
 <!-- Join Group Register Modal -->
 <div class="modal fade" id="joinGroupRegisterModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content glass-panel border-1 border-white/10" style="background: var(--bg-primary);">
-            <div class="modal-header border-bottom border-white/10">
-                <h5 class="modal-title fw-bold" style="color: var(--text-primary);" data-en="Join & Pay" data-ar="تسجيل ودفع">تسجيل ودفع</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" data-en="Join & Pay" data-ar="تسجيل ودفع">تسجيل ودفع</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="joinGroupRegisterForm" enctype="multipart/form-data">
                 @csrf
@@ -192,7 +192,7 @@
                     
                     <div class="mb-3">
                         <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Subject & Group" data-ar="المادة والمجموعة">المادة والمجموعة</label>
-                        <div class="form-control bg-white/5 border-white/10 text-white" readonly>
+                        <div class="form-control" readonly>
                             <span id="modalSubjectName" class="fw-bold text-gold"></span> 
                             - <span id="modalGroupName"></span>
                         </div>
@@ -200,12 +200,12 @@
 
                     <div class="mb-3">
                         <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Required Fee (JOD)" data-ar="الرسوم المطلوبة (دينار)">الرسوم المطلوبة (دينار)</label>
-                        <input type="number" id="modalFee" name="amount" class="form-control bg-white/5 border-white/10 text-white" readonly>
+                        <input type="number" id="modalFee" name="amount" class="form-control" readonly>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Payment Method" data-ar="طريقة الدفع">طريقة الدفع</label>
-                        <select name="payment_method_id" class="form-select bg-white/5 border-white/10 text-white" required>
+                        <select name="payment_method_id" class="form-select" required>
                             <option value="">-- اختر طريقة الدفع --</option>
                             @foreach($paymentMethods ?? \App\Models\PaymentMethod::active()->orderBy('sort_order')->get() as $pm)
                                 <option value="{{ $pm->id }}">{{ $pm->name }}</option>
@@ -215,12 +215,12 @@
 
                     <div class="mb-3">
                         <label class="form-label fs-7" style="color: var(--text-secondary);" data-en="Payment Receipt" data-ar="صورة إيصال الدفع">صورة إيصال الدفع</label>
-                        <input type="file" name="receipt" class="form-control bg-white/5 border-white/10 text-white" accept="image/*,.pdf" required>
+                        <input type="file" name="receipt" class="form-control" accept="image/*,.pdf" required>
                     </div>
                     
                     <div id="modalFeedback" class="mt-2 text-sm d-none"></div>
                 </div>
-                <div class="modal-footer border-top border-white/10 d-flex justify-content-between">
+                <div class="modal-footer d-flex justify-content-between">
                     <a href="#" id="modalProgramUrl" class="btn btn-outline-secondary" data-en="View Details" data-ar="عرض التفاصيل">عرض التفاصيل</a>
                     <button type="submit" class="btn btn-luxury px-4" id="submitRegisterBtn">
                         <span class="indicator-label" data-en="Pay & Join" data-ar="تأكيد ودفع">تأكيد ودفع</span>

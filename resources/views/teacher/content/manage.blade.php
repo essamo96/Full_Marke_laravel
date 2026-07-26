@@ -13,52 +13,18 @@
 @section('content')
 
   <style>
-    .teacher-content-modal .modal-content {
-      background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
-      border: 1px solid rgba(255,255,255,0.14);
-      box-shadow: 0 24px 60px rgba(0,0,0,0.28);
-      backdrop-filter: blur(24px);
-      color: var(--text-primary);
-    }
-
-    .teacher-content-modal .modal-header,
-    .teacher-content-modal .modal-footer {
-      border-color: rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-    }
-
-    .teacher-content-modal .modal-title,
-    .teacher-content-modal .form-label {
-      color: var(--text-primary);
-    }
-
+    /* Color/border/background rules for these modals now come from the
+       shared .glass-panel + .modal-content.glass-panel rules in
+       landing.css, which read the active theme's CSS variables — the
+       hardcoded rgba(255,255,255,...) values previously here made the
+       modal invisible/illegible under theme-light. */
     .teacher-content-modal .form-control,
-    .teacher-content-modal .form-select,
-    .teacher-content-modal .form-control:focus,
-    .teacher-content-modal .form-select:focus {
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(255,255,255,0.16);
-      color: var(--text-primary);
+    .teacher-content-modal .form-select {
       box-shadow: none;
     }
 
-    .teacher-content-modal .form-control::placeholder {
-      color: rgba(255,255,255,0.55);
-    }
-
-    .teacher-content-modal .btn-glass {
-      background: rgba(255,255,255,0.08);
-      color: var(--text-primary);
-      border-color: rgba(255,255,255,0.14);
-    }
-
     .teacher-content-modal .btn-luxury {
-      box-shadow: 0 12px 30px rgba(197, 168, 128, 0.18);
-    }
-
-    .teacher-content-modal .btn-close {
-      filter: brightness(0) invert(1);
-      opacity: 0.8;
+      box-shadow: 0 12px 30px var(--accent-glow);
     }
 
     .teacher-content-modal {
@@ -244,7 +210,7 @@
   <!-- Add Unit Modal -->
   <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_add_unit">
     <div class="modal-dialog">
-      <div class="modal-content">
+      <div class="modal-content glass-panel">
         <div class="modal-header">
           <h5 class="modal-title" data-en="Add Unit" data-ar="إضافة وحدة تعليمية جديدة">إضافة وحدة تعليمية جديدة</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -272,7 +238,7 @@
   <!-- Add Lesson Modal -->
   <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_add_lesson">
     <div class="modal-dialog">
-      <div class="modal-content">
+      <div class="modal-content glass-panel">
         <div class="modal-header">
           <h5 class="modal-title" data-en="Add Lesson" data-ar="إضافة درس جديد">إضافة درس جديد</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -300,7 +266,7 @@
   <!-- Add Resource Modal -->
   <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_add_resource">
     <div class="modal-dialog">
-      <div class="modal-content">
+      <div class="modal-content glass-panel">
         <div class="modal-header">
           <h5 class="modal-title" data-en="Add Resource" data-ar="إضافة مرفق تعليمي">إضافة مرفق تعليمي</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
