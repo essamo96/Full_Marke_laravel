@@ -235,19 +235,59 @@
         });
     </script>
     
-    {{-- Global "pick from File Manager" popup helper — available on every admin page.
+    {{-- Global "pick from File Manager" modal helper — available on every admin page.
          Used by the admin.components.file-picker component so any upload field in
-         the project can route through the shared File Manager screen. --}}
+         the project can route through the shared File Manager screen, shown as an
+         embedded modal (no sidebar/header) instead of a separate popup window. --}}
     <script>
+        function ensureFileManagerModal() {
+            let modal = document.getElementById('fm_picker_modal');
+            if (modal) return modal;
+
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = `
+                <div class="modal fade" id="fm_picker_modal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-fullscreen-lg-down mw-1100px">
+                        <div class="modal-content" style="height: 85vh;">
+                            <div class="modal-header py-3">
+                                <h2 class="fw-bold fs-4 mb-0">@lang('app.file_manager')</h2>
+                                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                                </div>
+                            </div>
+                            <div class="modal-body p-0">
+                                <iframe id="fm_picker_iframe" src="about:blank" style="width:100%;height:100%;border:0;"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.appendChild(wrapper.firstElementChild);
+            modal = document.getElementById('fm_picker_modal');
+
+            modal.addEventListener('hidden.bs.modal', function () {
+                document.getElementById('fm_picker_iframe').src = 'about:blank';
+            });
+
+            return modal;
+        }
+
         function openFileManagerPicker(targetInputId, options) {
             options = options || {};
-            const width = 1100, height = 720;
-            const left = (screen.width - width) / 2;
-            const top = (screen.height - height) / 2;
             let url = "{{ route('file_manager.view') }}?picker=1&target=" + encodeURIComponent(targetInputId);
             if (options.folder) url += "&folder=" + encodeURIComponent(options.folder);
-            window.open(url, 'fileManagerPicker', `width=${width},height=${height},left=${left},top=${top}`);
+
+            const modalEl = ensureFileManagerModal();
+            document.getElementById('fm_picker_iframe').src = url;
+            new bootstrap.Modal(modalEl).show();
         }
+
+        window.closeFileManagerPicker = function () {
+            const modalEl = document.getElementById('fm_picker_modal');
+            if (modalEl) {
+                const instance = bootstrap.Modal.getInstance(modalEl);
+                if (instance) instance.hide();
+            }
+        };
 
         window.fmPickerCallback = function (url, path, target) {
             const input = document.getElementById(target);

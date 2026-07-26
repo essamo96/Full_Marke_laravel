@@ -1,4 +1,4 @@
-@extends('admin.layout.mainLayouts.master')
+@extends($picker ? 'admin.layout.mainLayouts.bare' : 'admin.layout.mainLayouts.master')
 @section('title')
     @lang('app.' . $active_menu)
 @stop
@@ -15,11 +15,12 @@
         .fm-row { transition: background-color .15s ease; }
         .fm-row:hover { background-color: var(--bs-light); }
     </style>
-    <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
-        <div id="kt_app_content" class="app-content flex-column-fluid">
-            <div id="kt_app_content_container" class="app-container container-xxl">
+    <div @unless($picker) class="app-main flex-column flex-row-fluid" id="kt_app_main" @endunless>
+        <div @unless($picker) id="kt_app_content" class="app-content flex-column-fluid" @endunless>
+            <div @unless($picker) id="kt_app_content_container" class="app-container container-xxl" @endunless>
 
                 {{-- Header --}}
+                @unless($picker)
                 <div class="card card-flush pb-0 mb-6">
                     <div class="card-header pt-8">
                         <div class="d-flex align-items-center">
@@ -31,19 +32,21 @@
                             <div class="d-flex flex-column">
                                 <h2 class="mb-1">@lang('app.file_manager')</h2>
                                 <div class="text-muted fw-bold">
-                                    @if($picker)
-                                        <span class="text-primary">@lang('app.pick_a_file_hint')</span>
-                                    @else
-                                        {{ count($directories) + count($files) }} @lang('app.items')
-                                    @endif
+                                    {{ count($directories) + count($files) }} @lang('app.items')
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                @else
+                <div class="d-flex align-items-center mb-4">
+                    <i class="ki-duotone ki-folder fs-2x text-primary me-3"><span class="path1"></span><span class="path2"></span></i>
+                    <div class="text-primary fw-bold fs-5">@lang('app.pick_a_file_hint')</div>
+                </div>
+                @endunless
 
                 {{-- Main card --}}
-                <div class="card card-flush">
+                <div class="card {{ $picker ? '' : 'card-flush' }}">
                     <div class="card-header pt-8">
                         <div class="card-title">
                             <div class="d-flex align-items-center position-relative my-1">
@@ -259,10 +262,15 @@
             $(document).on('click', '.fm-pick-file', function () {
                 const url = $(this).data('url');
                 const path = $(this).data('path');
-                if (window.opener && typeof window.opener.fmPickerCallback === 'function') {
-                    window.opener.fmPickerCallback(url, path, pickerTarget);
+                const host = (window.parent && window.parent !== window) ? window.parent : window.opener;
+                if (host && typeof host.fmPickerCallback === 'function') {
+                    host.fmPickerCallback(url, path, pickerTarget);
                 }
-                window.close();
+                if (window.parent && window.parent !== window && typeof window.parent.closeFileManagerPicker === 'function') {
+                    window.parent.closeFileManagerPicker();
+                } else {
+                    window.close();
+                }
             });
         }
 
