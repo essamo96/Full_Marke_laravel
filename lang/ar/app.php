@@ -551,6 +551,7 @@ return [
     'pick_a_file_hint' => 'اختر ملفاً من القائمة أو ارفع ملفاً جديداً',
     'select' => 'اختيار',
     'browse_file_manager' => 'اختيار من مدير الملفات',
+    'download' => 'تحميل',
     'no_file_selected' => 'لم يتم اختيار ملف',
 
     // POS Points

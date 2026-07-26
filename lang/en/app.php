@@ -80,6 +80,7 @@ return [
     'pick_a_file_hint' => 'Pick a file from the list or upload a new one',
     'select' => 'Select',
     'browse_file_manager' => 'Choose from File Manager',
+    'download' => 'Download',
     'no_file_selected' => 'No file selected',
 
     // POS Points

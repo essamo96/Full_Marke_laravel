@@ -45,7 +45,7 @@ jobs:
           npm run build
 
       - name: 📂 Sync files to Server (lftp)
-        timeout-minutes: 30
+        timeout-minutes: 60
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
@@ -53,18 +53,22 @@ jobs:
           set -euo pipefail
           sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq lftp
-          timeout 1800s lftp -c "
+          timeout 3300s lftp -c "
             set ftp:ssl-allow no;
-            set net:timeout 30;
-            set net:max-retries 2;
+            set net:timeout 60;
+            set net:max-retries 5;
+            set net:reconnect-interval-base 5;
+            set net:reconnect-interval-max 30;
             set xfer:clobber boolean true;
             open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" ftp://92.113.19.218;
-            mirror -R -v --only-newer --parallel=3 --no-empty-dirs \
+            mirror -R -v --only-newer --parallel=2 --no-empty-dirs \
               --exclude-glob .git/ \
               --exclude-glob .github/ \
               --exclude-glob node_modules/ \
-              --exclude-glob vendor/ \
               --exclude-glob tests/ \
+              --exclude-glob storage/app/ \
+              --exclude-glob storage/framework/ \
+              --exclude-glob storage/logs/ \
               --exclude-glob 'storage/*.key' \
               --exclude-glob .env \
               --exclude-glob .env.example \

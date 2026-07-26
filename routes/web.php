@@ -21,6 +21,8 @@ Route::middleware(['site.locale', 'site.maintenance'])->group(function () {
 
     Route::get('/lang/{locale}', [SiteLocaleController::class, 'switch'])->name('site.lang');
     Route::get('/news/{id}', [SiteController::class, 'newsDetails'])->name('site.news.show');
+    Route::get('/qr/site', [\App\Http\Controllers\QrCodeController::class, 'site'])->name('qr.site');
+    Route::get('/qr/subject/{subject}', [\App\Http\Controllers\QrCodeController::class, 'subject'])->name('qr.subject');
     Route::middleware(['student.verified'])->group(function () {
         Route::get('/programs/{program:slug}', [SiteController::class, 'programDetails'])->name('programs.show');
         Route::get('/fix-cache', function() {

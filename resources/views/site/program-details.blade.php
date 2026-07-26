@@ -105,7 +105,7 @@
               }
           @endphp
           <div class="col-lg-6">
-            <div class="glass-panel subject-card p-4 relative">
+            <div class="glass-panel subject-card p-4 relative" id="subject-{{ $subject->id }}">
               <div class="row g-4 align-items-center">
                 <div class="col-md-5">
                   <div class="news-img-wrapper rounded-lg relative" style="padding-top: 65%;">

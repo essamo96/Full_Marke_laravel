@@ -100,6 +100,26 @@
         </div>
     </div>
     @include('admin.subjects.parts.modal')
+
+    {{-- QR Code preview modal --}}
+    <div class="modal fade" id="qr_modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-400px">
+            <div class="modal-content text-center">
+                <div class="modal-header">
+                    <h2 class="fw-bold" id="qr_modal_title">QR Code</h2>
+                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+                <div class="modal-body py-10">
+                    <img id="qr_modal_img" src="" alt="QR Code" class="w-100" style="max-width: 300px;">
+                    <a id="qr_modal_download" href="" download class="btn btn-primary d-block mt-6 mx-auto" style="max-width: 200px;">
+                        <i class="bi bi-download me-1"></i> @lang('app.download')
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 @stop
 @section('js')
     <script>
@@ -147,5 +167,15 @@
         var customAjaxUrl = "{{ $program ? route('programs.subjects.list', Crypt::encrypt($program->id)) : route('subjects.list') }}";
 
         @include('admin.layout.masterLayouts.datatableMaster')
+
+        $(document).on('click', '.btn-show-qr', function () {
+            const url = $(this).data('url');
+            const name = $(this).data('name');
+            $('#qr_modal_title').text(name);
+            $('#qr_modal_img').attr('src', url + '?t=' + Date.now());
+            $('#qr_modal_download').attr('href', url).attr('download', name.replace(/\s+/g, '_') + '_qr.svg');
+            var modal = new bootstrap.Modal(document.getElementById('qr_modal'));
+            modal.show();
+        });
     </script>
 @stop
