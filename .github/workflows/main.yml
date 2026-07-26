@@ -14,6 +14,24 @@ jobs:
     steps:
       - name: 🚚 Get latest code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: 🕒 Restore real file timestamps from git history
+        # actions/checkout stamps every file with the checkout time, not its
+        # actual last-modified commit time. That breaks lftp's
+        # "mirror --only-newer" below — every file looks newer than what's
+        # already on the server, so it re-uploads everything on every deploy.
+        # Setting each tracked file's mtime back to its last commit date lets
+        # --only-newer correctly skip files that haven't actually changed.
+        run: |
+          git log --pretty=format:'%ct' --name-only --diff-filter=ACMR | awk '
+            /^[0-9]+$/ { ts = $0; next }
+            NF { if (!($0 in seen)) { print ts, $0; seen[$0] = 1 } }
+          ' > /tmp/mtimes.txt
+          while IFS=' ' read -r ts file; do
+            [ -f "$file" ] && touch -d "@$ts" "$file"
+          done < /tmp/mtimes.txt
 
       - name: 🐘 Setup PHP
         uses: shivammathur/setup-php@v2
