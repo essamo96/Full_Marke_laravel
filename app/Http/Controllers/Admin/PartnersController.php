@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Admin\PartnerRequest;
 use Auth;
 
@@ -84,11 +83,6 @@ class PartnersController extends AdminController
         $data = $request->validated();
         $data['status'] = $request->has('status') ? 1 : 0;
 
-        // رفع الصورة
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('partners', 'public');
-        }
-
         // إنشاء الشريك
         $partner = Partner::create($data);
 
@@ -149,16 +143,7 @@ class PartnersController extends AdminController
 
         $data = $request->validated();
         $data['status'] = $request->has('status') ? 1 : 0;
-
-        // تحديث الصورة
-        if ($request->hasFile('image')) {
-            if ($partner->image && Storage::disk('public')->exists($partner->image)) {
-                Storage::disk('public')->delete($partner->image);
-            }
-            $data['image'] = $request->file('image')->store('partners', 'public');
-        } else {
-            $data['image'] = $partner->image;
-        }
+        $data['image'] = $request->filled('image') ? $request->get('image') : $partner->image;
 
         // تحديث بيانات الشريك
         $partner->update($data);

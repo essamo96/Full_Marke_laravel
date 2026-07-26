@@ -60,15 +60,11 @@ class NewsCategoryController extends AdminController
             'name_ar' => 'required|string|max:191',
             'name_en' => 'nullable|string|max:191',
             'slug' => 'required|string|max:191|unique:news_categories,slug',
-            'image' => 'nullable|image',
+            'image' => 'nullable|string|max:255',
         ]);
 
-        $data = $request->only(['name_ar', 'name_en', 'slug']);
+        $data = $request->only(['name_ar', 'name_en', 'slug', 'image']);
         $data['status'] = $request->boolean('status', true);
-
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('news_categories', 'public');
-        }
 
         NewsCategory::create($data);
 
@@ -98,15 +94,12 @@ class NewsCategoryController extends AdminController
             'name_ar' => 'required|string|max:191',
             'name_en' => 'nullable|string|max:191',
             'slug' => 'required|string|max:191|unique:news_categories,slug,'.$category->id,
-            'image' => 'nullable|image',
+            'image' => 'nullable|string|max:255',
         ]);
 
         $data = $request->only(['name_ar', 'name_en', 'slug']);
         $data['status'] = $request->boolean('status', true);
-
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('news_categories', 'public');
-        }
+        $data['image'] = $request->filled('image') ? $request->get('image') : $category->image;
 
         $category->update($data);
 

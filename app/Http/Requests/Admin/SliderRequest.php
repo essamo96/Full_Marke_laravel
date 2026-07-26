@@ -27,9 +27,9 @@ class SliderRequest extends FormRequest
             'btn2_text_en' => 'nullable|string|max:255',
             'btn2_link' => 'nullable|string|max:255',
             
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
-            'video1' => 'nullable|mimetypes:video/mp4,video/avi,video/mpeg,video/quicktime|max:20480', // 20MB
-            'video2' => 'nullable|mimetypes:video/mp4,video/avi,video/mpeg,video/quicktime|max:20480', // 20MB
+            'image' => 'nullable|string|max:255',
+            'video1' => 'nullable|string|max:255',
+            'video2' => 'nullable|string|max:255',
             
             'sort' => 'nullable|integer',
         ];

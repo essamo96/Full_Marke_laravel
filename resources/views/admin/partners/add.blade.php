@@ -18,7 +18,7 @@
     <div class="card-body py-4">
         @include('admin.layout.masterLayouts.error')
 
-        <form action="" method="POST" enctype="multipart/form-data">
+        <form action="" method="POST">
             <div class="row justify-content-center">
                 <div class="col-9">
 
@@ -55,14 +55,7 @@
                             <div class="row mb-5">
                                 {{-- صورة الشريك --}}
                                 <div class="col-md-6 fv-row">
-                                    <label class="fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('image') }}</label>
-                                    @if ($info && $info->image)
-                                        <div class="mb-2">
-                                            <img src="{{ asset('storage/' . $info->image) }}" alt="Image"
-                                                 class="img-thumbnail" style="max-height: 100px;">
-                                        </div>
-                                    @endif
-                                    <input type="file" name="image" class="form-control file-Input">
+                                    @include('admin.components.file-picker', ['name' => 'image', 'value' => $info?->image ?? old('image'), 'label' => \App\Helpers\translate('image'), 'folder' => 'partners'])
                                 </div>
 
                                 {{-- الحالة --}}

@@ -19,7 +19,7 @@
         <div id="kt_app_content" class="app-content flex-column-fluid">
             <div id="kt_app_content_container" class="app-container container-xxl">
                 <form action="{{ $info ? route($active_menu . '.postEdit', Crypt::encrypt($info->id)) : route($active_menu . '.postAdd') }}"
-                      method="POST" enctype="multipart/form-data" class="form">
+                      method="POST" class="form">
                     @csrf
                     <div class="card card-flush py-4">
                         <div class="card-header">
@@ -33,44 +33,16 @@
                             <!-- Media Section -->
                             <h3 class="mb-5 text-primary">@lang('app.media_and_backgrounds')</h3>
                             <div class="row mb-5">
-                                <div class="col-md-4 text-center">
-                                    <label class="form-label d-block">@lang('app.image')</label>
-                                    <div class="image-input image-input-outline" data-kt-image-input="true" style="background-image: url('{{ asset('assets/media/svg/avatars/blank.svg') }}')">
-                                        @php
-                                            $editImageUrl = asset('assets/media/svg/avatars/blank.svg');
-                                            if ($info && $info->image) {
-                                                $editImageUrl = asset('storage/' . $info->image);
-                                            }
-                                        @endphp
-                                        <div class="image-input-wrapper w-125px h-125px image-preview" style="background-image: url('{{ $editImageUrl }}')"></div>
-                                        <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change avatar">
-                                            <i class="bi bi-pencil-fill fs-7"></i>
-                                            <input type="file" name="image" accept=".png, .jpg, .jpeg, .webp" class="image-input-file" />
-                                            <input type="hidden" name="image_remove" />
-                                        </label>
-                                        <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="Cancel avatar">
-                                            <i class="bi bi-x fs-2"></i>
-                                        </span>
-                                        <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="Remove avatar">
-                                            <i class="bi bi-x fs-2"></i>
-                                        </span>
-                                    </div>
+                                <div class="col-md-4">
+                                    @include('admin.components.file-picker', ['name' => 'image', 'value' => $info?->image ?? old('image'), 'label' => __('app.image'), 'folder' => 'sliders'])
                                     <div class="text-muted fs-7 mt-2">@lang('app.fallback_image_help')</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">@lang('app.first_bg_video')</label>
-                                    <input type="file" name="video1" class="form-control" accept="video/*" />
-                                    @if($info && $info->video1)
-                                        <div class="mt-2 text-success"><i class="bi bi-check-circle-fill text-success"></i> @lang('app.video_exists')</div>
-                                    @endif
+                                    @include('admin.components.file-picker', ['name' => 'video1', 'value' => $info?->video1 ?? old('video1'), 'label' => __('app.first_bg_video'), 'folder' => 'sliders/videos'])
                                     <div class="text-muted fs-7 mt-2">@lang('app.first_bg_video_help')</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">@lang('app.second_bg_video')</label>
-                                    <input type="file" name="video2" class="form-control" accept="video/*" />
-                                    @if($info && $info->video2)
-                                        <div class="mt-2 text-success"><i class="bi bi-check-circle-fill text-success"></i> @lang('app.video_exists')</div>
-                                    @endif
+                                    @include('admin.components.file-picker', ['name' => 'video2', 'value' => $info?->video2 ?? old('video2'), 'label' => __('app.second_bg_video'), 'folder' => 'sliders/videos'])
                                     <div class="text-muted fs-7 mt-2">@lang('app.second_bg_video_help')</div>
                                 </div>
                             </div>

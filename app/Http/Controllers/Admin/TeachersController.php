@@ -83,13 +83,9 @@ class TeachersController extends AdminController
 
     public function postAdd(TeacherRequest $request)
     {
-        $teacher = Teacher::create($request->safe()->except(['photo', 'subject_ids', 'password', 'specialty', 'bio']) + [
+        $teacher = Teacher::create($request->safe()->except(['subject_ids', 'password', 'specialty', 'bio']) + [
             'password' => Hash::make($request->password),
             'status' => $request->boolean('status', true)]);
-
-        if ($request->hasFile('photo')) {
-            $teacher->update(['photo' => $request->file('photo')->store('teachers', 'public')]);
-        }
 
         $teacher->subjects()->sync($request->input('subject_ids', []));
 
@@ -124,9 +120,7 @@ class TeachersController extends AdminController
             $data['password'] = Hash::make($request->password);
         }
 
-        if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('teachers', 'public');
-        }
+        $data['photo'] = $request->filled('photo') ? $request->get('photo') : $teacher->photo;
 
         $teacher->update($data);
         $teacher->subjects()->sync($request->input('subject_ids', []));

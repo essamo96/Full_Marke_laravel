@@ -14,7 +14,7 @@ class NewsRequest extends FormRequest
     public function rules()
     {
         $rules = [
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => 'nullable|string|max:255',
             'status' => 'required|boolean',
         ];
 

@@ -16,7 +16,8 @@ class PageRequest extends FormRequest
         $rules = [
             'slug' => 'required|string|max:255',
             'tags' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => 'nullable|string|max:255',
+            'video' => 'nullable|string|max:255',
         ];
 
         $locales = ['ar', 'en'];

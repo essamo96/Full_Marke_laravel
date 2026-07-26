@@ -116,11 +116,9 @@ class StudentsController extends AdminController
             'status' => $request->boolean('status', true)
         ];
 
-        $student = Student::create($data);
+        $data['image'] = $request->get('image');
 
-        if ($request->hasFile('image')) {
-            $student->update(['image' => $request->file('image')->store('students', 'public')]);
-        }
+        $student = Student::create($data);
 
         return redirect()->route('students.view')->with('success', __('app.insert_success'));
     }
@@ -161,9 +159,7 @@ class StudentsController extends AdminController
             $data['password'] = Hash::make($request->password);
         }
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('students', 'public');
-        }
+        $data['image'] = $request->filled('image') ? $request->get('image') : $student->image;
 
         $student->update($data);
 

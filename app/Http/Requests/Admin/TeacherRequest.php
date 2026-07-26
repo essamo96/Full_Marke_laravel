@@ -31,7 +31,7 @@ class TeacherRequest extends FormRequest
             'password' => $id ? 'nullable|string|min:8' : 'required|string|min:8|confirmed',
             'specialty' => 'nullable|string|max:255',
             'bio' => 'nullable|string|max:2000',
-            'photo' => 'nullable|image|max:2048',
+            'photo' => 'nullable|string|max:255',
             'subject_ids' => 'nullable|array',
             'subject_ids.*' => 'exists:subjects,id',
             'status' => 'nullable|boolean',

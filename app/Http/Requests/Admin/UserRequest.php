@@ -29,7 +29,7 @@ class UserRequest extends FormRequest
             'email' => ['required', 'email', Rule::unique('admins', 'email')->ignore($id)],
             'password' => $id ? 'nullable|required_with:password_confirmation|string|min:6|confirmed' : 'required|string|min:6|confirmed',
             'role' => 'required|integer|exists:roles,id',
-            'photo' => 'nullable|image|max:2048',
+            'photo' => 'nullable|string|max:255',
             'status' => 'nullable|boolean',
         ];
     }

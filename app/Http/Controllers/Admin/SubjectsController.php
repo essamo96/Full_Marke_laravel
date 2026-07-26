@@ -69,13 +69,9 @@ class SubjectsController extends AdminController
         $progId = $programId ? Crypt::decrypt($programId) : $request->input('program_id');
         $program = Program::findOrFail($progId);
         
-        $subject = Subject::create($request->safe()->except(['image', 'teacher_ids']) + [
+        $subject = Subject::create($request->safe()->except(['teacher_ids']) + [
             'program_id' => $program->id,
             'is_active' => $request->boolean('is_active', true)]);
-
-        if ($request->hasFile('image')) {
-            $subject->update(['image' => $request->file('image')->store('subjects', 'public')]);
-        }
 
         $subject->teachers()->sync($request->input('teacher_ids', []));
 
@@ -108,10 +104,7 @@ class SubjectsController extends AdminController
 
         $data = $request->safe()->except(['image', 'teacher_ids']) + [
             'is_active' => $request->boolean('is_active', true)];
-
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('subjects', 'public');
-        }
+        $data['image'] = $request->filled('image') ? $request->get('image') : $subject->image;
 
         $subject->update($data);
         $subject->teachers()->sync($request->input('teacher_ids', []));

@@ -60,21 +60,13 @@ class PaperEditionController extends AdminController
         $request->validate([
             'title_ar' => 'required|string|max:191',
             'title_en' => 'nullable|string|max:191',
-            'cover_image' => 'nullable|image',
-            'pdf_file' => 'required|file|mimes:pdf|max:10000',
+            'cover_image' => 'nullable|string|max:255',
+            'pdf_file' => 'required|string|max:255',
             'published_date' => 'nullable|date',
         ]);
 
-        $data = $request->only(['title_ar', 'title_en', 'published_date']);
+        $data = $request->only(['title_ar', 'title_en', 'published_date', 'cover_image', 'pdf_file']);
         $data['status'] = $request->boolean('status', true);
-
-        if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = $request->file('cover_image')->store('paper_editions/covers', 'public');
-        }
-        
-        if ($request->hasFile('pdf_file')) {
-            $data['pdf_file'] = $request->file('pdf_file')->store('paper_editions/pdfs', 'public');
-        }
 
         PaperEdition::create($data);
 
@@ -103,21 +95,13 @@ class PaperEditionController extends AdminController
         $request->validate([
             'title_ar' => 'required|string|max:191',
             'title_en' => 'nullable|string|max:191',
-            'cover_image' => 'nullable|image',
-            'pdf_file' => 'nullable|file|mimes:pdf|max:10000',
+            'cover_image' => 'nullable|string|max:255',
+            'pdf_file' => 'nullable|string|max:255',
             'published_date' => 'nullable|date',
         ]);
 
-        $data = $request->only(['title_ar', 'title_en', 'published_date']);
+        $data = $request->only(['title_ar', 'title_en', 'published_date', 'cover_image', 'pdf_file']);
         $data['status'] = $request->boolean('status', true);
-
-        if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = $request->file('cover_image')->store('paper_editions/covers', 'public');
-        }
-        
-        if ($request->hasFile('pdf_file')) {
-            $data['pdf_file'] = $request->file('pdf_file')->store('paper_editions/pdfs', 'public');
-        }
 
         $edition->update($data);
 

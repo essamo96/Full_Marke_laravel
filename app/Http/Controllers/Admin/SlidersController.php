@@ -78,27 +78,6 @@ class SlidersController extends AdminController
         $data = $request->validated();
         $data['status'] = $request->has('status') ? 1 : 0;
 
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_img_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('sliders', $filename, 'public');
-            $data['image'] = 'sliders/' . $filename;
-        }
-
-        if ($request->hasFile('video1')) {
-            $file = $request->file('video1');
-            $filename = time() . '_vid1_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('sliders', $filename, 'public');
-            $data['video1'] = 'sliders/' . $filename;
-        }
-
-        if ($request->hasFile('video2')) {
-            $file = $request->file('video2');
-            $filename = time() . '_vid2_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('sliders', $filename, 'public');
-            $data['video2'] = 'sliders/' . $filename;
-        }
-
         Slider::create($data);
 
         $request->session()->flash('success', __('app.insert_success'));
@@ -133,27 +112,9 @@ class SlidersController extends AdminController
 
         $data = $request->validated();
         $data['status'] = $request->has('status') ? 1 : 0;
-
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_img_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('sliders', $filename, 'public');
-            $data['image'] = 'sliders/' . $filename;
-        }
-
-        if ($request->hasFile('video1')) {
-            $file = $request->file('video1');
-            $filename = time() . '_vid1_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('sliders', $filename, 'public');
-            $data['video1'] = 'sliders/' . $filename;
-        }
-
-        if ($request->hasFile('video2')) {
-            $file = $request->file('video2');
-            $filename = time() . '_vid2_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('sliders', $filename, 'public');
-            $data['video2'] = 'sliders/' . $filename;
-        }
+        $data['image'] = $request->filled('image') ? $request->get('image') : $record->image;
+        $data['video1'] = $request->filled('video1') ? $request->get('video1') : $record->video1;
+        $data['video2'] = $request->filled('video2') ? $request->get('video2') : $record->video2;
 
         $update = $record->update($data);
 

@@ -40,7 +40,7 @@
                         @include('admin.layout.masterLayouts.error')
                         <form
                             action="{{ $info && $info->id ? route('groups.edit.submit', [Crypt::encrypt($subject->id), Crypt::encrypt($info->id)]) : (isset($subject) ? route('groups.add.submit', Crypt::encrypt($subject->id)) : route('groups.add.global.submit')) }}"
-                            method="POST" enctype="multipart/form-data">
+                            method="POST">
                             @csrf
                             @if(isset($subject))
                                 <input type="hidden" name="subject_id" value="{{ $subject->id }}">
@@ -68,13 +68,7 @@
                                                 class="form-control" required>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="p-2">صورة المجموعة</label>
-                                            <input type="file" name="image" class="form-control" accept="image/*">
-                                            @if(!empty($info->image))
-                                                <div class="mt-2">
-                                                    <img src="{{ asset('storage/'.$info->image) }}" alt="" style="max-height: 80px; border-radius: 8px;">
-                                                </div>
-                                            @endif
+                                            @include('admin.components.file-picker', ['name' => 'image', 'value' => $info->image ?? old('image'), 'label' => 'صورة المجموعة', 'folder' => 'groups'])
                                         </div>
                                     </div>
                                     <div class="row mb-3">

@@ -78,10 +78,6 @@ class GalleriesController extends AdminController {
 
     public function postAdd(GalleriesRequest $request) {
         $save_data = $request->validated();
-        
-        if ($request->hasFile('image')) {
-            $save_data['image'] = $request->file('image')->store('uploads/galleries', 'public');
-        }
 
         $save_data['status'] = $request->has('status') ? 1 : 0;
 
@@ -125,16 +121,6 @@ class GalleriesController extends AdminController {
         $info = Gallery::findOrFail($id);
         if ($info) {
             $save_data = $request->validated();
-
-            if ($request->hasFile('image')) {
-                // Delete old image
-                if ($info->image) {
-                     Storage::disk('public')->delete($info->image);
-                }
-                $save_data['image'] = $request->file('image')->store('uploads/galleries', 'public');
-            } else {
-                unset($save_data['image']);
-            }
 
             $save_data['status'] = $request->has('status') ? 1 : 0;
 

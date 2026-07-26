@@ -26,7 +26,7 @@
                             
                             <form id="kt_ecommerce_add_product_form" class="form"
                                 action="{{ isset($info) ? route($active_menu . '.edit', \Illuminate\Support\Facades\Crypt::encrypt($info->id)) : route($active_menu . '.add') }}"
-                                method="post" enctype="multipart/form-data">
+                                method="post">
                                 @csrf
                                 
                                 <div class="row justify-content-center">
@@ -56,19 +56,7 @@
                                             <div class="tab-pane fade show active" id="basic" role="tabpanel">
                                                 <div class="row mb-5">
                                                     <div class="col-md-6 fv-row">
-                                                        <label class="form-label">{{ \App\Helpers\translate('image') }}</label>
-                                                        <div class="d-flex align-items-center mb-3">
-                                                            @php
-                                                                $imageSrc = '';
-                                                                if (isset($info) && $info->image) {
-                                                                    $imageSrc = \Illuminate\Support\Str::startsWith($info->image, ['http', 'site/']) ? asset($info->image) : asset('storage/' . $info->image);
-                                                                }
-                                                            @endphp
-                                                            <div class="symbol symbol-100px me-5" id="imagePreviewContainer" style="{{ $imageSrc ? '' : 'display: none;' }}">
-                                                                <img src="{{ $imageSrc }}" alt="Preview" id="imagePreview" style="object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
-                                                            </div>
-                                                            <input type="file" name="image" id="imageInput" class="form-control" accept="image/*">
-                                                        </div>
+                                                        @include('admin.components.file-picker', ['name' => 'logo', 'value' => (isset($info) ? $info->logo : null) ?? old('logo'), 'label' => \App\Helpers\translate('image'), 'folder' => 'partners_manager'])
                                                     </div>
 
                                                     <div class="col-md-6 fv-row">
@@ -126,18 +114,6 @@
 
 @section('js')
 <script>
-    document.getElementById('imageInput').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('imagePreviewContainer').style.display = 'block';
-                document.getElementById('imagePreview').src = e.target.result;
-            }
-            reader.readAsDataURL(file);
-        }
-    });
-
     // Next Tab Button functionality
     document.querySelectorAll('.next-tab').forEach(button => {
         button.addEventListener('click', function() {

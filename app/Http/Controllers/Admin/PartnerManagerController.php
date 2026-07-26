@@ -59,16 +59,12 @@ class PartnerManagerController extends AdminController
         $request->validate([
             'name_ar' => 'required|string|max:191',
             'name_en' => 'nullable|string|max:191',
-            'logo' => 'nullable|image',
+            'logo' => 'nullable|string|max:255',
             'link' => 'nullable|url',
         ]);
 
-        $data = $request->only(['name_ar', 'name_en', 'link']);
+        $data = $request->only(['name_ar', 'name_en', 'link', 'logo']);
         $data['status'] = $request->boolean('status', true);
-
-        if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('partners', 'public');
-        }
 
         Partner::create($data);
 
@@ -97,16 +93,12 @@ class PartnerManagerController extends AdminController
         $request->validate([
             'name_ar' => 'required|string|max:191',
             'name_en' => 'nullable|string|max:191',
-            'logo' => 'nullable|image',
+            'logo' => 'nullable|string|max:255',
             'link' => 'nullable|url',
         ]);
 
-        $data = $request->only(['name_ar', 'name_en', 'link']);
+        $data = $request->only(['name_ar', 'name_en', 'link', 'logo']);
         $data['status'] = $request->boolean('status', true);
-
-        if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('partners', 'public');
-        }
 
         $partner->update($data);
 

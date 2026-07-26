@@ -19,7 +19,7 @@
         @include('admin.layout.masterLayouts.error')
 
         {{-- نفس الصفحة تستخدم للإضافة والتعديل --}}
-        <form action="" method="POST" enctype="multipart/form-data">
+        <form action="" method="POST">
             <div class="row justify-content-center">
                 <div class="col-9">
 
@@ -68,25 +68,12 @@
                             <div class="row mb-5">
                                 {{-- Image --}}
                                 <div class="col-md-6 fv-row">
-                                    <label class="fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('image') }}</label>
-                                    <input type="file" name="image" class="form-control file-Input" accept="image/*">
-                                    <div class="mt-3">
-                                        @if ($info && $info->image)
-                                            <img src="{{ asset('storage/' . $info->image) }}" alt="Image"
-                                                 class="img-thumbnail mb-2" style="max-height: 100px;">
-                                        @endif
-                                    </div>
+                                    @include('admin.components.file-picker', ['name' => 'image', 'value' => $info?->image ?? old('image'), 'label' => \App\Helpers\translate('image'), 'folder' => 'pages'])
                                 </div>
 
                                 {{-- Video --}}
                                 <div class="col-md-6 fv-row">
-                                    <label class="fs-5 fw-semibold mb-2">{{ \App\Helpers\translate('video') }} (MP4)</label>
-                                    <input type="file" name="video" class="form-control file-Input" accept="video/*">
-                                    <div class="mt-3">
-                                        @if ($info && $info->video)
-                                            <video src="{{ asset('storage/' . $info->video) }}" class="img-thumbnail mb-2" style="max-height: 100px;" controls></video>
-                                        @endif
-                                    </div>
+                                    @include('admin.components.file-picker', ['name' => 'video', 'value' => $info?->video ?? old('video'), 'label' => \App\Helpers\translate('video'), 'folder' => 'pages/videos'])
                                 </div>
                             </div>
 

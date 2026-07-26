@@ -47,8 +47,8 @@ class UsersController extends AdminController
             $user->password = bcrypt($validatedData['password']);
         }
 
-        if ($request->hasFile('photo')) {
-            $user->photo = $request->file('photo')->store('admins', 'public');
+        if ($request->filled('photo')) {
+            $user->photo = $validatedData['photo'];
         }
 
         if (!$isUpdate && Auth::guard('admin')->check()) {

@@ -77,9 +77,6 @@ class GroupsController extends AdminController
         $subject = Subject::findOrFail($subId);
 
         $data = $request->validated();
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('groups', 'public');
-        }
 
         Group::create($data + [
             'subject_id' => $subject->id,
@@ -114,9 +111,6 @@ class GroupsController extends AdminController
         }
 
         $data = $request->validated();
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('groups', 'public');
-        }
 
         $group->update($data + [
             'is_active' => $request->boolean('is_active', true)]);

@@ -19,7 +19,7 @@ class SubjectRequest extends FormRequest
             'name_en' => 'required|string|max:255',
             'description_ar' => 'nullable|string|max:2000',
             'description_en' => 'nullable|string|max:2000',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|string|max:255',
             'fee' => 'required|numeric|min:0',
             'min_payment' => 'required|numeric|min:0|lte:fee',
             'reg_start_date' => 'nullable|date',

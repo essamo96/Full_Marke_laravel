@@ -65,19 +65,15 @@ class NewsArticleController extends AdminController
             'title_ar' => 'required|string|max:191',
             'title_en' => 'nullable|string|max:191',
             'category_id' => 'required|integer|exists:news_categories,id',
-            'image' => 'nullable|image',
+            'image' => 'nullable|string|max:255',
             'content_ar' => 'nullable|string',
             'content_en' => 'nullable|string',
         ]);
 
-        $data = $request->only(['title_ar', 'title_en', 'category_id', 'content_ar', 'content_en']);
+        $data = $request->only(['title_ar', 'title_en', 'category_id', 'image', 'content_ar', 'content_en']);
         $data['status'] = $request->boolean('status', true);
         $data['admin_id'] = auth('admin')->id();
         $data['published_at'] = now();
-
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('news_articles', 'public');
-        }
 
         NewsArticle::create($data);
 
@@ -110,17 +106,14 @@ class NewsArticleController extends AdminController
             'title_ar' => 'required|string|max:191',
             'title_en' => 'nullable|string|max:191',
             'category_id' => 'required|integer|exists:news_categories,id',
-            'image' => 'nullable|image',
+            'image' => 'nullable|string|max:255',
             'content_ar' => 'nullable|string',
             'content_en' => 'nullable|string',
         ]);
 
         $data = $request->only(['title_ar', 'title_en', 'category_id', 'content_ar', 'content_en']);
         $data['status'] = $request->boolean('status', true);
-
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('news_articles', 'public');
-        }
+        $data['image'] = $request->filled('image') ? $request->get('image') : $article->image;
 
         $article->update($data);
 

@@ -17,7 +17,7 @@ class GroupRequest extends FormRequest
             'subject_id' => 'required|exists:subjects,id',
             'teacher_id' => 'nullable|exists:teachers,id',
             'name' => 'required|string|max:255',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|string|max:255',
             'days' => 'required|array|min:1',
             'days.*' => 'in:sat,sun,mon,tue,wed,thu,fri',
             'start_time' => 'required|date_format:H:i',

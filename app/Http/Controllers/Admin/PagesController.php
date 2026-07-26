@@ -11,7 +11,6 @@ use App\Models\PagesTranslations;
 use Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Contracts\Encryption\DecryptException;
-use Illuminate\Support\Facades\Storage;
 
 class PagesController extends AdminController
 {
@@ -117,26 +116,8 @@ public function postEdit(PageRequest $request, $id)
     $page = Page::findOrFail($decryptedId);
 
     $data['status'] = $request->has('status') ? 1 : 0;
-
-    // Handle image upload
-    if ($request->hasFile('image')) {
-        if ($page->image && Storage::disk('public')->exists($page->image)) {
-            Storage::disk('public')->delete($page->image);
-        }
-        $data['image'] = $request->file('image')->store('uploads/pages', 'public');
-    } else {
-        $data['image'] = $page->image;
-    }
-
-    // Handle video upload
-    if ($request->hasFile('video')) {
-        if ($page->video && Storage::disk('public')->exists($page->video)) {
-            Storage::disk('public')->delete($page->video);
-        }
-        $data['video'] = $request->file('video')->store('uploads/pages/videos', 'public');
-    } else {
-        $data['video'] = $page->video;
-    }
+    $data['image'] = $request->filled('image') ? $request->get('image') : $page->image;
+    $data['video'] = $request->filled('video') ? $request->get('video') : $page->video;
 
     // تحديث البيانات الأساسية
     $page->update([
@@ -172,18 +153,8 @@ public function postEdit(PageRequest $request, $id)
 public function postAdd(PageRequest $request)
 {
     $data['status'] = $request->has('status') ? 1 : 0;
-    $data['image'] = null;
-    $data['video'] = null;
-
-    // Handle image upload
-    if ($request->hasFile('image')) {
-        $data['image'] = $request->file('image')->store('uploads/pages', 'public');
-    }
-
-    // Handle video upload
-    if ($request->hasFile('video')) {
-        $data['video'] = $request->file('video')->store('uploads/pages/videos', 'public');
-    }
+    $data['image'] = $request->get('image');
+    $data['video'] = $request->get('video');
 
     // إنشاء الصفحة الأساسية
     $page = Page::create([

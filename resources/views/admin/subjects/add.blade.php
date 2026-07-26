@@ -32,7 +32,7 @@
                         @include('admin.layout.masterLayouts.error')
                         <form
                             action="{{ $info && $info->id ? route('subjects.edit', [Crypt::encrypt($program->id), Crypt::encrypt($info->id)]) : (isset($program) ? route('subjects.add.submit', Crypt::encrypt($program->id)) : route('subjects.add.global.submit')) }}"
-                            method="POST" enctype="multipart/form-data">
+                            method="POST">
                             @csrf
                             @if(isset($program))
                                 <input type="hidden" name="program_id" value="{{ $program->id }}">
@@ -116,21 +116,7 @@
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-md-6 text-center">
-                                            <label class="d-block p-2 fw-semibold fs-6">@lang('app.image')</label>
-                                            <div class="image-input image-input-outline {{ $info && $info->image ? '' : 'image-input-empty' }}" data-kt-image-input="true" style="background-image: url('{{ asset('assets/admin/media/svg/avatars/blank.svg') }}')">
-                                                <div class="image-input-wrapper w-125px h-125px" style="background-image: {{ $info && $info->image ? 'url('.asset('storage/'.$info->image).')' : 'none' }}"></div>
-                                                <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change avatar">
-                                                    <i class="bi bi-pencil-fill fs-7"></i>
-                                                    <input type="file" name="image" accept=".png, .jpg, .jpeg" />
-                                                    <input type="hidden" name="avatar_remove" />
-                                                </label>
-                                                <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="Cancel avatar">
-                                                    <i class="bi bi-x fs-2"></i>
-                                                </span>
-                                                <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="Remove avatar">
-                                                    <i class="bi bi-x fs-2"></i>
-                                                </span>
-                                            </div>
+                                            @include('admin.components.file-picker', ['name' => 'image', 'value' => $info->image ?? old('image'), 'label' => __('app.image'), 'folder' => 'subjects'])
                                         </div>
                                         <div class="col-md-6 d-flex flex-column justify-content-center align-items-center">
                                             <label class="p-2 fw-semibold fs-6">@lang('app.status')</label>

@@ -71,14 +71,9 @@ class NewsController extends AdminController
     public function postAdd(NewsRequest $request)
     {
         $status = $request->get('status') ? 1 : 0;
-        
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('news', 'public');
-        }
 
         $news = News::create([
-            'image' => $imagePath,
+            'image' => $request->get('image'),
             'status' => $status,
         ]);
 
@@ -115,10 +110,7 @@ class NewsController extends AdminController
         }
         $news = News::findOrFail($id);
         $news->status = $request->get('status') ? 1 : 0;
-
-        if ($request->hasFile('image')) {
-            $news->image = $request->file('image')->store('news', 'public');
-        }
+        $news->image = $request->filled('image') ? $request->get('image') : $news->image;
         $news->save();
 
         $locales = ['ar', 'en'];

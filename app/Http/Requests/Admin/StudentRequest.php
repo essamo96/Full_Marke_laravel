@@ -41,7 +41,7 @@ class StudentRequest extends FormRequest
             'major_profession' => 'nullable|string|max:255',
             'health_information' => 'nullable|string',
             'status' => 'nullable|boolean',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|string|max:255',
         ];
     }
 }
