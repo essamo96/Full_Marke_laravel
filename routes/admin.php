@@ -21,7 +21,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin.locale')->group(functi
 
     Route::middleware('auth:admin')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        
+        Route::get('qr-code', [\App\Http\Controllers\QrCodeController::class, 'admin'])->name('qr.admin');
+
         Route::get('/test-broadcast', function() {
             $student = \App\Models\Student::first();
             if(!$student) {

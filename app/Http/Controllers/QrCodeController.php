@@ -61,10 +61,10 @@ class QrCodeController extends Controller
     }
 
     /**
-     * General QR code pointing to the academy's homepage.
+     * QR code pointing to the admin control panel's login page.
      */
-    public function site(): Response
+    public function admin(): Response
     {
-        return $this->render(route('site.home'));
+        return $this->render(route('admin.login'));
     }
 }

@@ -553,6 +553,9 @@ return [
     'browse_file_manager' => 'اختيار من مدير الملفات',
     'download' => 'تحميل',
     'no_file_selected' => 'لم يتم اختيار ملف',
+    'qr_code' => 'رمز QR للوصول للوحة التحكم',
+    'scan_to_admin_panel' => 'امسح للوصول إلى لوحة التحكم',
+    'scan_to_admin_panel_hint' => 'وجّه كاميرا هاتفك نحو الرمز للانتقال إلى صفحة تسجيل الدخول',
 
     // POS Points
     'pos_points' => 'نقاط بيع الكتب',

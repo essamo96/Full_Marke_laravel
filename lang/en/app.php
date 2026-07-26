@@ -82,6 +82,9 @@ return [
     'browse_file_manager' => 'Choose from File Manager',
     'download' => 'Download',
     'no_file_selected' => 'No file selected',
+    'qr_code' => 'QR Code for Admin Panel',
+    'scan_to_admin_panel' => 'Scan to access the Admin Panel',
+    'scan_to_admin_panel_hint' => "Point your phone's camera at the code to open the login page",
 
     // POS Points
     'pos_points' => 'Book Sale Points',

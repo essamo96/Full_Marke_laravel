@@ -170,21 +170,14 @@
                   </div>
 
                   <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-glass icon-btn px-3" data-bs-toggle="modal" data-bs-target="#subjectQrModal{{ $subject->id }}" title="QR Code" data-en="QR Code" data-ar="رمز QR">
+                      <i class="bi bi-qr-code"></i>
+                    </button>
                     @if(!$canRegister)
                         <div class="alert alert-danger w-100 mb-0 py-2 text-center fs-6 fw-bold" role="alert">
                             <i class="fa-solid fa-lock me-1"></i> التسجيل غير متاح حالياً
                         </div>
                     @else
-                        @if ($subject->groups->isNotEmpty())
-                          <select id="group-select-{{ $subject->id }}" class="form-select form-select-sm" style="background: var(--input-bg); border-color: var(--input-border); color: var(--text-primary); max-width: 150px;">
-                            <option value="" data-en="Later" data-ar="شعبة لاحقاً">شعبة لاحقاً</option>
-                            @foreach ($subject->groups as $group)
-                              <option value="{{ $group->id }}" @disabled(! $group->hasAvailableCapacity())>
-                                {{ $group->name }} @if (! $group->hasAvailableCapacity()) ({{ __('app.full') }}) @endif
-                              </option>
-                            @endforeach
-                          </select>
-                        @endif
                         @auth('student')
                           <button type="button" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center add-to-cart-btn"
                                   data-id="{{ $subject->id }}"
@@ -204,6 +197,22 @@
                         @endauth
                     @endif
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subject QR Code Modal -->
+          <div class="modal fade" id="subjectQrModal{{ $subject->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered mw-400px">
+              <div class="modal-content glass-panel text-center">
+                <div class="modal-header border-0">
+                  <h5 class="modal-title fw-bold mx-auto" data-en="{{ $subject->name_en }}" data-ar="{{ $subject->name_ar }}">{{ $subject->name }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pb-8">
+                  <img src="{{ route('qr.subject', $subject->id) }}" alt="QR Code" class="rounded-lg" style="width: 220px; height: 220px; background: #fff; padding: 10px;">
+                  <p class="opacity-75 text-sm mt-4 mb-0" data-en="Scan to open this subject" data-ar="امسح الرمز للانتقال إلى هذه المادة">Scan to open this subject</p>
                 </div>
               </div>
             </div>
@@ -230,10 +239,6 @@
         const programAr = this.dataset.programAr;
         const programEn = this.dataset.programEn;
 
-        // Get group selection if exists
-        const select = document.getElementById(`group-select-${id}`);
-        const groupId = select ? select.value : null;
-
         const item = {
           id: id,
           name: { ar: nameAr, en: nameEn },
@@ -241,7 +246,7 @@
           totalFee: totalFee,
           image: image,
           program: { ar: programAr, en: programEn },
-          group_id: groupId || null
+          group_id: null
         };
 
         if (window.CartSystem) {

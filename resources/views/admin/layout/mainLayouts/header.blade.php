@@ -649,6 +649,13 @@
 								</a>
 							</div>
 							<!--end::Clear Cache-->
+								<!--begin::Admin Panel QR Code-->
+								<div class="app-navbar-item ms-2 ms-lg-6">
+									<a href="#" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-35px h-35px w-md-40px h-md-40px" data-bs-toggle="modal" data-bs-target="#admin_qr_modal" title="@lang('app.qr_code')">
+										<i class="ki-outline ki-scan-barcode fs-1"></i>
+									</a>
+								</div>
+								<!--end::Admin Panel QR Code-->
 							<!--begin::Notifications-->
 <div class="app-navbar-item ms-2 ms-lg-6">
     <!--begin::Menu- wrapper-->
@@ -1024,3 +1031,21 @@
 				</div>
 				<!--end::Header-->
 
+
+<!-- Admin Panel QR Code Modal -->
+<div class="modal fade" id="admin_qr_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered mw-400px">
+        <div class="modal-content text-center">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold mx-auto">@lang('app.scan_to_admin_panel')</h5>
+                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <div class="modal-body pb-8">
+                <img src="{{ route('admin.qr.admin') }}" alt="QR Code" class="rounded" style="width: 240px; height: 240px; background: #fff; padding: 10px;">
+                <p class="text-muted fs-7 mt-4 mb-0">@lang('app.scan_to_admin_panel_hint')</p>
+            </div>
+        </div>
+    </div>
+</div>

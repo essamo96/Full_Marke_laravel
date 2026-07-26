@@ -43,11 +43,6 @@
           <i class="bi bi-award-fill" style="font-size: 15px;"></i>
         </button>
 
-        <!-- Site QR Code (icon-only) -->
-        <button id="siteQrBtn" class="btn btn-glass icon-btn px-2 py-1" type="button" data-bs-toggle="modal" data-bs-target="#siteQrModal" aria-label="QR Code" title="QR Code">
-          <i class="bi bi-qr-code" style="font-size: 15px;"></i>
-        </button>
-
         <!-- Student Cart Button -->
         <button id="cartBtn" class="btn btn-glass icon-btn position-relative px-2 py-1" onclick="toggleCartModal()" aria-label="Open cart" title="Open cart">
           <i class="bi bi-bag-fill" style="font-size: 15px;"></i>
@@ -91,22 +86,6 @@
     </div>
   </header>
 
-  <!-- Site QR Code Modal -->
-  <div class="modal fade" id="siteQrModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered mw-400px">
-      <div class="modal-content text-center" style="background: var(--bg-secondary); color: var(--text-primary);">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold mx-auto" data-en="Scan to Visit Our Academy" data-ar="امسح للانتقال إلى موقع الأكاديمية">Scan to Visit Our Academy</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body pb-8">
-          <img src="{{ route('qr.site') }}" alt="QR Code" class="rounded-lg" style="width: 240px; height: 240px; background: #fff; padding: 10px;">
-          <p class="opacity-75 text-sm mt-4 mb-0" data-en="Point your phone's camera at the code" data-ar="وجّه كاميرا هاتفك نحو الرمز">Point your phone's camera at the code</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Mobile Navigation Drawer -->
   <div id="mobileMenuBackdrop" class="mobile-menu-backdrop"></div>
   <div id="mobileNavMenu" class="mobile-nav-menu d-flex flex-column justify-content-between">
@@ -138,9 +117,6 @@
         </a>
         <button id="themeCycleBtnMobile" class="btn btn-glass icon-btn icon-btn-lg" type="button" aria-label="Switch theme">
           <i class="bi bi-award-fill"></i>
-        </button>
-        <button class="btn btn-glass icon-btn icon-btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#siteQrModal" aria-label="QR Code">
-          <i class="bi bi-qr-code"></i>
         </button>
         <!-- Mobile Student Cart Button -->
         <button id="cartBtnMobile" class="btn btn-glass icon-btn icon-btn-lg position-relative" onclick="toggleCartModal()" aria-label="Open cart">
