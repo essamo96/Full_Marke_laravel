@@ -8,7 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('site/images/logo_v2_blue.png') }}" />
-    
+
+    {{-- Preload the ki-duotone icon webfonts (the .ttf, since that's the format
+         the vendor CSS's src list actually resolves to before .woff). --}}
+    <link rel="preload" href="{{ asset('assets/admin/plugins/global/fonts/keenicons/keenicons-duotone.ttf') }}" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="{{ asset('assets/admin/plugins/global/fonts/keenicons/keenicons-outline.ttf') }}" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="{{ asset('assets/admin/plugins/global/fonts/keenicons/keenicons-solid.ttf') }}" as="font" type="font/ttf" crossorigin>
+
     <!--begin::Fonts-->
     <!-- Fonts commented out to resolve ERR_NAME_NOT_RESOLVED -->
     <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" /> -->
@@ -20,7 +26,7 @@
     
     <!--begin::Global Stylesheets Bundle-->
     <link href="{{ asset('assets/admin/plugins/global/plugins.bundle.css?v=7.2.9') }}" rel="stylesheet" type="text/css" />
-    
+
     @if (App::isLocale('ar'))
         <link href="{{ asset('assets/admin/css/style.bundle.rtl.css?v=7.2.9') }}" rel="stylesheet" type="text/css" />
         <style>
@@ -247,8 +253,8 @@
             const wrapper = document.createElement('div');
             wrapper.innerHTML = `
                 <div class="modal fade" id="fm_picker_modal" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-fullscreen-lg-down mw-1100px">
-                        <div class="modal-content" style="height: 85vh;">
+                    <div class="modal-dialog modal-dialog-centered modal-fullscreen-lg-down" style="max-width: min(1600px, 95vw);">
+                        <div class="modal-content" style="height: 92vh;">
                             <div class="modal-header py-3">
                                 <h2 class="fw-bold fs-4 mb-0">@lang('app.file_manager')</h2>
                                 <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">

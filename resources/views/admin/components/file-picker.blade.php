@@ -16,8 +16,8 @@
         <label class="p-2 fw-semibold fs-6 d-block">{{ $label }}</label>
     @endif
     <div class="d-flex align-items-center gap-4">
-        <div class="symbol symbol-75px bg-light-primary rounded d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0">
-            <img id="{{ $fmFieldId }}_preview_img" src="{{ $fmCurrentUrl }}" class="w-100 h-100 {{ $fmIsImage ? '' : 'd-none' }}" style="object-fit:cover;" alt="">
+        <div class="symbol symbol-75px bg-light-primary rounded d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0" style="width:75px;height:75px;">
+            <img id="{{ $fmFieldId }}_preview_img" src="{{ $fmCurrentUrl }}" class="{{ $fmIsImage ? '' : 'd-none' }}" style="width:75px;height:75px;object-fit:cover;" alt="">
             <i id="{{ $fmFieldId }}_preview_icon" class="ki-duotone ki-file fs-2x text-primary {{ $fmIsImage ? 'd-none' : '' }}"><span class="path1"></span><span class="path2"></span></i>
         </div>
         <div class="flex-grow-1">

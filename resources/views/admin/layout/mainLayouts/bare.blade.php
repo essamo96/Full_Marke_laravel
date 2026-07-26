@@ -8,6 +8,15 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('site/images/logo_v2_blue.png') }}" />
 
+    {{-- Preload the icon webfonts (the .ttf, the format the vendor CSS's src
+         list actually resolves to before .woff): this page is re-loaded from
+         scratch inside an iframe every time the File Manager picker modal
+         opens, so the fonts are never "warm" the way they are on normal
+         admin pages. --}}
+    <link rel="preload" href="{{ asset('assets/admin/plugins/global/fonts/keenicons/keenicons-duotone.ttf') }}" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="{{ asset('assets/admin/plugins/global/fonts/keenicons/keenicons-outline.ttf') }}" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="{{ asset('assets/admin/plugins/global/fonts/keenicons/keenicons-solid.ttf') }}" as="font" type="font/ttf" crossorigin>
+
     <link href="{{ asset('assets/admin/plugins/global/plugins.bundle.css?v=7.2.9') }}" rel="stylesheet" type="text/css" />
     @if (App::isLocale('ar'))
         <link href="{{ asset('assets/admin/css/style.bundle.rtl.css?v=7.2.9') }}" rel="stylesheet" type="text/css" />

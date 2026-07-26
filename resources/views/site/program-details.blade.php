@@ -170,7 +170,7 @@
                   </div>
 
                   <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-glass icon-btn px-3" data-bs-toggle="modal" data-bs-target="#subjectQrModal{{ $subject->id }}" title="QR Code" data-en="QR Code" data-ar="رمز QR">
+                    <button type="button" class="btn btn-glass icon-btn px-3" data-bs-toggle="modal" data-bs-target="#subjectQrModal{{ $subject->id }}" title="QR Code" aria-label="QR Code">
                       <i class="bi bi-qr-code"></i>
                     </button>
                     @if(!$canRegister)
@@ -201,28 +201,31 @@
               </div>
             </div>
           </div>
-
-          <!-- Subject QR Code Modal -->
-          <div class="modal fade" id="subjectQrModal{{ $subject->id }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered mw-400px">
-              <div class="modal-content glass-panel text-center">
-                <div class="modal-header border-0">
-                  <h5 class="modal-title fw-bold mx-auto" data-en="{{ $subject->name_en }}" data-ar="{{ $subject->name_ar }}">{{ $subject->name }}</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body pb-8">
-                  <img src="{{ route('qr.subject', $subject->id) }}" alt="QR Code" class="rounded-lg" style="width: 220px; height: 220px; background: #fff; padding: 10px;">
-                  <p class="opacity-75 text-sm mt-4 mb-0" data-en="Scan to open this subject" data-ar="امسح الرمز للانتقال إلى هذه المادة">Scan to open this subject</p>
-                </div>
-              </div>
-            </div>
-          </div>
         @empty
           <p class="text-center opacity-75" data-en="No subjects available yet." data-ar="لا توجد مواد متاحة حالياً.">No subjects available yet.</p>
         @endforelse
       </div>
     </div>
   </section>
+
+  {{-- QR modals are rendered outside the .reveal (transformed) container --}}
+  {{-- since Bootstrap's fixed-position modal breaks under a transformed ancestor. --}}
+  @foreach ($program->subjects as $subject)
+    <div class="modal fade" id="subjectQrModal{{ $subject->id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content glass-panel text-center">
+          <div class="modal-header border-0">
+            <h5 class="modal-title fw-bold mx-auto" data-en="{{ $subject->name_en }}" data-ar="{{ $subject->name_ar }}">{{ $subject->name }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body pb-8 d-flex flex-column align-items-center justify-content-center">
+            <img src="{{ route('qr.subject', $subject->id) }}" alt="QR Code" class="rounded-lg d-block mx-auto" style="width: 220px; height: 220px; background: #fff; padding: 10px;">
+            <p class="opacity-75 text-sm mt-4 mb-0" data-en="Scan to open this subject" data-ar="امسح الرمز للانتقال إلى هذه المادة">Scan to open this subject</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  @endforeach
 @endsection
 
 @push('scripts')
