@@ -43,7 +43,7 @@
                     <select name="subject_id" id="subject_id" class="form-select" data-control="select2" data-placeholder="اختر المادة" required>
                         <option></option>
                         @foreach($subjects as $subject)
-                            <option value="{{ $subject->id }}" data-groups="{{ json_encode($subject->groups) }}" {{ old('subject_id', $exam->subject_id ?? '') == $subject->id ? 'selected' : '' }}>
+                            <option value="{{ $subject->id }}" data-groups="{{ json_encode($subject->groups) }}" {{ old('subject_id', $exam->subject_id ?? ($preselectedSubjectId ?? '')) == $subject->id ? 'selected' : '' }}>
                                 {{ $subject->name }}
                             </option>
                         @endforeach
@@ -260,7 +260,7 @@
                     const opt = document.createElement('option');
                     opt.value = g.id;
                     opt.textContent = g.name;
-                    if (g.id == "{{ old('group_id', $exam->group_id ?? '') }}") {
+                    if (g.id == "{{ old('group_id', $exam->group_id ?? ($preselectedGroupId ?? '')) }}") {
                         opt.selected = true;
                     }
                     groupSelect.appendChild(opt);

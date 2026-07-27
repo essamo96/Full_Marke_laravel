@@ -1045,7 +1045,55 @@
             <div class="modal-body pb-8">
                 <img src="{{ route('admin.qr.admin') }}" alt="QR Code" class="rounded" style="width: 240px; height: 240px; background: #fff; padding: 10px;">
                 <p class="text-muted fs-7 mt-4 mb-0">@lang('app.scan_to_admin_panel_hint')</p>
+                <button type="button" class="btn btn-light-primary btn-sm mt-4 admin-qr-download-btn"
+                        data-qr-url="{{ route('admin.qr.admin') }}"
+                        data-file-name="qr-admin-panel.png">
+                    <i class="ki-outline ki-cloud-download fs-3 me-1"></i> @lang('app.download')
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.admin-qr-download-btn');
+        if (!btn) return;
+
+        var qrUrl = btn.dataset.qrUrl;
+        var fileName = btn.dataset.fileName || 'qr-code.png';
+        // The QR is generated server-side as an SVG (vector), so rasterizing it at a
+        // large fixed size loses nothing — the PNG comes out crisp at print sizes too.
+        var exportSize = 1200;
+
+        fetch(qrUrl)
+            .then(function (res) { return res.text(); })
+            .then(function (svgText) {
+                var svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+                var svgUrl = URL.createObjectURL(svgBlob);
+                var img = new Image();
+                img.onload = function () {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = exportSize;
+                    canvas.height = exportSize;
+                    var ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, exportSize, exportSize);
+                    ctx.drawImage(img, 0, 0, exportSize, exportSize);
+                    URL.revokeObjectURL(svgUrl);
+                    canvas.toBlob(function (blob) {
+                        var a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        URL.revokeObjectURL(a.href);
+                    }, 'image/png');
+                };
+                img.onerror = function () { window.open(qrUrl, '_blank'); };
+                img.src = svgUrl;
+            })
+            .catch(function () { window.open(qrUrl, '_blank'); });
+    });
+</script>

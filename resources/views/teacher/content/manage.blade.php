@@ -173,8 +173,10 @@
                             <a href="{{ $resource->url }}" target="_blank" class="btn btn-sm btn-outline-primary">فتح الرابط</a>
                           @elseif($resource->type === 'document' || $resource->isImage())
                             <a href="{{ route('teacher.content.view-file', $resource) }}" target="_blank" class="btn btn-sm btn-outline-primary">فتح الملف</a>
-                          @elseif($resource->type === 'video')
+                          @elseif($resource->type === 'video' && $resource->isReady())
                             <a href="{{ route('teacher.content.view-file', $resource) }}" target="_blank" class="btn btn-sm btn-outline-primary">مشاهدة الفيديو</a>
+                          @elseif($resource->type === 'video')
+                            <span class="btn btn-sm btn-outline-secondary disabled">الفيديو قيد المعالجة</span>
                           @else
                             <span class="btn btn-sm btn-outline-secondary disabled">لا يوجد محتوى</span>
                           @endif

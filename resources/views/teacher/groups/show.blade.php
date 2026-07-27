@@ -7,9 +7,9 @@
 @push('styles')
 <style>
 .teacher-accordion .accordion-collapse { visibility: visible !important; }
-.teacher-accordion .accordion-item { background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.teacher-accordion .accordion-item { background: transparent; border: none; border-bottom: 1px solid var(--separator-color); }
 .teacher-accordion .accordion-button { background: transparent; color: var(--text-primary); box-shadow: none; }
-.teacher-accordion .accordion-button:not(.collapsed) { color: var(--accent-color); background: rgba(255,255,255,0.02); }
+.teacher-accordion .accordion-button:not(.collapsed) { color: var(--accent-color); background: var(--bg-tertiary); }
 </style>
 @endpush
 
@@ -38,9 +38,9 @@
         </span>
       </div>
       
-      <div class="text-gold fs-5 fw-medium mb-4">{{ $group->subject->name ?? '' }} <span class="text-white-50 mx-2">|</span> {{ $group->subject->program->title ?? '' }}</div>
+      <div class="text-gold fs-5 fw-medium mb-4">{{ $group->subject->name ?? '' }} <span class="text-muted mx-2">|</span> {{ $group->subject->program->title ?? '' }}</div>
       
-      <div class="d-flex flex-wrap gap-4 text-white-50">
+      <div class="d-flex flex-wrap gap-4 text-muted">
         <div class="d-flex align-items-center gap-2">
           <div class="p-2 rounded-circle" style="background: rgba(197, 168, 128, 0.1);"><i class="bi bi-calendar3 text-gold"></i></div>
           <span>{{ $group->days ? implode(', ', (array) $group->days) : '-' }}</span>
@@ -91,11 +91,11 @@
                       <div class="row g-3 ps-3">
                       @foreach($unit->lessons as $lesson)
                         <div class="col-md-6">
-                          <div class="p-3 rounded-3 h-100 transition-all hover-glow" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                          <div class="p-3 rounded-3 h-100 transition-all hover-glow" style="background: var(--bg-tertiary); border: 1px solid var(--separator-color);">
                             <div class="fw-bold fs-6 mb-2" style="color: var(--text-primary);">{{ $lesson->name_ar ?? $lesson->name_en }}</div>
                             <div class="d-flex flex-column gap-2">
                             @forelse($lesson->resources as $resource)
-                              <a href="#" class="text-decoration-none text-white-50 d-flex align-items-center gap-2 fs-7 hover-text-gold transition-all">
+                              <a href="#" class="text-decoration-none text-muted d-flex align-items-center gap-2 fs-7 hover-text-gold transition-all">
                                 <i class="bi bi-{{ $resource->type === 'video' ? 'play-circle-fill text-danger' : 'file-earmark-text-fill text-info' }}"></i>
                                 <span>{{ $resource->title }}</span>
                               </a>
@@ -113,7 +113,7 @@
               </div>
             </div>
           @empty
-            <div class="p-5 text-center text-white-50" data-en="No curriculum structure yet." data-ar="لا يوجد هيكل مناهج بعد.">
+            <div class="p-5 text-center text-muted" data-en="No curriculum structure yet." data-ar="لا يوجد هيكل مناهج بعد.">
               <i class="bi bi-folder-x display-1 mb-3 d-block opacity-25"></i>
               لا يوجد هيكل مناهج بعد.
             </div>
@@ -125,8 +125,8 @@
       <h3 class="h4 fw-bold mb-3 border-start border-4 ps-3 mt-4" style="border-color: var(--accent-color) !important; color: var(--text-primary);" data-en="Students" data-ar="طلاب المجموعة">طلاب المجموعة</h3>
       <div class="glass-panel rounded-4 p-0 overflow-hidden shadow-sm mb-5" style="border: 1px solid var(--separator-color);">
         <div class="table-responsive">
-          <table class="table table-borderless text-white align-middle mb-0">
-            <thead style="background: rgba(0,0,0,0.2);">
+          <table class="table table-borderless align-middle mb-0">
+            <thead>
               <tr class="text-muted text-uppercase fs-7">
                 <th class="py-3 px-4" data-en="Student" data-ar="الطالب">Student</th>
                 <th class="py-3" data-en="Phone" data-ar="الهاتف">Phone</th>
@@ -135,16 +135,16 @@
             </thead>
             <tbody>
               @forelse($roster as $reg)
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <tr style="border-bottom: 1px solid var(--separator-color);">
                   <td class="px-4 py-3">
                     <div class="d-flex align-items-center gap-3">
-                      <div class="rounded-circle d-flex align-items-center justify-content-center bg-dark text-gold fw-bold" style="width: 40px; height: 40px;">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center text-gold fw-bold" style="width: 40px; height: 40px; background: var(--bg-tertiary);">
                         {{ mb_substr($reg->student?->full_name_ar ?? $reg->student?->full_name_en ?? 'U', 0, 1) }}
                       </div>
                       <span class="fw-medium">{{ $reg->student?->full_name_ar ?? $reg->student?->full_name_en }}</span>
                     </div>
                   </td>
-                  <td class="text-white-50"><bdi>{{ $reg->student?->phone }}</bdi></td>
+                  <td class="text-muted"><bdi>{{ $reg->student?->phone }}</bdi></td>
                   <td><span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3">{{ \App\Models\Registration::groupStatusLabel($reg->group_status) }}</span></td>
                 </tr>
               @empty
@@ -168,13 +168,13 @@
             <span><i class="bi bi-clipboard-check me-2"></i> تسجيل الحضور</span>
             <i class="bi bi-chevron-left"></i>
           </a>
-          <a href="{{ route('teacher.exams.create', ['group_id' => $group->id]) }}" class="btn btn-glass w-100 py-3 text-start d-flex justify-content-between align-items-center" style="background: rgba(255,255,255,0.03);">
+          <a href="{{ route('teacher.exams.create', ['group_id' => \Illuminate\Support\Facades\Crypt::encryptString($group->id)]) }}" class="btn btn-glass w-100 py-3 text-start d-flex justify-content-between align-items-center">
             <span><i class="bi bi-journal-plus me-2 text-gold"></i> إعداد امتحان جديد</span>
-            <i class="bi bi-chevron-left text-white-50"></i>
+            <i class="bi bi-chevron-left text-muted"></i>
           </a>
-          <a href="{{ route('teacher.grading.index') }}" class="btn btn-glass w-100 py-3 text-start d-flex justify-content-between align-items-center" style="background: rgba(255,255,255,0.03);">
+          <a href="{{ route('teacher.grading.index') }}" class="btn btn-glass w-100 py-3 text-start d-flex justify-content-between align-items-center">
             <span><i class="bi bi-check2-square me-2 text-gold"></i> رصد علامات الطلاب</span>
-            <i class="bi bi-chevron-left text-white-50"></i>
+            <i class="bi bi-chevron-left text-muted"></i>
           </a>
         </div>
       </div>
@@ -189,8 +189,8 @@
           @forelse($exams->take(4) as $exam)
             <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background: rgba(0,0,0,0.2);">
               <div>
-                <div class="fw-bold text-white mb-1 fs-7">{{ $exam->title }}</div>
-                <div class="text-white-50 fs-8"><i class="bi bi-clock me-1"></i> {{ $exam->created_at->format('Y-m-d') }}</div>
+                <div class="fw-bold text-primary mb-1 fs-7">{{ $exam->title }}</div>
+                <div class="text-muted fs-8"><i class="bi bi-clock me-1"></i> {{ $exam->created_at->format('Y-m-d') }}</div>
               </div>
               <a href="{{ route('teacher.grading.exam', $exam) }}" class="btn btn-sm btn-outline-gold rounded-pill px-3 fs-8">العلامات</a>
             </div>
@@ -207,7 +207,7 @@
         <form method="POST" action="{{ route('teacher.group-notes.store', $group) }}" class="mb-4">
           @csrf
           <div class="input-group">
-            <input type="text" name="title" class="form-control bg-dark border-secondary text-white" placeholder="عنوان الملاحظة..." required>
+            <input type="text" name="title" class="form-control" style="background: var(--input-bg); border-color: var(--separator-color); color: var(--text-primary);" placeholder="عنوان الملاحظة..." required>
             <input type="hidden" name="content" value="ملاحظة سريعة">
             <button class="btn btn-luxury" type="submit"><i class="bi bi-send-fill"></i></button>
           </div>
@@ -216,9 +216,9 @@
         <div class="d-flex flex-column gap-3" style="max-height: 300px; overflow-y: auto;">
           @forelse($notes as $note)
             <div class="p-3 rounded-3 position-relative" style="background: rgba(197, 168, 128, 0.05); border-right: 3px solid var(--accent-color);">
-              <div class="fw-bold fs-7 mb-1 text-white">{{ $note->title }}</div>
+              <div class="fw-bold fs-7 mb-1 text-primary">{{ $note->title }}</div>
               @if($note->content !== 'ملاحظة سريعة')
-                <div class="text-white-50 fs-8 mb-2">{{ $note->content }}</div>
+                <div class="text-muted fs-8 mb-2">{{ $note->content }}</div>
               @endif
               <div class="text-muted fs-8">{{ $note->created_at->diffForHumans() }}</div>
             </div>
@@ -233,15 +233,15 @@
         <div class="col-6">
           <div class="glass-panel rounded-4 p-3 shadow-sm h-100 text-center text-md-start" style="border: 1px solid var(--separator-color);">
             <div class="text-warning mb-2"><i class="bi bi-trophy-fill fs-4"></i></div>
-            <div class="fw-bold text-white fs-7 mb-1">أفضل الطلاب</div>
-            <div class="text-white-50 fs-8">{{ $topStudents->count() }} طالب</div>
+            <div class="fw-bold text-primary fs-7 mb-1">أفضل الطلاب</div>
+            <div class="text-muted fs-8">{{ $topStudents->count() }} طالب</div>
           </div>
         </div>
         <div class="col-6">
           <div class="glass-panel rounded-4 p-3 shadow-sm h-100 text-center text-md-start" style="border: 1px solid var(--separator-color);">
             <div class="text-danger mb-2"><i class="bi bi-exclamation-triangle-fill fs-4"></i></div>
-            <div class="fw-bold text-white fs-7 mb-1">الأكثر غياباً</div>
-            <div class="text-white-50 fs-8">{{ $mostAbsentStudents->count() }} طالب</div>
+            <div class="fw-bold text-primary fs-7 mb-1">الأكثر غياباً</div>
+            <div class="text-muted fs-8">{{ $mostAbsentStudents->count() }} طالب</div>
           </div>
         </div>
       </div>

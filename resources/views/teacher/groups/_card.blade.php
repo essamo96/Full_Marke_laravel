@@ -16,13 +16,13 @@
         </div>
       @endif
       @if($group->is_active)
-        <div class="position-absolute top-0 end-0 m-3 px-3 py-1 rounded-pill d-flex align-items-center gap-2 shadow-sm" style="background: rgba(32, 201, 151, 0.9); backdrop-filter: blur(4px); font-size: 0.75rem; font-weight: 700; color: #fff; z-index: 2;">
-          <span class="spinner-grow spinner-grow-sm text-white" style="width: 10px; height: 10px;" role="status" aria-hidden="true"></span>
+        <div class="position-absolute top-0 end-0 m-3 px-3 py-1 rounded-pill d-flex align-items-center gap-2 shadow-sm" style="background: rgba(32, 201, 151, 0.9); backdrop-filter: blur(4px); font-size: 0.75rem; font-weight: 700; color: #fff; z-index: 2; white-space: nowrap; max-width: calc(100% - 1.5rem);">
+          <span class="spinner-grow spinner-grow-sm text-white flex-shrink-0" style="width: 10px; height: 10px;" role="status" aria-hidden="true"></span>
           <span data-en="Active" data-ar="مجموعة نشطة">مجموعة نشطة</span>
         </div>
       @else
-        <div class="position-absolute top-0 end-0 m-3 px-3 py-1 rounded-pill d-flex align-items-center gap-2 shadow-sm" style="background: rgba(108, 117, 125, 0.9); backdrop-filter: blur(4px); font-size: 0.75rem; font-weight: 700; color: #fff; z-index: 2;">
-          <i class="bi bi-pause-circle-fill"></i>
+        <div class="position-absolute top-0 end-0 m-3 px-3 py-1 rounded-pill d-flex align-items-center gap-2 shadow-sm" style="background: rgba(108, 117, 125, 0.9); backdrop-filter: blur(4px); font-size: 0.75rem; font-weight: 700; color: #fff; z-index: 2; white-space: nowrap; max-width: calc(100% - 1.5rem);">
+          <i class="bi bi-pause-circle-fill flex-shrink-0"></i>
           <span data-en="Inactive" data-ar="غير نشطة">غير نشطة</span>
         </div>
       @endif

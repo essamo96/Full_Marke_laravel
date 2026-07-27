@@ -10,6 +10,13 @@
         $aboutAr = $about?->translations->where('locale', 'ar')->first();
         $aboutEn = $about?->translations->where('locale', 'en')->first();
 
+        // The admin panel's video field for this page accepts any file via the
+        // File Manager picker, so it may actually hold an image instead of a
+        // video — detect which one it is so the right tag gets rendered.
+        $aboutMediaPath = $about->video ?? null;
+        $aboutMediaIsImage = $aboutMediaPath && in_array(strtolower(pathinfo($aboutMediaPath, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp']);
+        $aboutMediaUrl = $aboutMediaPath ? asset('storage/' . $aboutMediaPath) : null;
+
         $features = $pages['features'] ?? null;
         $featuresAr = $features?->translations->where('locale', 'ar')->first();
         $featuresEn = $features?->translations->where('locale', 'en')->first();
@@ -265,14 +272,21 @@
         <div class="col-lg-6 reveal-right">
           <div class="relative p-3 glass-panel">
             <div class="about-video-wrapper relative overflow-hidden rounded-lg h-80 md:h-[450px]">
-              <video id="about-video"
+              @if($aboutMediaIsImage)
+                <img id="about-video"
                      class="about-video"
-                     src="{{ $about && $about->video ? asset('storage/' . $about->video) : asset('site/images/aboutUs.mp4') }}"
-                     muted
-                     loop
-                     playsinline
-                     preload="metadata"
-                     poster="{{ asset('site/images/img/news/news1.png') }}"></video>
+                     src="{{ $aboutMediaUrl }}"
+                     alt="">
+              @else
+                <video id="about-video"
+                       class="about-video"
+                       src="{{ $aboutMediaUrl ?: asset('site/images/aboutUs.mp4') }}"
+                       muted
+                       loop
+                       playsinline
+                       preload="metadata"
+                       poster="{{ asset('site/images/img/news/news1.png') }}"></video>
+              @endif
               <div class="about-video-tint"></div>
             </div>
 

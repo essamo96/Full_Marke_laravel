@@ -11,7 +11,7 @@
 
   <div class="glass-panel rounded-4 p-0 overflow-hidden">
     <div class="table-responsive">
-      <table class="table table-borderless text-white align-middle mb-0">
+      <table class="table table-borderless align-middle mb-0">
         <thead>
           <tr class="text-muted text-uppercase fs-7">
             <th data-en="Student" data-ar="الطالب">Student</th>

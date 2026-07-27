@@ -41,9 +41,10 @@
       'hero-bg-video-2': isMobile
         ? '/site/images/slider2_mobile.mp4'
         : '/site/images/slider2.mp4',
-      'about-video': isMobile
-        ? '/site/images/aboutUs_mobile.mp4'
-        : '/site/images/aboutUs.mp4',
+      // Note: 'about-video' is intentionally NOT swapped here — its source is
+      // whatever the admin configured for the About Us page (video or image),
+      // rendered server-side. Hardcoding a mobile/desktop swap for it would
+      // silently override whatever the admin panel is set to display.
     };
     Object.entries(map).forEach(([id, src]) => {
       const el = document.getElementById(id);
@@ -235,7 +236,9 @@
   // ---------- About-section looping video: play in view, pause out of view ----------
   function initAboutVideo() {
     const aboutVid = document.getElementById('about-video');
-    if (!aboutVid) return;
+    // The admin can configure either a video or an image for this slot — if
+    // it's an <img>, there's nothing to play/pause.
+    if (!aboutVid || aboutVid.tagName !== 'VIDEO') return;
     aboutVid.muted = true;
     aboutVid.loop = true;
 

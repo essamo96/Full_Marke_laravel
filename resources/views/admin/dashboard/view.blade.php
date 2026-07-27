@@ -337,7 +337,12 @@
 
 @push('scripts')
 <script src="{{ asset('assets/admin/plugins/custom/fullcalendar/fullcalendar.bundle.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+{{-- Don't load ApexCharts from the CDN here: plugins.bundle.js (loaded on every
+     admin page) already bundles its own ApexCharts build. Loading a second,
+     different version from the CDN on top of it caused an internal API
+     mismatch between the two ApexCharts instances — "e.put is not a function"
+     in the console — since some shared internal state from the first load
+     doesn't match what the second version's code expects. --}}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         // Init FullCalendar

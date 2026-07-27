@@ -193,14 +193,26 @@ class ContentController extends Controller
     {
         $this->authorizeSubjectResource($resource);
 
-        abort_if($resource->isVideo() || $resource->isExternalLink() || ! $resource->url, 404);
+        abort_if($resource->isExternalLink() || ! $resource->url, 404);
+        abort_if($resource->isVideo() && ! $resource->isReady(), 409, 'الفيديو غير جاهز للعرض بعد.');
         abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404);
 
         $path = Storage::disk('protected_videos')->path($resource->url);
 
-        return response()->file($path, [
+        $headers = [
             'Content-Disposition' => 'inline; filename="' . ($resource->original_filename ?: basename($path)) . '"',
-        ]);
+        ];
+
+        // response()->file() already supports Range requests (needed for video
+        // seeking), it just needs the right Content-Type — the student-side
+        // video stream endpoint hardcodes video/mp4 for the same reason
+        // rather than relying on MIME sniffing.
+        if ($resource->isVideo()) {
+            $headers['Content-Type'] = 'video/mp4';
+            $headers['Accept-Ranges'] = 'bytes';
+        }
+
+        return response()->file($path, $headers);
     }
 
     public function destroyResource(SubjectResource $resource)

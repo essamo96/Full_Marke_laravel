@@ -13,6 +13,8 @@ use App\Models\Subject;
 use App\Services\ExamService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 class ExamController extends Controller
 {
@@ -42,7 +44,27 @@ class ExamController extends Controller
     {
         $subjects = Subject::whereIn('id', $this->teacherSubjectIds())->with('groups')->get();
 
-        return view('teacher.exams.create', compact('subjects'));
+        // group_id arrives here as an encrypted string (set by the "New Exam"
+        // link on the group page) rather than a raw id, so a plain URL never
+        // exposes/leaks a real database id — decrypt it just to preselect the
+        // matching subject/group in the form; ownership is still verified
+        // before it's trusted for anything beyond that.
+        $preselectedGroupId = null;
+        $preselectedSubjectId = null;
+
+        if ($request->filled('group_id')) {
+            try {
+                $group = Group::findOrFail(Crypt::decryptString($request->query('group_id')));
+                if ($group->teacher_id === Auth::guard('teacher')->id()) {
+                    $preselectedGroupId = $group->id;
+                    $preselectedSubjectId = $group->subject_id;
+                }
+            } catch (DecryptException $e) {
+                // Ignore an invalid/stale value — the form just opens blank.
+            }
+        }
+
+        return view('teacher.exams.create', compact('subjects', 'preselectedGroupId', 'preselectedSubjectId'));
     }
 
     private function authorizeExamGroup($groupId): void

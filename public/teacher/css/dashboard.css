@@ -273,3 +273,32 @@
   padding: 24px;
   color: var(--text-primary);
 }
+
+/* ============================================================
+   Theme-aware Bootstrap tables (dark / light / gold)
+   Bootstrap 5.3's own table CSS reads from these --bs-table-*
+   custom properties internally, so overriding them here cascades
+   correctly to every .table in the teacher panel — no !important
+   fights with the "text-white" Bootstrap used to hardcode per-page.
+   ============================================================ */
+.table {
+  --bs-table-color: var(--text-primary);
+  --bs-table-bg: transparent;
+  --bs-table-border-color: var(--separator-color);
+  --bs-table-striped-bg: var(--bg-tertiary);
+  --bs-table-hover-bg: var(--bg-tertiary);
+  --bs-table-hover-color: var(--text-primary);
+  color: var(--bs-table-color);
+}
+.table > thead {
+  background: var(--bg-tertiary);
+}
+.table > thead th {
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--separator-color);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.table > tbody tr {
+  transition: background-color 0.15s ease;
+}
