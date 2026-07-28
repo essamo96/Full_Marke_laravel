@@ -177,6 +177,12 @@
                         <div class="alert alert-danger w-100 mb-0 py-2 text-center fs-6 fw-bold" role="alert">
                             <i class="fa-solid fa-lock me-1"></i> التسجيل غير متاح حالياً
                         </div>
+                    @elseif(auth('student')->check() && in_array($subject->id, $registeredSubjectIds ?? []))
+                        <div class="alert w-100 mb-0 py-2 text-center fs-6 fw-bold" role="alert"
+                             style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981;">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            <span data-en="Already registered" data-ar="أنت مسجل في هذه المادة">أنت مسجل في هذه المادة</span>
+                        </div>
                     @else
                         @auth('student')
                           <button type="button" class="btn btn-luxury w-100 py-2.5 rounded-lg text-center add-to-cart-btn"

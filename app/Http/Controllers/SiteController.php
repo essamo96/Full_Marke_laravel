@@ -29,7 +29,16 @@ class SiteController extends Controller
             $query->active()->orderBy('sort_order');
         }, 'subjects.groups']);
 
-        return view('site.program-details', compact('program'));
+        // Subjects the logged-in student is already registered in must not be
+        // offered for registration again.
+        $registeredSubjectIds = auth('student')->check()
+            ? \App\Models\Registration::where('student_id', auth('student')->id())
+                ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
+                ->pluck('subject_id')
+                ->all()
+            : [];
+
+        return view('site.program-details', compact('program', 'registeredSubjectIds'));
     }
 
     public function applyNow(Request $request): View

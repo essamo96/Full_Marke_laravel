@@ -183,17 +183,60 @@
                 <p class="opacity-75 text-white" data-en="Choose a video or document from the curriculum sidebar." data-ar="اختر فيديو أو ملفاً من القائمة الجانبية.">اختر فيديو أو ملفاً من القائمة الجانبية.</p>
             </div>
             
+            <style>
+                /* In-page fullscreen — the wrapper itself goes fullscreen so the
+                   watermark (a child of the wrapper) stays visible when zoomed */
+                #groupVideoContainer:fullscreen, #groupVideoContainer:-webkit-full-screen,
+                #iframeWrapper:fullscreen, #iframeWrapper:-webkit-full-screen {
+                    width: 100vw; height: 100vh; aspect-ratio: auto; border-radius: 0;
+                }
+                #groupVideoContainer:fullscreen #videoPlayer,
+                #groupVideoContainer:-webkit-full-screen #videoPlayer { object-fit: contain; }
+                #documentWrapper:fullscreen, #documentWrapper:-webkit-full-screen,
+                #imageWrapper:fullscreen, #imageWrapper:-webkit-full-screen {
+                    width: 100vw; height: 100vh; overflow: auto; border-radius: 0; background: #111;
+                }
+                /* Drifting watermark over embedded (iframe) resources */
+                .embed-watermark {
+                    position: absolute;
+                    top: 8%;
+                    inset-inline-start: 6%;
+                    z-index: 5;
+                    pointer-events: none;
+                    user-select: none;
+                    color: rgba(255, 255, 255, 0.4);
+                    font-size: .85rem;
+                    font-weight: 700;
+                    text-shadow: 0 1px 3px rgba(0,0,0,.6);
+                    animation: embedWatermarkDrift 24s linear infinite;
+                    white-space: nowrap;
+                }
+                @keyframes embedWatermarkDrift {
+                    0%   { top: 8%;  inset-inline-start: 6%; }
+                    25%  { top: 78%; inset-inline-start: 62%; }
+                    50%  { top: 14%; inset-inline-start: 68%; }
+                    75%  { top: 70%; inset-inline-start: 10%; }
+                    100% { top: 8%;  inset-inline-start: 6%; }
+                }
+            </style>
+
             <div id="contentViewer" class="w-100 d-none text-start">
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                     <h2 class="fw-bold mb-0" id="contentTitle" style="color: var(--text-primary);"></h2>
-                    <span id="contentTypeBadge" class="badge bg-gold text-dark px-3 py-2 rounded-pill"></span>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" id="viewerFullscreenBtn" class="btn btn-sm btn-glass d-none rounded-pill px-3" onclick="toggleViewerFullscreen()" title="ملء الشاشة">
+                            <i class="bi bi-arrows-fullscreen me-1"></i>
+                            <span data-en="Fullscreen" data-ar="ملء الشاشة">ملء الشاشة</span>
+                        </button>
+                        <span id="contentTypeBadge" class="badge bg-gold text-dark px-3 py-2 rounded-pill"></span>
+                    </div>
                 </div>
-                
-                <div id="videoWrapper" class="video-player-container d-none mb-4 shadow-lg">
-                    <video id="videoPlayer" controls controlsList="nodownload" oncontextmenu="return false;" class="w-100 h-100" style="object-fit: contain;">
-                        <source src="" type="video/mp4">
-                        Your browser does not support HTML video.
-                    </video>
+
+                <div id="videoWrapper" class="d-none mb-4 shadow-lg">
+                    <div id="groupVideoContainer" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;">
+                        <video id="videoPlayer" controls playsinline oncontextmenu="return false;" style="width: 100%; height: 100%; object-fit: contain;"></video>
+                    </div>
+                    <p id="groupVideoError" class="text-danger mt-2 mb-0 d-none"></p>
                 </div>
 
                 <div id="documentWrapper" class="d-none mb-4 rounded-4" style="background: #1a1a1a; min-height: 60vh; padding: 10px; overflow: auto;">
@@ -226,7 +269,8 @@
                 </div>
 
                 <div id="iframeWrapper" class="d-none mb-4 shadow-lg" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;">
-                    <iframe id="iframePlayer" style="width: 100%; height: 100%; border: 0;" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>
+                    <iframe id="iframePlayer" style="width: 100%; height: 100%; border: 0;" allow="encrypted-media; picture-in-picture"></iframe>
+                    <div class="embed-watermark">{{ auth()->guard('student')->user()->name }} — {{ auth()->guard('student')->user()->email }}</div>
                 </div>
 
                 <div class="glass-panel rounded-4 p-4 mt-4 bg-pattern-gold" style="border: 1px solid rgba(255,255,255,0.1);">
@@ -239,12 +283,37 @@
 </div>
 
 @push('scripts')
+<script src="{{ asset('assets/vendor/hlsjs/hls.min.js') }}"></script>
+<script src="{{ asset('assets/js/student-video-player.js') }}"></script>
 <script src="{{ asset('assets/vendor/pdfjs/pdf.min.js') }}"></script>
 <script src="{{ asset('assets/js/student-document-viewer.js') }}"></script>
 <script src="{{ asset('assets/js/student-image-viewer.js') }}"></script>
 <script>
+    // Same page-level protection as the Learning Resources screen
+    document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
     var groupDocumentDestroy = null;
     var groupImageDestroy = null;
+    var groupVideoDestroy = null;
+
+    // Which element the in-page fullscreen button targets for the current resource
+    var fullscreenTargetId = null;
+
+    function setFullscreenTarget(id) {
+        fullscreenTargetId = id;
+        document.getElementById('viewerFullscreenBtn').classList.toggle('d-none', !id);
+    }
+
+    function toggleViewerFullscreen() {
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+            return;
+        }
+        var el = fullscreenTargetId ? document.getElementById(fullscreenTargetId) : null;
+        if (!el) return;
+        var request = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (request) request.call(el);
+    }
 
     function loadResource(resource) {
         // Highlight active item
@@ -266,6 +335,8 @@
 
         if (groupDocumentDestroy) { groupDocumentDestroy(); groupDocumentDestroy = null; }
         if (groupImageDestroy) { groupImageDestroy(); groupImageDestroy = null; }
+        if (groupVideoDestroy) { groupVideoDestroy(); groupVideoDestroy = null; }
+        setFullscreenTarget(null);
 
         // Set Metadata
         document.getElementById('contentTitle').innerText = resource.title;
@@ -287,23 +358,26 @@
             badge.innerText = 'فيديو';
             badge.className = 'badge bg-danger text-white px-3 py-2 rounded-pill';
             document.getElementById('videoWrapper').classList.remove('d-none');
+            setFullscreenTarget('groupVideoContainer');
 
-            // Fetch secure stream URL
-            fetch('{{ url("student/videos") }}/' + resource.id + '/start', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    videoPlayer.src = data.stream_url;
-                    videoPlayer.load();
-                }
-            })
-            .catch(err => console.error(err));
+            // Watermarked secure player — the same one used on the Learning
+            // Resources page (moving name+photo overlay, protected stream).
+            const videoError = document.getElementById('groupVideoError');
+            videoError.classList.add('d-none');
+
+            groupVideoDestroy = mountSecureVideoPlayer({
+                resourceId: resource.id,
+                container: document.getElementById('groupVideoContainer'),
+                videoEl: videoPlayer,
+                startUrl: '{{ url("student/videos") }}/' + resource.id + '/start',
+                studentName: @json(auth()->guard('student')->user()->name),
+                studentPhotoUrl: @json(auth()->guard('student')->user()->image ? asset('storage/' . auth()->guard('student')->user()->image) : null),
+                csrfToken: '{{ csrf_token() }}',
+                onError: function (message) {
+                    videoError.textContent = message;
+                    videoError.classList.remove('d-none');
+                },
+            });
 
         } else if (resource.type === 'zoom') {
             badge.innerText = 'رابط خارجي';
@@ -314,6 +388,7 @@
             badge.innerText = 'رابط محمي';
             badge.className = 'badge bg-primary text-white px-3 py-2 rounded-pill';
             document.getElementById('iframeWrapper').classList.remove('d-none');
+            setFullscreenTarget('iframeWrapper');
             // Load the secure embed route
             iframePlayer.src = '{{ url("student/secure-embed") }}/' + resource.id;
         } else if (resource.is_pdf) {
@@ -323,6 +398,7 @@
             badge.innerText = 'ملف PDF';
             badge.className = 'badge bg-info text-dark px-3 py-2 rounded-pill';
             document.getElementById('documentWrapper').classList.remove('d-none');
+            setFullscreenTarget('documentWrapper');
 
             const container = document.getElementById('documentContainer');
             const errorEl = document.getElementById('documentError');
@@ -347,6 +423,7 @@
             badge.innerText = 'صورة';
             badge.className = 'badge bg-info text-dark px-3 py-2 rounded-pill';
             document.getElementById('imageWrapper').classList.remove('d-none');
+            setFullscreenTarget('imageWrapper');
 
             const container = document.getElementById('imageContainer');
             container.innerHTML = '<div class="text-center text-white-50 py-5" id="imageLoading">جاري تحميل الصورة الآمنة...</div>';

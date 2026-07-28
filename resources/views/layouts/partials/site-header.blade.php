@@ -53,7 +53,7 @@
         <!-- Student Cart Button -->
         <button id="cartBtn" class="btn btn-glass icon-btn position-relative px-2 py-1" onclick="toggleCartModal()" aria-label="Open cart" title="Open cart">
           <i class="bi bi-bag-fill" style="font-size: 15px;"></i>
-          <span id="cartCountBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.65rem;">0</span>
+          <span id="cartCountBadge" class="badge rounded-pill bg-danger cart-count-badge" style="display: none;">0</span>
         </button>
 
         @auth('student')
@@ -129,7 +129,7 @@
         <!-- Mobile Student Cart Button -->
         <button id="cartBtnMobile" class="btn btn-glass icon-btn icon-btn-lg position-relative" onclick="toggleCartModal()" aria-label="Open cart">
           <i class="bi bi-bag-fill"></i>
-          <span id="cartCountBadgeMobile" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.65rem;">0</span>
+          <span id="cartCountBadgeMobile" class="badge rounded-pill bg-danger cart-count-badge" style="display: none;">0</span>
         </button>
       </div>
 

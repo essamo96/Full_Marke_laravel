@@ -1442,6 +1442,24 @@ footer .h-12 {
   }
 }
 
+/* Cart counter badge — pinned to the top outer corner of the cart button in
+   both LTR and RTL (the old start-100/translate-middle combo drifted away
+   from the icon in RTL and inside the tablet tools panel) */
+.cart-count-badge {
+  position: absolute;
+  top: -7px;
+  inset-inline-end: -7px;
+  left: auto;
+  font-size: .65rem;
+  min-width: 18px;
+  height: 18px;
+  line-height: 12px;
+  padding: 3px 5px;
+  z-index: 5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .35);
+  border: 1px solid var(--bg-secondary);
+}
+
 /* Logged-in student dropdown inside the header actions — themed for all
    three themes instead of Bootstrap's default white menu */
 .header-actions .dropdown-menu {

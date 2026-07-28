@@ -35,13 +35,28 @@
     });
   }
 
+  // Subjects the student already registered in (set by the layout for
+  // logged-in students) — never allowed into the cart.
+  function isAlreadyRegistered(subjectId) {
+    const ids = window.registeredSubjectIds || [];
+    return ids.includes(String(subjectId));
+  }
+
   // Add Item
   function addItem(item) {
     const items = getCartItems();
     const exists = items.some(i => i.id === item.id);
-    
+
     const lang = getLang();
-    
+
+    if (isAlreadyRegistered(item.id)) {
+      const msg = lang === 'ar'
+        ? `أنت مسجل بالفعل في مساق "${item.name.ar}" ولا يمكن إضافته مرة أخرى.`
+        : `You are already registered in "${item.name.en}".`;
+      showNotification(msg, 'warning');
+      return;
+    }
+
     if (exists) {
       const msg = lang === 'ar' 
         ? `عذراً، مساق "${item.name.ar}" مضاف بالفعل في سلتك.` 
@@ -84,63 +99,67 @@
     return isNaN(num) ? 0 : num;
   }
 
-  // Ingest beautiful notification/toast
+  // Theme-aware toast — background/text come from the active theme's CSS
+  // variables so the message stays readable in dark, light and gold alike;
+  // only the border/icon carry the status color.
+  let toastHideTimer = null;
   function showNotification(message, type = 'success') {
     let toast = document.getElementById('cart-toast');
     if (!toast) {
       toast = document.createElement('div');
       toast.id = 'cart-toast';
-      toast.style.cssText = `
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%) translateY(100px);
-        background: var(--glass-bg);
-        border: 1px solid var(--accent-color);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        color: var(--text-primary);
-        padding: 15px 30px;
-        border-radius: var(--radius-md);
-        z-index: 2000;
-        font-weight: 600;
-        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        display: flex;
-        align-items: center;
-      `;
       document.body.appendChild(toast);
     }
-    
-    let iconHtml = '';
-    
-    // Type colors
-    if (type === 'success') {
-      toast.style.borderColor = '#10b981'; // Green
-      toast.style.boxShadow = '0 10px 30px rgba(16, 185, 129, 0.25)';
-      toast.style.background = 'rgba(5, 15, 10, 0.9)'; // Dark green tint glass
-      iconHtml = `<i class="bi bi-check-circle-fill" style="color: #10b981; margin-inline-end: 10px; font-size: 1.25rem; display: inline-block; vertical-align: middle;"></i>`;
-    } else if (type === 'warning') {
-      toast.style.borderColor = '#eab308'; // Amber/Yellow
-      toast.style.boxShadow = '0 10px 30px rgba(234, 179, 8, 0.2)';
-      toast.style.background = 'rgba(15, 15, 5, 0.9)';
-      iconHtml = `<i class="bi bi-exclamation-triangle-fill" style="color: #eab308; margin-inline-end: 10px; font-size: 1.25rem; display: inline-block; vertical-align: middle;"></i>`;
-    } else if (type === 'info') {
-      toast.style.borderColor = '#3b82f6'; // Blue
-      toast.style.boxShadow = '0 10px 30px rgba(59, 130, 246, 0.2)';
-      toast.style.background = 'rgba(5, 10, 20, 0.9)';
-      iconHtml = `<i class="bi bi-info-circle-fill" style="color: #3b82f6; margin-inline-end: 10px; font-size: 1.25rem; display: inline-block; vertical-align: middle;"></i>`;
-    } else {
-      toast.style.borderColor = 'var(--accent-color)';
-      toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
-      toast.style.background = 'var(--glass-bg)';
-    }
 
-    toast.innerHTML = `${iconHtml}<span style="vertical-align: middle; display: inline-block;">${message}</span>`;
-    toast.style.transform = 'translateX(-50%) translateY(0)';
-    
-    setTimeout(() => {
-      toast.style.transform = 'translateX(-50%) translateY(100px)';
+    const statusColors = {
+      success: '#10b981',
+      warning: '#eab308',
+      info: '#3b82f6',
+    };
+    const statusColor = statusColors[type] || 'var(--accent-color)';
+    const statusIcons = {
+      success: 'bi-check-circle-fill',
+      warning: 'bi-exclamation-triangle-fill',
+      info: 'bi-info-circle-fill',
+    };
+
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: var(--bg-secondary);
+      border: 1px solid ${statusColor};
+      border-inline-start-width: 5px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+      color: var(--text-primary);
+      padding: 14px 22px;
+      border-radius: var(--radius-md, 12px);
+      z-index: 2000;
+      font-weight: 600;
+      font-size: .95rem;
+      line-height: 1.5;
+      max-width: min(92vw, 480px);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    `;
+
+    const iconHtml = statusIcons[type]
+      ? `<i class="bi ${statusIcons[type]}" style="color: ${statusColor}; font-size: 1.3rem; flex-shrink: 0;"></i>`
+      : '';
+
+    toast.innerHTML = `${iconHtml}<span>${message}</span>`;
+
+    // Restart the slide-in even when a toast is already visible
+    if (toastHideTimer) clearTimeout(toastHideTimer);
+    requestAnimationFrame(() => {
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+    });
+
+    toastHideTimer = setTimeout(() => {
+      toast.style.transform = 'translateX(-50%) translateY(120px)';
     }, 4000);
   }
 
@@ -496,6 +515,11 @@
 
   // Load badge counts and listeners on load
   document.addEventListener('DOMContentLoaded', () => {
+    // Prune any cart items the student has since registered in
+    const items = getCartItems();
+    const cleaned = items.filter(i => !isAlreadyRegistered(i.id));
+    if (cleaned.length !== items.length) saveCartItems(cleaned);
+
     injectModalMarkup();
     updateCartBadges();
   });

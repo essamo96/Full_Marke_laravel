@@ -40,7 +40,7 @@
   <link rel="stylesheet" href="{{ asset('site/css/animations/3d-effects.css') }}?v=1.0">
   <link rel="stylesheet" href="{{ asset('site/css/animations/hover-effects.css') }}?v=1.1">
   <link rel="stylesheet" href="{{ asset('site/css/landing.css') }}?v=1.2">
-  <link rel="stylesheet" href="{{ asset('site/css/hero-animation.css') }}?v=1.3">
+  <link rel="stylesheet" href="{{ asset('site/css/hero-animation.css') }}?v=1.4">
   <!-- Arabic / RTL stylesheet — only its [dir="rtl"] rules activate -->
   <link rel="stylesheet" href="{{ asset('site/css/rtl.css') }}?v=1.2">
 
@@ -86,11 +86,19 @@
   <script src="{{ asset('site/js/animations.js') }}"></script>
   <script src="{{ asset('site/js/scroll-effects.js') }}"></script>
   <script src="{{ asset('site/js/particles.js') }}"></script>
-  <script src="{{ asset('site/js/cart.js') }}"></script>
+  <script src="{{ asset('site/js/cart.js') }}?v=1.1"></script>
 
   <script>
     window.currentLang = '{{ app()->getLocale() }}';
     window.isStudentLoggedIn = {{ auth('student')->check() ? 'true' : 'false' }};
+    // Subjects the student already holds an active registration in — the cart
+    // refuses these and prunes any stale copies left in localStorage.
+    window.registeredSubjectIds = @json(auth('student')->check()
+        ? \App\Models\Registration::where('student_id', auth('student')->id())
+            ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
+            ->pluck('subject_id')
+            ->map(fn ($id) => (string) $id)
+        : []);
     window.csrfToken = '{{ csrf_token() }}';
     window.studentRegisterUrl = '{{ route('student.register') }}';
   </script>
