@@ -128,17 +128,33 @@ class GroupsController extends Controller
         }
 
         $group->load('teacher', 'subject');
-        
+
         $subject = $group->subject;
+        // Only surface stages/units/lessons that still have at least one active
+        // resource beneath them — a lesson whose only resource was deleted (or
+        // deactivated) shouldn't show up to students as an empty entry.
+        $hasVisibleResource = function ($lessonQuery) {
+            $lessonQuery->where('is_active', true)
+                ->whereHas('resources', function ($q) {
+                    $q->where('is_active', true);
+                });
+        };
         $subject->load([
-            'stages' => function ($q) {
-                $q->where('is_active', true)->orderBy('sort_order');
+            'stages' => function ($q) use ($hasVisibleResource) {
+                $q->where('is_active', true)
+                    ->whereHas('units', function ($uq) use ($hasVisibleResource) {
+                        $uq->where('is_active', true)->whereHas('lessons', $hasVisibleResource);
+                    })
+                    ->orderBy('sort_order');
             },
-            'stages.units' => function ($q) {
-                $q->where('is_active', true)->orderBy('sort_order');
+            'stages.units' => function ($q) use ($hasVisibleResource) {
+                $q->where('is_active', true)
+                    ->whereHas('lessons', $hasVisibleResource)
+                    ->orderBy('sort_order');
             },
-            'stages.units.lessons' => function ($q) {
-                $q->where('is_active', true)->orderBy('sort_order');
+            'stages.units.lessons' => function ($q) use ($hasVisibleResource) {
+                $hasVisibleResource($q);
+                $q->orderBy('sort_order');
             },
             'stages.units.lessons.resources' => function ($q) {
                 $q->where('is_active', true)->orderBy('sort_order');

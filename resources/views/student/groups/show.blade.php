@@ -100,9 +100,9 @@
                         @foreach($generalResources as $resource)
                             @php
                                 $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
-                                $resUrl = $isUrl ? $resource->url : asset('storage/'.$resource->url);
+                                $isPdf = $resource->type === 'document' && !$isUrl && strtolower(pathinfo($resource->url ?? '', PATHINFO_EXTENSION)) === 'pdf';
                             @endphp
-                            <a href="javascript:void(0)" class="resource-item" onclick="loadResource({{ json_encode(['id' => $resource->getRouteKey(), 'title' => $resource->title, 'type' => $resource->type, 'url' => $resUrl, 'description' => $resource->description]) }})">
+                            <a href="javascript:void(0)" class="resource-item" onclick="loadResource({{ json_encode(['id' => $resource->getRouteKey(), 'title' => $resource->title, 'type' => $resource->type, 'is_pdf' => $isPdf, 'is_image' => $resource->isImage(), 'is_external' => $isUrl, 'url' => $isUrl ? $resource->url : null, 'description' => $resource->description]) }})">
                                 <i class="bi bi-{{ $resource->type === 'video' ? 'play-circle-fill text-danger' : ($resource->type === 'zoom' ? 'camera-video-fill text-primary' : 'file-earmark-text-fill text-info') }}"></i>
                                 <span class="text-sm">{{ $resource->title }}</span>
                             </a>
@@ -128,9 +128,9 @@
                                                 @foreach($lesson->resources as $resource)
                                                     @php
                                                       $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
-                                                      $resUrl = $isUrl ? $resource->url : asset('storage/'.$resource->url);
+                                                      $isPdf = $resource->type === 'document' && !$isUrl && strtolower(pathinfo($resource->url ?? '', PATHINFO_EXTENSION)) === 'pdf';
                                                     @endphp
-                                                    <a href="javascript:void(0)" class="resource-item ps-4" onclick="loadResource({{ json_encode(['id' => $resource->getRouteKey(), 'title' => $resource->title, 'type' => $resource->type, 'url' => $resUrl, 'description' => $resource->description]) }})">
+                                                    <a href="javascript:void(0)" class="resource-item ps-4" onclick="loadResource({{ json_encode(['id' => $resource->getRouteKey(), 'title' => $resource->title, 'type' => $resource->type, 'is_pdf' => $isPdf, 'is_image' => $resource->isImage(), 'is_external' => $isUrl, 'url' => $isUrl ? $resource->url : null, 'description' => $resource->description]) }})">
                                                         <i class="bi bi-{{ $resource->type === 'video' ? 'play-circle-fill text-danger' : ($resource->type === 'zoom' ? 'camera-video-fill text-primary' : 'file-earmark-text-fill text-info') }}"></i>
                                                         <span class="text-sm">{{ $resource->title }}</span>
                                                     </a>
@@ -178,10 +178,23 @@
                     </video>
                 </div>
 
-                <div id="documentWrapper" class="d-none mb-4 text-center py-5 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(197,168,128,0.3);">
-                    <i class="bi bi-file-earmark-pdf-fill fs-1 d-block mb-3 text-info"></i>
+                <div id="documentWrapper" class="d-none mb-4 rounded-4" style="background: #1a1a1a; min-height: 60vh; padding: 10px; overflow: auto;">
+                    <div id="documentContainer" style="position: relative; width: 100%; min-height: 55vh;">
+                        <div class="text-center text-white-50 py-5" id="documentLoading">جاري تحميل الملف الآمن...</div>
+                    </div>
+                    <p id="documentError" class="text-danger mt-3 mb-0 d-none px-3"></p>
+                </div>
+
+                <div id="imageWrapper" class="d-none mb-4 rounded-4 d-flex align-items-center justify-content-center" style="background: #1a1a1a; min-height: 40vh; padding: 10px; overflow: auto;">
+                    <div id="imageContainer" style="position: relative; width: 100%; min-height: 35vh; display: flex; align-items: center; justify-content: center;">
+                        <div class="text-center text-white-50 py-5" id="imageLoading">جاري تحميل الصورة الآمنة...</div>
+                    </div>
+                </div>
+
+                <div id="otherFileWrapper" class="d-none mb-4 text-center py-5 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(197,168,128,0.3);">
+                    <i class="bi bi-file-earmark-text-fill fs-1 d-block mb-3 text-info"></i>
                     <h4 class="fw-bold mb-3 text-white" data-en="Document Ready" data-ar="الملف جاهز للعرض">الملف جاهز للعرض</h4>
-                    <a id="documentLink" href="#" target="_blank" class="btn btn-info px-5 py-3 text-white rounded-pill">
+                    <a id="otherFileLink" href="#" target="_blank" rel="noopener" class="btn btn-info px-5 py-3 text-white rounded-pill">
                         <i class="bi bi-box-arrow-up-right me-2"></i> <span data-en="Open Document" data-ar="فتح الملف">فتح الملف</span>
                     </a>
                 </div>
@@ -208,7 +221,13 @@
 </div>
 
 @push('scripts')
+<script src="{{ asset('assets/vendor/pdfjs/pdf.min.js') }}"></script>
+<script src="{{ asset('assets/js/student-document-viewer.js') }}"></script>
+<script src="{{ asset('assets/js/student-image-viewer.js') }}"></script>
 <script>
+    var groupDocumentDestroy = null;
+    var groupImageDestroy = null;
+
     function loadResource(resource) {
         // Highlight active item
         document.querySelectorAll('.resource-item').forEach(el => el.classList.remove('active'));
@@ -219,17 +238,22 @@
         // Toggle visibility
         document.getElementById('emptyState').classList.add('d-none');
         document.getElementById('contentViewer').classList.remove('d-none');
-        
+
         document.getElementById('videoWrapper').classList.add('d-none');
         document.getElementById('documentWrapper').classList.add('d-none');
+        document.getElementById('imageWrapper').classList.add('d-none');
+        document.getElementById('otherFileWrapper').classList.add('d-none');
         document.getElementById('zoomWrapper').classList.add('d-none');
         document.getElementById('iframeWrapper').classList.add('d-none');
+
+        if (groupDocumentDestroy) { groupDocumentDestroy(); groupDocumentDestroy = null; }
+        if (groupImageDestroy) { groupImageDestroy(); groupImageDestroy = null; }
 
         // Set Metadata
         document.getElementById('contentTitle').innerText = resource.title;
         const plainDescription = (resource.description || '').replace(/<[^>]*>/g, '').trim();
         document.getElementById('contentDescription').innerText = plainDescription || 'لا يوجد وصف متاح.';
-        
+
         let badge = document.getElementById('contentTypeBadge');
         let playerContainer = document.getElementById('playerContainer');
         playerContainer.classList.remove('align-items-center', 'justify-content-center', 'text-center');
@@ -237,7 +261,7 @@
 
         const videoPlayer = document.getElementById('videoPlayer');
         videoPlayer.pause();
-        
+
         const iframePlayer = document.getElementById('iframePlayer');
         iframePlayer.src = 'about:blank';
 
@@ -245,7 +269,7 @@
             badge.innerText = 'فيديو';
             badge.className = 'badge bg-danger text-white px-3 py-2 rounded-pill';
             document.getElementById('videoWrapper').classList.remove('d-none');
-            
+
             // Fetch secure stream URL
             fetch('{{ url("student/videos") }}/' + resource.id + '/start', {
                 method: 'POST',
@@ -262,7 +286,7 @@
                 }
             })
             .catch(err => console.error(err));
-            
+
         } else if (resource.type === 'zoom') {
             badge.innerText = 'رابط خارجي';
             badge.className = 'badge bg-primary text-white px-3 py-2 rounded-pill';
@@ -274,11 +298,61 @@
             document.getElementById('iframeWrapper').classList.remove('d-none');
             // Load the secure embed route
             iframePlayer.src = '{{ url("student/secure-embed") }}/' + resource.id;
-        } else {
-            badge.innerText = 'ملف مقروء';
+        } else if (resource.is_pdf) {
+            // Rendered in-page via the watermarked pdf.js canvas viewer — same
+            // one used on the "Learning Resources" page — instead of opening
+            // the raw file in a new browser tab.
+            badge.innerText = 'ملف PDF';
             badge.className = 'badge bg-info text-dark px-3 py-2 rounded-pill';
             document.getElementById('documentWrapper').classList.remove('d-none');
-            document.getElementById('documentLink').href = resource.url;
+
+            const container = document.getElementById('documentContainer');
+            const errorEl = document.getElementById('documentError');
+            container.innerHTML = '<div class="text-center text-white-50 py-5" id="documentLoading">جاري تحميل الملف الآمن...</div>';
+            errorEl.classList.add('d-none');
+
+            groupDocumentDestroy = mountSecureDocumentViewer({
+                container: container,
+                fileUrl: '{{ url('student/resources') }}/' + resource.id + '/file',
+                studentName: @json(auth()->guard('student')->user()->name),
+                studentPhotoUrl: @json(auth()->guard('student')->user()->image ? asset('storage/' . auth()->guard('student')->user()->image) : null),
+                onLoaded: function () {
+                    const loadingEl = document.getElementById('documentLoading');
+                    if (loadingEl) loadingEl.remove();
+                },
+                onError: function (message) {
+                    errorEl.textContent = message;
+                    errorEl.classList.remove('d-none');
+                },
+            });
+        } else if (resource.is_image) {
+            badge.innerText = 'صورة';
+            badge.className = 'badge bg-info text-dark px-3 py-2 rounded-pill';
+            document.getElementById('imageWrapper').classList.remove('d-none');
+
+            const container = document.getElementById('imageContainer');
+            container.innerHTML = '<div class="text-center text-white-50 py-5" id="imageLoading">جاري تحميل الصورة الآمنة...</div>';
+
+            groupImageDestroy = mountSecureImageViewer({
+                container: container,
+                fileUrl: '{{ url('student/resources') }}/' + resource.id + '/file',
+                studentName: @json(auth()->guard('student')->user()->name),
+                studentPhotoUrl: @json(auth()->guard('student')->user()->image ? asset('storage/' . auth()->guard('student')->user()->image) : null),
+                onLoaded: function () {
+                    const loadingEl = document.getElementById('imageLoading');
+                    if (loadingEl) loadingEl.remove();
+                },
+                onError: function () {},
+            });
+        } else {
+            // Office formats (doc/xlsx/ppt/...) have no in-page viewer, so they
+            // still open via the authenticated file route in a new tab.
+            badge.innerText = 'ملف مقروء';
+            badge.className = 'badge bg-info text-dark px-3 py-2 rounded-pill';
+            document.getElementById('otherFileWrapper').classList.remove('d-none');
+            document.getElementById('otherFileLink').href = resource.is_external
+                ? resource.url
+                : '{{ url("student/resources") }}/' + resource.id + '/file';
         }
     }
 </script>
