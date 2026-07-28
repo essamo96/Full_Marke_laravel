@@ -20,6 +20,11 @@ class SiteController extends Controller
 {
     public function programDetails(Program $program): View
     {
+        // Route-model-binding resolves any program by slug regardless of status,
+        // so an inactive program stayed reachable to anyone with (or guessing) its
+        // URL even though it's hidden everywhere it'd normally be linked from.
+        abort_unless($program->is_active, 404);
+
         $program->load(['subjects' => function ($query) {
             $query->active()->orderBy('sort_order');
         }, 'subjects.groups']);
@@ -35,7 +40,7 @@ class SiteController extends Controller
         
         $selectedProgram = null;
         if ($request->filled('program')) {
-            $selectedProgram = Program::where('slug', $request->query('program'))->first();
+            $selectedProgram = Program::where('slug', $request->query('program'))->where('is_active', true)->first();
         }
 
         $selectedSubject = null;
