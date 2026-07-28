@@ -65,7 +65,12 @@
                 <!-- Welcome Banner -->
                 <section class="glass-panel bg-pattern-gold bg-pattern-animated rounded-4 p-5 mb-5 position-relative overflow-hidden d-flex flex-column flex-md-row align-items-center justify-content-between gap-5 border-1 border-white/10" style="box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
                   <div class="position-absolute top-0 end-0 w-50 h-100 bg-gold/10 blur-[80px] floating-orb"></div>
-                  <div class="position-relative z-1 text-center text-md-start">
+                  <div class="position-relative z-1 d-flex flex-column flex-md-row align-items-center gap-4 text-center text-md-start">
+                    <div class="flex-shrink-0 rounded-circle p-1" style="border: 2px solid var(--accent-color); box-shadow: 0 0 20px rgba(197,168,128,.25);">
+                      <img src="{{ $student->photo_url ?? asset('assets/admin/media/avatars/blank.png') }}" alt="{{ $student->name }}"
+                           class="rounded-circle" style="width: 84px; height: 84px; object-fit: cover;">
+                    </div>
+                    <div>
                     <h1 class="display-5 fw-bold mb-3" style="color: var(--text-primary); font-family: 'Tajawal', 'Almarai', sans-serif;">
                       <span data-en="Welcome back," data-ar="مرحباً بعودتك،">Welcome back,</span> <span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ $student->name }}</span>
                     </h1>
@@ -84,6 +89,7 @@
                         <span data-en="of your total fees." data-ar="من إجمالي رسومك.">من إجمالي رسومك.</span>
                       </p>
                     @endif
+                    </div>
                   </div>
                   <div class="position-relative z-1 d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
                     <svg class="w-100 h-100 transform -rotate-90" viewBox="0 0 100 100">

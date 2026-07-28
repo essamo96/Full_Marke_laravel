@@ -14,7 +14,7 @@
       @php($sidebarStudent = auth('student')->user())
       <div class="d-flex flex-column align-items-center mb-5 border-b pb-4" style="border-color: var(--separator-color) !important;">
         <div class="w-20 h-20 rounded-circle border-2 p-1 mb-3 position-relative overflow-hidden" style="border-color: var(--accent-color);">
-          <img src="{{ $sidebarStudent && $sidebarStudent->image ? asset('storage/'.$sidebarStudent->image) : asset('assets/admin/media/avatars/blank.png') }}"
+          <img src="{{ $sidebarStudent?->photo_url ?? asset('assets/admin/media/avatars/blank.png') }}"
                alt="{{ $sidebarStudent->name ?? 'Student' }}" class="w-100 h-100 object-cover rounded-circle">
         </div>
         <h6 class="fw-bold mb-0 text-center d-flex align-items-center justify-content-center" style="color: var(--text-primary);">

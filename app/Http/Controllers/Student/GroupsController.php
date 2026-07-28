@@ -165,13 +165,30 @@ class GroupsController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        $notes = $group->notes()
+        $allNotes = $group->notes()
             ->where(function ($q) use ($student) {
                 $q->whereNull('student_id')->orWhere('student_id', $student->id);
             })
             ->latest()
             ->get();
 
-        return view('student.groups.show', compact('group', 'subject', 'generalResources', 'notes'));
+        // Group-wide announcements vs. the teacher's personal notes for this student
+        $notes = $allNotes->whereNull('student_id')->values();
+        $studentNotes = $allNotes->whereNotNull('student_id')->values();
+
+        // Exam schedule for this group, with this student's grade (when it has
+        // been reviewed/approved) attached per exam.
+        $exams = \App\Models\Exam::where('group_id', $group->id)
+            ->orderByDesc('start_time')
+            ->get();
+
+        $grades = \App\Models\Grade::where('group_id', $group->id)
+            ->where('student_id', $student->id)
+            ->get()
+            ->keyBy('exam_id');
+
+        return view('student.groups.show', compact(
+            'group', 'subject', 'generalResources', 'notes', 'studentNotes', 'exams', 'grades'
+        ));
     }
 }

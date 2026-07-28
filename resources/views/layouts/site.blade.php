@@ -89,16 +89,22 @@
   <script src="{{ asset('site/js/cart.js') }}?v=1.1"></script>
 
   <script>
+    @php
+        // Subjects the student already holds an active registration in — the
+        // cart refuses these and prunes any stale copies left in localStorage.
+        // Computed here (not inline in @json) because Blade's directive parser
+        // chokes on multi-line expressions containing arrays.
+        $cartRegisteredSubjectIds = auth('student')->check()
+            ? \App\Models\Registration::where('student_id', auth('student')->id())
+                ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
+                ->pluck('subject_id')
+                ->map(fn ($id) => (string) $id)
+                ->values()
+            : collect();
+    @endphp
     window.currentLang = '{{ app()->getLocale() }}';
     window.isStudentLoggedIn = {{ auth('student')->check() ? 'true' : 'false' }};
-    // Subjects the student already holds an active registration in — the cart
-    // refuses these and prunes any stale copies left in localStorage.
-    window.registeredSubjectIds = @json(auth('student')->check()
-        ? \App\Models\Registration::where('student_id', auth('student')->id())
-            ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
-            ->pluck('subject_id')
-            ->map(fn ($id) => (string) $id)
-        : []);
+    window.registeredSubjectIds = @json($cartRegisteredSubjectIds);
     window.csrfToken = '{{ csrf_token() }}';
     window.studentRegisterUrl = '{{ route('student.register') }}';
   </script>

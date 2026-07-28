@@ -297,7 +297,7 @@
         container: container,
         fileUrl: '{{ url('student/resources') }}/' + resourceId + '/file',
         studentName: @json(auth()->guard('student')->user()->name),
-        studentPhotoUrl: @json(auth()->guard('student')->user()->image ? asset('storage/' . auth()->guard('student')->user()->image) : null),
+        studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
         onLoaded: function () {
           var loadingEl = document.getElementById('lessonImageLoading');
           if (loadingEl) loadingEl.remove();
@@ -362,7 +362,7 @@
         container: container,
         fileUrl: '{{ url('student/resources') }}/' + resourceId + '/file',
         studentName: @json(auth()->guard('student')->user()->name),
-        studentPhotoUrl: @json(auth()->guard('student')->user()->image ? asset('storage/' . auth()->guard('student')->user()->image) : null),
+        studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
         onLoaded: function () {
           var loadingEl = document.getElementById('lessonDocumentLoading');
           if (loadingEl) loadingEl.remove();
@@ -396,7 +396,7 @@
         videoEl: document.getElementById('lessonVideoEl'),
         startUrl: '{{ url('student/videos') }}/' + resourceId + '/start',
         studentName: @json(auth()->guard('student')->user()->name),
-        studentPhotoUrl: @json(auth()->guard('student')->user()->image ? asset('storage/' . auth()->guard('student')->user()->image) : null),
+        studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
         csrfToken: '{{ csrf_token() }}',
         onError: function (message) {
           var errorEl = document.getElementById('lessonVideoError');

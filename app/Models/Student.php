@@ -68,6 +68,22 @@ class Student extends Authenticatable
         return app()->getLocale() === 'ar' ? $this->full_name_ar : $this->full_name_en;
     }
 
+    /**
+     * Public URL of the student's photo, or null when they have none.
+     * Images live either under the public disk ("storage/...") or directly
+     * in public/ ("site/..."), depending on where they were uploaded from.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (! $this->image) {
+            return null;
+        }
+
+        return str_starts_with($this->image, 'site/')
+            ? asset($this->image)
+            : asset('storage/' . $this->image);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', true);

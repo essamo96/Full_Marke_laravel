@@ -49,39 +49,184 @@
     position: relative;
     border: 1px solid rgba(255,255,255,0.1);
 }
-/* Tailwind's CDN build also ships a `.collapse { visibility: collapse }` utility
-   (for table rows), which collides with Bootstrap's `.collapse` accordion class
-   and hides the panel body even after Bootstrap adds `.show`. Force it back. */
-.curriculum-accordion .accordion-collapse {
+/* Tailwind's build also ships a `.collapse { visibility: collapse }` utility
+   (for table rows), which collides with Bootstrap's `.collapse` class and
+   hides panels even after Bootstrap adds `.show`. Force it back for every
+   collapsible on this page (units, lessons, stages). */
+.collapse {
     visibility: visible !important;
 }
+
+/* Header info chips */
+.group-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .45rem .9rem;
+    border-radius: 50rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--separator-color);
+    color: var(--text-primary);
+    font-size: .82rem;
+    font-weight: 600;
+}
+.group-chip i { color: var(--accent-color); }
+
+/* ═══ Units / lessons curriculum ═══ */
+.unit-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--separator-color);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: .65rem;
+    transition: border-color .25s ease;
+}
+.unit-card:has(.unit-toggle[aria-expanded="true"]) {
+    border-color: rgba(197, 168, 128, .45);
+}
+.unit-toggle {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    width: 100%;
+    padding: .85rem 1rem;
+    background: transparent;
+    border: 0;
+    text-align: start;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+.unit-toggle:hover { background: rgba(197, 168, 128, .06); }
+.unit-num {
+    width: 34px; height: 34px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgba(197, 168, 128, .14);
+    color: var(--accent-color);
+    font-weight: 800;
+    font-size: .9rem;
+}
+.unit-title { font-weight: 700; font-size: .92rem; line-height: 1.3; }
+.unit-meta { font-size: .72rem; opacity: .65; margin-top: 2px; }
+.unit-toggle .bi-chevron-down {
+    margin-inline-start: auto;
+    color: var(--accent-color);
+    transition: transform .3s ease;
+}
+.unit-toggle[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
+
+.lesson-block { border-top: 1px dashed var(--separator-color); }
+.lesson-toggle {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    width: 100%;
+    padding: .6rem 1rem .6rem 1.2rem;
+    background: transparent;
+    border: 0;
+    text-align: start;
+    color: var(--text-primary);
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.lesson-toggle:hover { color: var(--accent-color); }
+.lesson-toggle .lesson-count {
+    margin-inline-start: auto;
+    font-size: .68rem;
+    padding: .15rem .55rem;
+    border-radius: 50rem;
+    background: rgba(197, 168, 128, .12);
+    color: var(--accent-color);
+    flex-shrink: 0;
+}
+.lesson-toggle .bi-chevron-down {
+    font-size: .7rem;
+    color: var(--text-muted);
+    transition: transform .3s ease;
+}
+.lesson-toggle[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
+.lesson-resources { padding: 0 .9rem .6rem 1.4rem; }
+
+/* Details cards under the player */
+.detail-card { background: var(--bg-secondary); border: 1px solid var(--separator-color); }
+.detail-card .card-head {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--separator-color);
+    padding-bottom: .75rem;
+    margin-bottom: 1rem;
+}
+.detail-card .card-head i { color: var(--accent-color); font-size: 1.15rem; }
 </style>
 @endpush
 
 @section('content')
 
-@if($notes->isNotEmpty())
-<div class="glass-panel rounded-4 p-4 mb-4">
-    <h5 class="fw-bold mb-3" style="color: var(--text-primary);" data-en="Group Notes" data-ar="ملاحظات المجموعة">ملاحظات المجموعة</h5>
-    <div class="d-flex flex-column gap-2">
-        @foreach($notes as $note)
-            @if($note->is_alert)
-                <div class="rounded-3 p-3" style="background: rgba(220,53,69,0.12); border-inline-start: 3px solid #dc3545;">
-                    <div class="fw-bold fs-7 mb-1 text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $note->title }}</div>
-                    <div class="text-sm text-white">{{ $note->content }}</div>
-                    <div class="text-muted fs-7 mt-1">{{ $note->created_at->diffForHumans() }}</div>
+@php
+    $dayLabels = [
+        'sun' => 'الأحد', 'mon' => 'الاثنين', 'tue' => 'الثلاثاء', 'wed' => 'الأربعاء',
+        'thu' => 'الخميس', 'fri' => 'الجمعة', 'sat' => 'السبت',
+    ];
+    $teacher = $group->teacher;
+    $teacherPhoto = $teacher && $teacher->photo
+        ? (str_starts_with($teacher->photo, 'site/') ? asset($teacher->photo) : asset('storage/' . $teacher->photo))
+        : asset('assets/admin/media/avatars/blank.png');
+@endphp
+
+<!-- ═══ Group Header Banner ═══ -->
+<div class="glass-panel bg-pattern-gold rounded-4 p-4 p-md-5 mb-4 position-relative overflow-hidden">
+    <div class="position-absolute top-0 end-0 w-50 h-100 bg-gold/10 blur-[80px]"></div>
+    <div class="position-relative z-1 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+        <div>
+            <div class="d-flex align-items-center gap-3 mb-2 flex-wrap">
+                <h1 class="h3 fw-bold mb-0" style="color: var(--text-primary);">{{ $group->name }}</h1>
+                <span class="badge rounded-pill px-3 py-2" style="background: rgba(16,185,129,.15); color: #10b981;">
+                    <i class="bi bi-broadcast me-1"></i><span data-en="Active group" data-ar="مجموعة نشطة">مجموعة نشطة</span>
+                </span>
+            </div>
+            <div class="fw-medium mb-3" style="color: var(--accent-color);">
+                {{ $subject->name }} <span class="opacity-50 mx-1">|</span> {{ $subject->program->title ?? $subject->program->name ?? '' }}
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                @if(!empty($group->days))
+                    <span class="group-chip"><i class="bi bi-calendar-week"></i>
+                        {{ collect($group->days)->map(fn($d) => $dayLabels[$d] ?? $d)->implode(' · ') }}
+                    </span>
+                @endif
+                @if($group->start_time)
+                    <span class="group-chip"><i class="bi bi-clock"></i>
+                        <span dir="ltr">{{ \Carbon\Carbon::parse($group->start_time)->format('h:i A') }} — {{ \Carbon\Carbon::parse($group->end_time)->format('h:i A') }}</span>
+                    </span>
+                @endif
+                @if($exams->isNotEmpty())
+                    <span class="group-chip"><i class="bi bi-journal-check"></i>
+                        {{ $exams->count() }} <span data-en="exam(s)" data-ar="امتحان">امتحان</span>
+                    </span>
+                @endif
+            </div>
+        </div>
+
+        @if($teacher)
+            <div class="d-flex align-items-center gap-3 rounded-4 p-3 flex-shrink-0" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
+                <img src="{{ $teacherPhoto }}" alt="{{ $teacher->name }}" class="rounded-circle" style="width: 56px; height: 56px; object-fit: cover; border: 2px solid var(--accent-color);">
+                <div>
+                    <div class="text-xs opacity-75" style="color: var(--text-secondary);" data-en="Group teacher" data-ar="مدرس المجموعة">مدرس المجموعة</div>
+                    <div class="fw-bold" style="color: var(--text-primary);">{{ $teacher->name }}</div>
+                    @if($teacher->email)
+                        <div class="fs-7 opacity-75" style="color: var(--text-secondary);" dir="ltr">{{ $teacher->email }}</div>
+                    @endif
                 </div>
-            @else
-                <div class="rounded-3 p-3" style="background: var(--bg-secondary);">
-                    <div class="fw-bold fs-7 mb-1" style="color: var(--accent-color);">{{ $note->title }}</div>
-                    <div class="text-sm text-white">{{ $note->content }}</div>
-                    <div class="text-muted fs-7 mt-1">{{ $note->created_at->diffForHumans() }}</div>
-                </div>
-            @endif
-        @endforeach
+            </div>
+        @endif
     </div>
 </div>
-@endif
 
 <div class="row g-4 h-100 fade-in-up">
     <!-- Left Sidebar: Curriculum -->
@@ -119,55 +264,71 @@
                     </div>
                 @endif
 
-                <div class="accordion curriculum-accordion" id="stagesAccordion">
-                    @forelse($subject->stages as $stageIndex => $stage)
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingStage{{ $stage->id }}">
-                                <button class="accordion-button {{ $stageIndex === 0 ? '' : 'collapsed' }} fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStage{{ $stage->id }}" aria-expanded="{{ $stageIndex === 0 ? 'true' : 'false' }}">
-                                    {{ $stage->name }}
-                                </button>
-                            </h2>
-                            <div id="collapseStage{{ $stage->id }}" class="accordion-collapse collapse {{ $stageIndex === 0 ? 'show' : '' }}">
-                                <div class="accordion-body p-0 pb-2">
-                                    @foreach($stage->units as $unit)
-                                        <div class="px-3 py-2 text-xs fw-bold text-uppercase opacity-50 mt-2" style="color: var(--text-primary);">{{ $unit->name }}</div>
-                                        @foreach($unit->lessons as $lesson)
-                                            <div class="ps-3 pe-2 py-1">
-                                                <div class="text-sm fw-medium mb-1" style="color: var(--text-primary);">{{ $lesson->name }}</div>
-                                                @foreach($lesson->resources as $resource)
-                                                    @php
-                                                      $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
-                                                      $isPdf = $resource->type === 'document' && !$isUrl && strtolower(pathinfo($resource->url ?? '', PATHINFO_EXTENSION)) === 'pdf';
-                                                    @endphp
-                                                    @php
-                                                        $rIcon = match($resource->type) {
-                                                            'video' => 'play-circle-fill',
-                                                            'zoom' => 'camera-video-fill',
-                                                            'image' => 'image-fill',
-                                                            'link' => 'link-45deg',
-                                                            default => 'file-earmark-text-fill',
-                                                        };
-                                                    @endphp
-                                                    <a href="javascript:void(0)" class="resource-item ps-4" onclick="loadResource({{ json_encode(['id' => $resource->getRouteKey(), 'title' => $resource->title, 'type' => $resource->type, 'is_pdf' => $isPdf, 'is_image' => $resource->isImage(), 'is_external' => $isUrl, 'url' => $isUrl ? $resource->url : null, 'description' => $resource->description]) }})">
-                                                        <i class="bi bi-{{ $rIcon }}" style="color: var(--accent-color);"></i>
-                                                        <span class="text-sm">{{ $resource->title }}</span>
-                                                    </a>
-                                                @endforeach
-                                            </div>
-                                        @endforeach
-                                    @endforeach
+                @php
+                    $allUnits = $subject->stages->flatMap->units;
+                @endphp
+                @if($allUnits->isNotEmpty())
+                    <div class="px-2 pt-1 pb-2 d-flex align-items-center justify-content-between">
+                        <span class="text-xs fw-bold text-uppercase opacity-50" style="color: var(--text-primary);" data-en="Curriculum Units" data-ar="وحدات المنهاج">وحدات المنهاج</span>
+                        <span class="text-xs opacity-50" style="color: var(--text-primary);">{{ $allUnits->count() }} <span data-en="unit(s)" data-ar="وحدة">وحدة</span></span>
+                    </div>
+                @endif
+                @forelse($allUnits as $unitIndex => $unit)
+                    @php
+                        $unitResourceCount = $unit->lessons->sum(fn ($l) => $l->resources->count());
+                    @endphp
+                    <div class="unit-card">
+                        <button type="button" class="unit-toggle" data-bs-toggle="collapse" data-bs-target="#unitPanel{{ $unit->id }}" aria-expanded="{{ $unitIndex === 0 ? 'true' : 'false' }}">
+                            <span class="unit-num">{{ $unitIndex + 1 }}</span>
+                            <span class="flex-grow-1">
+                                <span class="unit-title d-block">{{ $unit->name }}</span>
+                                <span class="unit-meta d-block">{{ $unit->lessons->count() }} <span data-en="lesson(s)" data-ar="درس">درس</span> · {{ $unitResourceCount }} <span data-en="resource(s)" data-ar="مورد">مورد</span></span>
+                            </span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        {{-- No data-bs-parent: every unit opens/closes independently, fully under the student's control --}}
+                        <div id="unitPanel{{ $unit->id }}" class="collapse {{ $unitIndex === 0 ? 'show' : '' }}">
+                            @foreach($unit->lessons as $lesson)
+                                <div class="lesson-block">
+                                    <button type="button" class="lesson-toggle collapsed" data-bs-toggle="collapse" data-bs-target="#lessonPanel{{ $lesson->id }}" aria-expanded="false">
+                                        <i class="bi bi-journal-text" style="color: var(--accent-color);"></i>
+                                        <span>{{ $lesson->name }}</span>
+                                        <span class="lesson-count">{{ $lesson->resources->count() }}</span>
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                    <div id="lessonPanel{{ $lesson->id }}" class="collapse">
+                                        <div class="lesson-resources">
+                                            @foreach($lesson->resources as $resource)
+                                                @php
+                                                    $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
+                                                    $isPdf = $resource->type === 'document' && !$isUrl && strtolower(pathinfo($resource->url ?? '', PATHINFO_EXTENSION)) === 'pdf';
+                                                    $rIcon = match($resource->type) {
+                                                        'video' => 'play-circle-fill',
+                                                        'zoom' => 'camera-video-fill',
+                                                        'image' => 'image-fill',
+                                                        'link' => 'link-45deg',
+                                                        default => 'file-earmark-text-fill',
+                                                    };
+                                                @endphp
+                                                <a href="javascript:void(0)" class="resource-item" onclick="loadResource({{ json_encode(['id' => $resource->getRouteKey(), 'title' => $resource->title, 'type' => $resource->type, 'is_pdf' => $isPdf, 'is_image' => $resource->isImage(), 'is_external' => $isUrl, 'url' => $isUrl ? $resource->url : null, 'description' => $resource->description]) }})">
+                                                    <i class="bi bi-{{ $rIcon }}" style="color: var(--accent-color);"></i>
+                                                    <span class="text-sm">{{ $resource->title }}</span>
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            @endforeach
                         </div>
-                    @empty
-                        @if($generalResources->isEmpty())
-                            <div class="p-4 text-center opacity-50 text-white">
-                                <i class="bi bi-journal-x fs-2 d-block mb-2"></i>
-                                <span data-en="No materials available" data-ar="لا يوجد مواد دراسية">لا يوجد مواد دراسية</span>
-                            </div>
-                        @endif
-                    @endforelse
-                </div>
+                    </div>
+                @empty
+                    @if($generalResources->isEmpty())
+                        <div class="p-4 text-center opacity-50" style="color: var(--text-primary);">
+                            <i class="bi bi-journal-x fs-2 d-block mb-2"></i>
+                            <span data-en="No materials available" data-ar="لا يوجد مواد دراسية">لا يوجد مواد دراسية</span>
+                        </div>
+                    @endif
+                @endforelse
             </div>
         </div>
     </div>
@@ -282,6 +443,191 @@
     </div>
 </div>
 
+<!-- ═══ Group Details: teacher / exams & grades / notes ═══ -->
+<div class="row g-4 mt-1">
+    <!-- Teacher details -->
+    <div class="col-md-6 col-xl-4">
+        <div class="detail-card rounded-4 p-4 h-100">
+            <div class="card-head"><i class="bi bi-person-badge-fill"></i><span data-en="Group Teacher" data-ar="مدرس المجموعة">مدرس المجموعة</span></div>
+            @if($teacher)
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img src="{{ $teacherPhoto }}" alt="{{ $teacher->name }}" class="rounded-circle" style="width: 64px; height: 64px; object-fit: cover; border: 2px solid var(--accent-color);">
+                    <div>
+                        <div class="fw-bold fs-5" style="color: var(--text-primary);">{{ $teacher->name }}</div>
+                        <div class="fs-7" style="color: var(--accent-color);">{{ $subject->name }}</div>
+                    </div>
+                </div>
+                <div class="d-flex flex-column gap-2">
+                    @if($teacher->email)
+                        <div class="d-flex align-items-center gap-2 fs-7" style="color: var(--text-secondary);">
+                            <i class="bi bi-envelope-fill" style="color: var(--accent-color);"></i><span dir="ltr">{{ $teacher->email }}</span>
+                        </div>
+                    @endif
+                    @if($teacher->phone)
+                        <div class="d-flex align-items-center gap-2 fs-7" style="color: var(--text-secondary);">
+                            <i class="bi bi-telephone-fill" style="color: var(--accent-color);"></i><span dir="ltr">{{ $teacher->phone }}</span>
+                        </div>
+                    @endif
+                    @if(!empty($group->days))
+                        <div class="d-flex align-items-center gap-2 fs-7" style="color: var(--text-secondary);">
+                            <i class="bi bi-calendar-week" style="color: var(--accent-color);"></i>
+                            <span>{{ collect($group->days)->map(fn($d) => $dayLabels[$d] ?? $d)->implode(' · ') }}</span>
+                        </div>
+                    @endif
+                    @if($group->start_time)
+                        <div class="d-flex align-items-center gap-2 fs-7" style="color: var(--text-secondary);">
+                            <i class="bi bi-clock" style="color: var(--accent-color);"></i>
+                            <span dir="ltr">{{ \Carbon\Carbon::parse($group->start_time)->format('h:i A') }} — {{ \Carbon\Carbon::parse($group->end_time)->format('h:i A') }}</span>
+                        </div>
+                    @endif
+                </div>
+            @else
+                <p class="opacity-50 mb-0 fs-7" style="color: var(--text-primary);" data-en="No teacher assigned yet." data-ar="لم يُعيَّن مدرس للمجموعة بعد.">لم يُعيَّن مدرس للمجموعة بعد.</p>
+            @endif
+        </div>
+    </div>
+
+    <!-- Exam schedule + my grades -->
+    <div class="col-md-6 col-xl-4">
+        <div class="detail-card rounded-4 p-4 h-100 d-flex flex-column">
+            <div class="card-head"><i class="bi bi-journal-check"></i><span data-en="Exam Schedule" data-ar="مواعيد الامتحانات">مواعيد الامتحانات</span></div>
+            @if($exams->isEmpty())
+                <p class="opacity-50 mb-0 fs-7" style="color: var(--text-primary);" data-en="No exams scheduled yet." data-ar="لا توجد امتحانات مجدولة بعد.">لا توجد امتحانات مجدولة بعد.</p>
+            @else
+                <div class="d-flex flex-column gap-2 mb-3 overflow-auto" style="max-height: 260px;">
+                    @foreach($exams as $exam)
+                        @php $isUpcoming = $exam->start_time && $exam->start_time->isFuture(); @endphp
+                        <div class="rounded-3 p-3" style="background: var(--bg-primary); border: 1px solid var(--separator-color); border-inline-start: 3px solid {{ $isUpcoming ? '#10b981' : 'var(--accent-color)' }};">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <span class="fw-bold fs-7" style="color: var(--text-primary);">{{ $exam->title }}</span>
+                                @if($isUpcoming)
+                                    <span class="badge rounded-pill" style="background: rgba(16,185,129,.15); color: #10b981;" data-en="Upcoming" data-ar="قادم">قادم</span>
+                                @else
+                                    <span class="badge rounded-pill" style="background: rgba(197,168,128,.15); color: var(--accent-color);" data-en="Finished" data-ar="منتهي">منتهي</span>
+                                @endif
+                            </div>
+                            <div class="fs-7 mt-1" style="color: var(--text-secondary);">
+                                <i class="bi bi-calendar-event me-1" style="color: var(--accent-color);"></i>
+                                {{ $exam->start_time ? $exam->start_time->format('Y-m-d h:i A') : '—' }}
+                                @if($exam->duration_minutes)
+                                    <span class="opacity-50 mx-1">·</span>{{ $exam->duration_minutes }} <span data-en="min" data-ar="دقيقة">دقيقة</span>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                <button type="button" class="btn btn-luxury w-100 rounded-pill py-2 mt-auto" data-bs-toggle="modal" data-bs-target="#myGradesModal">
+                    <i class="bi bi-award-fill me-1"></i><span data-en="View my grades" data-ar="عرض علاماتي في هذه المجموعة">عرض علاماتي في هذه المجموعة</span>
+                </button>
+            @endif
+        </div>
+    </div>
+
+    <!-- Teacher notes & assessments -->
+    <div class="col-12 col-xl-4">
+        <div class="detail-card rounded-4 p-4 h-100">
+            <div class="card-head"><i class="bi bi-chat-left-text-fill"></i><span data-en="Teacher Notes" data-ar="ملاحظات المدرس">ملاحظات المدرس</span></div>
+
+            @if($studentNotes->isNotEmpty())
+                <div class="text-xs fw-bold text-uppercase opacity-50 mb-2" style="color: var(--text-primary);" data-en="Your personal assessments" data-ar="تقييمات المدرس لك">تقييمات المدرس لك</div>
+                <div class="d-flex flex-column gap-2 mb-3">
+                    @foreach($studentNotes as $note)
+                        <div class="rounded-3 p-3" style="background: rgba(197,168,128,.08); border-inline-start: 3px solid var(--accent-color);">
+                            <div class="fw-bold fs-7 mb-1" style="color: var(--accent-color);"><i class="bi bi-star-fill me-1"></i>{{ $note->title }}</div>
+                            <div class="text-sm" style="color: var(--text-primary);">{{ $note->content }}</div>
+                            <div class="fs-7 opacity-50 mt-1" style="color: var(--text-secondary);">{{ $note->created_at->diffForHumans() }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            @if($notes->isNotEmpty())
+                <div class="text-xs fw-bold text-uppercase opacity-50 mb-2" style="color: var(--text-primary);" data-en="Group announcements" data-ar="ملاحظات عامة للمجموعة">ملاحظات عامة للمجموعة</div>
+                <div class="d-flex flex-column gap-2 overflow-auto" style="max-height: 240px;">
+                    @foreach($notes as $note)
+                        @if($note->is_alert)
+                            <div class="rounded-3 p-3" style="background: rgba(220,53,69,.1); border-inline-start: 3px solid #dc3545;">
+                                <div class="fw-bold fs-7 mb-1 text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $note->title }}</div>
+                                <div class="text-sm" style="color: var(--text-primary);">{{ $note->content }}</div>
+                                <div class="fs-7 opacity-50 mt-1" style="color: var(--text-secondary);">{{ $note->created_at->diffForHumans() }}</div>
+                            </div>
+                        @else
+                            <div class="rounded-3 p-3" style="background: var(--bg-primary); border: 1px solid var(--separator-color);">
+                                <div class="fw-bold fs-7 mb-1" style="color: var(--accent-color);">{{ $note->title }}</div>
+                                <div class="text-sm" style="color: var(--text-primary);">{{ $note->content }}</div>
+                                <div class="fs-7 opacity-50 mt-1" style="color: var(--text-secondary);">{{ $note->created_at->diffForHumans() }}</div>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            @endif
+
+            @if($notes->isEmpty() && $studentNotes->isEmpty())
+                <p class="opacity-50 mb-0 fs-7" style="color: var(--text-primary);" data-en="No notes yet." data-ar="لا توجد ملاحظات بعد.">لا توجد ملاحظات بعد.</p>
+            @endif
+        </div>
+    </div>
+</div>
+
+<!-- ═══ My Grades Modal ═══ -->
+<div class="modal fade" id="myGradesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid var(--separator-color); color: var(--text-primary);">
+            <div class="modal-header" style="border-color: var(--separator-color);">
+                <h5 class="modal-title fw-bold"><i class="bi bi-award-fill me-2" style="color: var(--accent-color);"></i><span data-en="My grades in this group" data-ar="علاماتي في هذه المجموعة">علاماتي في هذه المجموعة</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if($exams->isEmpty())
+                    <p class="opacity-50 mb-0 text-center py-4" data-en="No exams yet." data-ar="لا توجد امتحانات بعد.">لا توجد امتحانات بعد.</p>
+                @else
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0" style="color: var(--text-primary);">
+                            <thead>
+                                <tr class="fs-7 text-uppercase" style="color: var(--text-secondary);">
+                                    <th data-en="Exam" data-ar="الامتحان">الامتحان</th>
+                                    <th data-en="Date" data-ar="التاريخ">التاريخ</th>
+                                    <th data-en="Grade" data-ar="العلامة">العلامة</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($exams as $exam)
+                                    @php $grade = $grades->get($exam->id); @endphp
+                                    <tr style="border-color: var(--separator-color);">
+                                        <td class="fw-bold fs-7">{{ $exam->title }}</td>
+                                        <td class="fs-7" style="color: var(--text-secondary);">{{ $exam->start_time ? $exam->start_time->format('Y-m-d') : '—' }}</td>
+                                        <td>
+                                            @if($grade)
+                                                @php
+                                                    $pct = $grade->max_score > 0 ? round(($grade->score / $grade->max_score) * 100) : null;
+                                                @endphp
+                                                <span class="fw-bold" style="color: {{ !is_null($pct) && $pct >= 50 ? '#10b981' : '#ef4444' }};">
+                                                    {{ $grade->score }} / {{ $grade->max_score }}
+                                                </span>
+                                                @if(!is_null($pct))
+                                                    <span class="fs-7 opacity-75">({{ $pct }}%)</span>
+                                                @endif
+                                            @else
+                                                <span class="badge rounded-pill" style="background: rgba(148,163,184,.15); color: var(--text-secondary);" data-en="Not taken" data-ar="لم يُقدَّم">لم يُقدَّم</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-end">
+                                            @if($grade)
+                                                <a href="{{ route('student.results.show', $grade) }}" class="btn btn-sm btn-glass rounded-pill px-3" data-en="Details" data-ar="التفاصيل">التفاصيل</a>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script src="{{ asset('assets/vendor/hlsjs/hls.min.js') }}"></script>
 <script src="{{ asset('assets/js/student-video-player.js') }}"></script>
@@ -371,7 +717,7 @@
                 videoEl: videoPlayer,
                 startUrl: '{{ url("student/videos") }}/' + resource.id + '/start',
                 studentName: @json(auth()->guard('student')->user()->name),
-                studentPhotoUrl: @json(auth()->guard('student')->user()->image ? asset('storage/' . auth()->guard('student')->user()->image) : null),
+                studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
                 csrfToken: '{{ csrf_token() }}',
                 onError: function (message) {
                     videoError.textContent = message;
@@ -409,7 +755,7 @@
                 container: container,
                 fileUrl: '{{ url('student/resources') }}/' + resource.id + '/file',
                 studentName: @json(auth()->guard('student')->user()->name),
-                studentPhotoUrl: @json(auth()->guard('student')->user()->image ? asset('storage/' . auth()->guard('student')->user()->image) : null),
+                studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
                 onLoaded: function () {
                     const loadingEl = document.getElementById('documentLoading');
                     if (loadingEl) loadingEl.remove();
@@ -432,7 +778,7 @@
                 container: container,
                 fileUrl: '{{ url('student/resources') }}/' + resource.id + '/file',
                 studentName: @json(auth()->guard('student')->user()->name),
-                studentPhotoUrl: @json(auth()->guard('student')->user()->image ? asset('storage/' . auth()->guard('student')->user()->image) : null),
+                studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
                 onLoaded: function () {
                     const loadingEl = document.getElementById('imageLoading');
                     if (loadingEl) loadingEl.remove();
