@@ -77,3 +77,12 @@ jobs:
             docker-compose.override.yml
             .editorconfig
             .styleci.yml
+
+      - name: 🧹 Clear stale server-side caches
+        # storage/framework/** is excluded from the sync above (it's runtime-
+        # generated), so old compiled Blade views/config/route caches survive
+        # deploys untouched and can end up out of sync with the newly-uploaded
+        # source — causing 500s from views that no longer match what's cached.
+        # Requires DEPLOY_CACHE_TOKEN to match the value set in the server's .env.
+        run: |
+          curl -fsS "https://fullmarkacademy.com/deploy/clear-cache?token=${{ secrets.DEPLOY_CACHE_TOKEN }}"
