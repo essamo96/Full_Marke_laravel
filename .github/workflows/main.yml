@@ -50,6 +50,75 @@ jobs:
         # that actually changed since the last successful deploy (and removes
         # only files that were actually deleted) instead of re-mirroring
         # everything like the previous lftp-based step did.
+        #
+        # Retried below up to 3 times total: the FTP control socket to this
+        # host occasionally times out mid-sync (transient network/server
+        # hiccup on shared hosting), which otherwise fails the whole
+        # deployment even though a re-run typically succeeds.
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        id: ftp-deploy
+        continue-on-error: true
+        with:
+          server: 92.113.19.218
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          server-dir: /domains/fullmarkacademy.com/public_html/
+          dangerous-clean-slate: false
+          exclude: |
+            .git*
+            .git*/**
+            .github/**
+            node_modules/**
+            vendor/**
+            tests/**
+            storage/app/**
+            storage/framework/**
+            storage/logs/**
+            storage/*.key
+            .env
+            .env.example
+            phpunit.xml
+            README.md
+            docker-compose.yml
+            docker-compose.override.yml
+            .editorconfig
+            .styleci.yml
+
+      - name: 🔁 Retry Sync if first attempt failed
+        if: steps.ftp-deploy.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        id: ftp-deploy-retry-1
+        continue-on-error: true
+        with:
+          server: 92.113.19.218
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          server-dir: /domains/fullmarkacademy.com/public_html/
+          dangerous-clean-slate: false
+          exclude: |
+            .git*
+            .git*/**
+            .github/**
+            node_modules/**
+            vendor/**
+            tests/**
+            storage/app/**
+            storage/framework/**
+            storage/logs/**
+            storage/*.key
+            .env
+            .env.example
+            phpunit.xml
+            README.md
+            docker-compose.yml
+            docker-compose.override.yml
+            .editorconfig
+            .styleci.yml
+
+      - name: 🔁 Retry Sync (final attempt)
+        if: steps.ftp-deploy.outcome == 'failure' && steps.ftp-deploy-retry-1.outcome == 'failure'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: 92.113.19.218
