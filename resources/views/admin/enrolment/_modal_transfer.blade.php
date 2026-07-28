@@ -1,6 +1,5 @@
 @php
     $enrolment_transfer_subjects = \App\Models\Subject::active()->get();
-    $enrolment_transfer_groups = \App\Models\Group::active()->get();
 @endphp
 
 <!-- Transfer To New Subject Modal -->
@@ -28,15 +27,6 @@
                             <option></option>
                             @foreach($enrolment_transfer_subjects as $subject)
                                 <option value="{{ $subject->id }}">{{ app()->getLocale() == 'ar' ? $subject->name_ar : $subject->name_en }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-12 col-md">
-                        <label class="form-label">المجموعة (اختياري - يمكن التشعيب لاحقاً)</label>
-                        <select id="transfer_target_group" class="form-select form-select-solid" data-control="select2" data-dropdown-parent="#kt_modal_transfer" data-placeholder="اختر المادة أولاً">
-                            <option></option>
-                            @foreach($enrolment_transfer_groups as $group)
-                                <option value="{{ $group->id }}" data-subject-id="{{ $group->subject_id }}">{{ $group->name }} ({{ app()->getLocale() == 'ar' ? ($group->subject->name_ar ?? '') : ($group->subject->name_en ?? '') }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -86,61 +76,21 @@
 
 <script>
     let transferStudentsData = [];
-    let transferTargetSubjectFilter = '';
-
-    // Filters the target-group select2 results to only the groups of the selected subject,
-    // without rebuilding the <select> DOM (which breaks Select2's internal option cache).
-    function transferTargetGroupMatcher(params, data) {
-        if (!data.id) return data; // keep the empty placeholder option always visible
-
-        const subjectId = data.element ? $(data.element).data('subject-id') : null;
-        if (transferTargetSubjectFilter && subjectId && subjectId.toString() !== transferTargetSubjectFilter.toString()) {
-            return null;
-        }
-
-        if ($.trim(params.term || '') !== '' && data.text.toUpperCase().indexOf(params.term.toUpperCase()) === -1) {
-            return null;
-        }
-
-        return data;
-    }
 
     $(window).on('load', function () {
-        const $targetGroup = $('#transfer_target_group');
-        try { $targetGroup.select2('destroy'); } catch (e) {}
-        $targetGroup.select2({
-            dropdownParent: $('#kt_modal_transfer'),
-            placeholder: $targetGroup.data('placeholder'),
-            matcher: transferTargetGroupMatcher
-        });
-
         $('#transfer_target_subject').on('change', function() {
-            transferTargetSubjectFilter = $(this).val();
-
-            const currentVal = $targetGroup.val();
-            if (currentVal) {
-                const optSubjectId = $targetGroup.find(`option[value="${currentVal}"]`).data('subject-id');
-                if (transferTargetSubjectFilter && optSubjectId && optSubjectId.toString() !== transferTargetSubjectFilter.toString()) {
-                    $targetGroup.val('').trigger('change');
-                }
-            }
-
-            loadTransferStudents();
-        });
-        $('#transfer_target_group').on('change', function() {
             loadTransferStudents();
         });
     });
 
     function showTransferModalHelp() {
         Swal.fire({
-            title: 'آلية النقل لمادة جديدة',
+            title: 'آلية التسجيل في مادة جديدة',
             html: `
                 <ul class="fs-5 text-gray-700 text-start" style="direction: rtl;">
                     <li class="mb-2">يتم عرض جميع الطلاب المؤهلين (باستثناء المسجلين بالفعل في المادة الهدف).</li>
-                    <li class="mb-2">اختيار المجموعة <strong>اختياري</strong>: يمكن تسجيل الطالب في المادة دون تشعيب فوري، ويتم تشعيبه لاحقاً من زر "تشعيب الطلاب".</li>
-                    <li class="mb-2">في الحالتين يتم ترصيد الرسوم المستحقة للمادة الجديدة وإرسال إشعار للطالب بها فوراً.</li>
-                    <li class="mb-2">في حال اختيار مجموعة، يتم تمييز الطلاب الذين يتعارض جدولهم مع مواعيد المجموعة الهدف.</li>
+                    <li class="mb-2">يتم تسجيل الطالب في المادة <strong>دون اختيار مدرس أو مجموعة</strong> — التشعيب يتم لاحقاً من زر "تشعيب الطلاب" أو عبر كود التشعيب.</li>
+                    <li class="mb-2">يتم ترصيد الرسوم المستحقة للمادة الجديدة وإرسال إشعار للطالب بها فوراً.</li>
                 </ul>
             `,
             icon: 'info',
@@ -154,14 +104,12 @@
 
     function loadTransferStudents() {
         const targetSubjectId = $('#transfer_target_subject').val();
-        const targetGroupId = $('#transfer_target_group').val();
 
         $.ajax({
             url: "{{ route('enrolments.students') }}",
             type: 'GET',
             data: {
-                exclude_subject_id: targetSubjectId,
-                target_group_id: targetGroupId
+                exclude_subject_id: targetSubjectId
             },
             success: function(response) {
                 transferStudentsData = response;
@@ -340,7 +288,6 @@
     function submitTransferEnrolment() {
         const ids = getTransferTargetStudentIds();
         const targetSubjectId = $('#transfer_target_subject').val();
-        const targetGroupId = $('#transfer_target_group').val();
 
         if (ids.length === 0) {
             toastr.error('يرجى تحديد طلاب للنقل');
@@ -352,9 +299,7 @@
             return;
         }
 
-        const confirmText = targetGroupId
-            ? 'سيتم تسجيل الطلاب في المادة الجديدة وتشعيبهم في المجموعة المحددة فوراً، وترصيد الرسوم المستحقة تلقائياً. هل أنت متأكد؟'
-            : 'سيتم تسجيل الطلاب في المادة الجديدة دون تشعيبهم في مجموعة الآن (يمكن تشعيبهم لاحقاً)، مع ترصيد الرسوم المستحقة وإرسال إشعار لهم بها. هل أنت متأكد؟';
+        const confirmText = 'سيتم تسجيل الطلاب في المادة الجديدة دون اختيار مجموعة (يتم التشعيب لاحقاً من قبل الإدارة أو عبر الكود)، مع ترصيد الرسوم المستحقة وإرسال إشعار لهم بها. هل أنت متأكد؟';
 
         Swal.fire({
             title: 'تأكيد النقل / التسجيل',
@@ -373,8 +318,7 @@
                     data: {
                         _token: '{{ csrf_token() }}',
                         student_ids: ids,
-                        target_subject_id: targetSubjectId,
-                        target_group_id: targetGroupId
+                        target_subject_id: targetSubjectId
                     },
                     success: function(response) {
                         if (response.success) {

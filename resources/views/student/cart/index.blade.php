@@ -35,17 +35,7 @@
                 <div class="text-muted fs-7">{{ $item->subject->program->title }}</div>
               </td>
               <td>
-                <form method="POST" action="{{ route('student.cart.update-group', $item) }}" class="d-flex gap-2">
-                  @csrf
-                  <select name="group_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="" data-en="-- choose a group --" data-ar="-- اختر مجموعة --">-- choose a group --</option>
-                    @foreach ($item->subject->groups as $group)
-                      <option value="{{ $group->id }}" @selected($item->group_id === $group->id) @disabled(! $group->hasAvailableCapacity())>
-                        {{ $group->name }}
-                      </option>
-                    @endforeach
-                  </select>
-                </form>
+                <span class="badge bg-secondary bg-opacity-25 text-muted" data-en="Assigned by administration" data-ar="يتم التشعيب من قبل الإدارة">يتم التشعيب من قبل الإدارة</span>
               </td>
               <td>{{ number_format($item->subject->fee, 2) }} <span data-en="(min" data-ar="(حد أدنى">(min</span> {{ number_format($item->subject->min_payment ?? $item->subject->fee, 2) }})</td>
               <td class="text-end">

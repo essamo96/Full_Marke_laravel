@@ -95,10 +95,31 @@
                             <div class="fw-bold fs-6 mb-2" style="color: var(--text-primary);">{{ $lesson->name_ar ?? $lesson->name_en }}</div>
                             <div class="d-flex flex-column gap-2">
                             @forelse($lesson->resources as $resource)
-                              <a href="#" class="text-decoration-none text-muted d-flex align-items-center gap-2 fs-7 hover-text-gold transition-all">
-                                <i class="bi bi-{{ $resource->type === 'video' ? 'play-circle-fill text-danger' : 'file-earmark-text-fill text-info' }}"></i>
-                                <span>{{ $resource->title }}</span>
-                              </a>
+                              @php
+                                $rIcon = match($resource->type) {
+                                  'video' => 'play-circle-fill',
+                                  'document' => 'file-earmark-text-fill',
+                                  'image' => 'image-fill',
+                                  'zoom' => 'camera-video-fill',
+                                  default => 'link-45deg',
+                                };
+                                $rIsPending = $resource->isVideo() && ! $resource->isReady();
+                              @endphp
+                              @if($rIsPending)
+                                <span class="d-flex align-items-center gap-2 fs-7 text-muted opacity-75">
+                                  <i class="bi bi-hourglass-split text-gold"></i>
+                                  <span class="text-truncate">{{ $resource->title }}</span>
+                                  <span class="badge ms-auto" style="background: rgba(197,168,128,0.15); color: var(--accent-color);" data-en="Processing" data-ar="قيد المعالجة">قيد المعالجة</span>
+                                </span>
+                              @else
+                                <a href="{{ $resource->isExternalLink() ? $resource->url : route('teacher.content.view-file', $resource) }}"
+                                   target="_blank" rel="noopener"
+                                   class="text-decoration-none text-muted d-flex align-items-center gap-2 fs-7 hover-text-gold transition-all">
+                                  <i class="bi bi-{{ $rIcon }} text-gold"></i>
+                                  <span class="text-truncate">{{ $resource->title }}</span>
+                                  <i class="bi bi-box-arrow-up-right ms-auto opacity-50 flex-shrink-0" style="font-size: .7rem;"></i>
+                                </a>
+                              @endif
                             @empty
                               <div class="text-muted fs-7" data-en="No resources yet." data-ar="لا توجد موارد بعد.">لا توجد موارد بعد.</div>
                             @endforelse

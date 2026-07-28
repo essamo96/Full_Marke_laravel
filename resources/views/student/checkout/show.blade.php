@@ -40,33 +40,10 @@
           </div>
         </div>
 
-        {{-- Group Selection --}}
-        @if($item->subject->groups->isNotEmpty())
-          <div class="mt-2">
-            <label class="form-label fs-7 fw-semibold" style="color: var(--text-muted);">
-              <i class="bi bi-people-fill me-1"></i>
-              <span data-en="Select Group (Optional)" data-ar="اختر المجموعة (اختياري)">Select Group (Optional)</span>
-            </label>
-            <select name="group_ids[{{ $item->id }}]" class="form-select form-select-sm group-selector"
-                    style="background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);"
-                    data-item="{{ $item->id }}">
-              <option value="">-- <span data-en="No group / Later" data-ar="بدون مجموعة / لاحقاً">No group / Later</span> --</option>
-              @foreach($item->subject->groups as $group)
-                <option value="{{ $group->id }}"
-                  {{ $item->group_id == $group->id ? 'selected' : '' }}
-                  {{ !$group->hasAvailableCapacity() ? 'disabled' : '' }}>
-                  {{ $group->name }}
-                  @if($group->days) — {{ is_array($group->days) ? implode(', ', $group->days) : $group->days }} @endif
-                  @if($group->start_time) | {{ \Carbon\Carbon::parse($group->start_time)->format('h:i A') }}–{{ \Carbon\Carbon::parse($group->end_time)->format('h:i A') }} @endif
-                  @if(!$group->hasAvailableCapacity()) (ممتلئة) @endif
-                </option>
-              @endforeach
-            </select>
-          </div>
-        @else
-          {{-- hidden input to preserve item id without group --}}
-          <input type="hidden" name="group_ids[{{ $item->id }}]" value="">
-        @endif
+        <div class="mt-2 fs-8 text-muted">
+          <i class="bi bi-info-circle me-1"></i>
+          <span data-en="Group assignment is handled by the administration after payment confirmation." data-ar="يتم تشعيبك في مجموعة من قبل الإدارة بعد تأكيد الدفع.">يتم تشعيبك في مجموعة من قبل الإدارة بعد تأكيد الدفع.</span>
+        </div>
       </div>
     @endforeach
 
@@ -86,7 +63,6 @@
       @foreach ($items as $item)
         <input type="hidden" name="cart_item_ids[]" value="{{ $item->id }}">
       @endforeach
-      {{-- Group IDs injected dynamically by JS below --}}
 
       <div class="mb-4">
         <label class="form-label fw-bold" data-en="Amount Paid" data-ar="المبلغ المدفوع">Amount Paid (JOD)</label>
@@ -151,7 +127,6 @@
 
 @push('scripts')
 <script>
-// Sync group selectors into checkout form as hidden inputs on submit
 document.getElementById('checkoutForm').addEventListener('submit', function(e) {
   if (this.checkValidity()) {
     const btn = document.querySelector('button[type="submit"]');
@@ -160,16 +135,6 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     const loadingText = currentLang === 'en' ? 'Confirming...' : 'جاري التأكيد...';
     btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${loadingText}`;
   }
-
-  document.querySelectorAll('.group-selector').forEach(function(sel) {
-    if (sel.value) {
-      const hidden = document.createElement('input');
-      hidden.type = 'hidden';
-      hidden.name = sel.name;
-      hidden.value = sel.value;
-      this.appendChild(hidden);
-    }
-  }.bind(this));
 });
 </script>
 @endpush

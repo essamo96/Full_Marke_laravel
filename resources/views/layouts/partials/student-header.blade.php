@@ -1,7 +1,7 @@
     <header class="dashboard-header">
       <div class="d-flex align-items-center">
         <!-- Mobile Sidebar Toggle -->
-        <button class="btn btn-glass icon-btn d-lg-none me-3" onclick="toggleSidebar()">
+        <button class="btn btn-glass icon-btn d-md-none me-3" onclick="toggleSidebar()">
           <i class="bi bi-list fs-4"></i>
         </button>
 

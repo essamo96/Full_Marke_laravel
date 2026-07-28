@@ -102,8 +102,17 @@
                                 $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
                                 $isPdf = $resource->type === 'document' && !$isUrl && strtolower(pathinfo($resource->url ?? '', PATHINFO_EXTENSION)) === 'pdf';
                             @endphp
+                            @php
+                                $rIcon = match($resource->type) {
+                                    'video' => 'play-circle-fill',
+                                    'zoom' => 'camera-video-fill',
+                                    'image' => 'image-fill',
+                                    'link' => 'link-45deg',
+                                    default => 'file-earmark-text-fill',
+                                };
+                            @endphp
                             <a href="javascript:void(0)" class="resource-item" onclick="loadResource({{ json_encode(['id' => $resource->getRouteKey(), 'title' => $resource->title, 'type' => $resource->type, 'is_pdf' => $isPdf, 'is_image' => $resource->isImage(), 'is_external' => $isUrl, 'url' => $isUrl ? $resource->url : null, 'description' => $resource->description]) }})">
-                                <i class="bi bi-{{ $resource->type === 'video' ? 'play-circle-fill text-danger' : ($resource->type === 'zoom' ? 'camera-video-fill text-primary' : 'file-earmark-text-fill text-info') }}"></i>
+                                <i class="bi bi-{{ $rIcon }}" style="color: var(--accent-color);"></i>
                                 <span class="text-sm">{{ $resource->title }}</span>
                             </a>
                         @endforeach
@@ -130,8 +139,17 @@
                                                       $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
                                                       $isPdf = $resource->type === 'document' && !$isUrl && strtolower(pathinfo($resource->url ?? '', PATHINFO_EXTENSION)) === 'pdf';
                                                     @endphp
+                                                    @php
+                                                        $rIcon = match($resource->type) {
+                                                            'video' => 'play-circle-fill',
+                                                            'zoom' => 'camera-video-fill',
+                                                            'image' => 'image-fill',
+                                                            'link' => 'link-45deg',
+                                                            default => 'file-earmark-text-fill',
+                                                        };
+                                                    @endphp
                                                     <a href="javascript:void(0)" class="resource-item ps-4" onclick="loadResource({{ json_encode(['id' => $resource->getRouteKey(), 'title' => $resource->title, 'type' => $resource->type, 'is_pdf' => $isPdf, 'is_image' => $resource->isImage(), 'is_external' => $isUrl, 'url' => $isUrl ? $resource->url : null, 'description' => $resource->description]) }})">
-                                                        <i class="bi bi-{{ $resource->type === 'video' ? 'play-circle-fill text-danger' : ($resource->type === 'zoom' ? 'camera-video-fill text-primary' : 'file-earmark-text-fill text-info') }}"></i>
+                                                        <i class="bi bi-{{ $rIcon }}" style="color: var(--accent-color);"></i>
                                                         <span class="text-sm">{{ $resource->title }}</span>
                                                     </a>
                                                 @endforeach

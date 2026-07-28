@@ -65,7 +65,12 @@ class GroupsController extends Controller
 
         $student = Auth::guard('student')->user();
 
-        // Check if student is registered in the subject and has confirmed payments
+        if (!$student->status) {
+            return response()->json(['success' => false, 'message' => 'حسابك غير فعال حالياً. يرجى التواصل مع الإدارة.'], 400);
+        }
+
+        // The student must already be registered in the subject with a confirmed
+        // payment — the join code never registers or takes payment by itself.
         $registration = Registration::where('student_id', $student->id)
             ->where('subject_id', $group->subject_id)
             ->whereIn('status', ['partially_paid', 'fully_paid'])
@@ -74,15 +79,7 @@ class GroupsController extends Controller
         if (!$registration) {
             return response()->json([
                 'success' => false,
-                'needs_registration' => true,
-                'program_url' => route('programs.show', $group->subject->program->slug ?? ''),
-                'subject_id' => $group->subject_id,
-                'subject_name' => $group->subject->name,
-                'group_id' => $group->id,
-                'group_name' => $group->name,
-                'fee' => $group->subject->fee,
-                'join_code' => $code,
-                'message' => 'أنت غير مسجل في المادة التابعة لهذه المجموعة أو لم تقم بتأكيد دفعاتك المالية. الرسوم المستحقة للانضمام هي ' . $group->subject->fee . ' JOD.'
+                'message' => 'لا يمكن استخدام الكود: يجب أن تكون مسجلاً في المادة التابعة لهذه المجموعة وأن تكون دفعتك المالية مؤكدة من الإدارة. يرجى التواصل مع الإدارة.'
             ], 400);
         }
 
@@ -176,95 +173,5 @@ class GroupsController extends Controller
             ->get();
 
         return view('student.groups.show', compact('group', 'subject', 'generalResources', 'notes'));
-    }
-
-    public function registerAndJoinDirectly(Request $request, \App\Services\PaymentService $paymentService)
-    {
-        $request->validate([
-            'subject_id' => 'required|exists:subjects,id',
-            'group_id' => 'required|exists:groups,id',
-            'amount' => 'required|numeric|min:0.01',
-            'payment_method_id' => 'required|exists:payment_methods,id',
-            'receipt' => 'required|file|mimes:png,jpg,jpeg,pdf|max:5120',
-            'join_code' => 'required|string',
-        ]);
-
-        $student = Auth::guard('student')->user();
-        $subject = \App\Models\Subject::findOrFail($request->subject_id);
-
-        if (!$subject->is_active) {
-            return response()->json(['success' => false, 'message' => 'التسجيل غير متاح حالياً لهذه المادة.'], 400);
-        }
-        if ($subject->reg_start_date && now()->lt($subject->reg_start_date)) {
-            return response()->json(['success' => false, 'message' => 'لم يبدأ التسجيل لهذه المادة بعد.'], 400);
-        }
-        if ($subject->reg_end_date && now()->gt($subject->reg_end_date)) {
-            return response()->json(['success' => false, 'message' => 'انتهى موعد التسجيل لهذه المادة.'], 400);
-        }
-
-        $alreadyActive = Registration::where('student_id', $student->id)
-            ->where('subject_id', $subject->id)
-            ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
-            ->exists();
-
-        if ($alreadyActive) {
-            return response()->json(['success' => false, 'message' => 'أنت مسجل بالفعل في هذه المادة أو قمت بتقديم طلب مسبقاً.'], 400);
-        }
-
-        $minPayment = $subject->min_payment ?? $subject->fee;
-        if ($request->amount < $minPayment) {
-            return response()->json(['success' => false, 'message' => 'المبلغ المدفوع أقل من الحد الأدنى المطلوب (' . $minPayment . ' JOD).'], 400);
-        }
-
-        $group = Group::findOrFail($request->group_id);
-        if (!$group->hasAvailableCapacity()) {
-            return response()->json(['success' => false, 'message' => 'المجموعة ممتلئة. لا يوجد مقاعد متاحة.'], 400);
-        }
-
-        $joinCode = \App\Models\GroupJoinCode::where('code', $request->join_code)->first();
-        if (!$joinCode || !$joinCode->isValid()) {
-            return response()->json(['success' => false, 'message' => 'الكود غير صالح أو منتهي الصلاحية.'], 400);
-        }
-
-        $receiptPath = $request->file('receipt')->store('receipts', 'local');
-
-        \Illuminate\Support\Facades\DB::transaction(function () use ($student, $subject, $group, $request, $receiptPath, $paymentService, $joinCode) {
-            // Create pending registration
-            $registration = Registration::create([
-                'registration_number' => Registration::generateNumber(),
-                'student_id' => $student->id,
-                'subject_id' => $subject->id,
-                'group_id' => $group->id,
-                'fee_snapshot' => $subject->fee,
-                'amount_paid' => 0,
-                'status' => 'pending',
-            ]);
-
-            // Create pending payment
-            $payment = \App\Models\Payment::create([
-                'payment_number' => \App\Models\Payment::generateNumber(),
-                'student_id' => $student->id,
-                'method' => (string) $request->payment_method_id,
-                'amount' => $request->amount,
-                'receipt_image' => $receiptPath,
-                'notes' => 'مقدم عبر كود التشعيب للمجموعة: ' . $group->name,
-                'status' => 'pending',
-            ]);
-
-            // Link payment to registration
-            \App\Models\PaymentItem::create([
-                'payment_id' => $payment->id,
-                'registration_id' => $registration->id,
-                'allocated_amount' => $request->amount,
-            ]);
-
-            // Notify Admin
-            $paymentService->notifyPaymentSubmitted($payment->load('items'), $student);
-
-            // Increment join code usage
-            $joinCode->increment('used_count');
-        });
-        
-        return response()->json(['success' => true, 'message' => 'تم تقديم طلب التسجيل ودفع الرسوم. سيتم تفعيل حسابك في المجموعة فور تأكيد الإدارة للدفع.']);
     }
 }

@@ -25,7 +25,7 @@
           method: 'POST',
           data: {
             _token: '{{ csrf_token() }}',
-            items: items.map(i => ({ subject_id: i.id, group_id: i.group_id || null }))
+            items: items.map(i => ({ subject_id: i.id }))
           },
           success: function(res) {
             if (res.status === 'success') {

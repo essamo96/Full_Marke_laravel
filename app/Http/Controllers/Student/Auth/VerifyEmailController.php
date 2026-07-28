@@ -49,8 +49,8 @@ class VerifyEmailController extends Controller
             ], 422);
         }
 
-        // Success
-        $student->update(['email_verified_at' => now()]);
+        // Success — verifying the email also activates the account immediately
+        $student->update(['email_verified_at' => now(), 'status' => true]);
         EmailVerificationCode::where('student_id', $student->id)->delete(); // clear old codes
 
         $request->session()->forget('otp.student.email');

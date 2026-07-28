@@ -36,7 +36,6 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('cart', [CartController::class, 'index'])->name('cart');
         Route::post('cart', [CartController::class, 'store'])->name('cart.store');
         Route::post('cart/sync', [CartController::class, 'sync'])->name('cart.sync');
-        Route::post('cart/{cartItem}/group', [CartController::class, 'updateGroup'])->name('cart.update-group');
         Route::delete('cart/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
 
         Route::get('checkout', [CheckoutController::class, 'show'])->name('checkout');
@@ -45,7 +44,6 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('registrations', [RegistrationsController::class, 'index'])->name('registrations');
         Route::get('registrations/{registration}', [RegistrationsController::class, 'show'])->name('registrations.show');
         Route::post('registrations/{registration}/pay-remaining', [RegistrationsController::class, 'payRemaining'])->name('registrations.pay-remaining');
-        Route::post('registrations/{registration}/group', [RegistrationsController::class, 'updateGroup'])->name('registrations.update-group');
 
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile');
         Route::post('profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -55,7 +53,6 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('groups', [GroupsController::class, 'index'])->name('groups');
         Route::get('groups/{group}', [GroupsController::class, 'show'])->name('groups.show');
         Route::post('groups/join-by-code', [GroupsController::class, 'joinByCode'])->name('groups.join-by-code');
-        Route::post('groups/register-and-join-by-code', [GroupsController::class, 'registerAndJoinDirectly'])->name('groups.register-and-join-by-code');
         Route::get('resources', [ResourcesController::class, 'index'])->name('resources');
         Route::get('secure-embed/{resource}', [\App\Http\Controllers\Student\SecureResourceController::class, 'embed'])->name('resources.embed');
         Route::post('videos/{resource}/start', [VideoStreamController::class, 'startSession'])->name('video.start');

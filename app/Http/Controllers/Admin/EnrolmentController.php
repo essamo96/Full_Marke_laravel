@@ -87,7 +87,12 @@ class EnrolmentController extends AdminController
             'target_subject_id' => 'required_without:target_group_id|exists:subjects,id',
         ]);
 
-        $targetGroup = $request->filled('target_group_id') ? Group::findOrFail($request->target_group_id) : null;
+        // Two mutually exclusive modes: registering into a subject (no group ever —
+        // branching happens later via the branching screen or a join code), or
+        // branching/moving into a specific group.
+        $targetGroup = !$request->filled('target_subject_id') && $request->filled('target_group_id')
+            ? Group::findOrFail($request->target_group_id)
+            : null;
         $subject = $targetGroup ? $targetGroup->subject : Subject::findOrFail($request->target_subject_id);
         $subjectId = $subject->id;
         $successCount = 0;

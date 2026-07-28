@@ -178,8 +178,32 @@
   transform-origin: 50% 50%;
 }
 
-/* Mobile Responsiveness */
-@media (max-width: 991px) {
+/* Tablet / iPad (medium screens): keep the sidebar visible like desktop, just narrower */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .dashboard-sidebar {
+    width: 240px;
+    padding: 20px 12px;
+  }
+  .dashboard-header {
+    left: 240px;
+  }
+  [dir="rtl"] .dashboard-header {
+    left: 0;
+    right: 240px;
+  }
+  .dashboard-main {
+    margin-left: 240px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  [dir="rtl"] .dashboard-main {
+    margin-left: 0;
+    margin-right: 240px;
+  }
+}
+
+/* Mobile Responsiveness (phones only — tablets keep the desktop sidebar) */
+@media (max-width: 767px) {
   .dashboard-sidebar {
     transform: translateX(-100%);
   }
@@ -200,6 +224,32 @@
     left: 0 !important;
     right: 0 !important;
   }
+}
+
+/* "Show more" for nav lists that overflow the space allotted to the menu */
+.dashboard-sidebar nav.nav-clipped {
+  overflow: hidden;
+}
+.sidebar-more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 16px);
+  margin: 6px 8px 0 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px dashed rgba(197, 168, 128, 0.4);
+  background: rgba(197, 168, 128, 0.08);
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition-fast, 0.2s);
+}
+.sidebar-more-btn:hover {
+  background: rgba(197, 168, 128, 0.15);
+  border-style: solid;
 }
 
 .sidebar-overlay {
