@@ -24,10 +24,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { theme: { extend: { colors: { gold: { light: '#e8d0ad', DEFAULT: '#c5a880', dark: '#a3875f' } } } } }
-  </script>
+  @vite('resources/css/app.css')
 
   <!-- Custom Stylesheets -->
   <link rel="stylesheet" href="{{ asset('site/css/variables.css') }}">

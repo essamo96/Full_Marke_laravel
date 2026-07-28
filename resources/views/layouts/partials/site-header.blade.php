@@ -28,8 +28,15 @@
         <a href="#contact" class="desktop-nav-link nav-item-primary text-decoration-none font-medium" style="color: var(--text-primary); font-size: {{ $navFontSize }};" data-en="Contact" data-ar="اتصل بنا">Contact</a>
       </nav>
 
-      <!-- Action Buttons — visible from tablet up -->
-      <div class="header-actions d-flex align-items-center gap-1">
+      <!-- Action Buttons — inline on desktop; collapsed into a single "tools"
+           dropdown on tablet (768–1199px). The buttons themselves are the same
+           DOM nodes in both modes, so their JS handlers keep working. -->
+      <div class="header-tools-wrap">
+        <button id="headerToolsBtn" type="button" class="btn btn-glass icon-btn header-tools-btn" aria-expanded="false" aria-label="Tools" title="الأدوات">
+          <i class="bi bi-grid-3x3-gap-fill" style="font-size: 15px;"></i>
+        </button>
+
+        <div class="header-actions d-flex align-items-center gap-1">
         <!-- Language Switcher (icon-only) — session-based, no /ar or /en in the URL -->
         @if(\App\Models\SiteSetting::current()->show_translation_button)
         <a href="{{ route('site.lang', app()->getLocale() === 'ar' ? 'en' : 'ar') }}"
@@ -77,10 +84,11 @@
             <a href="{{ route('teacher.login') }}" class="btn btn-glass teacher-gate-link px-2 py-1 rounded-lg" style="font-size: {{ $btnFontSize }};" data-en="Teacher Login" data-ar="دخول المعلم">Teacher Login</a>
             <a href="{{ route('apply.create') }}" class="btn btn-luxury px-3 py-1 rounded-lg" style="font-size: {{ $btnFontSize }};" data-en="Apply Now" data-ar="سجل الآن">Apply Now</a>
         </div>
+        </div>
       </div>
 
-      <!-- Mobile Menu Toggle (visible <768px only) -->
-      <button id="mobileMenuToggle" class="mobile-menu-toggle text-2xl p-2 rounded-lg" style="color: var(--text-primary);" aria-label="Open menu">
+      <!-- Mobile Menu Toggle (visible <768px only) — color is theme-aware via CSS -->
+      <button id="mobileMenuToggle" class="mobile-menu-toggle text-2xl p-2 rounded-lg" aria-label="Open menu">
         <i class="bi bi-list"></i>
       </button>
     </div>
@@ -92,7 +100,7 @@
     <div>
       <div class="d-flex align-items-center justify-content-between mb-8">
         <span class="text-xl font-bold tracking-wider" style="color: var(--text-primary);" data-en="FULL MARKS ACADEMY" data-ar="أكاديمية العلامة الكاملة">FULL MARKS ACADEMY</span>
-        <button id="closeMobileMenu" class="text-2xl p-2" style="color: var(--text-primary);">
+        <button id="closeMobileMenu" class="text-2xl p-2" aria-label="Close menu">
           <i class="bi bi-x-lg"></i>
         </button>
       </div>

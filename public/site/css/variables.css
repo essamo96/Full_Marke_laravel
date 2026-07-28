@@ -50,8 +50,8 @@ body {
   font-family: var(--font-ar);
 }
 
-/* Below 1200px the navbar collapses to logo + hamburger only — keep the
-   header compact there regardless of the larger desktop logo height. */
+/* Below 1200px the navbar runs compact (inline nav from 768px up, hamburger
+   below that) — keep the header short regardless of the desktop logo height. */
 @media (max-width: 1199.98px) {
   :root {
     --navbar-height: 72px;

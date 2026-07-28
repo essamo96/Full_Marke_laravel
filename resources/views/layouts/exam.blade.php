@@ -19,18 +19,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        gold: { light: '#e8d0ad', DEFAULT: '#c5a880', dark: '#a3875f' }
-                    }
-                }
-            }
-        }
-    </script>
+    @vite('resources/css/app.css')
 
     <link rel="stylesheet" href="{{ asset('site/css/variables.css') }}">
     <link rel="stylesheet" href="{{ asset('site/css/themes/dark.css') }}">

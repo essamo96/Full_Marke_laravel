@@ -120,6 +120,135 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, { passive: true });
   highlightNavigation(); // Run on load
+
+  // 5. Priority+ overflow — nav links that don't fit the available width
+  //    collapse into a "More" dropdown (any screen size where the inline
+  //    navbar is visible, iPad included).
+  const primaryNav = document.getElementById('primary-nav');
+  if (primaryNav) {
+    const inlineLinks = Array.from(primaryNav.querySelectorAll(':scope > .desktop-nav-link'));
+
+    const moreWrap = document.createElement('div');
+    moreWrap.className = 'nav-more-wrap dropdown';
+    moreWrap.style.display = 'none';
+
+    const moreBtn = document.createElement('button');
+    moreBtn.type = 'button';
+    moreBtn.className = 'btn btn-glass nav-more-btn dropdown-toggle';
+    moreBtn.setAttribute('aria-expanded', 'false');
+    const isRtl = document.documentElement.dir === 'rtl';
+    moreBtn.innerHTML = '<span data-en="More" data-ar="المزيد">' + (isRtl ? 'المزيد' : 'More') + '</span>';
+
+    const moreMenu = document.createElement('div');
+    moreMenu.className = 'dropdown-menu nav-more-menu';
+
+    moreWrap.appendChild(moreBtn);
+    moreWrap.appendChild(moreMenu);
+    primaryNav.appendChild(moreWrap);
+
+    // The nav uses overflow:hidden for the measurement/clipping, which would
+    // also clip an absolutely-positioned dropdown — so the menu opens with
+    // position:fixed, anchored to the button's on-screen position.
+    function positionMoreMenu() {
+      const r = moreBtn.getBoundingClientRect();
+      moreMenu.style.position = 'fixed';
+      moreMenu.style.top = (r.bottom + 8) + 'px';
+      if (isRtl) {
+        moreMenu.style.left = r.left + 'px';
+        moreMenu.style.right = 'auto';
+      } else {
+        moreMenu.style.right = (window.innerWidth - r.right) + 'px';
+        moreMenu.style.left = 'auto';
+      }
+    }
+
+    function closeMoreMenu() {
+      moreMenu.classList.remove('show');
+      moreBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    moreBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = !moreMenu.classList.contains('show');
+      if (open) positionMoreMenu();
+      moreMenu.classList.toggle('show', open);
+      moreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', closeMoreMenu);
+    moreMenu.addEventListener('click', closeMoreMenu);
+    window.addEventListener('scroll', closeMoreMenu, { passive: true });
+
+    let rebuilding = false;
+    function rebuildNavOverflow() {
+      if (rebuilding) return;
+      rebuilding = true;
+
+      // Restore every link inline, in original order, then measure
+      inlineLinks.forEach(link => primaryNav.insertBefore(link, moreWrap));
+      moreMenu.classList.remove('show');
+      moreWrap.style.display = 'none';
+
+      if (window.getComputedStyle(primaryNav).display !== 'none') {
+        if (primaryNav.scrollWidth > primaryNav.clientWidth + 2) {
+          moreWrap.style.display = '';
+          // Move links into the menu from the end until the rest fits
+          for (let i = inlineLinks.length - 1; i >= 1; i--) {
+            moreMenu.insertBefore(inlineLinks[i], moreMenu.firstChild);
+            if (primaryNav.scrollWidth <= primaryNav.clientWidth + 2) break;
+          }
+        }
+      }
+
+      rebuilding = false;
+    }
+
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(rebuildNavOverflow, 120);
+    });
+    window.addEventListener('load', rebuildNavOverflow);
+    document.addEventListener('languageChanged', () => setTimeout(rebuildNavOverflow, 100));
+    rebuildNavOverflow();
+  }
+
+  // 6. Tablet "tools" dropdown — on 768–1199px the header action buttons live
+  //    inside a panel toggled by one button. The buttons are the same DOM
+  //    nodes as on desktop, so all their handlers keep working.
+  const toolsWrap = document.querySelector('.header-tools-wrap');
+  const toolsBtn = document.getElementById('headerToolsBtn');
+  if (toolsWrap && toolsBtn) {
+    function closeTools() {
+      toolsWrap.classList.remove('open');
+      toolsBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    toolsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = toolsWrap.classList.toggle('open');
+      toolsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    // Close when clicking outside the panel
+    document.addEventListener('click', (e) => {
+      if (!toolsWrap.contains(e.target)) closeTools();
+    });
+
+    // Close after using a button inside — except the theme cycler, so the
+    // user can flip through themes and see the result live.
+    toolsWrap.addEventListener('click', (e) => {
+      const actionable = e.target.closest('a, button');
+      if (!actionable || actionable === toolsBtn) return;
+      if (actionable.id === 'themeCycleBtn') return;
+      if (actionable.hasAttribute('data-bs-toggle')) return; // opening the profile submenu
+      closeTools();
+    });
+
+    // Leaving the tablet range resets the state
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1200 || window.innerWidth < 768) closeTools();
+    });
+  }
 });
 
 // Global function to show a welcome toaster on login

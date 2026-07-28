@@ -72,12 +72,14 @@
         <div class="swiper-button-prev hero-swiper-prev"></div>
         <div class="swiper-button-next hero-swiper-next"></div>
       </div>
-     //HMMM 
       <script>
         document.addEventListener('DOMContentLoaded', function () {
-          if (document.querySelector('.hero-moving-swiper')) {
+          const heroSwiperEl = document.querySelector('.hero-moving-swiper');
+          if (heroSwiperEl) {
             new Swiper('.hero-moving-swiper', {
-              loop: true,
+              // Loop needs at least 2 slides — with one slide Swiper logs a
+              // console warning and disables it anyway.
+              loop: heroSwiperEl.querySelectorAll('.swiper-slide').length > 1,
               autoplay: {
                 delay: 5000,
                 disableOnInteraction: false,
@@ -536,7 +538,7 @@
   </section>
 
   <!-- Statistics Counter Section -->
-  <section class="counter-section" style="background-image: url('{{ asset('site/images/img/banner/nos.jpg') }}');">
+  <section class="counter-section" style="background-image: url('{{ asset('site/images/img/banner/ote_hall.png') }}');">
     <div class="counter-overlay"></div>
     <div class="container relative z-2 px-4">
       @php

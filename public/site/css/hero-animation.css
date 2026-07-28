@@ -1271,9 +1271,9 @@ footer .h-12 {
 /* ============================================================
    Responsive Navbar — two breakpoints
      • <768px    : mobile menu toggle only (compact logo, see variables.css)
-     • ≥768px    : all 7 nav items inline + icon actions + full-size logo
-   Only 7 nav items exist now (News/FAQ were removed from the navbar but
-   stay on the page), so everything always fits inline — no "More" dropdown.
+     • ≥768px    : inline navbar like desktop (iPad included). Links that
+                   don't fit the available width collapse into a "More"
+                   dropdown (see the priority+ logic in landing.js).
    ============================================================ */
 
 /* Default — hide everything below md, show on md+ */
@@ -1286,18 +1286,28 @@ footer .h-12 {
   display: inline-flex;
 }
 
-/* Desktop & up (≥1200px) */
-@media (min-width: 1200px) {
+/* The "tools" collapse button only exists on tablet */
+.header-tools-btn {
+  display: none !important;
+}
+
+/* Tablet & up (≥768px) — full navbar, hamburger hidden */
+@media (min-width: 768px) {
   .primary-nav {
     display: flex !important;
     align-items: center;
     gap: 1.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    justify-content: center;
   }
 
-  .header-actions {
-    display: flex !important;
+  .header-tools-wrap {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
     align-items: center;
-    gap: .65rem;
   }
 
   .mobile-menu-toggle {
@@ -1310,6 +1320,138 @@ footer .h-12 {
   .header-actions .teacher-gate-link {
     display: inline-block;
   }
+}
+
+/* Desktop (≥1200px) — action buttons inline as usual */
+@media (min-width: 1200px) {
+  .header-actions {
+    display: flex !important;
+    align-items: center;
+    gap: .65rem;
+    flex-shrink: 0;
+  }
+}
+
+/* Tablet (768–1199px) — all action buttons collapse into one "tools"
+   dropdown. Same DOM nodes, so every button keeps its JS behavior. */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .header-tools-btn {
+    display: inline-flex !important;
+  }
+
+  .header-tools-wrap.open .header-actions {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .6rem;
+    position: absolute;
+    top: calc(100% + 14px);
+    inset-inline-end: 0;
+    min-width: 230px;
+    padding: .8rem;
+    border-radius: 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--separator-color);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .28);
+    z-index: 1200;
+  }
+
+  /* Every button stretches full width inside the panel, icons centered.
+     The #header-nav prefix outranks the base icon-btn width rules. */
+  #header-nav .header-tools-wrap.open .header-actions > .btn,
+  #header-nav .header-tools-wrap.open .header-actions > .dropdown > .btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+  }
+
+  #header-nav .header-tools-wrap.open .header-actions > .icon-btn {
+    height: auto;
+  }
+
+  .header-tools-wrap.open .header-actions > div:not(.dropdown) {
+    width: 100%;
+  }
+
+  .header-tools-wrap.open .header-actions > div:not(.dropdown) {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    margin-inline-start: 0 !important;
+  }
+
+  .header-tools-wrap.open .header-actions > div:not(.dropdown) .btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+/* Medium range (768–1199px) — tighter spacing so as much as possible fits
+   inline; whatever still overflows goes into the "More" dropdown. */
+@media (min-width: 768px) and (max-width: 1199px) {
+  #header-nav .primary-nav {
+    gap: .8rem;
+  }
+
+  #header-nav .desktop-nav-link {
+    font-size: .85rem !important;
+    padding: .35rem .15rem;
+  }
+
+  #header-nav .btn-luxury,
+  #header-nav .btn-glass {
+    font-size: .74rem;
+    padding-left: .55rem;
+    padding-right: .55rem;
+  }
+
+  #header-nav .icon-btn {
+    width: 1.85rem;
+    height: 1.85rem;
+    font-size: .78rem;
+  }
+
+  #navbar-logo {
+    height: 42px;
+  }
+
+  .sticky-header>.container {
+    padding-left: .75rem;
+    padding-right: .75rem;
+    gap: .6rem;
+  }
+}
+
+/* "More" overflow dropdown — links moved here by landing.js when they
+   don't fit the nav's width */
+.primary-nav .nav-more-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.primary-nav .nav-more-menu {
+  inset-inline-end: 0;
+  inset-inline-start: auto;
+  left: auto;
+}
+
+.primary-nav .nav-more-menu .desktop-nav-link {
+  display: block;
+  width: 100%;
+  padding: .55rem .9rem !important;
+  border-radius: 8px;
+  white-space: nowrap;
+  transition: background .2s ease, color .2s ease;
+}
+
+.primary-nav .nav-more-menu .desktop-nav-link:hover,
+.primary-nav .nav-more-menu .desktop-nav-link.active {
+  background: var(--accent-glow);
+  color: var(--accent-color) !important;
 }
 
 .primary-nav>.nav-item-primary {
@@ -1396,6 +1538,34 @@ html.theme-light #header-nav.scrolled span.text-xl,
 html.theme-light #header-nav.scrolled span.text-xl>span.font-normal {
   color: #0a0a0a !important;
   text-shadow: 0 1px 4px rgba(255, 255, 255, .55);
+}
+
+/* ============================================================
+   Hamburger (3 dashes) + drawer close (X) — theme-aware colors
+   in every theme (dark / light / gold), site-wide.
+   ============================================================ */
+#header-nav .mobile-menu-toggle,
+#mobileNavMenu #closeMobileMenu {
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  line-height: 1;
+  transition: color .25s ease, background-color .25s ease, border-color .25s ease;
+}
+
+#header-nav .mobile-menu-toggle:hover,
+#mobileNavMenu #closeMobileMenu:hover {
+  color: var(--accent-color);
+  background: var(--accent-glow);
+  border-color: var(--separator-color);
+}
+
+/* Bootstrap modal close (X) — its default icon is near-black, invisible on
+   the dark and gold themes. Invert it there; light theme keeps the default. */
+html.theme-dark .btn-close,
+html.theme-gold .btn-close {
+  filter: invert(1) grayscale(100%) brightness(1.6);
 }
 
 /* Mobile menu toggle (.bi-list icon) — same scroll-aware color flip */

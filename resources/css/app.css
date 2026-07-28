@@ -4,8 +4,17 @@
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
+@source '../../public/site/js/**/*.js';
+@source '../../public/student/js/**/*.js';
+@source '../../public/teacher/js/**/*.js';
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Brand gold palette — replaces the inline tailwind.config that the
+       Play CDN used (text-gold, bg-gold/10, selection:bg-gold-light, ...) */
+    --color-gold: #c5a880;
+    --color-gold-light: #e8d0ad;
+    --color-gold-dark: #a3875f;
 }

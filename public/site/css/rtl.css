@@ -80,6 +80,41 @@
   gap: .9rem;
 }
 
+/* Medium range (768–1199px, iPad) — inline navbar shows like desktop, so
+   tighten Arabic spacing further; overflow goes into the "More" dropdown. */
+@media (min-width: 768px) and (max-width: 1199px) {
+  [dir="rtl"] #header-nav .primary-nav {
+    gap: .7rem !important;
+  }
+
+  [dir="rtl"] #header-nav .desktop-nav-link {
+    font-size: .85rem !important;
+  }
+
+  [dir="rtl"] #header-nav .nav-more-btn {
+    padding: .35rem .6rem !important;
+    font-size: .82rem !important;
+  }
+
+  [dir="rtl"] #header-nav .btn-luxury,
+  [dir="rtl"] #header-nav .btn-glass {
+    font-size: .72rem !important;
+    padding-inline: .5rem !important;
+  }
+
+  [dir="rtl"] #header-nav .icon-btn {
+    width: 1.85rem;
+    height: 1.85rem;
+    font-size: .72rem;
+  }
+
+  [dir="rtl"] .sticky-header>.container {
+    padding-left: .75rem;
+    padding-right: .75rem;
+    gap: .5rem;
+  }
+}
+
 /* Desktop & up (≥1200px) — spacing adjusted to be comfortable since the logo
    has a reasonable size of 70px tall. Kept slightly tighter than LTR as Arabic 
    words take up more horizontal space. */

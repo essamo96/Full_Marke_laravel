@@ -28,22 +28,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
   
   <!-- Tailwind CSS Play CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            gold: {
-              light: '#e8d0ad',
-              DEFAULT: '#c5a880',
-              dark: '#a3875f',
-            }
-          }
-        }
-      }
-    }
-  </script>
+  @vite('resources/css/app.css')
 
   <!-- Custom Theme Stylesheets -->
   <link rel="stylesheet" href="{{ asset('site/css/variables.css') }}?v=1.0">
@@ -114,8 +99,17 @@
   <script>
     function initSwiper() {
       const dir = document.documentElement.getAttribute('dir') || 'ltr';
+
+      // Swiper logs a console warning and disables loop when there aren't
+      // more slides than the largest slidesPerView — so only enable it when
+      // there are actually enough slides.
+      function hasEnoughSlides(selector, maxPerView) {
+        const el = document.querySelector(selector);
+        return !!el && el.querySelectorAll('.swiper-slide').length > maxPerView;
+      }
+
       window.mySwiperInstance = new Swiper('.testimonials-swiper', {
-        loop: true,
+        loop: hasEnoughSlides('.testimonials-swiper', 3),
         autoplay: {
           delay: 4000,
           disableOnInteraction: false,
@@ -143,7 +137,7 @@
       });
 
       window.newsSwiperInstance = new Swiper('.news-swiper', {
-        loop: true,
+        loop: hasEnoughSlides('.news-swiper', 3),
         autoplay: {
           delay: 4000,
           disableOnInteraction: false,
@@ -167,7 +161,7 @@
       });
 
       window.teachersSwiperInstance = new Swiper('.teachers-swiper', {
-        loop: true,
+        loop: hasEnoughSlides('.teachers-swiper', 4),
         autoplay: {
           delay: 4000,
           disableOnInteraction: false,

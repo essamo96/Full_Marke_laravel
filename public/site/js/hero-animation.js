@@ -39,7 +39,7 @@
         ? '/site/images/slider1.mp4'
         : '/site/images/slider1.mp4',
       'hero-bg-video-2': isMobile
-        ? '/site/images/slider2_mobile.mp4'
+        ? '/site/images/slider2.mp4'
         : '/site/images/slider2.mp4',
       // Note: 'about-video' is intentionally NOT swapped here — its source is
       // whatever the admin configured for the About Us page (video or image),
