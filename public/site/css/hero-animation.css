@@ -1351,9 +1351,25 @@ footer .h-12 {
     padding: .8rem;
     border-radius: 14px;
     background: var(--bg-secondary);
-    border: 1px solid var(--separator-color);
+    border: 1px solid var(--glass-border);
     box-shadow: 0 14px 34px rgba(0, 0, 0, .28);
     z-index: 1200;
+  }
+
+  /* The panel has a solid theme background, so its contents must always use
+     the normal theme colors — overriding the light-theme rule that paints
+     header icon buttons white while the transparent header sits over the
+     dark hero (white-on-white would be invisible). */
+  html.theme-light .sticky-header:not(.scrolled) .header-tools-wrap.open .header-actions .icon-btn,
+  html.theme-light .sticky-header:not(.scrolled) .header-tools-wrap.open .header-actions .btn-glass,
+  html.theme-light .sticky-header:not(.scrolled) .header-tools-wrap.open .header-actions span {
+    color: var(--text-primary) !important;
+    text-shadow: none;
+  }
+
+  html.theme-light .sticky-header:not(.scrolled) .header-tools-wrap.open .header-actions .icon-btn {
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
   }
 
   /* Every button stretches full width inside the panel, icons centered.
@@ -1424,6 +1440,30 @@ footer .h-12 {
     padding-right: .75rem;
     gap: .6rem;
   }
+}
+
+/* Logged-in student dropdown inside the header actions — themed for all
+   three themes instead of Bootstrap's default white menu */
+.header-actions .dropdown-menu {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .25);
+}
+
+.header-actions .dropdown-menu .dropdown-item {
+  color: var(--text-primary);
+  border-radius: 8px;
+  transition: background .2s ease, color .2s ease;
+}
+
+.header-actions .dropdown-menu .dropdown-item:hover,
+.header-actions .dropdown-menu .dropdown-item:focus {
+  background: var(--accent-glow);
+  color: var(--accent-color);
+}
+
+.header-actions .dropdown-menu .dropdown-divider {
+  border-color: var(--separator-color);
 }
 
 /* "More" overflow dropdown — links moved here by landing.js when they
