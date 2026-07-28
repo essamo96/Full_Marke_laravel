@@ -78,17 +78,3 @@ jobs:
             .editorconfig
             .styleci.yml
 
-      - name: 🧹 Clear stale server-side caches
-        # storage/framework/** is excluded from the sync above (it's runtime-
-        # generated), so old compiled Blade views/config/route caches survive
-        # deploys untouched and can end up out of sync with the newly-uploaded
-        # source — causing 500s from views that no longer match what's cached.
-        # Requires the DEPLOY_CACHE_TOKEN secret (must match the value set in
-        # the server's .env) — until that's configured this step is skipped
-        # rather than failing the whole deploy.
-        run: |
-          if [ -z "${{ secrets.DEPLOY_CACHE_TOKEN }}" ]; then
-            echo "::warning::DEPLOY_CACHE_TOKEN secret is not set — skipping cache clear. Add it in repo Settings > Secrets and set the same value as DEPLOY_CACHE_TOKEN in the server's .env to enable this."
-          else
-            curl -fsS "https://fullmarkacademy.com/deploy/clear-cache?token=${{ secrets.DEPLOY_CACHE_TOKEN }}" || echo "::warning::Cache-clear request failed — check DEPLOY_CACHE_TOKEN matches on both sides."
-          fi
