@@ -559,6 +559,12 @@
         documentField.classList.toggle('d-none', type !== 'document');
         imageField.classList.toggle('d-none', type !== 'image');
         urlField.classList.toggle('d-none', type !== 'link' && type !== 'zoom');
+
+        // The document/image inputs share name="file" — a hidden-but-enabled
+        // input still rides along in FormData(form) and corrupts the "file"
+        // field into an array, so disable whichever one isn't active.
+        documentField.querySelector('input[name="file"]').disabled = (type !== 'document');
+        imageField.querySelector('input[name="file"]').disabled = (type !== 'image');
     }
 
     function formatBytes(bytes, decimals = 2) {
@@ -835,6 +841,11 @@
         else if (type === 'document') docField.classList.remove('d-none');
         else if (type === 'image') imageField.classList.remove('d-none');
         else urlField.classList.remove('d-none');
+
+        // Same name="file" collision as the add-resource modal — keep only
+        // the visible one enabled so FormData(form) doesn't submit both.
+        document.getElementById('edit_resource_file_doc').disabled = (type !== 'document');
+        document.getElementById('edit_resource_file_img').disabled = (type !== 'image');
     }
 
     function initEditVideoResumable() {

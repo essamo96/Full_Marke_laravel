@@ -1025,11 +1025,199 @@
 						<!--end::Navbar-->
 					</div>
 					<!--end::Header main-->
-					<!--begin::Separator-->
+				<!--begin::Separator-->
 					<div class="app-header-separator"></div>
 					<!--end::Separator-->
+
+					<!--begin::Tablet menu bar (iPad-width only, see CSS/JS below)-->
+					<div class="app-header-tablet-menu d-none align-items-center px-6 py-2" id="kt_app_header_tablet_menu">
+						<div class="tablet-menu-items d-flex align-items-center" id="tablet_menu_items_wrap">
+							@if(isset($sidebar))
+								@foreach ($sidebar as $parent_item)
+									<?php
+									if ($parent_item->name == 'dashboard') {
+										$tParentPermission = 'admin.' . $parent_item->name . '.view';
+										$tParentRoute = 'admin.dashboard';
+									} else {
+										$tParentPermission = 'admin.' . $parent_item->name . '.view';
+										$tParentRoute = $parent_item->name . '.view';
+									}
+									$tLang = app()->getLocale();
+									$tParentTitle = $parent_item->{'name_' . $tLang} ?? $parent_item->name;
+									$tRawIcon = $parent_item->icon ?: 'bi-circle';
+									$tParentIcon = str_starts_with($tRawIcon, 'ki-') ? $tRawIcon : 'bi ' . $tRawIcon;
+									?>
+									@can($tParentPermission)
+										<div class="tablet-menu-item">
+											@if ($parent_item->mychild && sizeof($parent_item->mychild) > 0)
+												<div class="tablet-menu-dropdown-wrap">
+													<button type="button" class="btn btn-sm btn-color-gray-700 btn-active-light-primary tablet-menu-btn" data-tablet-menu-toggle>
+														<i class="{{ $tParentIcon }} fs-4"></i>
+														<span>{{ $tParentTitle }}</span>
+														<i class="ki-outline ki-down fs-7 ms-1"></i>
+													</button>
+													<div class="tablet-menu-panel d-none">
+														@foreach ($parent_item->mychild as $child_item)
+															<?php
+															$tChildPermission = 'admin.' . $child_item->name . '.view';
+															$tChildRoute = $child_item->name . '.view';
+															$tChildTitle = $child_item->{'name_' . $tLang} ?? $child_item->name;
+															try {
+																$tChildUrl = Route::has($tChildRoute) ? route($tChildRoute) : '#';
+															} catch (\Exception $e) {
+																$tChildUrl = '#';
+															}
+															?>
+															@can($tChildPermission)
+																<a href="{{ $tChildUrl }}" class="tablet-menu-panel-link">{{ $tChildTitle }}</a>
+															@endcan
+														@endforeach
+													</div>
+												</div>
+											@else
+												<a href="{{ Route::has($tParentRoute) ? route($tParentRoute) : '#' }}" class="btn btn-sm btn-color-gray-700 btn-active-light-primary tablet-menu-btn">
+													<i class="{{ $tParentIcon }} fs-4"></i>
+													<span>{{ $tParentTitle }}</span>
+												</a>
+											@endif
+										</div>
+									@endcan
+								@endforeach
+							@endif
+						</div>
+						<div class="tablet-menu-more-wrap d-none" id="tablet_menu_more_wrap">
+							<div class="tablet-menu-dropdown-wrap">
+								<button type="button" class="btn btn-sm btn-light-primary tablet-menu-btn" data-tablet-menu-toggle>
+									<i class="ki-outline ki-element-11 fs-4"></i>
+									<span data-en="Show more" data-ar="عرض المزيد">عرض المزيد</span>
+								</button>
+								<div class="tablet-menu-panel d-none" id="tablet_menu_more_panel"></div>
+							</div>
+						</div>
+					</div>
+					<!--end::Tablet menu bar-->
 				</div>
 				<!--end::Header-->
+
+				<style>
+					.app-header-tablet-menu { display: none; }
+					@media (min-width: 768px) and (max-width: 1194px) {
+						.app-header-tablet-menu { display: flex !important; }
+					}
+					#tablet_menu_items_wrap {
+						display: flex;
+						align-items: center;
+						gap: .375rem;
+						flex: 1 1 auto;
+						min-width: 0;
+						overflow: hidden;
+						flex-wrap: nowrap;
+					}
+					.tablet-menu-item, .tablet-menu-more-wrap { flex-shrink: 0; }
+					.tablet-menu-dropdown-wrap { position: relative; }
+					.tablet-menu-btn { display: inline-flex; align-items: center; gap: .375rem; white-space: nowrap; }
+					.tablet-menu-more-wrap { margin-inline-start: .5rem; }
+					.tablet-menu-panel {
+						position: absolute;
+						top: 100%;
+						inset-inline-start: 0;
+						margin-top: .375rem;
+						min-width: 200px;
+						background: var(--bs-body-bg, #fff);
+						border-radius: .625rem;
+						box-shadow: 0 0 25px rgba(0,0,0,.15);
+						padding: .5rem;
+						z-index: 105;
+						display: flex;
+						flex-direction: column;
+					}
+					.tablet-menu-panel-link {
+						padding: .5rem .75rem;
+						border-radius: .475rem;
+						color: var(--bs-gray-700, #3f4254);
+						text-decoration: none;
+						white-space: nowrap;
+					}
+					.tablet-menu-panel-link:hover { background: var(--bs-gray-100, #f9f9f9); }
+				</style>
+
+				<script>
+					(function () {
+						var wrap = document.getElementById('tablet_menu_items_wrap');
+						var moreWrap = document.getElementById('tablet_menu_more_wrap');
+						var morePanel = document.getElementById('tablet_menu_more_panel');
+						if (!wrap || !moreWrap || !morePanel) return;
+
+						// Master order of items, captured once. Items get shuffled between the
+						// visible row and the "show more" panel as the available width changes.
+						var items = Array.prototype.slice.call(wrap.children);
+
+						function closeAllPanels() {
+							document.querySelectorAll('.tablet-menu-panel').forEach(function (p) { p.classList.add('d-none'); });
+						}
+
+						document.addEventListener('click', function (e) {
+							var toggle = e.target.closest('[data-tablet-menu-toggle]');
+							if (toggle) {
+								var panel = toggle.parentElement.querySelector('.tablet-menu-panel');
+								var wasOpen = panel && !panel.classList.contains('d-none');
+								closeAllPanels();
+								if (panel && !wasOpen) panel.classList.remove('d-none');
+								return;
+							}
+							if (!e.target.closest('.tablet-menu-panel')) closeAllPanels();
+						});
+
+						function layout() {
+							var bar = document.getElementById('kt_app_header_tablet_menu');
+							if (!bar || getComputedStyle(bar).display === 'none') return;
+
+							// Reset: everything back in the row, measure, then push overflow into "more".
+							items.forEach(function (item) { wrap.appendChild(item); });
+							moreWrap.classList.add('d-none');
+							morePanel.innerHTML = '';
+
+							var available = wrap.parentElement.clientWidth;
+							var reserveForMore = 130;
+							var used = 0;
+							var overflowStart = -1;
+
+							for (var i = 0; i < items.length; i++) {
+								used += items[i].offsetWidth + 6;
+								if (used > available - reserveForMore) {
+									overflowStart = i;
+									break;
+								}
+							}
+
+							if (overflowStart === -1) return;
+
+							for (var j = overflowStart; j < items.length; j++) {
+								var item = items[j];
+								var isDropdown = item.querySelector('.tablet-menu-panel');
+								if (isDropdown) {
+									// Nested group: flatten its children straight into "more".
+									item.querySelectorAll('.tablet-menu-panel-link').forEach(function (a) {
+										morePanel.appendChild(a.cloneNode(true));
+									});
+								} else {
+									var link = item.querySelector('.tablet-menu-btn');
+									if (link) morePanel.appendChild(link.cloneNode(true));
+								}
+								item.remove();
+							}
+							moreWrap.classList.remove('d-none');
+						}
+
+						var resizeTimer = null;
+						window.addEventListener('resize', function () {
+							clearTimeout(resizeTimer);
+							resizeTimer = setTimeout(layout, 150);
+						});
+						window.addEventListener('load', layout);
+						layout();
+					})();
+				</script>
 
 
 <!-- Admin Panel QR Code Modal -->

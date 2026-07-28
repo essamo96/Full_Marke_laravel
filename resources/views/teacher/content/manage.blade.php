@@ -386,10 +386,18 @@
 
   function toggleResourceFields() {
     const type = document.getElementById('resource_type').value;
+    const documentField = document.getElementById('resource_document_field');
+    const imageField = document.getElementById('resource_image_field');
     document.getElementById('resource_video_field').classList.toggle('d-none', type !== 'video');
-    document.getElementById('resource_document_field').classList.toggle('d-none', type !== 'document');
-    document.getElementById('resource_image_field').classList.toggle('d-none', type !== 'image');
+    documentField.classList.toggle('d-none', type !== 'document');
+    imageField.classList.toggle('d-none', type !== 'image');
     document.getElementById('resource_url_field').classList.toggle('d-none', type !== 'link' && type !== 'zoom');
+
+    // document/image inputs share name="file" — a hidden-but-enabled input
+    // still rides along in FormData(form) and corrupts the "file" field into
+    // an array, so disable whichever one isn't active.
+    documentField.querySelector('input[name="file"]').disabled = (type !== 'document');
+    imageField.querySelector('input[name="file"]').disabled = (type !== 'image');
   }
 
   function initVideoResumable() {
