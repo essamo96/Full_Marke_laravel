@@ -297,12 +297,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let resendInterval;
     const csrfToken = document.querySelector('input[name="_token"]').value;
 
-    // Building the Bootstrap modal must never be able to take down the rest
-    // of this script — a slow/blocked CDN would otherwise throw here and
-    // silently skip attaching the form's submit handler below, leaving the
-    // browser to fall back to a plain (non-AJAX) POST that surfaces Laravel's
-    // raw error page on any failure (e.g. a stale CSRF token) instead of the
-    // friendly in-page message this form is built to show.
     let otpModal = null;
     try {
         const otpModalEl = document.getElementById('otpVerificationModal');
@@ -326,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.value = ''; // ignore non-numeric
             }
         });
-        
+
         // Handle paste event
         input.addEventListener('paste', function(e) {
             e.preventDefault();
@@ -347,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> <span data-en="Processing..." data-ar="جاري المعالجة...">Processing...</span>';
-        
+
         const formData = new FormData(regForm);
         fetch('{{ route("student.register.submit") }}', {
             method: 'POST',
@@ -409,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle Verify Form via AJAX
     verifyForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         let code = Array.from(otpInputs).map(i => i.value).join('');
         if (code.length !== 6) return;
 
@@ -417,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const originalText = verifyBtn.innerHTML;
         verifyBtn.disabled = true;
         verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-        
+
         const formData = new FormData(verifyForm);
         formData.append('code', code);
 
@@ -515,9 +509,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const resendBtn = document.getElementById('resendCodeBtn');
         const timerSpan = document.getElementById('resendTimer');
         resendBtn.disabled = true;
-        
+
         clearInterval(resendInterval);
-        
+
         resendInterval = setInterval(() => {
             if (seconds <= 0) {
                 clearInterval(resendInterval);
@@ -530,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 1000);
     }
-    
+
     // Reopen the OTP modal if this session left an unverified registration
     // behind (e.g. the page was refreshed before the code was entered).
     @if($pendingEmail ?? false)

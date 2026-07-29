@@ -53,6 +53,7 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('groups', [GroupsController::class, 'index'])->name('groups');
         Route::get('groups/{group}', [GroupsController::class, 'show'])->name('groups.show');
         Route::post('groups/join-by-code', [GroupsController::class, 'joinByCode'])->name('groups.join-by-code');
+        Route::get('schedule', [\App\Http\Controllers\Student\ScheduleController::class, 'index'])->name('schedule');
         Route::get('resources', [ResourcesController::class, 'index'])->name('resources');
         Route::get('secure-embed/{resource}', [\App\Http\Controllers\Student\SecureResourceController::class, 'embed'])->name('resources.embed');
         Route::post('videos/{resource}/start', [VideoStreamController::class, 'startSession'])->name('video.start');

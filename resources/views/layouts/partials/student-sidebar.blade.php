@@ -42,6 +42,7 @@
         <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuAcademy">
           <li><a href="{{ route('student.programs') }}" class="sidebar-submenu-item {{ request()->routeIs('student.programs') ? 'active' : '' }}" data-en="Programs" data-ar="البرامج الدراسية">Programs</a></li>
           <li><a href="{{ route('student.groups') }}" class="sidebar-submenu-item {{ request()->routeIs('student.groups') ? 'active' : '' }}" data-en="Study Groups & Sessions" data-ar="المجموعات والجلسات الدراسية">Study Groups &amp; Sessions</a></li>
+          <li><a href="{{ route('student.schedule') }}" class="sidebar-submenu-item {{ request()->routeIs('student.schedule') ? 'active' : '' }}" data-en="My Schedule" data-ar="جدولي الدراسي">My Schedule</a></li>
           <li><a href="{{ route('student.resources') }}" class="sidebar-submenu-item {{ request()->routeIs('student.resources') ? 'active' : '' }}" data-en="Resources" data-ar="الموارد التعليمية">Resources</a></li>
         </ul>
 

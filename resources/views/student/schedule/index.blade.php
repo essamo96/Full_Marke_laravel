@@ -1,13 +1,12 @@
-@extends('layouts.teacher')
+@extends('layouts.student')
 
-@section('title', 'Academic Schedule | FULL MARK ACADEMY')
-@section('page_title_en', 'Academic Schedule')
-@section('page_title_ar', 'الجدول الأكاديمي')
+@section('title', 'My Schedule | FULL MARK ACADEMY')
+@section('page_title_en', 'My Schedule')
+@section('page_title_ar', 'جدولي الدراسي')
 
 @php
   use App\Services\WeeklySchedule;
 
-  $dayLabels = WeeklySchedule::DAY_LABELS_AR;
   $statusMeta = [
     'active'   => ['label' => 'جارية',  'class' => 'sched-pill--active'],
     'upcoming' => ['label' => 'قادمة',  'class' => 'sched-pill--upcoming'],
@@ -19,7 +18,7 @@
 
   <div class="sched-header">
     <div>
-      <h1 class="sched-title" data-en="Academic Schedule" data-ar="الجدول الأكاديمي">الجدول الأكاديمي</h1>
+      <h1 class="sched-title" data-en="My Schedule" data-ar="جدولي الدراسي">جدولي الدراسي</h1>
       <p class="sched-subtitle" dir="rtl">{{ now()->translatedFormat('l، j F Y') }}</p>
     </div>
 
@@ -42,15 +41,30 @@
   @include('partials.schedule.week', [
     'byDay' => $groupsByDay,
     'todayKey' => $todayKey,
-    'linkRoute' => 'teacher.groups.show',
+    'linkRoute' => 'student.groups.show',
+    'showTeacher' => true,
   ])
 
-  <h2 class="sched-section-title" data-en="All Groups" data-ar="كل المجموعات">كل المجموعات</h2>
+  @if($awaitingGroup->isNotEmpty())
+    <div class="sched-notice">
+      <i class="bi bi-info-circle"></i>
+      <div>
+        <strong data-en="Not scheduled yet" data-ar="بانتظار تحديد المجموعة">بانتظار تحديد المجموعة</strong>
+        <p>
+          <span data-en="These subjects have no group assigned yet, so they do not appear on the calendar:"
+                data-ar="لم يتم تحديد مجموعة لهذه المواد بعد، لذلك لا تظهر في الجدول:">لم يتم تحديد مجموعة لهذه المواد بعد، لذلك لا تظهر في الجدول:</span>
+          {{ $awaitingGroup->map(fn($r) => $r->subject->name_ar ?? $r->subject->name ?? '—')->implode(' · ') }}
+        </p>
+      </div>
+    </div>
+  @endif
+
+  <h2 class="sched-section-title" data-en="My Groups" data-ar="مجموعاتي">مجموعاتي</h2>
 
   <div class="sched-cards">
     @forelse($groups as $group)
       @php $meta = $statusMeta[$group->schedule_status] ?? $statusMeta['active']; @endphp
-      <a href="{{ route('teacher.groups.show', $group) }}" class="sched-card">
+      <a href="{{ route('student.groups.show', $group) }}" class="sched-card">
         <div class="sched-card__top">
           <h3 class="sched-card__title">{{ $group->name }}</h3>
           <span class="sched-pill {{ $meta['class'] }}">{{ $meta['label'] }}</span>
@@ -68,11 +82,9 @@
           <span dir="ltr"><i class="bi bi-clock"></i> {{ WeeklySchedule::formatTime($group->start_time) }} – {{ WeeklySchedule::formatTime($group->end_time) }}</span>
         </div>
 
-        @if($group->start_date || $group->end_date)
+        @if($group->teacher)
           <div class="sched-card__meta">
-            <span><i class="bi bi-calendar-range"></i>
-              <span dir="ltr">{{ $group->start_date?->format('Y-m-d') ?? '؟' }} — {{ $group->end_date?->format('Y-m-d') ?? '؟' }}</span>
-            </span>
+            <span><i class="bi bi-person"></i> {{ $group->teacher->name }}</span>
           </div>
         @endif
 
@@ -83,7 +95,7 @@
         @endif
       </a>
     @empty
-      <div class="sched-empty" data-en="No groups yet." data-ar="لا توجد مجموعات بعد.">لا توجد مجموعات بعد.</div>
+      <div class="sched-empty" data-en="You have no scheduled groups yet." data-ar="لا توجد لديك مجموعات مجدولة بعد.">لا توجد لديك مجموعات مجدولة بعد.</div>
     @endforelse
   </div>
 
@@ -92,6 +104,22 @@
 @push('styles')
   @include('partials.schedule.styles')
   @include('partials.schedule.page-styles')
+<style>
+  .sched-notice {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-top: 22px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--input-bg);
+    border: 1px solid var(--separator-color);
+    border-inline-start: 3px solid #f59e0b;
+  }
+  .sched-notice i { color: #f59e0b; font-size: 1.05rem; margin-top: 2px; }
+  .sched-notice strong { display: block; font-size: 0.84rem; color: var(--text-primary); margin-bottom: 3px; }
+  .sched-notice p { margin: 0; font-size: 0.76rem; color: var(--text-muted); line-height: 1.6; }
+</style>
 @endpush
 
 @push('scripts')
