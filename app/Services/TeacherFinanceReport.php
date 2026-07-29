@@ -175,7 +175,11 @@ class TeacherFinanceReport
             ->join('groups as g', 'g.id', '=', 'r.group_id')
             ->where('p.status', 'confirmed')
             ->whereIn('r.group_id', $groupIds ?: [0])
-            ->orderByDesc('p.reviewed_at')
+            // Confirmed payments do not always carry reviewed_at (it is only
+            // stamped when an admin reviews one by hand), so fall back to the
+            // submission date. Ordering on the raw column would otherwise be
+            // arbitrary whenever it is null.
+            ->orderByDesc(DB::raw('COALESCE(p.reviewed_at, p.created_at)'))
             ->select([
                 'pr.allocated_amount',
                 'p.payment_number',
@@ -183,6 +187,7 @@ class TeacherFinanceReport
                 'p.method',
                 'p.reviewed_at',
                 'p.created_at',
+                DB::raw('COALESCE(p.reviewed_at, p.created_at) as confirmed_at'),
                 's.full_name_ar as student_name_ar',
                 's.full_name_en as student_name_en',
                 'g.name as group_name',

@@ -59,7 +59,7 @@
                   <td>{{ $payment->group_name }}</td>
                   <td>{{ $payment->method ?: '—' }}</td>
                   <td class="num finance-amount-positive">{{ number_format((float) $payment->allocated_amount, 2) }}</td>
-                  <td>{{ $payment->reviewed_at ? \Illuminate\Support\Carbon::parse($payment->reviewed_at)->format('Y-m-d') : '—' }}</td>
+                  <td>{{ $payment->confirmed_at ? \Illuminate\Support\Carbon::parse($payment->confirmed_at)->format('Y-m-d') : '—' }}</td>
                 </tr>
               @empty
                 <tr>

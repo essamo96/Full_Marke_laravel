@@ -102,7 +102,9 @@
           <span class="sidebar-nav-item-text" data-en="Finance" data-ar="المالية">Finance</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
-        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ request()->routeIs('teacher.finance.*') ? 'show' : '' }}" id="menuFinance">
+        {{-- 'expanded' is the class the sidebar JS/CSS uses (not Bootstrap's 'show'),
+             so the section stays open while browsing inside finance. --}}
+        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ request()->routeIs('teacher.finance.*') ? 'expanded' : '' }}" id="menuFinance">
           <li><a href="{{ route('teacher.finance.index') }}" class="sidebar-submenu-item {{ request()->routeIs('teacher.finance.index') ? 'active' : '' }}" data-en="Overview" data-ar="نظرة عامة">Overview</a></li>
           <li><a href="{{ route('teacher.finance.groups') }}" class="sidebar-submenu-item {{ request()->routeIs('teacher.finance.groups') || request()->routeIs('teacher.finance.group') ? 'active' : '' }}" data-en="By Group" data-ar="حسب المجموعة">By Group</a></li>
           <li><a href="{{ route('teacher.finance.students') }}" class="sidebar-submenu-item {{ request()->routeIs('teacher.finance.students') || request()->routeIs('teacher.finance.registration') ? 'active' : '' }}" data-en="By Student" data-ar="حسب الطالب">By Student</a></li>
