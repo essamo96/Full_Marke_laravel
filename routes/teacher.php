@@ -5,6 +5,7 @@ use App\Http\Controllers\Teacher\AttendanceController;
 use App\Http\Controllers\Teacher\ContentController;
 use App\Http\Controllers\Teacher\DashboardController;
 use App\Http\Controllers\Teacher\ExamController;
+use App\Http\Controllers\Teacher\FinanceController;
 use App\Http\Controllers\Teacher\GradingController;
 use App\Http\Controllers\Teacher\GroupNoteController;
 use App\Http\Controllers\Teacher\GroupsController;
@@ -66,6 +67,17 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::get('content/resources/{resource}/file', [ContentController::class, 'viewResourceFile'])->name('content.view-file');
         Route::get('content/resources/{resource}/progress', [ContentController::class, 'progress'])->name('content.progress');
         Route::post('content/upload-chunk', [VideoChunkUploadController::class, 'upload'])->name('content.upload-chunk');
+
+        // Financial reporting. Group and Registration both encrypt their route
+        // keys, so no sequential ids appear in these URLs.
+        Route::prefix('finance')->name('finance.')->group(function () {
+            Route::get('/', [FinanceController::class, 'index'])->name('index');
+            Route::get('groups', [FinanceController::class, 'groups'])->name('groups');
+            Route::get('groups/{group}', [FinanceController::class, 'group'])->name('group');
+            Route::get('students', [FinanceController::class, 'students'])->name('students');
+            Route::get('enrolments/{registration}', [FinanceController::class, 'registration'])->name('registration');
+            Route::get('payments', [FinanceController::class, 'payments'])->name('payments');
+        });
 
         Route::post('notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');
         Route::post('notifications/read-all', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');

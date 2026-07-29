@@ -96,6 +96,20 @@
           <li><a href="#" class="sidebar-submenu-item" data-en="Surveys" data-ar="الاستبيانات والتقييمات">Surveys</a></li>
         </ul>
 
+        <!-- Finance -->
+        <a href="#menuFinance" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ request()->routeIs('teacher.finance.*') ? 'true' : 'false' }}" aria-controls="menuFinance">
+          <i class="bi bi-wallet2 sidebar-nav-item-icon"></i>
+          <span class="sidebar-nav-item-text" data-en="Finance" data-ar="المالية">Finance</span>
+          <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
+        </a>
+        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ request()->routeIs('teacher.finance.*') ? 'show' : '' }}" id="menuFinance">
+          <li><a href="{{ route('teacher.finance.index') }}" class="sidebar-submenu-item {{ request()->routeIs('teacher.finance.index') ? 'active' : '' }}" data-en="Overview" data-ar="نظرة عامة">Overview</a></li>
+          <li><a href="{{ route('teacher.finance.groups') }}" class="sidebar-submenu-item {{ request()->routeIs('teacher.finance.groups') || request()->routeIs('teacher.finance.group') ? 'active' : '' }}" data-en="By Group" data-ar="حسب المجموعة">By Group</a></li>
+          <li><a href="{{ route('teacher.finance.students') }}" class="sidebar-submenu-item {{ request()->routeIs('teacher.finance.students') || request()->routeIs('teacher.finance.registration') ? 'active' : '' }}" data-en="By Student" data-ar="حسب الطالب">By Student</a></li>
+          <li><a href="{{ route('teacher.finance.students', ['filter' => 'outstanding']) }}" class="sidebar-submenu-item" data-en="Outstanding" data-ar="المبالغ المتبقية">Outstanding</a></li>
+          <li><a href="{{ route('teacher.finance.payments') }}" class="sidebar-submenu-item {{ request()->routeIs('teacher.finance.payments') ? 'active' : '' }}" data-en="Payments" data-ar="سجل المدفوعات">Payments</a></li>
+        </ul>
+
         <!-- Reports -->
         <a href="#" class="sidebar-nav-item rounded-3 mb-1">
           <i class="bi bi-bar-chart sidebar-nav-item-icon"></i>

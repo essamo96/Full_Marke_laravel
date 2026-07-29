@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Exam;
 use App\Models\Group;
+use App\Services\TeacherFinanceReport;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -68,8 +69,17 @@ class DashboardController extends Controller
             ->count();
         $averageRating = 4.9;
 
+        // Finance panel. Same source of truth as the finance section, so the
+        // dashboard figures cannot drift from the detailed screens.
+        $financeReport = TeacherFinanceReport::for($teacher);
+        ['totals' => $financeTotals, 'rows' => $financeGroups] = $financeReport->groupBreakdown();
+        $financeGroups = $financeGroups->sortByDesc('collected')->values();
+        $financeOutstanding = $financeReport->topOutstanding(5);
+        $financeRecentPayments = $financeReport->confirmedPaymentsQuery()->limit(5)->get();
+
         return view('teacher.dashboard.index', compact(
-            'teacher', 'groups', 'programBreakdown', 'totalStudents', 'upcomingExams', 'mostAbsentStudents', 'todaysSessions', 'activeClassesCount', 'pendingReviewsCount', 'averageRating'
+            'teacher', 'groups', 'programBreakdown', 'totalStudents', 'upcomingExams', 'mostAbsentStudents', 'todaysSessions', 'activeClassesCount', 'pendingReviewsCount', 'averageRating',
+            'financeTotals', 'financeGroups', 'financeOutstanding', 'financeRecentPayments'
         ));
     }
 }

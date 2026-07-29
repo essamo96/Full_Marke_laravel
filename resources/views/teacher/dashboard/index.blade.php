@@ -96,6 +96,9 @@
           </div>
         </section>
 
+        <!-- ════ Finance Panel ════ -->
+        @include('teacher.dashboard._finance-panel')
+
         <div class="row g-4 g-lg-5">
           <!-- Upcoming Sessions -->
           <div class="col-xl-8 fade-in-up delay-2">
