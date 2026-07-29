@@ -44,17 +44,18 @@ jobs:
           npm ci --no-audit --no-fund
           npm run build
 
-      - name: 📂 Sync files to Server (FTP Deploy Action)
+      - name: 📂 Sync files to Server (FTP Deploy Action, FTPS)
         # This action keeps a state file (.ftp-deploy-sync-state.json) on the
         # server and diffs against it on every run, so it uploads only files
         # that actually changed since the last successful deploy (and removes
         # only files that were actually deleted) instead of re-mirroring
         # everything like the previous lftp-based step did.
         #
-        # Retried below up to 3 times total: the FTP control socket to this
-        # host occasionally times out mid-sync (transient network/server
-        # hiccup on shared hosting), which otherwise fails the whole
-        # deployment even though a re-run typically succeeds.
+        # Retried below up to 3 times total. Plain FTP started failing with
+        # "Timeout (control socket)" on every attempt — the host likely
+        # firewalls/drops unencrypted FTP from cloud IPs while still
+        # allowing FTPS, so the retries alternate protocol (FTPS/FTP/FTPS)
+        # instead of blindly repeating the same failing config three times.
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         id: ftp-deploy
         continue-on-error: true
@@ -62,7 +63,7 @@ jobs:
           server: 92.113.19.218
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
+          protocol: ftps
           server-dir: /domains/fullmarkacademy.com/public_html/
           dangerous-clean-slate: false
           exclude: |
@@ -85,7 +86,7 @@ jobs:
             .editorconfig
             .styleci.yml
 
-      - name: 🔁 Retry Sync if first attempt failed
+      - name: 🔁 Retry Sync if first attempt failed (plain FTP)
         if: steps.ftp-deploy.outcome == 'failure'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         id: ftp-deploy-retry-1
@@ -117,16 +118,19 @@ jobs:
             .editorconfig
             .styleci.yml
 
-      - name: 🔁 Retry Sync (final attempt)
+      - name: 🔁 Retry Sync (final attempt, verbose FTPS)
         if: steps.ftp-deploy.outcome == 'failure' && steps.ftp-deploy-retry-1.outcome == 'failure'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        id: ftp-deploy-retry-2
+        continue-on-error: true
         with:
           server: 92.113.19.218
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
+          protocol: ftps
           server-dir: /domains/fullmarkacademy.com/public_html/
           dangerous-clean-slate: false
+          log-level: verbose
           exclude: |
             .git*
             .git*/**
@@ -146,4 +150,14 @@ jobs:
             docker-compose.override.yml
             .editorconfig
             .styleci.yml
+
+      - name: ❗ Fail the job if every deploy attempt failed
+        # continue-on-error above means a failed sync wouldn't otherwise mark
+        # the workflow run red — make the failure visible instead of silently
+        # "succeeding" with nothing deployed.
+        if: steps.ftp-deploy.outcome == 'failure' && steps.ftp-deploy-retry-1.outcome == 'failure' && steps.ftp-deploy-retry-2.outcome == 'failure'
+        run: |
+          echo "All 3 deploy attempts (FTPS, FTP, FTPS) failed to connect."
+          echo "This points to a network/firewall block between GitHub Actions and the host, not a code issue — check FTP/FTPS access with the hosting provider."
+          exit 1
 
