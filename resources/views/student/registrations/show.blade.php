@@ -27,7 +27,9 @@
     </div>
     <hr>
     <div class="progress mb-2" style="height: 10px;">
-      @php($pct = $registration->fee_snapshot > 0 ? min(100, ($registration->amount_paid / $registration->fee_snapshot) * 100) : 0)
+      @php
+        $pct = $registration->fee_snapshot > 0 ? min(100, ($registration->amount_paid / $registration->fee_snapshot) * 100) : 0;
+      @endphp
       <div class="progress-bar bg-success" style="width: {{ $pct }}%"></div>
     </div>
     <div class="d-flex justify-content-between fs-7">
@@ -124,9 +126,15 @@ document.getElementById('payRemainingForm')?.addEventListener('submit', function
         @php
             $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
             $resUrl = $isUrl ? $resource->url : route('student.resources');
+            $resIcon = match($resource->type) {
+                'video' => 'play-circle',
+                'document' => 'file-earmark-text',
+                'zoom' => 'camera-video',
+                default => 'link-45deg',
+            };
         @endphp
         <a href="{{ $resUrl }}" target="_blank" class="d-flex align-items-center gap-2 mb-2 text-decoration-none">
-          <i class="bi bi-{{ match($resource->type) { 'video' => 'play-circle', 'document' => 'file-earmark-text', 'zoom' => 'camera-video', default => 'link-45deg' } }}"></i>
+          <i class="bi bi-{{ $resIcon }}"></i>
           <span style="color: var(--text-primary);">{{ $resource->title }}</span>
         </a>
       @empty

@@ -4,6 +4,14 @@
 @section('page_title_en', 'Checkout')
 @section('page_title_ar', 'إتمام الدفع')
 
+@push('styles')
+<style>
+  .pm-option { transition: border-color .15s ease, box-shadow .15s ease; }
+  .pm-option:hover { border-color: var(--accent-color) !important; }
+  .pm-option-selected { border-color: var(--accent-color) !important; box-shadow: 0 0 0 1px var(--accent-color); }
+</style>
+@endpush
+
 @section('content')
   <h1 class="h3 fw-bold mb-4" style="color: var(--text-primary);" data-en="Complete Payment" data-ar="إتمام الدفع">Complete Payment</h1>
 
@@ -76,25 +84,47 @@
       </div>
 
       <div class="mb-4">
-        <label class="form-label fw-bold" data-en="Payment Method" data-ar="طريقة الدفع">Payment Method</label>
-        <select name="payment_method_id" class="form-select" required
-                style="background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);"
-                onchange="document.querySelectorAll('.pm-details').forEach(e=>e.classList.add('d-none')); document.getElementById('pm-'+this.value)?.classList.remove('d-none');">
-          <option value="">-- {{ __('app.payment_methods') }} --</option>
+        <label class="form-label fw-bold d-block mb-2" data-en="Payment Method" data-ar="طريقة الدفع">Payment Method</label>
+
+        <div class="row g-2">
           @foreach ($paymentMethods as $method)
-            <option value="{{ $method->id }}">{{ $method->name }}</option>
+            <div class="col-12 col-sm-6">
+              <label class="pm-option d-flex align-items-center gap-2 p-3 rounded-3 h-100" for="pm-radio-{{ $method->id }}"
+                     style="background: var(--input-bg); border: 1px solid var(--input-border); cursor: pointer;">
+                <input type="radio" name="payment_method_id" id="pm-radio-{{ $method->id }}" value="{{ $method->id }}"
+                       class="form-check-input pm-radio flex-shrink-0" required
+                       onchange="document.querySelectorAll('.pm-details').forEach(e=>e.classList.add('d-none')); document.querySelectorAll('.pm-option').forEach(e=>e.classList.remove('pm-option-selected')); document.getElementById('pm-'+this.value)?.classList.remove('d-none'); this.closest('.pm-option').classList.add('pm-option-selected');">
+                <span class="fw-semibold" style="color: var(--text-primary);">{{ $method->name }}</span>
+              </label>
+            </div>
           @endforeach
-        </select>
+        </div>
+
+        @if($paymentMethods->isEmpty())
+          <div class="text-muted fs-7 mt-2" data-en="No payment methods available." data-ar="لا توجد طرق دفع متاحة.">لا توجد طرق دفع متاحة.</div>
+        @endif
+
         @foreach ($paymentMethods as $method)
-          <div id="pm-{{ $method->id }}" class="pm-details d-none mt-2 p-3 rounded-3 fs-7"
+          <div id="pm-{{ $method->id }}" class="pm-details d-none mt-3 p-3 rounded-3 fs-7"
                style="background: var(--bg-secondary); color: var(--text-secondary);">
-               
+
                @if(!empty($method->credentials) && is_array($method->credentials))
                  <div class="mb-3">
                     <strong class="d-block mb-2" data-en="Payment Credentials:" data-ar="بيانات الاعتماد:">بيانات الاعتماد:</strong>
                     <ul class="list-unstyled ms-3">
                       @foreach($method->credentials as $cred)
-                        <li class="mb-1"><span class="fw-bold">{{ $cred['name'] ?? '' }}:</span> <span dir="ltr">{{ $cred['value'] ?? '' }}</span></li>
+                        <li class="d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap">
+                          <span>
+                            <span class="fw-bold">{{ $cred['name'] ?? '' }}:</span>
+                            <span dir="ltr" class="cred-value">{{ $cred['value'] ?? '' }}</span>
+                          </span>
+                          <button type="button" class="btn btn-sm btn-outline-secondary copy-cred-btn py-0 px-2"
+                                  data-value="{{ $cred['value'] ?? '' }}"
+                                  data-en-copy="Copy" data-ar-copy="نسخ"
+                                  data-en-copied="Copied!" data-ar-copied="تم النسخ!">
+                            <i class="bi bi-clipboard me-1"></i><span class="copy-label" data-en="Copy" data-ar="نسخ">نسخ</span>
+                          </button>
+                        </li>
                       @endforeach
                     </ul>
                  </div>
@@ -136,5 +166,48 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${loadingText}`;
   }
 });
+
+document.querySelectorAll('.copy-cred-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    const value = btn.getAttribute('data-value') || '';
+    const currentLang = document.documentElement.lang || 'ar';
+    const restore = () => {
+      const label = btn.querySelector('.copy-label');
+      const text = currentLang === 'en' ? btn.getAttribute('data-en-copy') : btn.getAttribute('data-ar-copy');
+      if (label) label.textContent = text;
+      btn.classList.remove('btn-success');
+      btn.classList.add('btn-outline-secondary');
+    };
+    const showCopied = () => {
+      const label = btn.querySelector('.copy-label');
+      const text = currentLang === 'en' ? btn.getAttribute('data-en-copied') : btn.getAttribute('data-ar-copied');
+      if (label) label.textContent = text;
+      btn.classList.remove('btn-outline-secondary');
+      btn.classList.add('btn-success');
+      setTimeout(restore, 1500);
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(value).then(showCopied).catch(function () {
+        fallbackCopy(value);
+        showCopied();
+      });
+    } else {
+      fallbackCopy(value);
+      showCopied();
+    }
+  });
+});
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
 </script>
 @endpush

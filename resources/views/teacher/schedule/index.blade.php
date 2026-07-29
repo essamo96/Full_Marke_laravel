@@ -31,7 +31,9 @@
 
           <div class="d-flex flex-column gap-2">
             @forelse($groupsByDay[$key] as $group)
-              @php($meta = $statusMeta[$group->schedule_status])
+              @php
+                $meta = $statusMeta[$group->schedule_status];
+              @endphp
               <a href="{{ route('teacher.groups.show', $group) }}" class="text-decoration-none">
                 <div class="rounded-3 p-3" style="background: var(--bg-secondary); border-inline-start: 3px solid var(--accent-color);">
                   <div class="fw-bold fs-7 mb-1" style="color: var(--text-primary);">{{ $group->name }}</div>
@@ -54,7 +56,9 @@
   <h3 class="h5 fw-bold mb-3" style="color: var(--text-primary);" data-en="All Groups" data-ar="كل المجموعات">كل المجموعات</h3>
   <div class="row g-3">
     @forelse($groups as $group)
-      @php($meta = $statusMeta[$group->schedule_status])
+      @php
+        $meta = $statusMeta[$group->schedule_status];
+      @endphp
       <div class="col-md-6 col-xl-4">
         <div class="glass-panel rounded-4 p-4 h-100" style="border: 1px solid var(--separator-color);">
           <div class="d-flex justify-content-between align-items-start mb-2">
