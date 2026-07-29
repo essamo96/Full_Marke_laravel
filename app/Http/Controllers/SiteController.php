@@ -43,20 +43,24 @@ class SiteController extends Controller
 
     public function applyNow(Request $request): View
     {
-        $programs = Program::where('is_active', true)->orderBy('sort_order')->with('subjects')->get();
+        $programs = Program::where('is_active', true)->orderBy('sort_order')
+            ->with(['subjects' => fn ($query) => $query->active()])
+            ->get();
         $regions = Region::where('status', 1)->get();
         $branches = Branch::where('status', 1)->get();
-        
+
         $selectedProgram = null;
         if ($request->filled('program')) {
             $selectedProgram = Program::where('slug', $request->query('program'))->where('is_active', true)->first();
         }
 
+        // A stale/shared link pointing at a subject that's since been
+        // deactivated shouldn't pre-select it on the public application form.
         $selectedSubject = null;
         if ($request->filled('subject')) {
             try {
                 $decryptedId = Crypt::decrypt($request->query('subject'));
-                $selectedSubject = \App\Models\Subject::find($decryptedId);
+                $selectedSubject = \App\Models\Subject::active()->find($decryptedId);
             } catch (\Exception $e) {
                 // Ignore if decryption fails
             }

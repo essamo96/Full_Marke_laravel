@@ -119,6 +119,7 @@
                                                             <option value="linkedin" {{ ($social['platform'] ?? '') == 'linkedin' ? 'selected' : '' }}>LinkedIn</option>
                                                             <option value="envelope-fill" {{ ($social['platform'] ?? '') == 'envelope-fill' ? 'selected' : '' }}>Email</option>
                                                             <option value="youtube" {{ ($social['platform'] ?? '') == 'youtube' ? 'selected' : '' }}>YouTube</option>
+                                                            <option value="telegram" {{ ($social['platform'] ?? '') == 'telegram' ? 'selected' : '' }}>Telegram</option>
                                                         </select>
                                                     </div>
                                                     <div class="col-md-5">
@@ -146,6 +147,7 @@
                                                         <option value="linkedin">LinkedIn</option>
                                                         <option value="envelope-fill">Email</option>
                                                         <option value="youtube">YouTube</option>
+                                                        <option value="telegram">Telegram</option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-5">
