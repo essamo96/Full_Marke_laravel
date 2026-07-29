@@ -236,6 +236,13 @@ class ContentController extends Controller
 
         $headers = [
             'Content-Disposition' => 'inline; filename="' . ($resource->original_filename ?: basename($path)) . '"',
+            // The viewer renders these in-page; keep them out of caches and
+            // out of other sites' frames so the URL is not a reusable handle.
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Referrer-Policy' => 'same-origin',
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'Pragma' => 'no-cache',
         ];
 
         // response()->file() already supports Range requests (needed for video

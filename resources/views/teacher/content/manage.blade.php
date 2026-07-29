@@ -168,13 +168,19 @@
                           @endif
                         </div>
 
+                        {{-- Everything opens in the in-page protected viewer instead of a
+                             new tab, so the underlying file URL is never exposed in the
+                             address bar or available to "open in new tab" / "save as". --}}
                         <div class="d-flex flex-wrap gap-2">
                           @if($resource->isExternalLink())
-                            <a href="{{ $resource->url }}" target="_blank" class="btn btn-sm btn-outline-primary">فتح الرابط</a>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    onclick="openProtectedViewer('link', @js($resource->url), @js($resource->title))">فتح الرابط</button>
                           @elseif($resource->type === 'document' || $resource->isImage())
-                            <a href="{{ route('teacher.content.view-file', $resource) }}" target="_blank" class="btn btn-sm btn-outline-primary">فتح الملف</a>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    onclick="openProtectedViewer('{{ $resource->isImage() ? 'image' : 'document' }}', @js(route('teacher.content.view-file', $resource)), @js($resource->title))">فتح الملف</button>
                           @elseif($resource->type === 'video' && $resource->isReady())
-                            <a href="{{ route('teacher.content.view-file', $resource) }}" target="_blank" class="btn btn-sm btn-outline-primary">مشاهدة الفيديو</a>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    onclick="openProtectedViewer('video', @js(route('teacher.content.view-file', $resource)), @js($resource->title))">مشاهدة الفيديو</button>
                           @elseif($resource->type === 'video')
                             <span class="btn btn-sm btn-outline-secondary disabled">الفيديو قيد المعالجة</span>
                           @else
@@ -337,7 +343,219 @@
     </div>
   </div>
 
+  <!-- Protected viewer: keeps resource URLs out of the address bar and blocks
+       the usual save/right-click/new-tab routes to the underlying file. -->
+  <div class="modal fade" tabindex="-1" id="modal_protected_viewer" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content glass-panel protected-viewer">
+        <div class="modal-header">
+          <h5 class="modal-title" id="protected_viewer_title">معاينة</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div class="protected-viewer__stage" id="protected_viewer_stage">
+            <div class="protected-viewer__watermark" id="protected_viewer_watermark"></div>
+            <div class="protected-viewer__shield" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="modal-footer justify-content-between">
+          <span class="text-muted fs-7"><i class="bi bi-shield-lock me-1"></i> محتوى محمي — يُمنع التحميل أو النسخ</span>
+          <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إغلاق</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating upload monitor: percentage, transfer rate and time remaining.
+       Lives outside the modal so progress stays visible if the modal is closed. -->
+  <div id="upload_monitor" class="upload-monitor glass-panel" hidden aria-live="polite">
+    <div class="upload-monitor__head">
+      <span class="upload-monitor__icon"><i class="bi bi-cloud-arrow-up-fill"></i></span>
+      <div class="upload-monitor__titles">
+        <div class="upload-monitor__name" id="upload_monitor_name">—</div>
+        <div class="upload-monitor__state" id="upload_monitor_state">جارٍ التحضير…</div>
+      </div>
+      <button type="button" class="upload-monitor__close" id="upload_monitor_close" title="إخفاء" aria-label="إخفاء">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="upload-monitor__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="upload_monitor_bar_wrap">
+      <div class="upload-monitor__fill" id="upload_monitor_fill" style="width:0%"></div>
+    </div>
+
+    <div class="upload-monitor__stats">
+      <div class="upload-monitor__stat">
+        <span class="upload-monitor__stat-label">النسبة</span>
+        <span class="upload-monitor__stat-value" id="upload_monitor_pct">0%</span>
+      </div>
+      <div class="upload-monitor__stat">
+        <span class="upload-monitor__stat-label">السرعة</span>
+        <span class="upload-monitor__stat-value" id="upload_monitor_speed">—</span>
+      </div>
+      <div class="upload-monitor__stat">
+        <span class="upload-monitor__stat-label">الوقت المتبقي</span>
+        <span class="upload-monitor__stat-value" id="upload_monitor_eta">—</span>
+      </div>
+    </div>
+
+    <div class="upload-monitor__foot">
+      <span id="upload_monitor_size">—</span>
+      <button type="button" class="upload-monitor__cancel" id="upload_monitor_cancel">إلغاء الرفع</button>
+    </div>
+  </div>
+
 @endsection
+
+@push('styles')
+<style>
+  /* ---- Protected viewer ---- */
+  .protected-viewer__stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 78vh;
+    background: #000;
+    overflow: hidden;
+    border-radius: 0 0 0 0;
+  }
+  .protected-viewer__stage > video,
+  .protected-viewer__stage > iframe,
+  .protected-viewer__stage > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    z-index: 1;
+  }
+  .protected-viewer__stage > img { object-fit: contain; }
+
+  /* Blocks the "open in new window" affordance that Drive/YouTube render in
+     the top corner of their embeds. */
+  .protected-viewer__shield {
+    position: absolute;
+    top: 0;
+    inset-inline-end: 0;
+    width: 84px;
+    height: 74px;
+    z-index: 30;
+    background: transparent;
+    cursor: not-allowed;
+  }
+
+  .protected-viewer__watermark {
+    position: absolute;
+    top: 12px;
+    inset-inline-start: 14px;
+    z-index: 25;
+    pointer-events: none;
+    user-select: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.62);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.85);
+    white-space: pre-line;
+    line-height: 1.4;
+  }
+
+  /* Defence-in-depth against drag-to-desktop and selection copying. */
+  .protected-viewer__stage,
+  .protected-viewer__stage * {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .protected-viewer__stage img,
+  .protected-viewer__stage video { -webkit-user-drag: none; }
+
+  /* ---- Upload monitor ---- */
+  .upload-monitor {
+    position: fixed;
+    inset-inline-start: 24px;
+    bottom: 24px;
+    width: min(360px, calc(100vw - 32px));
+    z-index: 1090; /* above Bootstrap modals (1055) so it stays visible */
+    padding: 16px 18px;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg, var(--card-bg));
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: var(--shadow-lg);
+    color: var(--text-primary);
+    animation: uploadMonitorIn 0.25s ease;
+  }
+  .upload-monitor[hidden] { display: none; }
+
+  @keyframes uploadMonitorIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .upload-monitor__head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .upload-monitor__icon {
+    flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: var(--accent-glow); color: var(--accent-color); font-size: 1rem;
+  }
+  .upload-monitor__titles { min-width: 0; flex: 1 1 auto; }
+  .upload-monitor__name {
+    font-weight: 700; font-size: 0.85rem; line-height: 1.3;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .upload-monitor__state { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+  .upload-monitor__close {
+    flex: 0 0 auto; background: none; border: 0; padding: 4px;
+    color: var(--text-muted); font-size: 0.75rem; line-height: 1; cursor: pointer;
+  }
+  .upload-monitor__close:hover { color: var(--text-primary); }
+
+  .upload-monitor__bar {
+    height: 8px; border-radius: 999px; overflow: hidden;
+    background: var(--separator-color); margin-bottom: 12px;
+  }
+  .upload-monitor__fill {
+    height: 100%; width: 0;
+    background: var(--accent-gradient, var(--accent-color));
+    border-radius: 999px;
+    transition: width 0.25s ease;
+  }
+
+  .upload-monitor__stats { display: flex; gap: 8px; margin-bottom: 10px; }
+  .upload-monitor__stat {
+    flex: 1 1 0; min-width: 0; text-align: center;
+    padding: 7px 4px; border-radius: 10px;
+    background: var(--input-bg); border: 1px solid var(--separator-color);
+  }
+  .upload-monitor__stat-label {
+    display: block; font-size: 0.62rem; color: var(--text-muted);
+    margin-bottom: 3px; white-space: nowrap;
+  }
+  .upload-monitor__stat-value {
+    display: block; font-size: 0.8rem; font-weight: 700;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+
+  .upload-monitor__foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    font-size: 0.7rem; color: var(--text-muted); font-variant-numeric: tabular-nums;
+  }
+  .upload-monitor__cancel {
+    background: none; border: 0; padding: 0; cursor: pointer;
+    font-size: 0.7rem; font-weight: 700; color: #ef4444;
+  }
+  .upload-monitor__cancel:hover { text-decoration: underline; }
+  .upload-monitor__cancel[hidden] { display: none; }
+
+  .upload-monitor.is-done .upload-monitor__fill { background: #22c55e; }
+  .upload-monitor.is-error .upload-monitor__fill { background: #ef4444; }
+
+  @media (max-width: 575.98px) {
+    .upload-monitor { inset-inline: 16px; width: auto; bottom: 16px; }
+  }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -347,6 +565,253 @@
   const lessonsBaseUrl = '{{ url('teacher/content/lessons') }}';
   const resourcesBaseUrl = '{{ url('teacher/content/resources') }}';
   const chunkUploadUrl = '{{ route('teacher.content.upload-chunk') }}';
+
+  /**
+   * Protected resource viewer.
+   *
+   * Resources used to open with target="_blank", which put the signed file URL
+   * straight into the address bar where it could be copied, bookmarked or
+   * saved. Everything now renders inside this modal instead, with the usual
+   * grab routes (context menu, drag, download control, picture-in-picture,
+   * Ctrl+S) disabled and an identifying watermark burned over the frame.
+   *
+   * This raises the effort required to copy content; it cannot make a stream
+   * that the browser must decode unrippable, and screen recording is always
+   * possible. The watermark is what makes a leak traceable.
+   */
+  const protectedViewerModal = new bootstrap.Modal(document.getElementById('modal_protected_viewer'));
+  const protectedViewerStage = document.getElementById('protected_viewer_stage');
+  const protectedViewerWatermark = document.getElementById('protected_viewer_watermark');
+
+  function openProtectedViewer(kind, url, title) {
+    document.getElementById('protected_viewer_title').textContent = title || 'معاينة';
+    protectedViewerWatermark.textContent = @js(auth('teacher')->user()?->name ?? 'معلّم')
+      + '\n' + new Date().toLocaleString('ar-EG');
+
+    // Drop any previously rendered media so its stream stops immediately.
+    protectedViewerStage.querySelectorAll('video, iframe, img').forEach(el => el.remove());
+
+    let node;
+    if (kind === 'video') {
+      node = document.createElement('video');
+      node.src = url;
+      node.controls = true;
+      node.playsInline = true;
+      node.controlsList = 'nodownload noplaybackrate noremoteplayback';
+      node.disablePictureInPicture = true;
+      node.setAttribute('disableRemotePlayback', '');
+    } else if (kind === 'image') {
+      node = document.createElement('img');
+      node.src = url;
+      node.alt = title || '';
+    } else {
+      node = document.createElement('iframe');
+      node.src = toEmbeddableUrl(url);
+      node.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
+      node.setAttribute('allowfullscreen', '');
+      node.setAttribute('referrerpolicy', 'no-referrer');
+      // sandbox keeps the embed from navigating the opener or spawning tabs
+      node.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
+    }
+
+    node.addEventListener('contextmenu', e => e.preventDefault());
+    node.addEventListener('dragstart', e => e.preventDefault());
+    protectedViewerStage.insertBefore(node, protectedViewerStage.firstChild);
+    protectedViewerModal.show();
+  }
+
+  /** Normalises Drive/YouTube share links into their no-chrome embed form. */
+  function toEmbeddableUrl(url) {
+    let m;
+    if ((m = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/))) {
+      return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+    }
+    if ((m = url.match(/drive\.google\.com\/(?:open|uc)\?(?:export=\w+&)?id=([\w-]+)/))) {
+      return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+    }
+    if ((m = url.match(/youtube\.com\/watch\?(?:.*&)?v=([\w-]+)/))) {
+      return 'https://www.youtube.com/embed/' + m[1] + '?rel=0&modestbranding=1';
+    }
+    if ((m = url.match(/youtu\.be\/([\w-]+)/))) {
+      return 'https://www.youtube.com/embed/' + m[1] + '?rel=0&modestbranding=1';
+    }
+    return url;
+  }
+
+  // Stop playback and release the source as soon as the viewer closes.
+  document.getElementById('modal_protected_viewer').addEventListener('hidden.bs.modal', function () {
+    protectedViewerStage.querySelectorAll('video').forEach(v => { v.pause(); v.removeAttribute('src'); v.load(); });
+    protectedViewerStage.querySelectorAll('video, iframe, img').forEach(el => el.remove());
+  });
+
+  // Suppress the context menu across the resource area so the file URL cannot
+  // be lifted via "copy link address" / "save video as".
+  document.addEventListener('contextmenu', function (e) {
+    if (e.target.closest('.protected-viewer__stage, .resource-card, video, img')) e.preventDefault();
+  });
+
+  // Ctrl/Cmd+S inside the viewer would otherwise offer to save the page.
+  document.addEventListener('keydown', function (e) {
+    const viewerOpen = document.getElementById('modal_protected_viewer').classList.contains('show');
+    if (viewerOpen && (e.ctrlKey || e.metaKey) && ['s', 'u'].includes(e.key.toLowerCase())) {
+      e.preventDefault();
+    }
+  });
+
+  /**
+   * Floating upload monitor.
+   *
+   * Reports percentage, transfer rate and estimated time remaining for both
+   * the chunked (Resumable.js) video upload and the plain file upload in the
+   * resource form. The rate is smoothed with an exponential moving average
+   * because raw chunk deltas swing wildly and make the ETA jump around.
+   */
+  const uploadMonitor = (function () {
+    const el = document.getElementById('upload_monitor');
+    const nameEl = document.getElementById('upload_monitor_name');
+    const stateEl = document.getElementById('upload_monitor_state');
+    const fillEl = document.getElementById('upload_monitor_fill');
+    const barEl = document.getElementById('upload_monitor_bar_wrap');
+    const pctEl = document.getElementById('upload_monitor_pct');
+    const speedEl = document.getElementById('upload_monitor_speed');
+    const etaEl = document.getElementById('upload_monitor_eta');
+    const sizeEl = document.getElementById('upload_monitor_size');
+    const cancelBtn = document.getElementById('upload_monitor_cancel');
+    const closeBtn = document.getElementById('upload_monitor_close');
+
+    let total = 0;
+    let lastLoaded = 0;
+    let lastTime = 0;
+    let rate = 0;        // bytes/sec, smoothed
+    let onCancel = null;
+    let hideTimer = null;
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes < 0) return '0 B';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+      const value = bytes / Math.pow(1024, i);
+      return value.toFixed(value >= 10 || i === 0 ? 0 : 1) + ' ' + units[i];
+    }
+
+    function formatDuration(seconds) {
+      if (!isFinite(seconds) || seconds < 0) return '—';
+      seconds = Math.round(seconds);
+      if (seconds < 60) return seconds + ' ثانية';
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      if (m < 60) return s ? `${m} د ${s} ث` : `${m} دقيقة`;
+      const h = Math.floor(m / 60);
+      return `${h} س ${m % 60} د`;
+    }
+
+    function show() {
+      clearTimeout(hideTimer);
+      el.classList.remove('is-done', 'is-error');
+      el.hidden = false;
+    }
+
+    return {
+      start(fileName, totalBytes, cancelFn) {
+        total = totalBytes || 0;
+        lastLoaded = 0;
+        lastTime = Date.now();
+        rate = 0;
+        onCancel = cancelFn || null;
+
+        nameEl.textContent = fileName || 'ملف';
+        nameEl.title = fileName || '';
+        stateEl.textContent = 'جارٍ الرفع…';
+        pctEl.textContent = '0%';
+        speedEl.textContent = '—';
+        etaEl.textContent = '—';
+        sizeEl.textContent = total ? '0 B / ' + formatBytes(total) : '—';
+        fillEl.style.width = '0%';
+        barEl.setAttribute('aria-valuenow', '0');
+        cancelBtn.hidden = !onCancel;
+        show();
+      },
+
+      update(loadedBytes, totalBytes) {
+        if (totalBytes) total = totalBytes;
+
+        const now = Date.now();
+        const elapsed = (now - lastTime) / 1000;
+
+        // Only recompute the rate on a meaningful interval; sub-100ms deltas
+        // are mostly noise and produce nonsense speeds.
+        if (elapsed >= 0.25) {
+          const instant = (loadedBytes - lastLoaded) / elapsed;
+          rate = rate ? rate * 0.7 + instant * 0.3 : instant;
+          lastLoaded = loadedBytes;
+          lastTime = now;
+        }
+
+        const pct = total ? Math.min(100, Math.floor((loadedBytes / total) * 100)) : 0;
+        fillEl.style.width = pct + '%';
+        barEl.setAttribute('aria-valuenow', String(pct));
+        pctEl.textContent = pct + '%';
+        speedEl.textContent = rate > 0 ? formatBytes(rate) + '/ث' : '—';
+        etaEl.textContent = rate > 0 && total
+          ? formatDuration((total - loadedBytes) / rate)
+          : '—';
+        sizeEl.textContent = total
+          ? formatBytes(loadedBytes) + ' / ' + formatBytes(total)
+          : formatBytes(loadedBytes);
+      },
+
+      /** Upload finished; the resource record may still be saving. */
+      finishing(message) {
+        stateEl.textContent = message || 'اكتمل الرفع، جارٍ الحفظ…';
+        fillEl.style.width = '100%';
+        pctEl.textContent = '100%';
+        etaEl.textContent = '—';
+        cancelBtn.hidden = true;
+      },
+
+      done(message) {
+        el.classList.add('is-done');
+        stateEl.textContent = message || 'تم الرفع بنجاح';
+        fillEl.style.width = '100%';
+        pctEl.textContent = '100%';
+        speedEl.textContent = '—';
+        etaEl.textContent = '—';
+        cancelBtn.hidden = true;
+        hideTimer = setTimeout(() => { el.hidden = true; }, 4000);
+      },
+
+      error(message) {
+        show();
+        el.classList.add('is-error');
+        stateEl.textContent = message || 'فشل الرفع';
+        speedEl.textContent = '—';
+        etaEl.textContent = '—';
+        cancelBtn.hidden = true;
+      },
+
+      hide() {
+        clearTimeout(hideTimer);
+        el.hidden = true;
+      },
+
+      _cancel() {
+        if (onCancel) onCancel();
+        onCancel = null;
+        this.hide();
+      },
+    };
+  })();
+
+  document.getElementById('upload_monitor_close').addEventListener('click', () => uploadMonitor.hide());
+  document.getElementById('upload_monitor_cancel').addEventListener('click', () => uploadMonitor._cancel());
+
+  // Guard against losing an in-flight upload by navigating away.
+  let uploadInFlight = false;
+  window.addEventListener('beforeunload', function (e) {
+    if (!uploadInFlight) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
 
   let modalAddUnit, modalAddLesson, modalAddResource;
   let currentUnitId = null;
@@ -427,16 +892,29 @@
 
     videoUploadResumable.on('fileAdded', function (file) {
       videoUploadDone = false;
+      uploadInFlight = true;
       document.getElementById('resource_uploaded_path').value = '';
       document.getElementById('resource_video_filename').textContent = file.fileName;
       document.getElementById('resource_video_progress_wrap').classList.remove('d-none');
       document.getElementById('resource_video_progress').style.width = '0%';
+
+      uploadMonitor.start(file.fileName, file.size, function () {
+        videoUploadResumable.cancel();
+        uploadInFlight = false;
+        videoUploadDone = false;
+        document.getElementById('resource_video_progress_wrap').classList.add('d-none');
+        document.getElementById('resource_video_filename').textContent = '';
+        document.getElementById('resource_video_input').value = '';
+      });
+
       videoUploadResumable.upload();
     });
 
-    videoUploadResumable.on('fileProgress', function () {
-      const pct = Math.floor(videoUploadResumable.progress() * 100);
+    videoUploadResumable.on('fileProgress', function (file) {
+      const ratio = videoUploadResumable.progress();
+      const pct = Math.floor(ratio * 100);
       document.getElementById('resource_video_progress').style.width = pct + '%';
+      uploadMonitor.update(Math.round(ratio * file.size), file.size);
     });
 
     videoUploadResumable.on('fileSuccess', function (file, response) {
@@ -445,9 +923,12 @@
       document.getElementById('resource_original_filename').value = data.original_filename;
       document.getElementById('resource_video_progress').style.width = '100%';
       videoUploadDone = true;
+      uploadMonitor.finishing();
 
       const targetLessonId = pendingLessonId || currentLessonId;
       if (!targetLessonId) {
+        uploadInFlight = false;
+        uploadMonitor.error('لم يتم تحديد درس لربط الفيديو.');
         Swal.fire('تنبيه', 'لم يتم تحديد درس لربط الفيديو.', 'warning');
         return;
       }
@@ -467,15 +948,23 @@
         data: formData,
         contentType: false,
         processData: false,
-        success: function () { location.reload(); },
+        success: function () {
+          uploadInFlight = false;
+          uploadMonitor.done('تم رفع الفيديو وحفظه');
+          location.reload();
+        },
         error: function (xhr) {
+          uploadInFlight = false;
           const message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'حدث خطأ أثناء حفظ الفيديو.';
+          uploadMonitor.error(message);
           Swal.fire('خطأ', message, 'error');
         }
       });
     });
 
     videoUploadResumable.on('fileError', function () {
+      uploadInFlight = false;
+      uploadMonitor.error('تعذّر رفع الفيديو — سيعاد المحاولة تلقائيًا');
       Swal.fire('خطأ', 'تعذّر رفع الفيديو. سيتم إعادة المحاولة تلقائيًا عند استعادة الاتصال.', 'error');
     });
   }
@@ -552,12 +1041,47 @@
     }
     const formData = new FormData(this);
     formData.append('_token', csrfToken);
+
+    // Documents and images go up as one request, so progress comes from the
+    // XHR upload event rather than Resumable's chunk callbacks.
+    const picked = this.querySelector('#resource_document_field input[name="file"]:not([disabled])')
+      || this.querySelector('#resource_image_field input[name="file"]:not([disabled])');
+    const pickedFile = picked && picked.files && picked.files[0];
+    let monitored = false;
+    let activeXhr = null;
+
+    if (pickedFile) {
+      monitored = true;
+      uploadInFlight = true;
+      uploadMonitor.start(pickedFile.name, pickedFile.size, function () {
+        if (activeXhr) activeXhr.abort();
+        uploadInFlight = false;
+      });
+    }
+
     $.ajax({
       url: lessonsBaseUrl + '/' + currentLessonId + '/resources', type: 'POST',
       data: formData, contentType: false, processData: false,
-      success: function () { location.reload(); },
-      error: function (xhr) {
+      xhr: function () {
+        const xhr = $.ajaxSettings.xhr();
+        activeXhr = xhr;
+        if (monitored && xhr.upload) {
+          xhr.upload.addEventListener('progress', function (e) {
+            if (e.lengthComputable) uploadMonitor.update(e.loaded, e.total);
+          });
+          xhr.upload.addEventListener('load', function () { uploadMonitor.finishing(); });
+        }
+        return xhr;
+      },
+      success: function () {
+        if (monitored) { uploadInFlight = false; uploadMonitor.done(); }
+        location.reload();
+      },
+      error: function (xhr, textStatus) {
+        uploadInFlight = false;
+        if (textStatus === 'abort') return; // user cancelled from the monitor
         const message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'حدث خطأ، يرجى التأكد من البيانات.';
+        if (monitored) uploadMonitor.error(message);
         Swal.fire('خطأ', message, 'error');
       }
     });
