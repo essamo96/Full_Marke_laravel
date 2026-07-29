@@ -295,7 +295,7 @@
             <!-- Floating overlay widget -->
             <div class="absolute -bottom-6 -left-6 glass-panel p-4 max-w-xs shadow-2xl hidden sm:block">
               <div class="d-flex align-items-center">
-                <div class="w-12 h-12 bg-gold-dark bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-xl me-3">
+                <div class="w-12 h-12 bg-gold-dark/20 text-gold rounded-full d-flex align-items-center justify-content-center text-xl me-3">
                   <i class="bi bi-mortarboard-fill"></i>
                 </div>
                 <div>
@@ -482,7 +482,7 @@
           <div class="glass-panel hover-premium-card text-center h-100 d-flex flex-column justify-content-between">
             <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between h-100">
               <div>
-                <div class="w-16 h-16 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
+                <div class="w-16 h-16 bg-gold/20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
                   <i class="bi bi-chat-dots-fill"></i>
                 </div>
                 <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Get In Touch" data-ar="تواصل معنا">Get In Touch</h4>
@@ -501,7 +501,7 @@
           <div class="glass-panel hover-premium-card text-center h-100 d-flex flex-column justify-content-between">
             <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between h-100">
               <div>
-                <div class="w-16 h-16 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
+                <div class="w-16 h-16 bg-gold/20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
                   <i class="bi bi-person-check-fill"></i>
                 </div>
                 <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Placement Booking" data-ar="حجز تحديد المستوى">Placement Booking</h4>
@@ -520,7 +520,7 @@
           <div class="glass-panel hover-premium-card text-center h-100 d-flex flex-column justify-content-between">
             <div class="card-content-wrapper flex-grow d-flex flex-column justify-content-between h-100">
               <div>
-                <div class="w-16 h-16 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
+                <div class="w-16 h-16 bg-gold/20 text-gold rounded-full d-flex align-items-center justify-content-center text-3xl mx-auto mb-4">
                   <i class="bi bi-bookmark-star-fill"></i>
                 </div>
                 <h4 class="text-xl font-bold mb-3" style="color: var(--text-primary);" data-en="Course Booking" data-ar="تسجيل في دورة">Course Booking</h4>
@@ -926,7 +926,7 @@
 
           <div class="d-flex flex-column space-y-6 mt-8">
             <div class="d-flex align-items-center p-4 glass-panel">
-              <div class="w-12 h-12 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-2xl me-4">
+              <div class="w-12 h-12 bg-gold/20 text-gold rounded-full d-flex align-items-center justify-content-center text-2xl me-4">
                 <i class="bi bi-telephone"></i>
               </div>
               <div>
@@ -936,7 +936,7 @@
             </div>
 
             <div class="d-flex align-items-center p-4 glass-panel">
-              <div class="w-12 h-12 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-2xl me-4">
+              <div class="w-12 h-12 bg-gold/20 text-gold rounded-full d-flex align-items-center justify-content-center text-2xl me-4">
                 <i class="bi bi-whatsapp"></i>
               </div>
               <div>
@@ -946,7 +946,7 @@
             </div>
 
             <div class="d-flex align-items-center p-4 glass-panel">
-              <div class="w-12 h-12 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-2xl me-4">
+              <div class="w-12 h-12 bg-gold/20 text-gold rounded-full d-flex align-items-center justify-content-center text-2xl me-4">
                 <i class="bi bi-envelope-open"></i>
               </div>
               <div>
@@ -956,7 +956,7 @@
             </div>
 
             <div class="d-flex align-items-center p-4 glass-panel">
-              <div class="w-12 h-12 bg-gold bg-opacity-20 text-gold rounded-full d-flex align-items-center justify-content-center text-2xl me-4">
+              <div class="w-12 h-12 bg-gold/20 text-gold rounded-full d-flex align-items-center justify-content-center text-2xl me-4">
                 <i class="bi bi-geo-alt"></i>
               </div>
               <div>
