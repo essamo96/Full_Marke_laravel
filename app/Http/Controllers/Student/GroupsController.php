@@ -22,8 +22,15 @@ class GroupsController extends Controller
 
         $withGroup = $registrations->filter(fn ($registration) => $registration->group)->values();
 
+        // Every registration without a group belongs here, regardless of
+        // whether the subject currently has any groups defined yet — group
+        // assignment is entirely admin/code-driven now, so a subject with no
+        // groups created yet is just as "awaiting branching" as one that has
+        // groups the student hasn't been placed into. Previously this filtered
+        // out subjects with zero groups, silently hiding those registrations
+        // from the page entirely.
         $withoutGroup = $registrations
-            ->filter(fn ($registration) => ! $registration->group && $registration->subject->groups->isNotEmpty())
+            ->filter(fn ($registration) => ! $registration->group)
             ->values();
 
         return view('student.groups.index', compact('withGroup', 'withoutGroup'));

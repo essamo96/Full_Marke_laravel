@@ -16,9 +16,19 @@
             data-en="@yield('page_title_en', 'Overview')" data-ar="@yield('page_title_ar', 'نظرة عامة')">@yield('page_title_en', 'Overview')</h2>
       </div>
 
-      @php($headerStudent = auth('student')->user())
-      @php($headerUnreadNotifications = $headerStudent ? $headerStudent->unreadNotifications()->latest()->limit(10)->get() : collect())
-      @php($headerUnreadCount = $headerStudent ? $headerStudent->unreadNotifications()->count() : 0)
+      @php
+        $headerStudent = auth('student')->user();
+        $headerUnreadNotifications = $headerStudent ? $headerStudent->unreadNotifications()->latest()->limit(10)->get() : collect();
+        $headerUnreadCount = $headerStudent ? $headerStudent->unreadNotifications()->count() : 0;
+        $headerRegistrations = $headerStudent
+            ? \App\Models\Registration::with('subject')
+                ->where('student_id', $headerStudent->id)
+                ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
+                ->latest()
+                ->get()
+            : collect();
+        $headerDueCount = $headerRegistrations->filter(fn ($r) => $r->remaining_amount > 0)->count();
+      @endphp
       <div class="d-flex align-items-center gap-1 gap-md-3">
         <!-- Language Switcher -->
         <button id="langToggleBtn" class="btn btn-glass icon-btn" onclick="toggleLanguage()" title="Toggle language">
@@ -40,6 +50,12 @@
         <!-- Theme Cycle -->
         <button id="themeCycleBtn" class="btn btn-glass icon-btn" type="button" title="Switch theme">
           <i class="bi bi-award-fill"></i>
+        </button>
+
+        <!-- My Invoices — slide-in side panel listing every subject registration with its payment status -->
+        <button class="btn btn-glass icon-btn position-relative" type="button" id="studentInvoicesBtn" data-bs-toggle="offcanvas" data-bs-target="#studentInvoicesPanel" aria-controls="studentInvoicesPanel" title="فواتيري">
+          <i class="bi bi-receipt"></i>
+          <span class="position-absolute badge rounded-pill bg-danger {{ $headerDueCount > 0 ? '' : 'd-none' }}" style="top: -2px; inset-inline-end: -2px; font-size: 0.65rem;">{{ $headerDueCount }}</span>
         </button>
 
         <!-- Notifications Bell -->
@@ -151,3 +167,65 @@
         </div>
       </div>
     </header>
+
+    <!-- My Invoices — slide-in side panel (Bootstrap Offcanvas), reachable from every
+         student page so payment status is never just "hidden" behind the groups page. -->
+    <div class="offcanvas offcanvas-end student-invoices-panel" tabindex="-1" id="studentInvoicesPanel" aria-labelledby="studentInvoicesPanelLabel" style="width: 400px; max-width: 92vw; background: var(--bg-primary); border-inline-start: 1px solid var(--separator-color);">
+      <div class="offcanvas-header" style="border-bottom: 1px solid var(--separator-color);">
+        <h5 class="offcanvas-title fw-bold d-flex align-items-center gap-2" id="studentInvoicesPanelLabel" style="color: var(--text-primary);">
+          <i class="bi bi-receipt" style="color: var(--accent-color);"></i>
+          <span data-en="My Invoices" data-ar="فواتيري">فواتيري</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body p-0">
+        @if($headerRegistrations->isEmpty())
+          <div class="text-center p-5">
+            <i class="bi bi-receipt fs-1 mb-3 d-block opacity-50" style="color: var(--accent-color);"></i>
+            <p class="opacity-75 mb-3" style="color: var(--text-primary);" data-en="You don't have any subject registrations yet." data-ar="لا يوجد لديك أي تسجيل في مواد بعد.">You don't have any subject registrations yet.</p>
+            <a href="{{ route('student.programs') }}" class="btn btn-luxury px-4 py-2" data-en="Browse Programs" data-ar="تصفح البرامج">Browse Programs</a>
+          </div>
+        @else
+          <div class="d-flex flex-column gap-3 p-3">
+            @foreach($headerRegistrations as $registration)
+              @php
+                $statusMeta = match($registration->status) {
+                  'fully_paid' => ['label_ar' => 'مدفوع بالكامل', 'label_en' => 'Fully Paid', 'color' => '#10b981'],
+                  'partially_paid' => ['label_ar' => 'مدفوع جزئياً', 'label_en' => 'Partially Paid', 'color' => '#eab308'],
+                  default => ['label_ar' => 'قيد الانتظار', 'label_en' => 'Pending', 'color' => '#eab308'],
+                };
+              @endphp
+              <div class="rounded-3 p-3" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                  <span class="fw-bold" style="color: var(--text-primary);">{{ $registration->subject->name ?? '-' }}</span>
+                  <span class="badge rounded-pill flex-shrink-0" style="background: color-mix(in srgb, {{ $statusMeta['color'] }} 18%, transparent); color: {{ $statusMeta['color'] }};"
+                        data-en="{{ $statusMeta['label_en'] }}" data-ar="{{ $statusMeta['label_ar'] }}">{{ $statusMeta['label_ar'] }}</span>
+                </div>
+                <div class="d-flex justify-content-between fs-7 mb-1" style="color: var(--text-secondary);">
+                  <span data-en="Total Fee" data-ar="الرسوم الكلية">الرسوم الكلية</span>
+                  <span>{{ number_format($registration->fee_snapshot, 2) }} JOD</span>
+                </div>
+                <div class="d-flex justify-content-between fs-7 mb-2" style="color: var(--text-secondary);">
+                  <span data-en="Paid" data-ar="المدفوع">المدفوع</span>
+                  <span>{{ number_format($registration->amount_paid, 2) }} JOD</span>
+                </div>
+                @if($registration->remaining_amount > 0)
+                  <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px dashed var(--separator-color);">
+                    <span class="fw-bold fs-7" style="color: #eab308;" data-en="Remaining" data-ar="المتبقي">المتبقي</span>
+                    <span class="fw-bold" style="color: #eab308;">{{ number_format($registration->remaining_amount, 2) }} JOD</span>
+                  </div>
+                  <a href="{{ route('student.registrations.show', $registration) }}" class="btn btn-luxury w-100 mt-3 py-2 rounded-pill fs-7 fw-bold">
+                    <i class="bi bi-credit-card me-1"></i>
+                    <span data-en="Complete Payment" data-ar="استكمال الدفع">استكمال الدفع</span>
+                  </a>
+                @else
+                  <a href="{{ route('student.registrations.show', $registration) }}" class="btn btn-glass w-100 mt-2 py-2 rounded-pill fs-7">
+                    <span data-en="View Details" data-ar="عرض التفاصيل">عرض التفاصيل</span>
+                  </a>
+                @endif
+              </div>
+            @endforeach
+          </div>
+        @endif
+      </div>
+    </div>
