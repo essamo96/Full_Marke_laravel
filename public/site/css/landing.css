@@ -156,6 +156,38 @@
   box-shadow: 0 0 0 0.2rem var(--accent-glow);
   color: var(--text-primary);
 }
+/* Verification code (OTP) boxes.
+   These were inheriting the generic .form-control colour, which renders the
+   digits white-on-white in the light theme. They now use their own per-theme
+   variables so the typed code is always high-contrast and visibly distinct
+   from ordinary inputs. !important is needed to beat the Bootstrap
+   .form-control / .modal-content.glass-panel .form-control rules. */
+.otp-input,
+.modal-content.glass-panel .otp-input {
+  background: var(--code-input-bg, var(--input-bg)) !important;
+  color: var(--code-input-text, var(--text-primary)) !important;
+  border: 1px solid var(--code-input-border, var(--input-border)) !important;
+  caret-color: var(--code-input-text, var(--text-primary));
+  font-family: "Courier New", ui-monospace, monospace;
+  letter-spacing: 0.05em;
+  -webkit-text-fill-color: var(--code-input-text, var(--text-primary));
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.otp-input:focus,
+.modal-content.glass-panel .otp-input:focus {
+  background: var(--code-input-bg, var(--input-bg)) !important;
+  color: var(--code-input-text, var(--text-primary)) !important;
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 0 0.2rem var(--accent-glow) !important;
+  outline: none;
+}
+
+/* Filled boxes read as "done" without changing the digit colour. */
+.otp-input:not(:placeholder-shown) {
+  border-color: var(--accent-color) !important;
+}
+
 .modal-content.glass-panel label {
   color: var(--text-secondary);
 }

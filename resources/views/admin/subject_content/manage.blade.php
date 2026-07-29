@@ -66,8 +66,8 @@
                                 <span class="accordion-icon"><i class="ki-duotone ki-arrow-right fs-4"><span class="path1"></span><span class="path2"></span></i></span>
                                 <h3 class="fs-4 fw-semibold mb-0 ms-4">{{ $unit->name_ar }}</h3>
                                 <div class="ms-auto">
-                                    <button type="button" class="btn btn-sm btn-icon btn-light-success me-2" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal({{ $unit->id }})"><i class="ki-duotone ki-plus fs-4"></i></button>
-                                    <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit({{ $unit->id }})"><i class="bi bi-trash"></i></button>
+                                    <button type="button" class="btn btn-sm btn-icon btn-light-success me-2" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal('{{ $unit->getRouteKey() }}')"><i class="ki-duotone ki-plus fs-4"></i></button>
+                                    <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit('{{ $unit->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                                 </div>
                             </div>
                             <div id="kt_accordion_unit_{{ $unit->id }}" class="fs-6 collapse" data-bs-parent="#kt_accordion_units">
@@ -83,7 +83,7 @@
                                                     <div>
                                                         <span class="badge badge-light-info me-2">{{ $lesson->resources->count() }} مرفق</span>
                                                         <button type="button" class="btn btn-sm btn-light-primary" data-bs-toggle="collapse" data-bs-target="#kt_lesson_resources_{{ $lesson->id }}">إدارة المرفقات</button>
-                                                        <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="حذف الدرس" onclick="deleteLesson({{ $lesson->id }})"><i class="bi bi-trash"></i></button>
+                                                        <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="حذف الدرس" onclick="deleteLesson('{{ $lesson->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                                                     </div>
                                                 </div>
                                                 <div id="kt_lesson_resources_{{ $lesson->id }}" class="collapse mt-4">
@@ -126,7 +126,7 @@
                                                             </tbody>
                                                         </table>
                                                     </div>
-                                                    <button type="button" class="btn btn-sm btn-light-success" onclick="openResourceModal({{ $lesson->id }})">
+                                                    <button type="button" class="btn btn-sm btn-light-success" onclick="openResourceModal('{{ $lesson->getRouteKey() }}')">
                                                         <i class="bi bi-plus-lg fs-4 me-2"></i> إضافة مرفق (فيديو / PDF / رابط)
                                                     </button>
                                                 </div>

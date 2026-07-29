@@ -225,10 +225,10 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body pb-8 d-flex flex-column align-items-center justify-content-center">
-            <img src="{{ route('qr.subject', $subject->id) }}" alt="QR Code" class="rounded-lg d-block mx-auto" style="width: 220px; height: 220px; background: #fff; padding: 10px;">
+            <img src="{{ route('qr.subject', $subject) }}" alt="QR Code" class="rounded-lg d-block mx-auto" style="width: 220px; height: 220px; background: #fff; padding: 10px;">
             <p class="opacity-75 text-sm mt-4 mb-0" data-en="Scan to open this subject" data-ar="امسح الرمز للانتقال إلى هذه المادة">Scan to open this subject</p>
             <button type="button" class="btn btn-luxury btn-sm mt-4 qr-download-btn"
-                    data-qr-url="{{ route('qr.subject', $subject->id) }}"
+                    data-qr-url="{{ route('qr.subject', $subject) }}"
                     data-file-name="qr-{{ \Illuminate\Support\Str::slug($subject->name_en ?: $subject->name) }}.png">
               <i class="bi bi-download me-2"></i><span data-en="Download QR Code" data-ar="تحميل رمز QR">Download QR Code</span>
             </button>

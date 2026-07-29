@@ -21,27 +21,62 @@ class ContentController extends Controller
         return Auth::guard('teacher')->user();
     }
 
+    /**
+     * Subject IDs this teacher may manage content for.
+     *
+     * A teacher reaches a subject two different ways: directly through the
+     * subject_teacher pivot, or by being assigned to a group that belongs to
+     * the subject. Checking only the pivot made "إدارة الموارد" 403 for any
+     * teacher who was assigned a group without also being attached to the
+     * subject itself (the link on the group page passes $group->subject).
+     */
+    private function allowedSubjectIds(): array
+    {
+        $teacher = $this->teacher();
+
+        return once(fn () => $teacher->subjects()->pluck('subjects.id')
+            ->merge(Group::where('teacher_id', $teacher->id)->pluck('subject_id'))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all());
+    }
+
+    private function canAccessSubject(?int $subjectId): bool
+    {
+        return $subjectId !== null && in_array($subjectId, $this->allowedSubjectIds(), true);
+    }
+
     private function authorizeSubject(Subject $subject): void
     {
-        abort_unless($this->teacher()->subjects->contains($subject->id), 403);
+        abort_unless($this->canAccessSubject($subject->id), 403);
     }
 
     private function authorizeLesson(EducationalLesson $lesson): Subject
     {
         $subject = $lesson->unit?->stage?->subject;
-        abort_unless($subject && $this->teacher()->subjects->contains($subject->id), 404);
+        abort_unless($subject && $this->canAccessSubject($subject->id), 404);
 
         return $subject;
     }
 
     private function authorizeSubjectResource(SubjectResource $resource): void
     {
-        abort_unless($this->teacher()->subjects->contains($resource->subject_id), 403);
+        abort_unless($this->canAccessSubject($resource->subject_id), 403);
+    }
+
+    /** Every subject the teacher may manage, however they are linked to it. */
+    private function accessibleSubjects()
+    {
+        return Subject::whereIn('id', $this->allowedSubjectIds())
+            ->with('program')
+            ->orderBy('name_ar')
+            ->get();
     }
 
     public function index()
     {
-        $subjects = $this->teacher()->subjects()->with('program')->get();
+        $subjects = $this->accessibleSubjects();
 
         return view('teacher.content.index', compact('subjects'));
     }
@@ -50,7 +85,7 @@ class ContentController extends Controller
     {
         $teacher = $this->teacher();
 
-        $subjects = $teacher->subjects()->with('program')->get();
+        $subjects = $this->accessibleSubjects();
         $groups = Group::where('teacher_id', $teacher->id)
             ->with(['subject.program'])
             ->withCount(['registrations as students_count' => function ($q) {

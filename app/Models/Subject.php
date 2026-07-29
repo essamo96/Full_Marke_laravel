@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\EncryptsRouteKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Subject extends Model
 {
     use HasFactory;
+    use EncryptsRouteKey;
 
     protected $fillable = [
         'program_id', 'name_en', 'name_ar', 'description_en', 'description_ar',

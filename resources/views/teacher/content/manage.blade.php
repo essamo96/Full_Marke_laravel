@@ -107,8 +107,8 @@
         <div class="d-flex justify-content-between align-items-center" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#unit_{{ $unit->id }}">
           <h5 class="fw-bold mb-0" style="color: var(--text-primary);">{{ $unit->name_ar ?? $unit->name_en }}</h5>
           <div class="d-flex gap-2">
-            <button type="button" class="btn btn-sm btn-outline-success" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal({{ $unit->id }})"><i class="bi bi-plus-lg"></i></button>
-            <button type="button" class="btn btn-sm btn-outline-danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit({{ $unit->id }})"><i class="bi bi-trash"></i></button>
+            <button type="button" class="btn btn-sm btn-outline-success" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal('{{ $unit->getRouteKey() }}')"><i class="bi bi-plus-lg"></i></button>
+            <button type="button" class="btn btn-sm btn-outline-danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit('{{ $unit->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
           </div>
         </div>
         <div id="unit_{{ $unit->id }}" class="collapse mt-3 teacher-content-collapse">
@@ -119,7 +119,7 @@
                 <div class="d-flex gap-2 align-items-center">
                   <span class="badge bg-gold text-dark">{{ $lesson->resources->count() }} مرفق</span>
                   <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#lesson_res_{{ $lesson->id }}">إدارة المرفقات</button>
-                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteLesson({{ $lesson->id }})"><i class="bi bi-trash"></i></button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteLesson('{{ $lesson->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                 </div>
               </div>
               <div id="lesson_res_{{ $lesson->id }}" class="collapse mt-3 teacher-content-collapse">
@@ -190,10 +190,10 @@
                   @endforelse
                 </div>
                 <div class="d-flex flex-wrap gap-2">
-                  <button type="button" class="btn btn-sm btn-outline-success" onclick="selectVideoForLesson({{ $lesson->id }})">
+                  <button type="button" class="btn btn-sm btn-outline-success" onclick="selectVideoForLesson('{{ $lesson->getRouteKey() }}')">
                     <i class="bi bi-cloud-arrow-up me-1"></i> رفع فيديو
                   </button>
-                  <button type="button" class="btn btn-sm btn-outline-primary" onclick="openResourceModal({{ $lesson->id }})">
+                  <button type="button" class="btn btn-sm btn-outline-primary" onclick="openResourceModal('{{ $lesson->getRouteKey() }}')">
                     <i class="bi bi-plus-lg me-1"></i> إضافة مرفق (PDF / رابط)
                   </button>
                 </div>

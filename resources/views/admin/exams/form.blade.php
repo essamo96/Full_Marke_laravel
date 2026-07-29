@@ -43,7 +43,9 @@
                     <select name="subject_id" id="subject_id" class="form-select" data-control="select2" data-placeholder="اختر المادة" required>
                         <option></option>
                         @foreach($subjects as $subject)
-                            <option value="{{ $subject->id }}" data-groups="{{ json_encode($subject->groups) }}" {{ old('subject_id', $exam->subject_id ?? ($preselectedSubjectId ?? '')) == $subject->id ? 'selected' : '' }}>
+                            {{-- value stays the raw id because it is submitted as subject_id;
+                                 data-key carries the encrypted route key for the groups AJAX URL. --}}
+                            <option value="{{ $subject->id }}" data-key="{{ $subject->getRouteKey() }}" data-groups="{{ json_encode($subject->groups) }}" {{ old('subject_id', $exam->subject_id ?? ($preselectedSubjectId ?? '')) == $subject->id ? 'selected' : '' }}>
                                 {{ $subject->name }}
                             </option>
                         @endforeach
@@ -252,7 +254,16 @@
             return;
         }
 
-        fetch(`{{ $subjectGroupsAjaxBase ?? '/admin/exams/ajax/subject' }}/${subjectId}/groups`)
+        // The route binds the Subject model, whose route key is encrypted, so
+        // the URL must use data-key rather than the raw id in option.value.
+        const subjectKey = subjectSelect.selectedOptions[0]?.dataset.key;
+        if (!subjectKey) {
+            groupSelect.innerHTML = '<option></option>';
+            $(groupSelect).trigger('change');
+            return;
+        }
+
+        fetch(`{{ $subjectGroupsAjaxBase ?? '/admin/exams/ajax/subject' }}/${subjectKey}/groups`)
             .then(res => res.json())
             .then(groups => {
                 groupSelect.innerHTML = '<option></option>';

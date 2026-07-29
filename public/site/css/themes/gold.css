@@ -30,6 +30,12 @@
   --input-bg: rgba(5, 4, 2, 0.8);
   --input-border: rgba(197, 168, 128, 0.2);
   --input-focus-border: #c5a880;
+
+  /* Verification / OTP code inputs — needs its own colour so the digits stay
+     legible against the modal background in every theme. */
+  --code-input-bg: #0f0c06;
+  --code-input-text: #e8d0ad;
+  --code-input-border: rgba(197, 168, 128, 0.45);
   
   /* Shadows */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.6);

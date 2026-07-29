@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EducationalLesson extends Model
 {
+    use \App\Traits\EncryptsRouteKey;
+
     protected $fillable = ['educational_unit_id', 'name_ar', 'name_en', 'sort_order', 'is_active'];
 
     protected $casts = [
