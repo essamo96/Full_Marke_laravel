@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,6 +14,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Shared hosting typically fronts the app with a reverse proxy/CDN
+        // that terminates TLS, so PHP sees plain HTTP internally unless the
+        // proxy's X-Forwarded-* headers are trusted. Without this, Laravel
+        // can misjudge the request as insecure — breaking secure-cookie /
+        // session handling and, in turn, CSRF validation on POSTs like the
+        // student registration and "Apply Now" forms.
+        $middleware->trustProxies(
+            at: '*',
+            headers: SymfonyRequest::HEADER_X_FORWARDED_FOR
+                | SymfonyRequest::HEADER_X_FORWARDED_HOST
+                | SymfonyRequest::HEADER_X_FORWARDED_PORT
+                | SymfonyRequest::HEADER_X_FORWARDED_PROTO
+                | SymfonyRequest::HEADER_X_FORWARDED_AWS_ELB
+        );
+
         $middleware->alias([
             'admin.locale' => \App\Http\Middleware\SetAdminLocale::class,
             'site.locale' => \App\Http\Middleware\SetSiteLocale::class,

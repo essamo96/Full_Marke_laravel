@@ -292,10 +292,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const regForm = document.getElementById('registrationForm');
     const submitBtn = document.getElementById('submitBtn');
-    const otpModal = new bootstrap.Modal(document.getElementById('otpVerificationModal'));
     const verifyForm = document.getElementById('verifyOtpForm');
     const otpInputs = document.querySelectorAll('.otp-input');
     let resendInterval;
+    const csrfToken = document.querySelector('input[name="_token"]').value;
+
+    // Building the Bootstrap modal must never be able to take down the rest
+    // of this script — a slow/blocked CDN would otherwise throw here and
+    // silently skip attaching the form's submit handler below, leaving the
+    // browser to fall back to a plain (non-AJAX) POST that surfaces Laravel's
+    // raw error page on any failure (e.g. a stale CSRF token) instead of the
+    // friendly in-page message this form is built to show.
+    let otpModal = null;
+    try {
+        const otpModalEl = document.getElementById('otpVerificationModal');
+        if (otpModalEl && typeof bootstrap !== 'undefined') {
+            otpModal = new bootstrap.Modal(otpModalEl);
+        }
+    } catch (err) {
+        console.error('Could not initialize the OTP modal:', err);
+    }
 
     // Auto-focus OTP inputs logic
     otpInputs.forEach((input, index) => {
@@ -336,18 +352,28 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('{{ route("student.register.submit") }}', {
             method: 'POST',
             body: formData,
+            credentials: 'same-origin',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 419) {
+                // Session/CSRF token expired while filling the form — reload
+                // to get a fresh token rather than surfacing a raw error.
+                window.location.reload();
+                return Promise.reject(new Error('CSRF token expired'));
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.status === 'success') {
                 // Show modal
                 document.getElementById('sentEmailAddress').textContent = data.email;
                 document.getElementById('verifyEmailInput').value = data.email;
-                otpModal.show();
+                if (otpModal) otpModal.show();
                 startResendTimer();
             } else if (data.errors) {
                 Swal.fire({
@@ -368,6 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(err => {
+            if (err && err.message === 'CSRF token expired') return; // already reloading
             console.error(err);
             Swal.fire({
                 icon: 'error',
@@ -397,12 +424,20 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('{{ route("student.verify.submit") }}', {
             method: 'POST',
             body: formData,
+            credentials: 'same-origin',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 419) {
+                window.location.reload();
+                return Promise.reject(new Error('CSRF token expired'));
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.status === 'success') {
                 window.location.href = data.redirect;
@@ -415,6 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(err => {
+            if (err && err.message === 'CSRF token expired') return; // already reloading
             showOtpError('An error occurred during verification.');
             verifyBtn.disabled = false;
             verifyBtn.innerHTML = originalText;
@@ -429,21 +465,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const email = document.getElementById('verifyEmailInput').value;
         const formData = new FormData();
-        formData.append('_token', document.querySelector('input[name="_token"]').value);
+        formData.append('_token', csrfToken);
         formData.append('email', email);
 
         fetch('{{ route("student.verify.resend") }}', {
             method: 'POST',
             body: formData,
+            credentials: 'same-origin',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
             }
         })
         .then(response => {
             if(response.status === 429) {
                 showOtpError('يرجى الانتظار دقيقة قبل طلب كود جديد.');
                 startResendTimer(60);
+                return;
+            }
+            if (response.status === 419) {
+                window.location.reload();
                 return;
             }
             return response.json();
@@ -494,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function() {
     @if($pendingEmail ?? false)
         document.getElementById('sentEmailAddress').textContent = '{{ $pendingEmail }}';
         document.getElementById('verifyEmailInput').value = '{{ $pendingEmail }}';
-        otpModal.show();
+        if (otpModal) otpModal.show();
 
         @if($hasActiveCode ?? false)
             startResendTimer();
