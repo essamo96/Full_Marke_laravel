@@ -23,11 +23,12 @@ Route::prefix('student')->name('student.')->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('register', [RegisterController::class, 'showRegisterForm'])->name('register');
     Route::post('register', [RegisterController::class, 'register'])->name('register.submit')->middleware('throttle:8,1');
+    Route::post('register/check-email', [RegisterController::class, 'checkEmail'])->name('register.check-email')->middleware('throttle:15,1');
 
     Route::get('password/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('password/forgot', [ForgotPasswordController::class, 'sendNewPassword'])->name('password.email')->middleware('throttle:3,1');
 
-    Route::post('verify', [VerifyEmailController::class, 'verify'])->name('verify.submit');
+    Route::post('verify', [VerifyEmailController::class, 'verify'])->name('verify.submit')->middleware('throttle:10,1');
     Route::post('verify/resend', [VerifyEmailController::class, 'resend'])->name('verify.resend')->middleware('throttle:1,1');
 
     Route::middleware(['auth:student', 'student.verified'])->group(function () {

@@ -378,6 +378,78 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Check the email as soon as the student leaves the field, so an
+    // abandoned-but-unverified registration is caught before they fill out
+    // the rest of the form again.
+    const emailInput = document.getElementById('email');
+    let lastCheckedEmail = null;
+
+    function isValidEmail(value) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
+    function checkEmailExists(email) {
+        if (email === lastCheckedEmail) return;
+        lastCheckedEmail = email;
+
+        const formData = new FormData();
+        formData.append('email', email);
+
+        fetch('{{ route("student.register.check-email") }}', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        })
+        .then(response => response.ok ? response.json() : null)
+        .then(data => {
+            if (!data) return;
+
+            if (data.status === 'verified') {
+                Swal.fire({
+                    icon: 'info',
+                    title: document.documentElement.lang === 'ar' ? 'الحساب موجود بالفعل' : 'Account already exists',
+                    text: document.documentElement.lang === 'ar'
+                        ? 'يوجد حساب مسجل بهذا البريد الإلكتروني. يرجى تسجيل الدخول.'
+                        : 'An account with this email already exists. Please sign in.',
+                    confirmButtonText: document.documentElement.lang === 'ar' ? 'تسجيل الدخول' : 'Sign In',
+                    showCancelButton: true,
+                    cancelButtonText: document.documentElement.lang === 'ar' ? 'إغلاق' : 'Close',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '{{ route('student.login') }}';
+                    }
+                });
+            } else if (data.status === 'unverified') {
+                Swal.fire({
+                    icon: 'info',
+                    title: document.documentElement.lang === 'ar' ? 'حساب غير مفعل' : 'Unverified account found',
+                    text: document.documentElement.lang === 'ar'
+                        ? 'لديك بالفعل حساب بهذا البريد الإلكتروني لم يتم تفعيله بعد. تم إرسال رمز تحقق، يرجى إدخاله لإكمال التسجيل.'
+                        : 'You already have an account with this email that has not been verified yet. A verification code has been sent — please enter it to finish signing up.',
+                }).then(() => {
+                    document.getElementById('sentEmailAddress').textContent = data.email;
+                    document.getElementById('verifyEmailInput').value = data.email;
+                    if (otpModal) otpModal.show();
+                    startResendTimer();
+                    startExpiryTimer(data.codeExpirySeconds || 300);
+                });
+            }
+        })
+        .catch(err => console.error('Email check failed:', err));
+    }
+
+    if (emailInput) {
+        emailInput.addEventListener('blur', function() {
+            const value = emailInput.value.trim();
+            if (isValidEmail(value)) checkEmailExists(value);
+        });
+    }
+
     // Handle Registration Form via AJAX
     regForm.addEventListener('submit', function(e) {
         e.preventDefault();

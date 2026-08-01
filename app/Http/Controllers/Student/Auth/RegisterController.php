@@ -49,6 +49,47 @@ class RegisterController extends Controller
         return view('student.auth.register', compact('regions', 'branches', 'pendingEmail', 'hasActiveCode', 'codeExpirySeconds'));
     }
 
+    /**
+     * Lightweight AJAX probe fired as the student types their email, so an
+     * abandoned-but-unverified registration can be resumed (with a fresh code)
+     * before they ever fill out the rest of the form again.
+     */
+    public function checkEmail(Request $request, \App\Actions\SendVerificationCodeAction $sendCodeAction)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $student = Student::where('email', $request->email)->first();
+
+        if (!$student) {
+            return response()->json(['status' => 'new']);
+        }
+
+        if ($student->isEmailVerified()) {
+            return response()->json(['status' => 'verified']);
+        }
+
+        // Unverified account already exists for this email: send them straight
+        // back into the verification flow instead of forcing a re-registration.
+        // Only mint a fresh code if there isn't a live one already, so repeated
+        // edits to the email field (each re-triggering this check) don't spam
+        // the inbox with a new code every time.
+        $request->session()->put('otp.student.email', $student->email);
+        $activeCode = $student->emailVerificationCodes()->active()->latest()->first();
+
+        if (!$activeCode) {
+            $sendCodeAction->execute($student);
+            $activeCode = $student->emailVerificationCodes()->active()->latest()->first();
+        }
+
+        $codeExpirySeconds = $activeCode ? max(0, now()->diffInSeconds($activeCode->expires_at, false)) : 300;
+
+        return response()->json([
+            'status' => 'unverified',
+            'email' => $student->email,
+            'codeExpirySeconds' => $codeExpirySeconds,
+        ]);
+    }
+
     public function register(Request $request, \App\Actions\SendVerificationCodeAction $sendCodeAction)
     {
         $data = $request->validate([
