@@ -106,5 +106,50 @@
             '#status'
         ];
         @include('admin.layout.masterLayouts.datatableMaster')
+
+        $(document).on('click', '.activate-btn', function (e) {
+            e.preventDefault();
+            var btn = $(this);
+            var id = btn.data('id');
+            var url = btn.data('url');
+
+            Swal.fire({
+                title: 'تأكيد',
+                text: 'هل تريد تفعيل هذا الحساب يدوياً؟ سيتمكن الطالب من تسجيل الدخول مباشرة.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، فعّل',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#50cd89'
+            }).then(function (result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function (data) {
+                        var isSuccess = data.status === 'success';
+                        var message = data.message || (isSuccess ? "{{ __('app.update_success') }}" : "{{ __('app.execution_error') }}");
+
+                        if (isSuccess) {
+                            toastr.success(message);
+                            table.draw(false);
+                        } else {
+                            toastr.error(message);
+                        }
+                    },
+                    error: function (xhr) {
+                        var message = (xhr.responseJSON && xhr.responseJSON.message) || "{{ __('app.execution_error') }}";
+                        toastr.error(message);
+                    }
+                });
+            });
+        });
     </script>
 @stop

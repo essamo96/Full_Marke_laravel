@@ -11,16 +11,16 @@ use Illuminate\Support\Facades\Log;
 
 class SendVerificationCodeAction
 {
-    public function execute(Student $student)
+    public function execute(Student $student, int $minutes = 10)
     {
         // 1. Generate 6-digit random code
         $code = (string) random_int(100000, 999999);
 
-        // 2. Hash and store it with a 5-minute expiration
+        // 2. Hash and store it with the requested expiration
         EmailVerificationCode::create([
             'student_id' => $student->id,
             'code' => Hash::make($code),
-            'expires_at' => now()->addMinutes(5),
+            'expires_at' => now()->addMinutes($minutes),
             'attempts' => 0,
         ]);
 

@@ -101,6 +101,44 @@ class PendingRequestsController extends AdminController
         return $datatable->addIndexColumn()->make(true);
     }
 
+    public function postStatus(Request $request)
+    {
+        $id = $request->input('id');
+
+        try {
+            $id = Crypt::decrypt($id);
+        } catch (DecryptException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('app.execution_error')
+            ]);
+        }
+
+        $student = Student::find($id);
+
+        if (!$student) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('app.not_found')
+            ]);
+        }
+
+        if ($student->email_verified_at) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'الحساب مفعل بالفعل.'
+            ]);
+        }
+
+        $student->update(['email_verified_at' => now(), 'status' => true]);
+        $student->emailVerificationCodes()->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'تم تفعيل الحساب بنجاح.'
+        ]);
+    }
+
     public function postDelete(Request $request)
     {
         $id = $request->input('id');

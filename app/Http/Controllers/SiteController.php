@@ -9,6 +9,8 @@ use App\Models\Program;
 use App\Models\Student;
 use App\Models\News;
 use App\Models\Contact;
+use App\Models\EmailVerificationCode;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\RateLimiter;
@@ -66,7 +68,29 @@ class SiteController extends Controller
             }
         }
 
-        return view('site.apply-now', compact('programs', 'regions', 'branches', 'selectedProgram', 'selectedSubject'));
+        // If this session left an unverified application behind (e.g. the
+        // student closed the OTP screen by mistake), reopen the verification
+        // modal instead of letting the pending code go to waste.
+        $pendingEmail = $request->session()->get('otp.apply.email');
+        $pendingStudent = null;
+
+        if ($pendingEmail) {
+            $pendingStudent = Student::where('email', $pendingEmail)->whereNull('email_verified_at')->first();
+
+            if (!$pendingStudent) {
+                $request->session()->forget('otp.apply.email');
+                $pendingEmail = null;
+            }
+        }
+
+        $activeCode = $pendingStudent
+            ? $pendingStudent->emailVerificationCodes()->active()->latest()->first()
+            : null;
+
+        $hasActiveCode = (bool) $activeCode;
+        $codeExpirySeconds = $activeCode ? max(0, (int) round(now()->diffInSeconds($activeCode->expires_at, false))) : 0;
+
+        return view('site.apply-now', compact('programs', 'regions', 'branches', 'selectedProgram', 'selectedSubject', 'pendingEmail', 'hasActiveCode', 'codeExpirySeconds'));
     }
 
     public function storeApplication(Request $request, \App\Actions\SendVerificationCodeAction $sendCodeAction)
@@ -74,7 +98,11 @@ class SiteController extends Controller
         $data = $request->validate([
             'full_name_en' => 'required|string|max:255',
             'full_name_ar' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:students,email',
+            // A row only blocks re-application once its owner has verified the
+            // email — an abandoned, unverified application (e.g. the student
+            // closed the OTP screen by mistake) must not lock the address and
+            // force them to start over with a different email.
+            'email' => ['required', 'email', 'max:255', Rule::unique('students', 'email')->where(fn ($q) => $q->whereNotNull('email_verified_at'))],
             'phone' => 'required|string|max:30',
             'image' => 'nullable|image|max:2048',
             'date_of_birth' => 'nullable|date',
@@ -87,14 +115,17 @@ class SiteController extends Controller
             'message' => 'nullable|string',
             'program_id' => 'nullable|exists:programs,id',
             'subject_id' => 'nullable|exists:subjects,id',
+        ], [
+            'email.unique' => app()->getLocale() === 'ar'
+                ? 'يوجد حساب مسجل ومفعل بهذا البريد الإلكتروني بالفعل. يرجى تسجيل الدخول.'
+                : 'An account with this email already exists and is verified. Please sign in.',
         ]);
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('applications', 'public');
         }
 
-        // Create the Student first (unverified)
-        $student = Student::create([
+        $attributes = [
             'full_name_ar' => $data['full_name_ar'],
             'full_name_en' => $data['full_name_en'],
             'email' => $data['email'],
@@ -107,36 +138,61 @@ class SiteController extends Controller
             'branch_id' => $data['branch_id'] ?? null,
             'major_profession' => $data['major_profession'] ?? null,
             'health_information' => $data['health_information'] ?? null,
-            'password' => bcrypt('password'), // Will be prompted to change later or handled by profile
             'status' => 1, // Active, but restricted by email_verified_at middleware
-            'email_verified_at' => null,
-        ]);
+        ];
 
-        $application = Application::create($data);
+        // Resume an abandoned, unverified application instead of creating a
+        // duplicate (and hitting the students.email unique constraint).
+        $student = Student::where('email', $data['email'])->whereNull('email_verified_at')->first();
+        $isResume = (bool) $student;
 
-        // Send OTP via the new Action
-        $sendCodeAction->execute($student);
-
-        // Trigger real-time Pusher event for the admin dashboard
-        try {
-            \Illuminate\Support\Facades\Notification::send(
-                \App\Models\Admin::all(), 
-                new \App\Notifications\NewStudentRegisteredNotification($student)
-            );
-        } catch (\Exception $e) {
-            logger()->error("Pusher broadcast failed: " . $e->getMessage());
+        if ($student) {
+            $student->update($attributes);
+        } else {
+            $student = Student::create($attributes + [
+                'password' => bcrypt('password'), // Will be prompted to change later or handled by profile
+                'email_verified_at' => null,
+            ]);
         }
 
+        $application = Application::updateOrCreate(['email' => $data['email']], $data);
+
+        // Reuse a still-live code instead of minting a new one on every resubmit,
+        // so repeated attempts from the same abandoned session don't spam the inbox.
+        $activeCode = $student->emailVerificationCodes()->active()->latest()->first();
+        if (!$activeCode) {
+            $sendCodeAction->execute($student, 5);
+            $activeCode = $student->emailVerificationCodes()->active()->latest()->first();
+        }
+        $codeExpirySeconds = $activeCode ? max(0, (int) round(now()->diffInSeconds($activeCode->expires_at, false))) : 300;
+
+        // Store email in session (not flashed) so a page refresh can still
+        // detect the pending verification and reopen the OTP modal.
+        $request->session()->put('otp.apply.email', $student->email);
+
+        // Trigger real-time Pusher event for the admin dashboard (new applicants only)
+        if (!$isResume) {
+            try {
+                \Illuminate\Support\Facades\Notification::send(
+                    \App\Models\Admin::all(),
+                    new \App\Notifications\NewStudentRegisteredNotification($student)
+                );
+            } catch (\Exception $e) {
+                logger()->error("Pusher broadcast failed: " . $e->getMessage());
+            }
+        }
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
                 'message' => 'Application submitted successfully. Please verify your email.',
-                'email' => $student->email
+                'email' => $student->email,
+                'resumed' => $isResume,
+                'codeExpirySeconds' => $codeExpirySeconds,
             ]);
         }
 
-        return redirect()->back()->with('show_otp_modal', true)->with('email', $student->email);
+        return redirect()->back()->with('show_otp_modal', true)->with('email', $student->email)->with('codeExpirySeconds', $codeExpirySeconds);
     }
 
     public function storeContact(Request $request)

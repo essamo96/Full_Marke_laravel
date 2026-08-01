@@ -44,7 +44,7 @@ class RegisterController extends Controller
             : null;
 
         $hasActiveCode = (bool) $activeCode;
-        $codeExpirySeconds = $activeCode ? max(0, now()->diffInSeconds($activeCode->expires_at, false)) : 0;
+        $codeExpirySeconds = $activeCode ? max(0, (int) round(now()->diffInSeconds($activeCode->expires_at, false))) : 0;
 
         return view('student.auth.register', compact('regions', 'branches', 'pendingEmail', 'hasActiveCode', 'codeExpirySeconds'));
     }
@@ -76,12 +76,16 @@ class RegisterController extends Controller
         $request->session()->put('otp.student.email', $student->email);
         $activeCode = $student->emailVerificationCodes()->active()->latest()->first();
 
+        // Applications submitted through the public Apply Now form get a
+        // 5-minute code; students registering directly get 10.
+        $minutes = \App\Models\Application::where('email', $student->email)->exists() ? 5 : 10;
+
         if (!$activeCode) {
-            $sendCodeAction->execute($student);
+            $sendCodeAction->execute($student, $minutes);
             $activeCode = $student->emailVerificationCodes()->active()->latest()->first();
         }
 
-        $codeExpirySeconds = $activeCode ? max(0, now()->diffInSeconds($activeCode->expires_at, false)) : 300;
+        $codeExpirySeconds = $activeCode ? max(0, (int) round(now()->diffInSeconds($activeCode->expires_at, false))) : $minutes * 60;
 
         return response()->json([
             'status' => 'unverified',

@@ -524,11 +524,14 @@
   right: -300px;
   width: 300px;
   height: 100vh;
+  height: 100dvh;
   background: var(--bg-secondary);
   z-index: 1000;
   box-shadow: -10px 0 30px rgba(0,0,0,0.5);
   transition: right var(--transition-normal);
   padding: 40px 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .mobile-nav-menu.active {

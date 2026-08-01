@@ -243,14 +243,14 @@
                     <strong id="sentEmailAddress" style="color: var(--text-primary);"></strong>
                   </p>
 
-                  <div class="alert alert-warning d-flex align-items-start gap-2 text-start mb-3" style="font-size: 0.85rem;">
-                    <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                  <div class="alert alert-warning d-flex align-items-start gap-2 text-start mb-3 py-2 px-3" style="font-size: 0.78rem; line-height: 1.4;">
+                    <i class="bi bi-exclamation-triangle-fill mt-1" style="font-size: 0.85rem;"></i>
                     <span data-en="Important: Do not close this page until your email has been verified. If you leave, just return and enter the same email to continue." data-ar="هام: لا تغلق هذه الصفحة حتى يتم التحقق من بريدك الإلكتروني. إذا غادرت، عد وأدخل نفس البريد الإلكتروني للمتابعة.">Important: Do not close this page until your email has been verified. If you leave, just return and enter the same email to continue.</span>
                   </div>
 
                   <p class="mb-3" style="font-size: 0.9rem; color: var(--text-secondary);">
                     <span data-en="Code expires in" data-ar="ينتهي الكود خلال">Code expires in</span>
-                    <strong id="expiryTimer" style="color: var(--text-primary);">5:00</strong>
+                    <strong id="expiryTimer" style="color: var(--text-primary);">10:00</strong>
                   </p>
 
                   <div id="otpErrorMsg" class="alert alert-danger d-none" style="font-size: 0.9rem;"></div>
@@ -307,7 +307,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let resendInterval;
     let expiryInterval;
 
-    function startExpiryTimer(seconds = 300) {
+    function startExpiryTimer(seconds = 600) {
+        seconds = Math.max(0, Math.floor(Number(seconds) || 0));
         const expiryEl = document.getElementById('expiryTimer');
         clearInterval(expiryInterval);
 
@@ -436,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('verifyEmailInput').value = data.email;
                     if (otpModal) otpModal.show();
                     startResendTimer();
-                    startExpiryTimer(data.codeExpirySeconds || 300);
+                    startExpiryTimer(data.codeExpirySeconds || 600);
                 });
             }
         })
@@ -444,9 +445,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (emailInput) {
-        emailInput.addEventListener('blur', function() {
+        let emailCheckDebounce;
+        const triggerEmailCheck = function() {
             const value = emailInput.value.trim();
             if (isValidEmail(value)) checkEmailExists(value);
+        };
+
+        // Check as the student types (debounced), not only when the field loses focus.
+        emailInput.addEventListener('input', function() {
+            clearTimeout(emailCheckDebounce);
+            emailCheckDebounce = setTimeout(triggerEmailCheck, 600);
+        });
+        emailInput.addEventListener('blur', function() {
+            clearTimeout(emailCheckDebounce);
+            triggerEmailCheck();
         });
     }
 
@@ -650,7 +662,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         @if($hasActiveCode ?? false)
             startResendTimer();
-            startExpiryTimer({{ (int) ($codeExpirySeconds ?? 300) }});
+            startExpiryTimer({{ (int) ($codeExpirySeconds ?? 600) }});
         @else
             // The previous code already expired — send a fresh one automatically
             // so the user isn't stuck staring at a modal with a dead code.

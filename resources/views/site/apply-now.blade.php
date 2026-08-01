@@ -164,7 +164,17 @@
             <span data-en="A verification code has been sent to:" data-ar="تم إرسال رمز التحقق إلى:">A verification code has been sent to:</span><br>
             <strong id="sentEmailAddress" style="color: var(--text-primary);"></strong>
           </p>
-          
+
+          <div class="alert alert-warning d-flex align-items-start gap-2 text-start mb-3 py-2 px-3" style="font-size: 0.78rem; line-height: 1.4;">
+            <i class="bi bi-exclamation-triangle-fill mt-1" style="font-size: 0.85rem;"></i>
+            <span data-en="Important: Do not close this page until your email has been verified. Please check your inbox (and spam folder) for the code. If you leave, just return and enter the same email to continue." data-ar="هام: لا تغلق هذه الصفحة حتى يتم التحقق من بريدك الإلكتروني. يرجى تفقد بريدك الإلكتروني (وصندوق الرسائل غير المرغوبة). إذا غادرت، عد وأدخل نفس البريد الإلكتروني للمتابعة.">Important: Do not close this page until your email has been verified. Please check your inbox (and spam folder) for the code. If you leave, just return and enter the same email to continue.</span>
+          </div>
+
+          <p class="mb-3" style="font-size: 0.9rem; color: var(--text-secondary);">
+            <span data-en="Code expires in" data-ar="ينتهي الكود خلال">Code expires in</span>
+            <strong id="expiryTimer" style="color: var(--text-primary);">5:00</strong>
+          </p>
+
           <div id="otpErrorMsg" class="alert alert-danger d-none" style="font-size: 0.9rem;"></div>
 
           <form id="verifyOtpForm">
@@ -206,7 +216,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const verifyForm = document.getElementById('verifyOtpForm');
     const otpInputs = document.querySelectorAll('.otp-input');
     let resendInterval;
+    let expiryInterval;
     const csrfToken = document.querySelector('input[name="_token"]').value;
+
+    function startExpiryTimer(seconds = 300) {
+        seconds = Math.max(0, Math.floor(Number(seconds) || 0));
+        const expiryEl = document.getElementById('expiryTimer');
+        clearInterval(expiryInterval);
+
+        const render = (s) => {
+            const m = Math.floor(s / 60);
+            const sec = s % 60;
+            expiryEl.textContent = `${m}:${sec < 10 ? '0' + sec : sec}`;
+        };
+        render(seconds);
+
+        expiryInterval = setInterval(() => {
+            seconds--;
+            if (seconds <= 0) {
+                clearInterval(expiryInterval);
+                render(0);
+                showOtpError(document.documentElement.lang === 'ar'
+                    ? 'انتهت صلاحية الكود. يرجى طلب كود جديد.'
+                    : 'This code has expired. Please request a new one.');
+                const btn = document.getElementById('resendCodeBtn');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span data-en="Resend" data-ar="إعادة الإرسال">Resend</span>';
+                }
+                clearInterval(resendInterval);
+            } else {
+                render(seconds);
+            }
+        }, 1000);
+    }
 
     // Building the Bootstrap modal must never be able to take down the rest
     // of this script — a slow/blocked CDN would otherwise throw here and
@@ -291,6 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('verifyEmailInput').value = data.email;
                     if(otpModal) otpModal.show();
                     startResendTimer();
+                    startExpiryTimer(data.codeExpirySeconds || 300);
                 } else if (data.errors) {
                     Swal.fire({
                         icon: 'error',
@@ -378,11 +422,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle Resend Request
     const resendBtn = document.getElementById('resendCodeBtn');
-    if (resendBtn) {
-        resendBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            this.disabled = true;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+    function requestResendCode() {
+        if (!resendBtn) return;
+        resendBtn.disabled = true;
+        resendBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
             const email = document.getElementById('verifyEmailInput').value;
             const formData = new FormData();
@@ -415,10 +459,99 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(data && data.status === 'success') {
                     showOtpError('تم إرسال الكود بنجاح!', 'success');
                     startResendTimer();
+                    startExpiryTimer(data.codeExpirySeconds || 300);
                 } else if (data) {
                     showOtpError(data.message || 'فشل في إعادة الإرسال.');
                 }
             });
+    }
+
+    if (resendBtn) {
+        resendBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            requestResendCode();
+        });
+    }
+
+    // Check the email as soon as the student enters it, so an
+    // abandoned-but-unverified application is caught before they fill out
+    // the rest of the form again.
+    const applyEmailInput = document.getElementById('applyEmail');
+    let lastCheckedApplyEmail = null;
+
+    function isValidEmail(value) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
+    function checkApplyEmailExists(email) {
+        if (email === lastCheckedApplyEmail) return;
+        lastCheckedApplyEmail = email;
+
+        const formData = new FormData();
+        formData.append('email', email);
+
+        fetch('{{ route("student.register.check-email") }}', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        })
+        .then(response => response.ok ? response.json() : null)
+        .then(data => {
+            if (!data) return;
+
+            if (data.status === 'verified') {
+                Swal.fire({
+                    icon: 'info',
+                    title: document.documentElement.lang === 'ar' ? 'الحساب موجود بالفعل' : 'Account already exists',
+                    text: document.documentElement.lang === 'ar'
+                        ? 'يوجد حساب مسجل ومفعل بهذا البريد الإلكتروني. يرجى تسجيل الدخول.'
+                        : 'An account with this email already exists and is verified. Please sign in.',
+                    confirmButtonText: document.documentElement.lang === 'ar' ? 'تسجيل الدخول' : 'Sign In',
+                    showCancelButton: true,
+                    cancelButtonText: document.documentElement.lang === 'ar' ? 'إغلاق' : 'Close',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '{{ route('student.login') }}';
+                    }
+                });
+            } else if (data.status === 'unverified') {
+                Swal.fire({
+                    icon: 'info',
+                    title: document.documentElement.lang === 'ar' ? 'حساب غير مفعل' : 'Unverified account found',
+                    text: document.documentElement.lang === 'ar'
+                        ? 'لديك بالفعل طلب سابق بهذا البريد الإلكتروني لم يتم تفعيله بعد. تم إرسال رمز تحقق جديد، يرجى عدم إغلاق الصفحة وتفقد بريدك الإلكتروني لإكمال التسجيل.'
+                        : 'You already have a previous application with this email that has not been verified yet. A new verification code has been sent — please do not close this page and check your inbox to finish signing up.',
+                }).then(() => {
+                    document.getElementById('sentEmailAddress').textContent = data.email;
+                    document.getElementById('verifyEmailInput').value = data.email;
+                    if (otpModal) otpModal.show();
+                    startResendTimer();
+                    startExpiryTimer(data.codeExpirySeconds || 300);
+                });
+            }
+        })
+        .catch(err => console.error('Email check failed:', err));
+    }
+
+    if (applyEmailInput) {
+        let applyEmailCheckDebounce;
+        const triggerApplyEmailCheck = function() {
+            const value = applyEmailInput.value.trim();
+            if (isValidEmail(value)) checkApplyEmailExists(value);
+        };
+
+        applyEmailInput.addEventListener('input', function() {
+            clearTimeout(applyEmailCheckDebounce);
+            applyEmailCheckDebounce = setTimeout(triggerApplyEmailCheck, 600);
+        });
+        applyEmailInput.addEventListener('blur', function() {
+            clearTimeout(applyEmailCheckDebounce);
+            triggerApplyEmailCheck();
         });
     }
 
@@ -447,14 +580,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
     
-    @if(session('show_otp_modal'))
-        const sessionEmail = '{{ session("email") }}';
-        if(sessionEmail) {
-            document.getElementById('sentEmailAddress').textContent = sessionEmail;
-            document.getElementById('verifyEmailInput').value = sessionEmail;
-            if (otpModal) otpModal.show();
+    // Reopen the OTP modal if this session left an unverified application
+    // behind (e.g. the page was refreshed or reopened before the code was
+    // entered), so the student doesn't have to fill out the form again.
+    @if($pendingEmail ?? false)
+        document.getElementById('sentEmailAddress').textContent = '{{ $pendingEmail }}';
+        document.getElementById('verifyEmailInput').value = '{{ $pendingEmail }}';
+        if (otpModal) otpModal.show();
+
+        @if($hasActiveCode ?? false)
             startResendTimer();
-        }
+            startExpiryTimer({{ (int) ($codeExpirySeconds ?? 300) }});
+        @else
+            // The previous code already expired — send a fresh one automatically
+            // so the student isn't stuck staring at a modal with a dead code.
+            requestResendCode();
+        @endif
     @endif
 });
 </script>
