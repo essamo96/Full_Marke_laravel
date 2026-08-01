@@ -243,6 +243,16 @@
                     <strong id="sentEmailAddress" style="color: var(--text-primary);"></strong>
                   </p>
 
+                  <div class="alert alert-warning d-flex align-items-start gap-2 text-start mb-3" style="font-size: 0.85rem;">
+                    <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                    <span data-en="Important: Do not close this page until your email has been verified. If you leave, just return and enter the same email to continue." data-ar="هام: لا تغلق هذه الصفحة حتى يتم التحقق من بريدك الإلكتروني. إذا غادرت، عد وأدخل نفس البريد الإلكتروني للمتابعة.">Important: Do not close this page until your email has been verified. If you leave, just return and enter the same email to continue.</span>
+                  </div>
+
+                  <p class="mb-3" style="font-size: 0.9rem; color: var(--text-secondary);">
+                    <span data-en="Code expires in" data-ar="ينتهي الكود خلال">Code expires in</span>
+                    <strong id="expiryTimer" style="color: var(--text-primary);">5:00</strong>
+                  </p>
+
                   <div id="otpErrorMsg" class="alert alert-danger d-none" style="font-size: 0.9rem;"></div>
 
                   <form id="verifyOtpForm">
@@ -295,6 +305,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const verifyForm = document.getElementById('verifyOtpForm');
     const otpInputs = document.querySelectorAll('.otp-input');
     let resendInterval;
+    let expiryInterval;
+
+    function startExpiryTimer(seconds = 300) {
+        const expiryEl = document.getElementById('expiryTimer');
+        clearInterval(expiryInterval);
+
+        const render = (s) => {
+            const m = Math.floor(s / 60);
+            const sec = s % 60;
+            expiryEl.textContent = `${m}:${sec < 10 ? '0' + sec : sec}`;
+        };
+        render(seconds);
+
+        expiryInterval = setInterval(() => {
+            seconds--;
+            if (seconds <= 0) {
+                clearInterval(expiryInterval);
+                render(0);
+                showOtpError(document.documentElement.lang === 'ar'
+                    ? 'انتهت صلاحية الكود. يرجى طلب كود جديد.'
+                    : 'This code has expired. Please request a new one.');
+                // Let the student request a fresh code immediately, regardless
+                // of the 60s anti-abuse throttle, since the code is now dead.
+                const resendBtn = document.getElementById('resendCodeBtn');
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<span data-en="Resend" data-ar="إعادة الإرسال">Resend</span>';
+                clearInterval(resendInterval);
+            } else {
+                render(seconds);
+            }
+        }, 1000);
+    }
     const csrfToken = document.querySelector('input[name="_token"]').value;
 
     let otpModal = null;
@@ -369,6 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('verifyEmailInput').value = data.email;
                 if (otpModal) otpModal.show();
                 startResendTimer();
+                startExpiryTimer();
             } else if (data.errors) {
                 Swal.fire({
                     icon: 'error',
@@ -488,6 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if(data && data.status === 'success') {
                 showOtpError('تم إرسال الكود بنجاح!', 'success');
                 startResendTimer();
+                startExpiryTimer();
             } else if (data) {
                 showOtpError(data.message || 'فشل في إعادة الإرسال.');
             }
@@ -534,6 +578,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         @if($hasActiveCode ?? false)
             startResendTimer();
+            startExpiryTimer({{ (int) ($codeExpirySeconds ?? 300) }});
         @else
             // The previous code already expired — send a fresh one automatically
             // so the user isn't stuck staring at a modal with a dead code.

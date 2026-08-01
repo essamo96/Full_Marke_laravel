@@ -16,11 +16,11 @@ class SendVerificationCodeAction
         // 1. Generate 6-digit random code
         $code = (string) random_int(100000, 999999);
 
-        // 2. Hash and store it with a 10-minute expiration
+        // 2. Hash and store it with a 5-minute expiration
         EmailVerificationCode::create([
             'student_id' => $student->id,
             'code' => Hash::make($code),
-            'expires_at' => now()->addMinutes(10),
+            'expires_at' => now()->addMinutes(5),
             'attempts' => 0,
         ]);
 

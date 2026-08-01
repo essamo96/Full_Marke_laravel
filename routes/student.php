@@ -22,7 +22,7 @@ Route::prefix('student')->name('student.')->group(function () {
     Route::post('login', [LoginController::class, 'login'])->name('login.submit');
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('register', [RegisterController::class, 'showRegisterForm'])->name('register');
-    Route::post('register', [RegisterController::class, 'register'])->name('register.submit');
+    Route::post('register', [RegisterController::class, 'register'])->name('register.submit')->middleware('throttle:8,1');
 
     Route::get('password/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('password/forgot', [ForgotPasswordController::class, 'sendNewPassword'])->name('password.email')->middleware('throttle:3,1');

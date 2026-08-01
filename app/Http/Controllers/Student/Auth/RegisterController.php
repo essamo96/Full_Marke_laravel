@@ -39,11 +39,14 @@ class RegisterController extends Controller
             }
         }
 
-        $hasActiveCode = $pendingStudent
-            ? $pendingStudent->emailVerificationCodes()->active()->exists()
-            : false;
+        $activeCode = $pendingStudent
+            ? $pendingStudent->emailVerificationCodes()->active()->latest()->first()
+            : null;
 
-        return view('student.auth.register', compact('regions', 'branches', 'pendingEmail', 'hasActiveCode'));
+        $hasActiveCode = (bool) $activeCode;
+        $codeExpirySeconds = $activeCode ? max(0, now()->diffInSeconds($activeCode->expires_at, false)) : 0;
+
+        return view('student.auth.register', compact('regions', 'branches', 'pendingEmail', 'hasActiveCode', 'codeExpirySeconds'));
     }
 
     public function register(Request $request, \App\Actions\SendVerificationCodeAction $sendCodeAction)
@@ -66,6 +69,8 @@ class RegisterController extends Controller
             'profession' => 'nullable|string|max:255',
             'password' => 'required|string|min:8|confirmed',
             'terms' => 'required|accepted',
+        ], [
+            'email.unique' => 'An account with this email already exists. Please sign in.',
         ]);
 
         $attributes = [
