@@ -54,6 +54,7 @@ class VerifyEmailController extends Controller
         EmailVerificationCode::where('student_id', $student->id)->delete(); // clear old codes
 
         $request->session()->forget(['otp.student.email', 'otp.apply.email']);
+        $request->session()->flash('show_welcome', true);
 
         Auth::guard('student')->login($student);
 

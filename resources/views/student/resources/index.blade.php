@@ -25,6 +25,7 @@
     .resource-card .resource-text {
       min-width: 0;
       overflow-wrap: anywhere;
+      text-align: start;
     }
     .resource-icon-circle {
       width: 44px; height: 44px;
@@ -53,7 +54,25 @@
        every secure viewer modal (video, document, image, link). */
     .viewer-modal.size-sm { max-width: 420px; }
     .viewer-modal.size-md { max-width: 800px; }
-    .viewer-modal.size-lg { max-width: 96vw; width: 96vw; }
+    /* "large" uses Bootstrap's own .modal-fullscreen class (added/removed in
+       JS) so it genuinely fills the entire viewport — no margins, no rounded
+       corners — instead of just being a wide dialog. */
+    .viewer-modal.modal-fullscreen .modal-content { border-radius: 0; }
+    .viewer-modal.modal-fullscreen #lessonVideoContainer,
+    .viewer-modal.modal-fullscreen #lessonLinkEmbedWrap {
+      height: 100% !important;
+      aspect-ratio: unset !important;
+    }
+    .viewer-modal.modal-fullscreen #lessonDocumentContainer,
+    .viewer-modal.modal-fullscreen #lessonImageContainer {
+      height: 100% !important;
+      min-height: 0 !important;
+    }
+    .viewer-modal.modal-fullscreen .modal-body {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 80px);
+    }
     .viewer-size-toggle {
       display: flex;
       align-items: center;
@@ -243,8 +262,11 @@
     var VIEWER_SIZE_KEY = 'lessonViewerSize';
 
     function applyViewerSize(dialog, size) {
-        dialog.classList.remove('size-sm', 'size-md', 'size-lg');
+        dialog.classList.remove('size-sm', 'size-md', 'size-lg', 'modal-fullscreen');
         dialog.classList.add('size-' + size);
+        // "large" = Bootstrap's real fullscreen modal (100vw/100vh, no margins),
+        // not just a wider dialog, so the "enlarge" button actually fills the screen.
+        if (size === 'lg') dialog.classList.add('modal-fullscreen');
         var modalEl = dialog.closest('.modal');
         if (!modalEl) return;
         modalEl.querySelectorAll('.viewer-size-btn').forEach(function (btn) {

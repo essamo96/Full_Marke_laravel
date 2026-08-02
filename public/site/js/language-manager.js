@@ -21,6 +21,8 @@
       } else {
         element.textContent = textVal;
       }
+      // Reveal — see the matching visibility:hidden rule in layouts/site.blade.php.
+      element.style.visibility = 'visible';
     });
 
     window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));

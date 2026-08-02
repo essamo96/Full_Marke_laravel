@@ -26,7 +26,7 @@
       <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
         <i class="bi bi-{{ $icon }} fs-5"></i>
       </div>
-      <div class="flex-grow-1 resource-text" dir="auto">
+      <div class="flex-grow-1 resource-text">
         <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
         @if($isProcessing)
           <div class="text-xs opacity-75" data-en="Still processing — check back soon" data-ar="جاري تجهيز الفيديو، حاول لاحقًا">جاري تجهيز الفيديو، حاول لاحقًا</div>
@@ -44,7 +44,7 @@
       <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
         <i class="bi bi-{{ $icon }} fs-5"></i>
       </div>
-      <div class="flex-grow-1 resource-text" dir="auto">
+      <div class="flex-grow-1 resource-text">
         <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
         @if($resource->description)
           <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
@@ -56,7 +56,7 @@
       <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
         <i class="bi bi-{{ $icon }} fs-5"></i>
       </div>
-      <div class="flex-grow-1 resource-text" dir="auto">
+      <div class="flex-grow-1 resource-text">
         <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
         @if($resource->description)
           <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
@@ -71,7 +71,7 @@
       <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
         <i class="bi bi-image-fill fs-5"></i>
       </div>
-      <div class="flex-grow-1 resource-text" dir="auto">
+      <div class="flex-grow-1 resource-text">
         <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
         @if($resource->description)
           <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
@@ -85,7 +85,7 @@
       <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
         <i class="bi bi-{{ $icon }} fs-5"></i>
       </div>
-      <div class="flex-grow-1 resource-text" dir="auto">
+      <div class="flex-grow-1 resource-text">
         <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
         @if($resource->description)
           <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>

@@ -357,6 +357,34 @@
         </div>
 
 @push('scripts')
+@if(session('show_welcome'))
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Same welcome sound used for realtime notifications elsewhere in the
+    // student portal, so this reads as one consistent "success" cue.
+    try {
+      var audio = new Audio('{{ asset("assets/sounds/notification.mp3") }}');
+      var playPromise = audio.play();
+      if (playPromise !== undefined) playPromise.catch(function () {});
+    } catch (e) {}
+
+    Swal.fire({
+      imageUrl: @json($student->photo_url ?? asset('assets/admin/media/avatars/blank.png')),
+      imageWidth: 96,
+      imageHeight: 96,
+      imageAlt: @json($student->name),
+      title: (document.documentElement.lang === 'ar' ? 'أهلاً بك، ' : 'Welcome, ') + @json($student->name),
+      text: document.documentElement.lang === 'ar' ? 'تم تسجيل الدخول بنجاح.' : 'You have signed in successfully.',
+      confirmButtonText: document.documentElement.lang === 'ar' ? 'حسناً' : 'OK',
+      confirmButtonColor: 'var(--accent-color)',
+      background: 'var(--bg-secondary)',
+      color: 'var(--text-primary)',
+      customClass: { image: 'rounded-circle' },
+    });
+  });
+</script>
+@endif
 <script>
   document.getElementById('joinGroupForm')?.addEventListener('submit', function (e) {
     e.preventDefault();

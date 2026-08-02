@@ -7,6 +7,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Hides bilingual text nodes until language-manager.js sets the correct
+       language, so a refresh never flashes the English default text (the
+       literal server-rendered content of every data-en/data-ar element)
+       before JS swaps it to Arabic. visibility (not display) keeps layout
+       stable — no reflow when the text appears. -->
+  <style>[data-en][data-ar]{visibility:hidden}</style>
+  <noscript><style>[data-en][data-ar]{visibility:visible}</style></noscript>
   <title>@yield('title', $siteSettings->seo_title ?? 'FULL MARKS ACADEMY')</title>
   <meta name="description" content="@yield('meta_description', $siteSettings->seo_description ?? '')">
   <meta name="keywords" content="{{ $siteSettings->seo_keywords ?? '' }}">

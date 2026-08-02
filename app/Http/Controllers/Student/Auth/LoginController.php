@@ -49,7 +49,7 @@ class LoginController extends Controller
 
             $request->session()->regenerate();
 
-            return redirect()->intended(route('student.dashboard'));
+            return redirect()->intended(route('student.dashboard'))->with('show_welcome', true);
         }
 
         return back()->withErrors([

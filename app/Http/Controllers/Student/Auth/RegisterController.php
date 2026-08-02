@@ -138,6 +138,7 @@ class RegisterController extends Controller
         // Resume an abandoned, unverified registration instead of creating a
         // duplicate row for the same email address.
         $student = Student::where('email', $data['email'])->whereNull('email_verified_at')->first();
+        $isResume = (bool) $student;
 
         if ($student) {
             $student->update($attributes);
@@ -148,8 +149,13 @@ class RegisterController extends Controller
 
         $sendCodeAction->execute($student);
 
-        // Notify admins
-        Notification::send(Admin::all(), new NewStudentRegisteredNotification($student));
+        // Notify admins — only for genuinely new sign-ups. A resubmission of
+        // an already-pending, unverified registration (expired OTP session,
+        // accidental double-submit, etc.) must not spam a second "new
+        // registration" notification for the same student.
+        if (! $isResume) {
+            Notification::send(Admin::all(), new NewStudentRegisteredNotification($student));
+        }
 
         // Store email in session (not flashed) so a page refresh can still
         // detect the pending verification and reopen the OTP modal.
