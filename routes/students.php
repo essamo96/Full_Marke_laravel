@@ -15,3 +15,7 @@ Route::post('students/status', [StudentsController::class, 'postStatus'])->name(
 Route::post('students/delete', [StudentsController::class, 'postDelete'])->name('students.delete')->middleware('permission:admin.students.delete');
 Route::get('students/export', [StudentsController::class, 'exportExcel'])->name('students.export')->middleware('permission:admin.students.view');
 Route::get('students/{id}/invoices', [StudentsController::class, 'getInvoices'])->name('students.invoices')->middleware('permission:admin.students.view');
+
+Route::get('students-active-devices', [StudentsController::class, 'getActiveDevices'])->name('students.active-devices')->middleware('permission:admin.students.view');
+Route::get('students-active-devices/list', [StudentsController::class, 'getActiveDevicesList'])->name('students.active-devices.list')->middleware('permission:admin.students.view');
+Route::post('students-active-devices/clear-ip', [StudentsController::class, 'postClearIp'])->name('students.active-devices.clear-ip')->middleware('permission:admin.students.edit');

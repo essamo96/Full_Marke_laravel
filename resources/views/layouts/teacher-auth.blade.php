@@ -10,8 +10,8 @@
   <meta name="description" content="Staff and teacher login portal for FULL MARK ACADEMY management system.">
 
   <!-- Favicons -->
-  <link rel="icon" type="image/png" href="{{ asset('site/images/img/logo_backup.png') }}">
-  <link rel="shortcut icon" href="{{ asset('site/images/img/logo_backup.png') }}">
+  <link rel="icon" type="image/png" href="{{ asset('site/images/logo_v2_blue.png') }}">
+  <link rel="shortcut icon" href="{{ asset('site/images/logo_v2_blue.png') }}">
 
   <!-- Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">

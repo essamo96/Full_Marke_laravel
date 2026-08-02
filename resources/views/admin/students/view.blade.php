@@ -23,6 +23,9 @@
             <i class="ki-duotone ki-people fs-2"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></i>
             تشعيب / نقل الطلاب
         </a>
+        <a href="{{ route('students.active-devices') }}" class="btn btn-flex btn-warning h-40px fs-7 fw-bold me-2" title="الطلاب المتصلون الآن والأجهزة المرتبطة بحساباتهم">
+            <i class="bi bi-wifi"></i> الطلاب المتصلون الآن
+        </a>
         @can('admin.students.add')
         <a href="{{ route('students.add') }}" class="btn btn-flex btn-primary h-40px fs-7 fw-bold">
             <i class="bi bi-plus-lg"></i>@lang('app.add')

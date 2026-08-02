@@ -16,7 +16,8 @@ class Student extends Authenticatable
         'full_name_ar', 'full_name_en', 'national_id', 'is_child', 'guardian_id',
         'phone', 'email', 'image', 'date_of_birth', 'gender', 'address',
         'region_id', 'branch_id', 'major_profession', 'health_information',
-        'status', 'email_verified_at', 'password', 'parent_id', 'study_branch_id'
+        'status', 'email_verified_at', 'password', 'parent_id', 'study_branch_id',
+        'locked_ip', 'locked_ip_set_at', 'last_seen_at',
     ];
 
     protected $hidden = [
@@ -30,7 +31,18 @@ class Student extends Authenticatable
         'password' => 'hashed',
         'status' => 'boolean',
         'is_child' => 'boolean',
+        'locked_ip_set_at' => 'datetime',
+        'last_seen_at' => 'datetime',
     ];
+
+    /**
+     * Whether this student currently shows as "online" for the admin's live
+     * active-students panel — a heartbeat within the last 5 minutes.
+     */
+    public function getIsOnlineAttribute(): bool
+    {
+        return $this->last_seen_at && $this->last_seen_at->gt(now()->subMinutes(5));
+    }
 
     public function guardian(): BelongsTo
     {

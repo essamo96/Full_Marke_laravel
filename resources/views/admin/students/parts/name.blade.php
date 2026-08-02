@@ -3,7 +3,7 @@
         <a href="{{ url('admin/students/show/' . $student->id) }}">
             @if($student->image)
                 <div class="symbol-label">
-                    <img src="{{ asset($student->image) }}" alt="{{ $student->full_name_ar }}" class="w-100" />
+                    <img src="{{ asset('storage/' . $student->image) }}" alt="{{ $student->full_name_ar }}" class="w-100" />
                 </div>
             @else
                 <div class="symbol-label fs-3 bg-light-primary text-primary">

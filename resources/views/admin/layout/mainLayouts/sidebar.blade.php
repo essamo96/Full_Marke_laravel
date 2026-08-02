@@ -68,11 +68,20 @@
                                     }
                                     ?>
                                     @can($childPermission)
-                                        <x-admin.sidebar-item 
-                                            :title="$childTitle" 
-                                            :url="$childUrl" 
+                                        <x-admin.sidebar-item
+                                            :title="$childTitle"
+                                            :url="$childUrl"
                                             :active="$childActive" />
                                     @endcan
+
+                                    @if ($childRoute == 'students.view')
+                                        @can('admin.students.view')
+                                            <x-admin.sidebar-item
+                                                :title="$lang === 'ar' ? 'الطلاب المتصلون الآن' : 'Active Devices'"
+                                                :url="route('students.active-devices')"
+                                                :active="isset($active_menu) && $active_menu == 'students_active_devices'" />
+                                        @endcan
+                                    @endif
                                 @endforeach
                                 
                             </x-admin.sidebar-menu>

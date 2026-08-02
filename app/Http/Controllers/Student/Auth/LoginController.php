@@ -47,6 +47,24 @@ class LoginController extends Controller
                 ])->onlyInput('email');
             }
 
+            // Single-device lock: the first device to log in claims the
+            // account's IP; any other device is refused until an admin
+            // clears it (the "delete IP" action), which is how a student
+            // legitimately switches to a new device/laptop.
+            $currentIp = $request->ip();
+            if ($student->locked_ip && $student->locked_ip !== $currentIp) {
+                Auth::guard('student')->logout();
+
+                return back()->withErrors([
+                    'email' => 'حسابك مسجّل الدخول حالياً من جهاز آخر. يرجى التواصل مع الإدارة لإلغاء ربط الجهاز إذا كنت تريد الدخول من جهاز جديد.',
+                ])->onlyInput('email');
+            }
+
+            if (! $student->locked_ip) {
+                $student->update(['locked_ip' => $currentIp, 'locked_ip_set_at' => now()]);
+            }
+            $student->update(['last_seen_at' => now()]);
+
             $request->session()->regenerate();
 
             return redirect()->intended(route('student.dashboard'))->with('show_welcome', true);

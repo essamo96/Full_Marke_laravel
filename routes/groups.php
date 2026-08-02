@@ -26,3 +26,7 @@ Route::get('groups/{id}/students/list', [GroupsController::class, 'getStudentsLi
 
 Route::get('groups/{id}/details', [GroupsController::class, 'getDetails'])->name('groups.details')->middleware('permission:admin.groups.view');
 Route::post('groups/generate-code', [GroupsController::class, 'postGenerateCode'])->name('groups.generate_code')->middleware('permission:admin.groups.generate_code');
+
+Route::get('groups/students/transfer-options/{registrationId}', [GroupsController::class, 'getTransferOptions'])->name('groups.students.transfer-options')->middleware('permission:admin.groups.view');
+Route::post('groups/students/transfer', [GroupsController::class, 'postTransferStudent'])->name('groups.students.transfer')->middleware('permission:admin.groups.edit');
+Route::post('groups/students/remove', [GroupsController::class, 'postRemoveFromGroup'])->name('groups.students.remove')->middleware('permission:admin.groups.edit');

@@ -8,8 +8,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>@yield('title', 'Student Registration | FULL MARK ACADEMY')</title>
   <!-- Favicons -->
-  <link rel="icon" type="image/png" href="{{ asset('site/images/img/logo_backup.png') }}">
-  <link rel="shortcut icon" href="{{ asset('site/images/img/logo_backup.png') }}">
+  <link rel="icon" type="image/png" href="{{ asset('site/images/logo_v2_blue.png') }}">
+  <link rel="shortcut icon" href="{{ asset('site/images/logo_v2_blue.png') }}">
 
   <!-- Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">

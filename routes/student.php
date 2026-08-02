@@ -31,7 +31,7 @@ Route::prefix('student')->name('student.')->group(function () {
     Route::post('verify', [VerifyEmailController::class, 'verify'])->name('verify.submit')->middleware('throttle:10,1');
     Route::post('verify/resend', [VerifyEmailController::class, 'resend'])->name('verify.resend')->middleware('throttle:1,1');
 
-    Route::middleware(['auth:student', 'student.verified'])->group(function () {
+    Route::middleware(['auth:student', 'student.verified', 'student.device-lock'])->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('cart', [CartController::class, 'index'])->name('cart');

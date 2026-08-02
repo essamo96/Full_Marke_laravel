@@ -66,7 +66,9 @@
               <a href="{{ $social->link }}" target="_blank" rel="noopener" title="{{ $platformName }}"
                  class="footer-social-btn w-10 h-10 rounded-full d-flex align-items-center justify-content-center text-lg transition-colors"
                  style="--social-brand: {{ $brandColor }};">
-                @if($social->image)
+                @if($social->icon)
+                  <i class="{{ $iconClass }}"></i>
+                @elseif($social->image)
                   <img src="{{ $social->image_path }}" alt="{{ $platformName }}" style="width: 18px; height: 18px; object-fit: contain;">
                 @else
                   <i class="{{ $iconClass }}"></i>

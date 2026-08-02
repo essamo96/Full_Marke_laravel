@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\GroupRequest;
 use App\Models\Group;
+use App\Models\Registration;
 use App\Models\Subject;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
@@ -172,9 +173,81 @@ class GroupsController extends AdminController
             ->addColumn('student', fn ($reg) => view('admin.students.parts.name', ['student' => $reg->student])->render())
             ->addColumn('phone', fn ($reg) => $reg->student->phone)
             ->addColumn('status', fn ($reg) => '<span class="badge badge-light-'.($reg->status=='active'?'success':'warning').'">'.__('app.status_'.$reg->status).'</span>')
+            ->addColumn('group_status_select', function ($reg) {
+                // A simple active/suspended toggle for this screen — the
+                // full 3-state control (active/suspended/deferred) still
+                // lives on the Registrations screen for finer-grained cases.
+                $isActive = $reg->group_status !== Registration::GROUP_STATUS_SUSPENDED;
+                $checked = $isActive ? 'checked' : '';
+                $label = $isActive ? 'فعال' : 'موقوف';
+                $labelColor = $isActive ? 'text-success' : 'text-danger';
+                return '<div class="form-check form-switch d-flex align-items-center gap-2">'
+                    . '<input class="form-check-input group-status-toggle" type="checkbox" role="switch" data-id="' . $reg->id . '" ' . $checked . '>'
+                    . '<span class="fw-bold fs-7 group-status-toggle-label ' . $labelColor . '">' . $label . '</span>'
+                    . '</div>';
+            })
             ->addColumn('actions', fn ($reg) => view('admin.groups.parts.students_actions', ['registration' => $reg])->render())
-            ->rawColumns(['student', 'status', 'actions'])
+            ->rawColumns(['student', 'status', 'group_status_select', 'actions'])
             ->toJson();
+    }
+
+    /**
+     * Groups the student can be transferred to: same subject (they've
+     * already paid into it via this registration), excluding the group
+     * they're currently in.
+     */
+    public function getTransferOptions($registrationId)
+    {
+        $registration = Registration::with('group')->findOrFail(Crypt::decrypt($registrationId));
+
+        $groups = Group::where('subject_id', $registration->subject_id)
+            ->where('id', '!=', $registration->group_id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json([
+            'success' => true,
+            'current_group' => $registration->group->name ?? '-',
+            'groups' => $groups,
+        ]);
+    }
+
+    public function postTransferStudent(Request $request)
+    {
+        $data = $request->validate([
+            'registration_id' => 'required|exists:registrations,id',
+            'group_id' => 'required|exists:groups,id',
+        ]);
+
+        $registration = Registration::findOrFail($data['registration_id']);
+        $newGroup = Group::findOrFail($data['group_id']);
+
+        // A transfer only ever makes sense within the same subject — the
+        // student already paid into that subject, not into an arbitrary group.
+        if ($newGroup->subject_id !== $registration->subject_id) {
+            return response()->json(['success' => false, 'message' => 'المجموعة المختارة لا تتبع نفس المادة.'], 422);
+        }
+
+        $registration->update(['group_id' => $newGroup->id]);
+
+        return response()->json(['success' => true, 'message' => 'تم نقل الطالب إلى المجموعة الجديدة بنجاح.']);
+    }
+
+    /**
+     * Unassigns the student from this group without touching their payment
+     * history — the registration (and everything already paid) stays intact,
+     * it just no longer belongs to a specific group until reassigned.
+     */
+    public function postRemoveFromGroup(Request $request)
+    {
+        $data = $request->validate([
+            'registration_id' => 'required|exists:registrations,id',
+        ]);
+
+        $registration = Registration::findOrFail($data['registration_id']);
+        $registration->update(['group_id' => null]);
+
+        return response()->json(['success' => true, 'message' => 'تم حذف الطالب من المجموعة بنجاح.']);
     }
 
     public function getDetails($id)

@@ -289,4 +289,66 @@ class StudentsController extends AdminController
             
         return view('admin.students.results', self::$data + compact('student', 'grades'));
     }
+
+    /**
+     * Live/periodic panel of students who currently have their account open
+     * (a heartbeat within the last 5 minutes — see EnforceStudentDeviceLock)
+     * plus the device (IP) each one is locked to.
+     */
+    public function getActiveDevices()
+    {
+        return view('admin.students.active_devices', array_merge(self::$data, ['active_menu' => 'students_active_devices']));
+    }
+
+    public function getActiveDevicesList(Request $request)
+    {
+        $query = Student::whereNotNull('last_seen_at')
+            ->orderByDesc('last_seen_at');
+
+        if ($request->boolean('online_only', true)) {
+            $query->where('last_seen_at', '>=', now()->subMinutes(5));
+        }
+
+        $students = $query->get(['id', 'full_name_ar', 'full_name_en', 'email', 'image', 'locked_ip', 'locked_ip_set_at', 'last_seen_at']);
+
+        $data = $students->map(function ($student) {
+            return [
+                'id' => Crypt::encrypt($student->id),
+                'name' => $student->full_name_ar ?: $student->full_name_en,
+                'email' => $student->email,
+                'image' => $student->image ? asset('storage/' . $student->image) : asset('assets/admin/media/avatars/blank.png'),
+                'locked_ip' => $student->locked_ip,
+                'locked_ip_set_at' => $student->locked_ip_set_at?->format('Y-m-d H:i'),
+                'last_seen_at' => $student->last_seen_at?->diffForHumans(),
+                'is_online' => $student->is_online,
+            ];
+        });
+
+        return response()->json(['success' => true, 'data' => $data]);
+    }
+
+    /**
+     * "Delete IP" — clears the device lock so the student's next login is
+     * accepted from whatever device they use (a new laptop, etc.), and
+     * force-signs-out any session still open on the old device.
+     */
+    public function postClearIp(Request $request)
+    {
+        $id = $request->input('id');
+
+        try {
+            $id = Crypt::decrypt($id);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => __('app.execution_error')]);
+        }
+
+        $student = Student::find($id);
+        if (!$student) {
+            return response()->json(['success' => false, 'message' => __('app.not_found')]);
+        }
+
+        $student->update(['locked_ip' => null, 'locked_ip_set_at' => null]);
+
+        return response()->json(['success' => true, 'message' => 'تم حذف الجهاز المرتبط بالحساب، يمكن للطالب الآن الدخول من جهاز جديد.']);
+    }
 }
