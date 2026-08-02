@@ -777,7 +777,10 @@
             processData: false,
             success: function (response) {
                 modalAddResource.hide();
-                if (type === 'video' && response.id) {
+                // Videos are stored and served directly — no transcode/encryption
+                // step to wait on — so only fall back to the processing drawer if
+                // the backend explicitly says the resource isn't ready yet.
+                if (type === 'video' && response.id && response.processing_status === 'processing') {
                     showProcessingDrawer(response.id);
                 } else {
                     showSuccess(function () { location.reload(); });

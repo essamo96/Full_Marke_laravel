@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Jobs\ProcessLessonVideo;
 use App\Models\Subject;
 use App\Models\EducationalStage;
 use App\Models\EducationalUnit;
@@ -149,8 +148,10 @@ class SubjectContentController extends AdminController
             return response()->json(['success' => false, 'message' => 'يرجى إرفاق ملف أو رابط صحيح'], 422);
         }
 
-        $processingStatus = ($data['type'] === 'video' && ! preg_match('#^https?://#i', (string) $storedPath)) ? 'processing' : 'ready';
-
+        // Uploaded videos are served directly (protected MP4 streaming with a
+        // session token + Referer lock — see VideoStreamController), so there's
+        // no HLS transcode/encryption step to wait on: a video is ready the
+        // moment its bytes are on disk, same as every other resource type.
         $resource = SubjectResource::create([
             'subject_id' => $subjectId,
             'educational_lesson_id' => $lesson->id,
@@ -159,17 +160,13 @@ class SubjectContentController extends AdminController
             'category' => $data['type'],
             'url' => $storedPath,
             'original_filename' => $data['original_filename'] ?? null,
-            'processing_status' => $processingStatus,
+            'processing_status' => 'ready',
             'description' => $data['description'] ?? null,
             'allow_download' => $data['allow_download'] ?? false,
             'is_active' => true,
         ]);
 
-        if ($processingStatus === 'processing') {
-            ProcessLessonVideo::dispatch($resource->id);
-        }
-
-        return response()->json(['success' => true, 'id' => $resource->getRouteKey()]);
+        return response()->json(['success' => true, 'id' => $resource->getRouteKey(), 'processing_status' => $resource->processing_status]);
     }
 
     public function updateResource(Request $request, SubjectResource $resource)
@@ -210,15 +207,13 @@ class SubjectContentController extends AdminController
             }
         }
 
-        if ($fileChanged) {
-            if (!preg_match('#^https?://#i', (string) $resource->url)) {
-                Storage::disk('protected_videos')->delete($resource->url);
-                Storage::disk('protected_videos')->deleteDirectory("resources/{$resource->id}");
-            }
-            $processingStatus = ($data['type'] === 'video' && ! preg_match('#^https?://#i', (string) $storedPath)) ? 'processing' : 'ready';
-        } else {
-            $processingStatus = $resource->processing_status;
+        if ($fileChanged && !preg_match('#^https?://#i', (string) $resource->url)) {
+            Storage::disk('protected_videos')->delete($resource->url);
+            Storage::disk('protected_videos')->deleteDirectory("resources/{$resource->id}");
         }
+
+        // No HLS transcode/encryption step — see storeResource() above.
+        $processingStatus = 'ready';
 
         $resource->update([
             'title' => $data['title'],
@@ -230,10 +225,6 @@ class SubjectContentController extends AdminController
             'description' => $data['description'] ?? null,
             'allow_download' => $data['allow_download'] ?? false,
         ]);
-
-        if ($fileChanged && $processingStatus === 'processing') {
-            ProcessLessonVideo::dispatch($resource->id);
-        }
 
         return response()->json(['success' => true, 'id' => $resource->getRouteKey(), 'processing_status' => $processingStatus]);
     }

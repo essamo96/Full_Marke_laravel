@@ -48,6 +48,32 @@
       background: rgba(197,168,128,0.3);
       color: var(--accent-color);
     }
+
+    /* Viewer size modes — student-controlled small/medium/large display for
+       every secure viewer modal (video, document, image, link). */
+    .viewer-modal.size-sm { max-width: 420px; }
+    .viewer-modal.size-md { max-width: 800px; }
+    .viewer-modal.size-lg { max-width: 96vw; width: 96vw; }
+    .viewer-size-toggle {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-inline-end: 12px;
+    }
+    .viewer-size-toggle button {
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      background: transparent;
+      border: 1px solid var(--separator-color);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      transition: background .15s ease, color .15s ease;
+    }
+    .viewer-size-toggle button.active {
+      background: var(--accent-color);
+      color: #000;
+      border-color: var(--accent-color);
+    }
   </style>
 
   @if($resourcesBySubject->isEmpty())
@@ -193,10 +219,11 @@
 
   <!-- Secure lesson video modal -->
   <div class="modal fade" id="lessonVideoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog viewer-modal size-md modal-dialog-centered">
       <div class="modal-content glass-panel">
         <div class="modal-header border-0">
           <h5 class="modal-title fw-bold" id="lessonVideoTitle" style="color: var(--text-primary);"></h5>
+          @include('student.resources.parts.viewer-size-toggle')
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body pt-0">
@@ -211,10 +238,11 @@
 
   <!-- Secure document (PDF) modal -->
   <div class="modal fade" id="lessonDocumentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog viewer-modal size-md modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content glass-panel">
         <div class="modal-header border-0">
           <h5 class="modal-title fw-bold" id="lessonDocumentTitle" style="color: var(--text-primary);"></h5>
+          @include('student.resources.parts.viewer-size-toggle')
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body pt-0">
@@ -229,10 +257,11 @@
 
   <!-- Secure image modal -->
   <div class="modal fade" id="lessonImageModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog viewer-modal size-md modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content glass-panel">
         <div class="modal-header border-0">
           <h5 class="modal-title fw-bold" id="lessonImageTitle" style="color: var(--text-primary);"></h5>
+          @include('student.resources.parts.viewer-size-toggle')
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body pt-0">
@@ -247,10 +276,11 @@
 
   <!-- External link modal (YouTube embed, or a gated "open" action for non-embeddable links like Zoom) -->
   <div class="modal fade" id="lessonLinkModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog viewer-modal size-md modal-dialog-centered">
       <div class="modal-content glass-panel">
         <div class="modal-header border-0">
           <h5 class="modal-title fw-bold" id="lessonLinkTitle" style="color: var(--text-primary);"></h5>
+          @include('student.resources.parts.viewer-size-toggle')
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body pt-0" oncontextmenu="return false;">
@@ -271,6 +301,7 @@
 
 @push('scripts')
   <script src="{{ asset('assets/vendor/hlsjs/hls.min.js') }}"></script>
+  <script src="{{ asset('assets/js/secure-watermark.js') }}"></script>
   <script src="{{ asset('assets/js/student-video-player.js') }}"></script>
   <script src="{{ asset('assets/vendor/pdfjs/pdf.min.js') }}"></script>
   <script src="{{ asset('assets/js/student-document-viewer.js') }}"></script>
@@ -279,6 +310,38 @@
     // Disable right-click context menu on the entire page
     document.addEventListener('contextmenu', function(e) {
         e.preventDefault();
+    });
+
+    // Small/medium/large display size for every secure viewer modal. The
+    // watermark canvas already re-fits itself via ResizeObserver whenever its
+    // container's pixel size changes, and right-click blocking is applied on
+    // the video/document/image/iframe elements themselves — not the modal
+    // dialog — so switching sizes here never drops either protection.
+    var VIEWER_SIZE_KEY = 'lessonViewerSize';
+
+    function applyViewerSize(dialog, size) {
+        dialog.classList.remove('size-sm', 'size-md', 'size-lg');
+        dialog.classList.add('size-' + size);
+        var modalEl = dialog.closest('.modal');
+        if (!modalEl) return;
+        modalEl.querySelectorAll('.viewer-size-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.dataset.size === size);
+        });
+    }
+
+    document.querySelectorAll('.viewer-modal').forEach(function (dialog) {
+        var savedSize = localStorage.getItem(VIEWER_SIZE_KEY) || 'md';
+        applyViewerSize(dialog, savedSize);
+    });
+
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.viewer-size-btn');
+        if (!btn) return;
+        var dialog = btn.closest('.viewer-modal');
+        if (!dialog) return;
+        var size = btn.dataset.size;
+        applyViewerSize(dialog, size);
+        localStorage.setItem(VIEWER_SIZE_KEY, size);
     });
 
     var lessonImageDestroy = null;

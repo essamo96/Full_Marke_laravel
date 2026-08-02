@@ -25,6 +25,11 @@ class VideoStreamController extends Controller
     {
         $student = Auth::guard('student')->user();
 
+        // A copied stream URL opened in a different browser (or logged out
+        // entirely) has no student session to authorize against at all —
+        // fail that cleanly instead of crashing on a null->registrations() call.
+        abort_unless($student, 403);
+
         abort_unless($resource->is_active, 404);
 
         $isRegistered = $student->registrations()

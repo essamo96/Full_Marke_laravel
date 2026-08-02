@@ -1,15 +1,22 @@
 /**
- * Secure lesson video player: fetches a single-use, single-session HLS
- * stream URL, plays it through hls.js, and overlays a moving watermark of
- * the current student's name and photo so any screen-recorded leak can be
- * traced back to its source. None of this can stop screen capture itself —
- * see the protection study for why that boundary is technical, not a bug
- * here.
+ * Secure lesson video player: fetches a single-use, single-session stream
+ * URL, downloads it as a blob and plays it from a blob: object URL (rather
+ * than pointing <video src> at the real network endpoint), and overlays a
+ * moving watermark of the current student's name and photo so any
+ * screen-recorded leak can be traced back to its source. The blob: URL only
+ * resolves inside this tab for this page load, so a browser's native
+ * "download"/"copy video address" affordance yields nothing usable outside
+ * this session. None of this can stop screen capture itself — see the
+ * protection study for why that boundary is technical, not a bug here.
  */
 (function (global) {
   'use strict';
 
   var LOAD_TIME_STORAGE_KEY = 'lessonVideoAvgLoadMs';
+
+  function mountWatermark(container, studentName, studentPhotoUrl) {
+    return global.mountSecureWatermark(container, studentName, studentPhotoUrl, { className: 'video-watermark-overlay' });
+  }
 
   function getEstimatedLoadMs() {
     var stored = Number(localStorage.getItem(LOAD_TIME_STORAGE_KEY));
@@ -21,106 +28,6 @@
     // Exponential moving average so one slow/fast network blip doesn't swing the estimate wildly.
     var next = previous > 0 ? Math.round(previous * 0.7 + ms * 0.3) : ms;
     localStorage.setItem(LOAD_TIME_STORAGE_KEY, String(next));
-  }
-
-  // How long the watermark roams the frame before it locks into its
-  // compact static position. Kept inside the requested 3-5s window.
-  var WATERMARK_STATIC_AFTER_MS = 4000;
-
-  function mountWatermark(container, studentName, studentPhotoUrl) {
-    var canvas = document.createElement('canvas');
-    canvas.className = 'video-watermark-overlay';
-    canvas.style.position = 'absolute';
-    canvas.style.inset = '0';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.pointerEvents = 'none';
-    container.appendChild(canvas);
-
-    var ctx = canvas.getContext('2d');
-    var raf = null;
-    var photo = null;
-    var startedAt = Date.now();
-
-    if (studentPhotoUrl) {
-      photo = new Image();
-      photo.crossOrigin = 'anonymous';
-      photo.src = studentPhotoUrl;
-    }
-
-    function resize() {
-      var rect = container.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-    }
-
-    function draw() {
-      var width = canvas.width;
-      var height = canvas.height;
-      if (width && height) {
-        ctx.clearRect(0, 0, width, height);
-
-        var elapsed = Date.now() - startedAt;
-
-        if (elapsed < WATERMARK_STATIC_AFTER_MS) {
-          // Roaming phase: one full sweep across the frame during the window above.
-          var t = (elapsed / WATERMARK_STATIC_AFTER_MS) * Math.PI * 2;
-          var wave = Math.cos(t) * -0.5 + 0.5;
-          var x = width * (0.15 + 0.7 * wave);
-          var y = height * 0.15;
-
-          // Photo sized relative to the video frame so it stays legible on any player size.
-          var photoSize = Math.max(28, Math.round(height * 0.09));
-
-          ctx.globalAlpha = 0.55;
-          if (photo && photo.complete && photo.naturalWidth) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(x, y - photoSize * 0.75, photoSize / 2, 0, Math.PI * 2);
-            ctx.clip();
-            ctx.drawImage(photo, x - photoSize / 2, y - photoSize * 0.75 - photoSize / 2, photoSize, photoSize);
-            ctx.restore();
-          }
-
-          var fontSize = Math.max(13, Math.round(height * 0.038));
-          ctx.font = '700 ' + fontSize + 'px "Segoe UI", Tahoma, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.lineWidth = Math.max(3, fontSize * 0.2);
-          ctx.strokeStyle = '#000000';
-          ctx.fillStyle = '#ffffff';
-          ctx.shadowColor = 'rgba(0,0,0,0.6)';
-          ctx.shadowBlur = 4;
-          ctx.strokeText(studentName, x, y + fontSize * 0.3);
-          ctx.fillText(studentName, x, y + fontSize * 0.3);
-        } else {
-          // Locked phase: small, thin, clean text pinned to the top-left corner.
-          var pad = Math.max(10, Math.round(width * 0.015));
-          var staticFontSize = Math.max(11, Math.round(height * 0.022));
-          ctx.globalAlpha = 0.5;
-          ctx.font = '400 ' + staticFontSize + 'px "Segoe UI", Tahoma, sans-serif';
-          ctx.textAlign = 'left';
-          ctx.lineWidth = Math.max(1, staticFontSize * 0.12);
-          ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-          ctx.fillStyle = '#ffffff';
-          ctx.shadowColor = 'rgba(0,0,0,0.45)';
-          ctx.shadowBlur = 2;
-          ctx.strokeText(studentName, pad, pad + staticFontSize);
-          ctx.fillText(studentName, pad, pad + staticFontSize);
-        }
-      }
-      raf = requestAnimationFrame(draw);
-    }
-
-    var resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(container);
-    resize();
-    draw();
-
-    return function destroy() {
-      if (raf) cancelAnimationFrame(raf);
-      resizeObserver.disconnect();
-      canvas.remove();
-    };
   }
 
   /**
@@ -260,6 +167,7 @@
     var cleanupFns = [];
     var loader = mountLoadingOverlay(opts.container);
     var firstPlayHandled = false;
+    var objectUrl = null;
 
     function handleFirstFrame() {
       if (firstPlayHandled) return;
@@ -284,15 +192,32 @@
         return res.json();
       })
       .then(function (data) {
-        var streamUrl = data.stream_url;
+        // Fetch the video into memory and play it from a blob: object URL
+        // instead of pointing <video src> at the real network endpoint.
+        // A blob: URL only exists inside this tab's memory for this page
+        // load — copying "video address" from the browser's native menu
+        // yields a URL that is meaningless anywhere else (a different
+        // browser, a new tab, or even this same tab after a reload), which
+        // closes off the native "download"/"copy link" escape hatch that
+        // controlsList/contextmenu blocking can't reach. Trade-off: the
+        // whole file must download before playback starts — no more
+        // progressive play-while-buffering — which is why the loading
+        // overlay above gives an honest estimate rather than pretending
+        // this is instant.
+        return fetch(data.stream_url, { credentials: 'same-origin' })
+          .then(function (res) {
+            if (!res.ok) throw new Error('تعذّر تحميل الفيديو');
+            return res.blob();
+          })
+          .then(function (blob) {
+            objectUrl = URL.createObjectURL(blob);
+            opts.videoEl.src = objectUrl;
+            opts.videoEl.load();
 
-        // Ensure browser can play mp4 directly
-        opts.videoEl.src = streamUrl;
-        opts.videoEl.load();
-
-        cleanupFns.push(mountWatermark(opts.container, opts.studentName, opts.studentPhotoUrl));
-        cleanupFns.push(applyDeterrents(opts.videoEl));
-        cleanupFns.push(keepOverlayInFullscreen(opts.container, opts.videoEl));
+            cleanupFns.push(mountWatermark(opts.container, opts.studentName, opts.studentPhotoUrl));
+            cleanupFns.push(applyDeterrents(opts.videoEl));
+            cleanupFns.push(keepOverlayInFullscreen(opts.container, opts.videoEl));
+          });
       })
       .catch(function (err) {
         loader.destroy();
@@ -305,6 +230,10 @@
       opts.videoEl.pause();
       opts.videoEl.removeAttribute('src');
       opts.videoEl.load();
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+      }
     };
   }
 

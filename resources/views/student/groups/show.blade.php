@@ -630,6 +630,7 @@
 
 @push('scripts')
 <script src="{{ asset('assets/vendor/hlsjs/hls.min.js') }}"></script>
+<script src="{{ asset('assets/js/secure-watermark.js') }}"></script>
 <script src="{{ asset('assets/js/student-video-player.js') }}"></script>
 <script src="{{ asset('assets/vendor/pdfjs/pdf.min.js') }}"></script>
 <script src="{{ asset('assets/js/student-document-viewer.js') }}"></script>
