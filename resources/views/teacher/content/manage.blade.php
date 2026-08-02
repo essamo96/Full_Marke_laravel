@@ -8,6 +8,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('assets/vendor/resumable/resumable.js') }}"></script>
+<script src="{{ asset('assets/js/secure-watermark.js') }}"></script>
 @endpush
 
 @section('content')
@@ -354,7 +355,6 @@
         </div>
         <div class="modal-body p-0">
           <div class="protected-viewer__stage" id="protected_viewer_stage">
-            <div class="protected-viewer__watermark" id="protected_viewer_watermark"></div>
             <div class="protected-viewer__shield" aria-hidden="true"></div>
           </div>
         </div>
@@ -442,21 +442,6 @@
     z-index: 30;
     background: transparent;
     cursor: not-allowed;
-  }
-
-  .protected-viewer__watermark {
-    position: absolute;
-    top: 12px;
-    inset-inline-start: 14px;
-    z-index: 25;
-    pointer-events: none;
-    user-select: none;
-    font-size: 13px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.62);
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.85);
-    white-space: pre-line;
-    line-height: 1.4;
   }
 
   /* Defence-in-depth against drag-to-desktop and selection copying. */
@@ -581,15 +566,40 @@
    */
   const protectedViewerModal = new bootstrap.Modal(document.getElementById('modal_protected_viewer'));
   const protectedViewerStage = document.getElementById('protected_viewer_stage');
-  const protectedViewerWatermark = document.getElementById('protected_viewer_watermark');
+  let protectedViewerWatermarkDestroy = null;
+  let protectedViewerFullscreenCleanup = null;
+
+  // Native video fullscreen makes the <video> itself the fullscreen element,
+  // which would leave the watermark canvas (a sibling, not a child) behind on
+  // the page — same fix as the student-side player, so the watermark and the
+  // right-click block on the video element both survive going fullscreen.
+  function keepWatermarkInFullscreen(container, videoEl) {
+    function onFullscreenChange() {
+      var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+      if (fsEl !== videoEl) return;
+      var exit = document.exitFullscreen
+        ? document.exitFullscreen()
+        : (document.webkitExitFullscreen ? Promise.resolve(document.webkitExitFullscreen()) : Promise.resolve());
+      Promise.resolve(exit).catch(function () {}).then(function () {
+        var request = container.requestFullscreen || container.webkitRequestFullscreen;
+        if (request) request.call(container).catch(function () {});
+      });
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    return function destroy() {
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+    };
+  }
 
   function openProtectedViewer(kind, url, title) {
     document.getElementById('protected_viewer_title').textContent = title || 'معاينة';
-    protectedViewerWatermark.textContent = @js(auth('teacher')->user()?->name ?? 'معلّم')
-      + '\n' + new Date().toLocaleString('ar-EG');
 
     // Drop any previously rendered media so its stream stops immediately.
     protectedViewerStage.querySelectorAll('video, iframe, img').forEach(el => el.remove());
+    if (protectedViewerWatermarkDestroy) { protectedViewerWatermarkDestroy(); protectedViewerWatermarkDestroy = null; }
+    if (protectedViewerFullscreenCleanup) { protectedViewerFullscreenCleanup(); protectedViewerFullscreenCleanup = null; }
 
     let node;
     if (kind === 'video') {
@@ -617,6 +627,19 @@
     node.addEventListener('contextmenu', e => e.preventDefault());
     node.addEventListener('dragstart', e => e.preventDefault());
     protectedViewerStage.insertBefore(node, protectedViewerStage.firstChild);
+
+    // Same canonical roam-then-lock watermark as the student side, so a leak
+    // is traceable back to whoever previewed it regardless of which side saw it.
+    protectedViewerWatermarkDestroy = mountSecureWatermark(
+      protectedViewerStage,
+      @json(auth('teacher')->user()?->name ?? 'معلّم'),
+      null
+    );
+
+    if (kind === 'video') {
+      protectedViewerFullscreenCleanup = keepWatermarkInFullscreen(protectedViewerStage, node);
+    }
+
     protectedViewerModal.show();
   }
 
@@ -642,6 +665,8 @@
   document.getElementById('modal_protected_viewer').addEventListener('hidden.bs.modal', function () {
     protectedViewerStage.querySelectorAll('video').forEach(v => { v.pause(); v.removeAttribute('src'); v.load(); });
     protectedViewerStage.querySelectorAll('video, iframe, img').forEach(el => el.remove());
+    if (protectedViewerWatermarkDestroy) { protectedViewerWatermarkDestroy(); protectedViewerWatermarkDestroy = null; }
+    if (protectedViewerFullscreenCleanup) { protectedViewerFullscreenCleanup(); protectedViewerFullscreenCleanup = null; }
   });
 
   // Suppress the context menu across the resource area so the file URL cannot

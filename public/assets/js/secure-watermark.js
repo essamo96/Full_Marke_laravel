@@ -60,7 +60,10 @@
           var x = width * (0.15 + 0.7 * wave);
           var y = height * 0.15;
 
-          var photoSize = Math.max(28, Math.round(height * 0.09));
+          // Clamped, not just floored: a scroll container whose content (e.g. a
+          // multi-page PDF) is taller than its visible viewport must never let
+          // that content height blow the watermark up to an unreadable size.
+          var photoSize = Math.min(90, Math.max(28, Math.round(height * 0.09)));
 
           ctx.globalAlpha = 0.55;
           if (photo && photo.complete && photo.naturalWidth) {
@@ -72,7 +75,7 @@
             ctx.restore();
           }
 
-          var fontSize = Math.max(13, Math.round(height * 0.038));
+          var fontSize = Math.min(38, Math.max(13, Math.round(height * 0.038)));
           ctx.font = '700 ' + fontSize + 'px "Segoe UI", Tahoma, sans-serif';
           ctx.textAlign = 'center';
           ctx.lineWidth = Math.max(3, fontSize * 0.2);
@@ -85,7 +88,7 @@
         } else {
           // Locked phase: small, thin, clean text pinned to the top-left corner.
           var pad = Math.max(10, Math.round(width * 0.015));
-          var staticFontSize = Math.max(11, Math.round(height * 0.022));
+          var staticFontSize = Math.min(22, Math.max(11, Math.round(height * 0.022)));
           ctx.globalAlpha = 0.5;
           ctx.font = '400 ' + staticFontSize + 'px "Segoe UI", Tahoma, sans-serif';
           ctx.textAlign = 'left';

@@ -42,8 +42,8 @@
           <div>
             <div class="fw-bold" style="color: var(--text-primary);">{{ $item->subject->name }}</div>
             <div class="text-muted fs-7">
-              <span>Min: {{ number_format($item->subject->min_payment ?? $item->subject->fee, 2) }} JOD</span>
-              <span class="ms-2">Total: {{ number_format($item->subject->fee, 2) }} JOD</span>
+              <span>Min: {{ number_format($item->subject->min_payment ?? $item->subject->fee, 2) }} {{ $currency }}</span>
+              <span class="ms-2">Total: {{ number_format($item->subject->fee, 2) }} {{ $currency }}</span>
             </div>
           </div>
         </div>
@@ -57,11 +57,11 @@
 
     <div class="d-flex justify-content-between fw-bold border-top pt-3 mt-2">
       <span data-en="Total Fee" data-ar="إجمالي الرسوم">Total Fee</span>
-      <span style="color: var(--accent-color);">{{ number_format($totalFee, 2) }} JOD</span>
+      <span style="color: var(--accent-color);">{{ number_format($totalFee, 2) }} {{ $currency }}</span>
     </div>
     <div class="d-flex justify-content-between fw-semibold text-success">
       <span data-en="Minimum Required" data-ar="الحد الأدنى للدفع">Minimum Required</span>
-      <span>{{ number_format($totalMinPayment, 2) }} JOD</span>
+      <span>{{ number_format($totalMinPayment, 2) }} {{ $currency }}</span>
     </div>
   </div>
 
@@ -73,13 +73,13 @@
       @endforeach
 
       <div class="mb-4">
-        <label class="form-label fw-bold" data-en="Amount Paid" data-ar="المبلغ المدفوع">Amount Paid (JOD)</label>
+        <label class="form-label fw-bold" data-en="Amount Paid" data-ar="المبلغ المدفوع">Amount Paid ({{ $currency }})</label>
         <input type="number" step="0.01" min="{{ $totalMinPayment }}" max="{{ $totalFee }}"
                name="amount" class="form-control" required
                value="{{ old('amount', $totalMinPayment) }}"
                style="background: var(--input-bg); color: var(--text-primary); border-color: var(--input-border);">
         <div class="form-text" style="color: var(--text-muted);">
-          Min: {{ number_format($totalMinPayment, 2) }} JOD — Max: {{ number_format($totalFee, 2) }} JOD
+          Min: {{ number_format($totalMinPayment, 2) }} {{ $currency }} — Max: {{ number_format($totalFee, 2) }} {{ $currency }}
         </div>
       </div>
 

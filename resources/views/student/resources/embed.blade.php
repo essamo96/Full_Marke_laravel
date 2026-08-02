@@ -32,7 +32,7 @@
         mountSecureWatermark(
             document.body,
             @json($student->full_name_ar ?? $student->full_name_en),
-            null
+            @json($student->photo_url)
         );
     </script>
 

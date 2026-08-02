@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
 use App\Models\PaymentMethod;
+use App\Models\SiteSetting;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,8 +28,9 @@ class CheckoutController extends Controller
         $totalFee = $items->sum(fn (CartItem $i) => (float) $i->subject->fee);
         $totalMinPayment = $items->sum(fn (CartItem $i) => (float) ($i->subject->min_payment ?? $i->subject->fee));
         $paymentMethods = PaymentMethod::active()->orderBy('sort_order')->get();
+        $currency = SiteSetting::current()->options['currency'] ?? 'JOD';
 
-        return view('student.checkout.show', compact('items', 'totalFee', 'totalMinPayment', 'paymentMethods'));
+        return view('student.checkout.show', compact('items', 'totalFee', 'totalMinPayment', 'paymentMethods', 'currency'));
     }
 
     public function store(Request $request, PaymentService $service)

@@ -76,126 +76,49 @@
     }
   </style>
 
-  @if($resourcesBySubject->isEmpty())
+  @if($subjects->isEmpty())
     <div class="glass-panel rounded-4 p-5 text-center">
       <i class="bi bi-collection-play fs-1 mb-3 d-block" style="color: var(--accent-color);"></i>
       <p class="opacity-75 mb-3" data-en="No learning resources have been published for your subjects yet." data-ar="لا توجد موارد تعليمية منشورة لموادك حتى الآن.">No learning resources have been published for your subjects yet.</p>
       <a href="{{ route('student.registrations') }}" class="btn btn-glass px-4 py-2" data-en="View My Subjects" data-ar="عرض موادي">View My Subjects</a>
     </div>
   @else
-    @foreach($resourcesBySubject as $subjectId => $resources)
-      @php $subject = $resources->first()->subject; @endphp
+    @foreach($subjects as $subject)
+      @php $subjectResourceCount = $subject->units->sum(fn($u) => $u->lessons->sum(fn($l) => $l->resources->count())); @endphp
       <div class="glass-panel rounded-4 p-4 mb-4">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
           <h5 class="fw-bold mb-0 border-start border-4 ps-3" style="color: var(--text-primary); border-color: var(--accent-color) !important;">{{ $subject->name }}</h5>
-          <span class="badge rounded-pill px-3 py-2" style="background: rgba(197,168,128,0.12); color: var(--accent-color);">{{ $resources->count() }} <span data-en="resource(s)" data-ar="مورد">مورد</span></span>
+          <span class="badge rounded-pill px-3 py-2" style="background: rgba(197,168,128,0.12); color: var(--accent-color);">{{ $subjectResourceCount }} <span data-en="resource(s)" data-ar="مورد">مورد</span></span>
         </div>
-        <div class="row g-3">
-          @foreach($resources as $resource)
-            @php
-              $icon = match($resource->type) {
-                'video' => 'play-circle-fill',
-                'document' => 'file-earmark-text-fill',
-                'image' => 'image-fill',
-                'zoom' => 'camera-video-fill',
-                default => 'link-45deg',
-              };
-              $isVideo = $resource->isVideo();
-              $isFailed = $isVideo && $resource->processing_status === 'failed';
-              $isProcessing = $isVideo && ! $isFailed && ! $resource->isReady();
-              $isPdf = $resource->type === 'document' && strtolower(pathinfo($resource->url ?? '', PATHINFO_EXTENSION)) === 'pdf';
-              $isImage = $resource->isImage();
-              $isLinkLike = $resource->isExternalLink();
-              $cardClass = 'resource-card d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none h-100 w-100 border-0 text-start'
-                  . ($resource->allow_download ? ' has-download' : '');
-            @endphp
-            <div class="col-md-6 col-xxl-4 position-relative">
-              @if($isVideo)
-                <button type="button"
-                        class="{{ $cardClass }}"
-                        {{ ($isProcessing || $isFailed) ? 'disabled' : '' }}
-                        @if(!$isProcessing && !$isFailed)
-                          onclick="openLessonVideo('{{ $resource->getRouteKey() }}', '{{ addslashes($resource->title) }}')"
-                        @endif>
-                  <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                    <i class="bi bi-{{ $icon }} fs-5"></i>
-                  </div>
-                  <div class="flex-grow-1 resource-text" dir="auto">
-                    <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
-                    @if($isProcessing)
-                      <div class="text-xs opacity-75" data-en="Still processing — check back soon" data-ar="جاري تجهيز الفيديو، حاول لاحقًا">جاري تجهيز الفيديو، حاول لاحقًا</div>
-                    @elseif($isFailed)
-                      <div class="text-xs text-danger" data-en="Processing failed" data-ar="تعذّرت معالجة الفيديو">تعذّرت معالجة الفيديو</div>
-                    @elseif($resource->description)
-                      <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
-                    @endif
-                  </div>
-                </button>
-              @elseif($resource->type === 'document' && $isPdf)
-                <button type="button"
-                        class="{{ $cardClass }}"
-                        onclick="openLessonDocument('{{ $resource->getRouteKey() }}', '{{ addslashes($resource->title) }}')">
-                  <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                    <i class="bi bi-{{ $icon }} fs-5"></i>
-                  </div>
-                  <div class="flex-grow-1 resource-text" dir="auto">
-                    <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
-                    @if($resource->description)
-                      <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
-                    @endif
-                  </div>
-                </button>
-              @elseif($resource->type === 'document')
-                <a href="{{ route('student.resources.file', $resource) }}" target="_blank" rel="noopener" class="{{ $cardClass }}">
-                  <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                    <i class="bi bi-{{ $icon }} fs-5"></i>
-                  </div>
-                  <div class="flex-grow-1 resource-text" dir="auto">
-                    <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
-                    @if($resource->description)
-                      <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
-                    @endif
-                  </div>
-                  <i class="bi bi-box-arrow-up-right opacity-50 flex-shrink-0"></i>
-                </a>
-              @elseif($isImage)
-                <button type="button"
-                        class="{{ $cardClass }}"
-                        onclick="openLessonImage('{{ $resource->getRouteKey() }}', '{{ addslashes($resource->title) }}')">
-                  <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                    <i class="bi bi-image-fill fs-5"></i>
-                  </div>
-                  <div class="flex-grow-1 resource-text" dir="auto">
-                    <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
-                    @if($resource->description)
-                      <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
-                    @endif
-                  </div>
-                </button>
-              @elseif($isLinkLike)
-                <button type="button"
-                        class="{{ $cardClass }}"
-                        onclick="openLessonLink('{{ $resource->getRouteKey() }}', '{{ addslashes($resource->title) }}')">
-                  <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                    <i class="bi bi-{{ $icon }} fs-5"></i>
-                  </div>
-                  <div class="flex-grow-1 resource-text" dir="auto">
-                    <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
-                    @if($resource->description)
-                      <div class="text-xs opacity-75">{{ strip_tags(html_entity_decode($resource->description)) }}</div>
-                    @endif
-                  </div>
-                </button>
-              @endif
 
-              @if($resource->allow_download)
-                <a href="{{ route('student.resources.download', $resource) }}" target="_blank" class="resource-download-btn d-flex align-items-center justify-content-center rounded-circle" title="تحميل">
-                  <i class="bi bi-download fs-5"></i>
-                </a>
-              @endif
-            </div>
-          @endforeach
-        </div>
+        @foreach($subject->units as $unit)
+          @php $unitResourceCount = $unit->lessons->sum(fn($l) => $l->resources->count()); @endphp
+          @continue($unitResourceCount === 0)
+          <div class="mb-3">
+            <h6 class="fw-bold mb-2 d-flex align-items-center gap-2" style="color: var(--text-primary);">
+              <i class="bi bi-folder2-open" style="color: var(--accent-color);"></i>
+              {{ $unit->name_ar ?? $unit->name_en }}
+            </h6>
+
+            @foreach($unit->lessons as $lesson)
+              @continue($lesson->resources->isEmpty())
+              <div class="rounded-3 p-3 mb-3" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                  <span class="fw-semibold d-flex align-items-center gap-2" style="color: var(--text-primary);">
+                    <i class="bi bi-journal-text opacity-75"></i>
+                    {{ $lesson->name_ar ?? $lesson->name_en }}
+                  </span>
+                  <span class="badge rounded-pill px-3 py-1" style="background: rgba(197,168,128,0.1); color: var(--accent-color); font-size: 0.75rem;">{{ $lesson->resources->count() }} <span data-en="resource(s)" data-ar="مورد">مورد</span></span>
+                </div>
+                <div class="row g-3">
+                  @foreach($lesson->resources as $resource)
+                    @include('student.resources.parts.resource-card', ['resource' => $resource])
+                  @endforeach
+                </div>
+              </div>
+            @endforeach
+          </div>
+        @endforeach
       </div>
     @endforeach
   @endif
@@ -246,7 +169,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body pt-0">
-          <div id="lessonDocumentContainer" style="position: relative; width: 100%; min-height: 60vh; background: #1a1a1a; border-radius: 12px; overflow: auto; padding: 10px;">
+          <div id="lessonDocumentContainer" style="position: relative; width: 100%; height: 70vh; background: #1a1a1a; border-radius: 12px; overflow-y: auto; padding: 10px;">
             <div class="text-center text-white-50 py-5" id="lessonDocumentLoading">جاري تحميل الملف الآمن...</div>
           </div>
           <p id="lessonDocumentError" class="text-danger mt-3 mb-0 d-none"></p>

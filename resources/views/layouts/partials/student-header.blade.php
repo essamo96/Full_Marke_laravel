@@ -187,6 +187,7 @@
           </div>
         @else
           <div class="d-flex flex-column gap-3 p-3">
+            @php $headerCurrency = \App\Models\SiteSetting::current()->options['currency'] ?? 'JOD'; @endphp
             @foreach($headerRegistrations as $registration)
               @php
                 $statusMeta = match($registration->status) {
@@ -203,16 +204,16 @@
                 </div>
                 <div class="d-flex justify-content-between fs-7 mb-1" style="color: var(--text-secondary);">
                   <span data-en="Total Fee" data-ar="الرسوم الكلية">الرسوم الكلية</span>
-                  <span>{{ number_format($registration->fee_snapshot, 2) }} JOD</span>
+                  <span>{{ number_format($registration->fee_snapshot, 2) }} {{ $headerCurrency }}</span>
                 </div>
                 <div class="d-flex justify-content-between fs-7 mb-2" style="color: var(--text-secondary);">
                   <span data-en="Paid" data-ar="المدفوع">المدفوع</span>
-                  <span>{{ number_format($registration->amount_paid, 2) }} JOD</span>
+                  <span>{{ number_format($registration->amount_paid, 2) }} {{ $headerCurrency }}</span>
                 </div>
                 @if($registration->remaining_amount > 0)
                   <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px dashed var(--separator-color);">
                     <span class="fw-bold fs-7" style="color: #eab308;" data-en="Remaining" data-ar="المتبقي">المتبقي</span>
-                    <span class="fw-bold" style="color: #eab308;">{{ number_format($registration->remaining_amount, 2) }} JOD</span>
+                    <span class="fw-bold" style="color: #eab308;">{{ number_format($registration->remaining_amount, 2) }} {{ $headerCurrency }}</span>
                   </div>
                   <a href="{{ route('student.registrations.show', $registration) }}" class="btn btn-luxury w-100 mt-3 py-2 rounded-pill fs-7 fw-bold">
                     <i class="bi bi-credit-card me-1"></i>
