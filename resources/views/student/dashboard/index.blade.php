@@ -358,30 +358,44 @@
 
 @push('scripts')
 @if(session('show_welcome'))
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // Same welcome sound used for realtime notifications elsewhere in the
-    // student portal, so this reads as one consistent "success" cue.
+    // Same corner-toast pattern (and the same notification sound) already
+    // used for realtime student notifications elsewhere in the portal — a
+    // non-blocking "welcome back" cue instead of a modal the student has to
+    // dismiss before they can do anything.
     try {
       var audio = new Audio('{{ asset("assets/sounds/notification.mp3") }}');
       var playPromise = audio.play();
       if (playPromise !== undefined) playPromise.catch(function () {});
     } catch (e) {}
 
-    Swal.fire({
-      imageUrl: @json($student->photo_url ?? asset('assets/admin/media/avatars/blank.png')),
-      imageWidth: 96,
-      imageHeight: 96,
-      imageAlt: @json($student->name),
-      title: (document.documentElement.lang === 'ar' ? 'أهلاً بك، ' : 'Welcome, ') + @json($student->name),
-      text: document.documentElement.lang === 'ar' ? 'تم تسجيل الدخول بنجاح.' : 'You have signed in successfully.',
-      confirmButtonText: document.documentElement.lang === 'ar' ? 'حسناً' : 'OK',
-      confirmButtonColor: 'var(--accent-color)',
-      background: 'var(--bg-secondary)',
-      color: 'var(--text-primary)',
-      customClass: { image: 'rounded-circle' },
+    var isAr = document.documentElement.lang === 'ar';
+    var photoUrl = @json($student->photo_url ?? asset('assets/admin/media/avatars/blank.png'));
+    var studentName = @json($student->name);
+
+    var toast = document.createElement('div');
+    toast.className = 'position-fixed shadow-lg';
+    toast.style.cssText = 'top: 20px; inset-inline-end: 20px; z-index: 2000; max-width: 320px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--separator-color); border-radius: 12px; padding: 14px 16px; opacity: 0; transform: translateY(-10px); transition: all .3s ease;';
+    toast.innerHTML = `
+      <div class="d-flex align-items-center gap-2">
+        <img src="${photoUrl}" alt="${studentName}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+        <div>
+          <div class="fw-bold fs-7">${(isAr ? 'أهلاً بعودتك، ' : 'Welcome back, ') + studentName}</div>
+          <div class="fs-8 opacity-75">${isAr ? 'تم تسجيل الدخول بنجاح' : 'Signed in successfully'}</div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
     });
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(-10px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 6000);
   });
 </script>
 @endif
