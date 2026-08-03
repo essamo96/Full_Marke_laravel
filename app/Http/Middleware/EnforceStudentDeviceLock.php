@@ -33,7 +33,16 @@ class EnforceStudentDeviceLock
 
         $deviceId = $request->cookie(StudentDeviceLock::COOKIE);
 
-        if ($student && $student->locked_device_id && $student->locked_device_id !== $deviceId) {
+        // An admin clearing the device lock (force_logout_after) must sign
+        // out this session even though locked_device_id is now null — the
+        // plain mismatch check below would otherwise let an already-open
+        // session on the old device keep working indefinitely.
+        $sessionStartedAt = $request->session()->get('student_logged_in_at');
+        $forceLoggedOut = $student
+            && $student->force_logout_after
+            && (! $sessionStartedAt || $student->force_logout_after->timestamp > $sessionStartedAt);
+
+        if ($student && (($student->locked_device_id && $student->locked_device_id !== $deviceId) || $forceLoggedOut)) {
             Auth::guard('student')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

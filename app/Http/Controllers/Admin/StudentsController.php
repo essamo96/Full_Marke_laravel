@@ -9,6 +9,7 @@ use App\Models\Branch;
 use App\Models\Region;
 use App\Models\Guardian;
 use App\Notifications\StudentFeeDuesNotification;
+use App\Notifications\StudentForceLogoutNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
@@ -350,7 +351,16 @@ class StudentsController extends AdminController
             return response()->json(['success' => false, 'message' => __('app.not_found')]);
         }
 
-        $student->update(['locked_device_id' => null, 'locked_device_id_set_at' => null]);
+        $student->update([
+            'locked_device_id' => null,
+            'locked_device_id_set_at' => null,
+            'force_logout_after' => now(),
+        ]);
+
+        // Instant kick if their tab is open and connected (push); the
+        // force_logout_after timestamp above is the guaranteed fallback that
+        // catches it on their very next request either way.
+        Notification::send($student, new StudentForceLogoutNotification($student->id));
 
         return response()->json(['success' => true, 'message' => 'تم حذف الجهاز المرتبط بالحساب، يمكن للطالب الآن الدخول من جهاز جديد.']);
     }

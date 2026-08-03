@@ -82,6 +82,10 @@ class LoginController extends Controller
             $student->update($updates);
 
             $request->session()->regenerate();
+            // Stamped so EnforceStudentDeviceLock can tell this session apart
+            // from one that existed before an admin's later "clear device"
+            // action (force_logout_after) — see that middleware for why.
+            $request->session()->put('student_logged_in_at', now()->timestamp);
 
             return redirect()->intended(route('student.dashboard'))->with('show_welcome', true);
         }

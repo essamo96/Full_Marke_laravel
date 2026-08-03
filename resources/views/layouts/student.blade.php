@@ -262,6 +262,37 @@
       channel.bind('NewExamPublishedEvent', handleNewExam);
       channel.bind('NewGroupNoteEvent', handleIncoming);
       channel.bind('ExamStartingNowEvent', handleNewExam);
+
+      // Admin cleared this student's locked device — sign this open tab out
+      // immediately instead of waiting for its next request. logout is a
+      // POST route, so this submits a real form (not a GET redirect/fetch)
+      // to make sure it works the same as the normal logout button.
+      function forceLogoutNow() {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route('student.logout') }}';
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrfInput);
+        document.body.appendChild(form);
+        form.submit();
+      }
+
+      channel.bind('StudentForceLogoutEvent', function (data) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'تم تسجيل الخروج',
+            text: data.message || 'تم إلغاء ربط هذا الجهاز من لوحة الإدارة.',
+            icon: 'info',
+            allowOutsideClick: false,
+            confirmButtonText: 'حسناً'
+          }).then(forceLogoutNow);
+        } else {
+          forceLogoutNow();
+        }
+      });
     })();
 
     function showStudentToast(message) {
