@@ -28,17 +28,17 @@
   @vite('resources/css/app.css')
 
   <!-- Custom Stylesheets -->
-  <link rel="stylesheet" href="{{ asset('site/css/variables.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/dark.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/light.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/gold.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/transitions.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/scroll-effects.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/landing.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/hero-animation.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/rtl.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/variables.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/themes/dark.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/themes/light.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/themes/gold.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/animations/transitions.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/animations/scroll-effects.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/landing.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/hero-animation.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/rtl.css') }}">
 
-  <script src="{{ asset('site/js/theme-manager.js') }}"></script>
+  <script src="{{ asset_ver('site/js/theme-manager.js') }}"></script>
 
   <style>
     .page-wrapper { min-height: 100dvh; display: flex; flex-direction: column; padding-top: var(--navbar-height, 80px); }
@@ -231,10 +231,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>window.currentLang = '{{ app()->getLocale() }}';</script>
-  <script src="{{ asset('site/js/language-manager.js') }}?v=1.1"></script>
-  <script src="{{ asset('site/js/landing.js') }}"></script>
-  <script src="{{ asset('site/js/animations.js') }}"></script>
-  <script src="{{ asset('site/js/scroll-effects.js') }}"></script>
+  <script src="{{ asset_ver('site/js/language-manager.js') }}"></script>
+  <script src="{{ asset_ver('site/js/landing.js') }}"></script>
+  <script src="{{ asset_ver('site/js/animations.js') }}"></script>
+  <script src="{{ asset_ver('site/js/scroll-effects.js') }}"></script>
 
 @stack('scripts')
 </body>

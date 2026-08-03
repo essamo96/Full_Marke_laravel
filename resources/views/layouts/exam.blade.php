@@ -22,12 +22,12 @@
     
     @vite('resources/css/app.css')
 
-    <link rel="stylesheet" href="{{ asset('site/css/variables.css') }}">
-    <link rel="stylesheet" href="{{ asset('site/css/themes/dark.css') }}">
-    <link rel="stylesheet" href="{{ asset('site/css/themes/light.css') }}">
-    <link rel="stylesheet" href="{{ asset('site/css/themes/gold.css') }}">
+    <link rel="stylesheet" href="{{ asset_ver('site/css/variables.css') }}">
+    <link rel="stylesheet" href="{{ asset_ver('site/css/themes/dark.css') }}">
+    <link rel="stylesheet" href="{{ asset_ver('site/css/themes/light.css') }}">
+    <link rel="stylesheet" href="{{ asset_ver('site/css/themes/gold.css') }}">
     <link rel="stylesheet" href="{{ asset('student/css/dashboard.css') }}">
-    <link rel="stylesheet" href="{{ asset('site/css/rtl.css') }}">
+    <link rel="stylesheet" href="{{ asset_ver('site/css/rtl.css') }}">
 
     @stack('styles')
     

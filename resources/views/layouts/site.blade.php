@@ -45,22 +45,26 @@
   <!-- Tailwind CSS Play CDN -->
   @vite('resources/css/app.css')
 
-  <!-- Custom Theme Stylesheets -->
-  <link rel="stylesheet" href="{{ asset('site/css/variables.css') }}?v=1.1">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/dark.css') }}?v=1.1" id="theme-dark">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/light.css') }}?v=1.1" id="theme-light">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/gold.css') }}?v=1.1" id="theme-gold">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/transitions.css') }}?v=1.0">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/scroll-effects.css') }}?v=1.0">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/3d-effects.css') }}?v=1.0">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/hover-effects.css') }}?v=1.1">
-  <link rel="stylesheet" href="{{ asset('site/css/landing.css') }}?v=1.2">
-  <link rel="stylesheet" href="{{ asset('site/css/hero-animation.css') }}?v=1.4">
+  <!-- Custom Theme Stylesheets
+       Cache-busted by each file's own mtime (not a manually-typed ?v=X.X)
+       so browsers — which cache these for 7 days, see site/.htaccess or
+       server config — always fetch the latest version right after a
+       deploy instead of serving a stale copy for up to a week. -->
+  <link rel="stylesheet" href="{{ asset_ver('site/css/variables.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/themes/dark.css') }}" id="theme-dark">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/themes/light.css') }}" id="theme-light">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/themes/gold.css') }}" id="theme-gold">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/animations/transitions.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/animations/scroll-effects.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/animations/3d-effects.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/animations/hover-effects.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/landing.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/hero-animation.css') }}">
   <!-- Arabic / RTL stylesheet — only its [dir="rtl"] rules activate -->
-  <link rel="stylesheet" href="{{ asset('site/css/rtl.css') }}?v=1.2">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/rtl.css') }}">
 
   <!-- Theme loading script (prevents theme flash) -->
-  <script src="{{ asset('site/js/theme-manager.js') }}"></script>
+  <script src="{{ asset_ver('site/js/theme-manager.js') }}"></script>
   @stack('styles')
 </head>
 <body class="smooth-transition">
@@ -96,12 +100,12 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-  <script src="{{ asset('site/js/hero-animation.js') }}?v=1.1"></script>
-  <script src="{{ asset('site/js/landing.js') }}?v=1.1"></script>
-  <script src="{{ asset('site/js/animations.js') }}"></script>
-  <script src="{{ asset('site/js/scroll-effects.js') }}"></script>
-  <script src="{{ asset('site/js/particles.js') }}"></script>
-  <script src="{{ asset('site/js/cart.js') }}?v=1.1"></script>
+  <script src="{{ asset_ver('site/js/hero-animation.js') }}"></script>
+  <script src="{{ asset_ver('site/js/landing.js') }}"></script>
+  <script src="{{ asset_ver('site/js/animations.js') }}"></script>
+  <script src="{{ asset_ver('site/js/scroll-effects.js') }}"></script>
+  <script src="{{ asset_ver('site/js/particles.js') }}"></script>
+  <script src="{{ asset_ver('site/js/cart.js') }}"></script>
 
   <script>
     @php
@@ -123,7 +127,7 @@
     window.csrfToken = '{{ csrf_token() }}';
     window.studentRegisterUrl = '{{ route('student.register') }}';
   </script>
-  <script src="{{ asset('site/js/language-manager.js') }}?v=1.1"></script>
+  <script src="{{ asset_ver('site/js/language-manager.js') }}"></script>
 
   <script>
     function initSwiper() {

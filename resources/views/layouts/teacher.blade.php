@@ -29,19 +29,19 @@
   @vite('resources/css/app.css')
 
   <!-- Custom Theme Stylesheets -->
-  <link rel="stylesheet" href="{{ asset('site/css/variables.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/dark.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/light.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/themes/gold.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/transitions.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/animations/scroll-effects.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/landing.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/hero-animation.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/variables.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/themes/dark.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/themes/light.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/themes/gold.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/animations/transitions.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/animations/scroll-effects.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/landing.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/hero-animation.css') }}">
   <link rel="stylesheet" href="{{ asset('teacher/css/dashboard.css') }}">
-  <link rel="stylesheet" href="{{ asset('site/css/rtl.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('site/css/rtl.css') }}">
 
   <!-- Theme loading script -->
-  <script src="{{ asset('site/js/theme-manager.js') }}"></script>
+  <script src="{{ asset_ver('site/js/theme-manager.js') }}"></script>
 
   @stack('styles')
 </head>
@@ -64,7 +64,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{{ asset('site/js/lang.js') }}"></script>
+  <script src="{{ asset_ver('site/js/lang.js') }}"></script>
   <script src="{{ asset('teacher/js/dashboard.js') }}"></script>
   <script>
     const cycleBtn = document.getElementById('themeCycleBtn');
