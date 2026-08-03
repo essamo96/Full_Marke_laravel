@@ -18,6 +18,7 @@ class Student extends Authenticatable
         'region_id', 'branch_id', 'major_profession', 'health_information',
         'status', 'email_verified_at', 'password', 'parent_id', 'study_branch_id',
         'locked_ip', 'locked_ip_set_at', 'last_seen_at',
+        'locked_device_id', 'locked_device_id_set_at',
     ];
 
     protected $hidden = [
@@ -33,6 +34,7 @@ class Student extends Authenticatable
         'is_child' => 'boolean',
         'locked_ip_set_at' => 'datetime',
         'last_seen_at' => 'datetime',
+        'locked_device_id_set_at' => 'datetime',
     ];
 
     /**

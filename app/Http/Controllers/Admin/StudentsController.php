@@ -293,7 +293,9 @@ class StudentsController extends AdminController
     /**
      * Live/periodic panel of students who currently have their account open
      * (a heartbeat within the last 5 minutes — see EnforceStudentDeviceLock)
-     * plus the device (IP) each one is locked to.
+     * plus the device each one is locked to (a persistent per-browser cookie,
+     * not the IP — see StudentDeviceLock). locked_ip is shown only as extra
+     * info (last known network), it no longer gates login.
      */
     public function getActiveDevices()
     {
@@ -309,7 +311,7 @@ class StudentsController extends AdminController
             $query->where('last_seen_at', '>=', now()->subMinutes(5));
         }
 
-        $students = $query->get(['id', 'full_name_ar', 'full_name_en', 'email', 'image', 'locked_ip', 'locked_ip_set_at', 'last_seen_at']);
+        $students = $query->get(['id', 'full_name_ar', 'full_name_en', 'email', 'image', 'locked_ip', 'locked_device_id', 'locked_device_id_set_at', 'last_seen_at']);
 
         $data = $students->map(function ($student) {
             return [
@@ -318,7 +320,8 @@ class StudentsController extends AdminController
                 'email' => $student->email,
                 'image' => $student->image ? asset('storage/' . $student->image) : asset('assets/admin/media/avatars/blank.png'),
                 'locked_ip' => $student->locked_ip,
-                'locked_ip_set_at' => $student->locked_ip_set_at?->format('Y-m-d H:i'),
+                'is_locked' => (bool) $student->locked_device_id,
+                'locked_device_id_set_at' => $student->locked_device_id_set_at?->format('Y-m-d H:i'),
                 'last_seen_at' => $student->last_seen_at?->diffForHumans(),
                 'is_online' => $student->is_online,
             ];
@@ -328,9 +331,9 @@ class StudentsController extends AdminController
     }
 
     /**
-     * "Delete IP" — clears the device lock so the student's next login is
-     * accepted from whatever device they use (a new laptop, etc.), and
-     * force-signs-out any session still open on the old device.
+     * "Delete device" — clears the device lock so the student's next login is
+     * accepted from whatever device they use (a new phone, browser, etc.),
+     * and force-signs-out any session still open on the old device.
      */
     public function postClearIp(Request $request)
     {
@@ -347,7 +350,7 @@ class StudentsController extends AdminController
             return response()->json(['success' => false, 'message' => __('app.not_found')]);
         }
 
-        $student->update(['locked_ip' => null, 'locked_ip_set_at' => null]);
+        $student->update(['locked_device_id' => null, 'locked_device_id_set_at' => null]);
 
         return response()->json(['success' => true, 'message' => 'تم حذف الجهاز المرتبط بالحساب، يمكن للطالب الآن الدخول من جهاز جديد.']);
     }

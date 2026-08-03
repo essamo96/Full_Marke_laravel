@@ -27,14 +27,15 @@
                                 <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
                                     <th>الطالب</th>
                                     <th>الحالة</th>
-                                    <th>عنوان IP المرتبط</th>
+                                    <th>الجهاز المرتبط</th>
+                                    <th>آخر شبكة (IP)</th>
                                     <th>تاريخ ربط الجهاز</th>
                                     <th>آخر ظهور</th>
                                     <th>إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="activeDevicesBody">
-                                <tr><td colspan="6" class="text-center text-muted py-5">جارِ التحميل...</td></tr>
+                                <tr><td colspan="7" class="text-center text-muted py-5">جارِ التحميل...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -54,18 +55,21 @@
     function renderRows(rows) {
         const tbody = document.getElementById('activeDevicesBody');
         if (!rows.length) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5">لا يوجد طلاب حالياً</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-5">لا يوجد طلاب حالياً</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(function (row) {
             const statusBadge = row.is_online
                 ? '<span class="badge badge-light-success">متصل الآن</span>'
                 : '<span class="badge badge-light-secondary">غير متصل</span>';
+            const deviceCell = row.is_locked
+                ? '<span class="badge badge-light-info">مرتبط بجهاز</span>'
+                : '<span class="text-muted">— غير مرتبط —</span>';
             const ipCell = row.locked_ip
                 ? '<span dir="ltr">' + row.locked_ip + '</span>'
-                : '<span class="text-muted">— غير مرتبط —</span>';
-            const clearBtn = row.locked_ip
-                ? '<button type="button" class="btn btn-sm btn-light-danger clear-ip-btn" data-id="' + row.id + '"><i class="bi bi-x-circle me-1"></i> حذف IP</button>'
+                : '<span class="text-muted">-</span>';
+            const clearBtn = row.is_locked
+                ? '<button type="button" class="btn btn-sm btn-light-danger clear-ip-btn" data-id="' + row.id + '"><i class="bi bi-x-circle me-1"></i> حذف الجهاز</button>'
                 : '';
 
             return '<tr>' +
@@ -74,8 +78,9 @@
                     '<div class="d-flex flex-column"><span class="fw-bold text-gray-800">' + row.name + '</span><span class="fs-8 text-muted">' + (row.email || '') + '</span></div>' +
                 '</div></td>' +
                 '<td>' + statusBadge + '</td>' +
+                '<td>' + deviceCell + '</td>' +
                 '<td>' + ipCell + '</td>' +
-                '<td class="text-muted fs-8">' + (row.locked_ip_set_at || '-') + '</td>' +
+                '<td class="text-muted fs-8">' + (row.locked_device_id_set_at || '-') + '</td>' +
                 '<td class="text-muted fs-8">' + (row.last_seen_at || '-') + '</td>' +
                 '<td>' + clearBtn + '</td>' +
             '</tr>';

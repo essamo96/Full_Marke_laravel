@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Student\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\StudentDeviceLock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
@@ -47,12 +50,19 @@ class LoginController extends Controller
                 ])->onlyInput('email');
             }
 
-            // Single-device lock: the first device to log in claims the
-            // account's IP; any other device is refused until an admin
-            // clears it (the "delete IP" action), which is how a student
-            // legitimately switches to a new device/laptop.
-            $currentIp = $request->ip();
-            if ($student->locked_ip && $student->locked_ip !== $currentIp) {
+            // Single-device lock: keyed off a random token in a long-lived
+            // cookie (survives IP/network changes, unique per browser), not
+            // the IP address — the first device/browser to log in claims the
+            // account; any other device is refused until an admin clears it
+            // (the "delete device" action), which is how a student
+            // legitimately switches to a new phone/laptop/browser.
+            $deviceId = $request->cookie(StudentDeviceLock::COOKIE);
+            if (! $deviceId) {
+                $deviceId = (string) Str::uuid();
+                Cookie::queue(StudentDeviceLock::COOKIE, $deviceId, StudentDeviceLock::COOKIE_MINUTES);
+            }
+
+            if ($student->locked_device_id && $student->locked_device_id !== $deviceId) {
                 Auth::guard('student')->logout();
 
                 return back()->withErrors([
@@ -60,10 +70,16 @@ class LoginController extends Controller
                 ])->onlyInput('email');
             }
 
-            if (! $student->locked_ip) {
-                $student->update(['locked_ip' => $currentIp, 'locked_ip_set_at' => now()]);
+            $currentIp = $request->ip();
+            $updates = ['last_seen_at' => now(), 'locked_ip' => $currentIp];
+            if (! $student->locked_device_id) {
+                $updates['locked_device_id'] = $deviceId;
+                $updates['locked_device_id_set_at'] = now();
             }
-            $student->update(['last_seen_at' => now()]);
+            if (! $student->locked_ip_set_at) {
+                $updates['locked_ip_set_at'] = now();
+            }
+            $student->update($updates);
 
             $request->session()->regenerate();
 
