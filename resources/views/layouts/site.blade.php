@@ -7,6 +7,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tells mobile browsers (Android Chrome/Samsung Internet "force dark")
+       that this page manages its own light/dark/gold themes, so they don't
+       auto-invert or repaint colors on top of our CSS variables — without
+       this, some mobile browsers can render custom-themed text/backgrounds
+       as the same color (effectively invisible) after their own dark-mode
+       heuristic kicks in. -->
+  <meta name="color-scheme" content="dark light">
 
   <!-- Hides bilingual text nodes until language-manager.js sets the correct
        language, so a refresh never flashes the English default text (the

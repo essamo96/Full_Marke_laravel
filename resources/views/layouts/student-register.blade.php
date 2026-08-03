@@ -6,6 +6,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
   <title>@yield('title', 'Student Registration | FULL MARK ACADEMY')</title>
   <!-- Favicons -->
   <link rel="icon" type="image/png" href="{{ asset('site/images/logo_v2_blue.png') }}">

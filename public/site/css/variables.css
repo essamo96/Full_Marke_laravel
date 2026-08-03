@@ -58,6 +58,9 @@ body {
     --navbar-height-scroll: 64px;
   }
 }
+
+:root {
+  color-scheme: dark light;
 }
 
 /* Override Bootstrap text colors to use theme variables */
