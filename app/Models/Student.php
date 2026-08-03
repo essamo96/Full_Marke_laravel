@@ -18,7 +18,7 @@ class Student extends Authenticatable
         'region_id', 'branch_id', 'major_profession', 'health_information',
         'status', 'email_verified_at', 'password', 'parent_id', 'study_branch_id',
         'locked_ip', 'locked_ip_set_at', 'last_seen_at',
-        'locked_device_id', 'locked_device_id_set_at', 'force_logout_after',
+        'locked_device_id', 'locked_device_id_set_at', 'force_logout_after', 'max_devices',
     ];
 
     protected $hidden = [
@@ -36,7 +36,27 @@ class Student extends Authenticatable
         'last_seen_at' => 'datetime',
         'locked_device_id_set_at' => 'datetime',
         'force_logout_after' => 'datetime',
+        'max_devices' => 'integer',
     ];
+
+    /**
+     * locked_device_id stores a JSON-encoded array of device ids once a
+     * student has more than one allowed slot (max_devices > 1); older rows
+     * (or a student still on their first device) hold a single plain
+     * string. This normalizes either shape to an array so callers never
+     * need to care which format is on disk.
+     */
+    public function getLockedDeviceIdsAttribute(): array
+    {
+        $raw = $this->attributes['locked_device_id'] ?? null;
+        if (! $raw) {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+
+        return is_array($decoded) ? $decoded : [$raw];
+    }
 
     /**
      * Whether this student currently shows as "online" for the admin's live

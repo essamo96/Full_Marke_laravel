@@ -42,7 +42,10 @@ class EnforceStudentDeviceLock
             && $student->force_logout_after
             && (! $sessionStartedAt || $student->force_logout_after->timestamp > $sessionStartedAt);
 
-        if ($student && (($student->locked_device_id && $student->locked_device_id !== $deviceId) || $forceLoggedOut)) {
+        $lockedDeviceIds = $student ? $student->locked_device_ids : [];
+        $deviceMismatch = ! empty($lockedDeviceIds) && ! in_array($deviceId, $lockedDeviceIds, true);
+
+        if ($student && ($deviceMismatch || $forceLoggedOut)) {
             Auth::guard('student')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

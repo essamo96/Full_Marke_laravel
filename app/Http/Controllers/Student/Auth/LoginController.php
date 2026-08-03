@@ -50,19 +50,25 @@ class LoginController extends Controller
                 ])->onlyInput('email');
             }
 
-            // Single-device lock: keyed off a random token in a long-lived
-            // cookie (survives IP/network changes, unique per browser), not
-            // the IP address — the first device/browser to log in claims the
-            // account; any other device is refused until an admin clears it
-            // (the "delete device" action), which is how a student
-            // legitimately switches to a new phone/laptop/browser.
+            // Device lock: keyed off a random token in a long-lived cookie
+            // (survives IP/network changes, unique per browser), not the IP
+            // address. A student may hold up to $student->max_devices
+            // distinct devices at once (default 1; an admin can raise it to
+            // e.g. 2 for "phone + laptop") — the first max_devices
+            // browsers to log in claim those slots; anything beyond that is
+            // refused until an admin clears the account's devices (the
+            // "delete device" action).
             $deviceId = $request->cookie(StudentDeviceLock::COOKIE);
             if (! $deviceId) {
                 $deviceId = (string) Str::uuid();
                 Cookie::queue(StudentDeviceLock::COOKIE, $deviceId, StudentDeviceLock::COOKIE_MINUTES);
             }
 
-            if ($student->locked_device_id && $student->locked_device_id !== $deviceId) {
+            $lockedDeviceIds = $student->locked_device_ids;
+            $maxDevices = max(1, (int) $student->max_devices);
+            $isKnownDevice = in_array($deviceId, $lockedDeviceIds, true);
+
+            if (! $isKnownDevice && count($lockedDeviceIds) >= $maxDevices) {
                 Auth::guard('student')->logout();
 
                 return back()->withErrors([
@@ -72,8 +78,9 @@ class LoginController extends Controller
 
             $currentIp = $request->ip();
             $updates = ['last_seen_at' => now(), 'locked_ip' => $currentIp];
-            if (! $student->locked_device_id) {
-                $updates['locked_device_id'] = $deviceId;
+            if (! $isKnownDevice) {
+                $lockedDeviceIds[] = $deviceId;
+                $updates['locked_device_id'] = json_encode($lockedDeviceIds);
                 $updates['locked_device_id_set_at'] = now();
             }
             if (! $student->locked_ip_set_at) {

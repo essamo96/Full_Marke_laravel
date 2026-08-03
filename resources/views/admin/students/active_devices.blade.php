@@ -27,15 +27,16 @@
                                 <tr class="fw-semibold fs-6 text-gray-800 fw-bold text-start">
                                     <th>الطالب</th>
                                     <th>الحالة</th>
-                                    <th>الجهاز المرتبط</th>
+                                    <th>الأجهزة المرتبطة</th>
+                                    <th>الحد الأقصى المسموح</th>
                                     <th>آخر شبكة (IP)</th>
-                                    <th>تاريخ ربط الجهاز</th>
+                                    <th>تاريخ آخر ربط</th>
                                     <th>آخر ظهور</th>
                                     <th>إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="activeDevicesBody">
-                                <tr><td colspan="7" class="text-center text-muted py-5">جارِ التحميل...</td></tr>
+                                <tr><td colspan="8" class="text-center text-muted py-5">جارِ التحميل...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -49,13 +50,14 @@
 <script>
     const listUrl = '{{ route('students.active-devices.list') }}';
     const clearIpUrl = '{{ route('students.active-devices.clear-ip') }}';
+    const maxDevicesUrl = '{{ route('students.active-devices.max-devices') }}';
     const csrfToken = '{{ csrf_token() }}';
     let pollTimer = null;
 
     function renderRows(rows) {
         const tbody = document.getElementById('activeDevicesBody');
         if (!rows.length) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-5">لا يوجد طلاب حالياً</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-5">لا يوجد طلاب حالياً</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(function (row) {
@@ -63,14 +65,20 @@
                 ? '<span class="badge badge-light-success">متصل الآن</span>'
                 : '<span class="badge badge-light-secondary">غير متصل</span>';
             const deviceCell = row.is_locked
-                ? '<span class="badge badge-light-info">مرتبط بجهاز</span>'
+                ? '<span class="badge badge-light-info">' + row.device_count + ' / ' + row.max_devices + ' جهاز</span>'
                 : '<span class="text-muted">— غير مرتبط —</span>';
             const ipCell = row.locked_ip
                 ? '<span dir="ltr">' + row.locked_ip + '</span>'
                 : '<span class="text-muted">-</span>';
             const clearBtn = row.is_locked
-                ? '<button type="button" class="btn btn-sm btn-light-danger clear-ip-btn" data-id="' + row.id + '"><i class="bi bi-x-circle me-1"></i> حذف الجهاز</button>'
+                ? '<button type="button" class="btn btn-sm btn-light-danger clear-ip-btn" data-id="' + row.id + '"><i class="bi bi-x-circle me-1"></i> حذف الأجهزة</button>'
                 : '';
+            const maxDevicesSelect =
+                '<select class="form-select form-select-sm max-devices-select" data-id="' + row.id + '" style="width: auto; display: inline-block;">' +
+                    [1, 2, 3].map(function (n) {
+                        return '<option value="' + n + '"' + (row.max_devices === n ? ' selected' : '') + '>' + n + (n === 1 ? ' جهاز' : ' أجهزة') + '</option>';
+                    }).join('') +
+                '</select>';
 
             return '<tr>' +
                 '<td><div class="d-flex align-items-center">' +
@@ -79,6 +87,7 @@
                 '</div></td>' +
                 '<td>' + statusBadge + '</td>' +
                 '<td>' + deviceCell + '</td>' +
+                '<td>' + maxDevicesSelect + '</td>' +
                 '<td>' + ipCell + '</td>' +
                 '<td class="text-muted fs-8">' + (row.locked_device_id_set_at || '-') + '</td>' +
                 '<td class="text-muted fs-8">' + (row.last_seen_at || '-') + '</td>' +
@@ -105,6 +114,28 @@
 
     document.getElementById('onlineOnlyToggle').addEventListener('change', loadList);
 
+    document.getElementById('activeDevicesBody').addEventListener('change', function (e) {
+        const select = e.target.closest('.max-devices-select');
+        if (!select) return;
+
+        fetch(maxDevicesUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ id: select.dataset.id, max_devices: select.value })
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (typeof toastr === 'undefined') { loadList(); return; }
+            data.success ? toastr.success(data.message) : toastr.error(data.message);
+            loadList();
+        });
+    });
+
     document.getElementById('activeDevicesBody').addEventListener('click', function (e) {
         const btn = e.target.closest('.clear-ip-btn');
         if (!btn) return;
@@ -112,7 +143,7 @@
 
         Swal.fire({
             title: 'تأكيد',
-            text: 'سيتم حذف الجهاز المرتبط بهذا الحساب، وسيتمكن الطالب من الدخول من أي جهاز جديد. هل تريد المتابعة؟',
+            text: 'سيتم حذف كل الأجهزة المرتبطة بهذا الحساب وتسجيل خروج الطالب فوراً إن كان متصلاً، وسيتمكن من الدخول من أي جهاز جديد. هل تريد المتابعة؟',
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'نعم، احذف',

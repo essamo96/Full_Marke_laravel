@@ -19,3 +19,4 @@ Route::get('students/{id}/invoices', [StudentsController::class, 'getInvoices'])
 Route::get('students-active-devices', [StudentsController::class, 'getActiveDevices'])->name('students.active-devices')->middleware('permission:admin.students.view');
 Route::get('students-active-devices/list', [StudentsController::class, 'getActiveDevicesList'])->name('students.active-devices.list')->middleware('permission:admin.students.view');
 Route::post('students-active-devices/clear-ip', [StudentsController::class, 'postClearIp'])->name('students.active-devices.clear-ip')->middleware('permission:admin.students.edit');
+Route::post('students-active-devices/max-devices', [StudentsController::class, 'postUpdateMaxDevices'])->name('students.active-devices.max-devices')->middleware('permission:admin.students.edit');

@@ -312,16 +312,20 @@ class StudentsController extends AdminController
             $query->where('last_seen_at', '>=', now()->subMinutes(5));
         }
 
-        $students = $query->get(['id', 'full_name_ar', 'full_name_en', 'email', 'image', 'locked_ip', 'locked_device_id', 'locked_device_id_set_at', 'last_seen_at']);
+        $students = $query->get(['id', 'full_name_ar', 'full_name_en', 'email', 'image', 'locked_ip', 'locked_device_id', 'locked_device_id_set_at', 'last_seen_at', 'max_devices']);
 
         $data = $students->map(function ($student) {
+            $deviceCount = count($student->locked_device_ids);
+
             return [
                 'id' => Crypt::encrypt($student->id),
                 'name' => $student->full_name_ar ?: $student->full_name_en,
                 'email' => $student->email,
                 'image' => $student->image ? asset('storage/' . $student->image) : asset('assets/admin/media/avatars/blank.png'),
                 'locked_ip' => $student->locked_ip,
-                'is_locked' => (bool) $student->locked_device_id,
+                'is_locked' => $deviceCount > 0,
+                'device_count' => $deviceCount,
+                'max_devices' => $student->max_devices,
                 'locked_device_id_set_at' => $student->locked_device_id_set_at?->format('Y-m-d H:i'),
                 'last_seen_at' => $student->last_seen_at?->diffForHumans(),
                 'is_online' => $student->is_online,
@@ -363,5 +367,35 @@ class StudentsController extends AdminController
         Notification::send($student, new StudentForceLogoutNotification($student->id));
 
         return response()->json(['success' => true, 'message' => 'تم حذف الجهاز المرتبط بالحساب، يمكن للطالب الآن الدخول من جهاز جديد.']);
+    }
+
+    /**
+     * Raises/lowers how many distinct devices a student may keep locked at
+     * once (e.g. 2 for "phone + laptop"). Lowering it below the number of
+     * devices already locked does NOT kick any of them out retroactively —
+     * it only blocks new devices beyond the existing ones until the admin
+     * also clears the device list.
+     */
+    public function postUpdateMaxDevices(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|string',
+            'max_devices' => 'required|integer|min:1|max:5',
+        ]);
+
+        try {
+            $id = Crypt::decrypt($request->input('id'));
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => __('app.execution_error')]);
+        }
+
+        $student = Student::find($id);
+        if (!$student) {
+            return response()->json(['success' => false, 'message' => __('app.not_found')]);
+        }
+
+        $student->update(['max_devices' => $request->integer('max_devices')]);
+
+        return response()->json(['success' => true, 'message' => 'تم تحديث الحد الأقصى لعدد الأجهزة المسموح بها لهذا الطالب.']);
     }
 }
