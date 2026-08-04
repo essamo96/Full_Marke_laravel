@@ -266,6 +266,109 @@ html.hero-done body {
   transform: scale(1);
 }
 
+/* ---------- Hero image slider (replaces the old video hero) ----------
+   Each admin-configured slider row renders as one .hero-slide <img>; JS
+   (hero-animation.js) toggles .is-active to crossfade between them and
+   drives the Ken Burns pan/zoom purely via this CSS animation restarting
+   whenever .is-active is (re)applied. object-fit: cover above already
+   makes every slide responsive at any viewport/aspect ratio. */
+.hero-slide {
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 1.4s cubic-bezier(.22, .7, .2, 1);
+  will-change: opacity, transform;
+}
+
+.hero-slide.is-active {
+  opacity: 1;
+  z-index: 2;
+  animation: hero-ken-burns 8s cubic-bezier(.22, .7, .2, 1) forwards;
+}
+
+/* Alternate zoom direction per slide so consecutive slides don't all
+   "breathe" identically. */
+.hero-slide:nth-of-type(odd).is-active {
+  animation-name: hero-ken-burns-in;
+}
+
+.hero-slide:nth-of-type(even).is-active {
+  animation-name: hero-ken-burns-out;
+}
+
+@keyframes hero-ken-burns-in {
+  from { transform: scale(1) translate(0, 0); }
+  to { transform: scale(1.08) translate(-1%, -1%); }
+}
+
+@keyframes hero-ken-burns-out {
+  from { transform: scale(1.08) translate(1%, 1%); }
+  to { transform: scale(1) translate(0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-slide.is-active {
+    animation: none;
+  }
+}
+
+/* Dot navigation for the hero slider — only rendered when there's more
+   than one active slide (see home.blade.php). */
+.hero-slide-dots {
+  position: absolute;
+  z-index: 3;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+}
+
+.hero-slide-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.25);
+  padding: 0;
+  cursor: pointer;
+  transition: background var(--transition-fast, 0.2s ease), transform var(--transition-fast, 0.2s ease), width var(--transition-fast, 0.2s ease);
+}
+
+.hero-slide-dot:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.hero-slide-dot.is-active {
+  background: var(--accent-color, #c5a880);
+  border-color: var(--accent-color, #c5a880);
+  width: 26px;
+  border-radius: 6px;
+}
+
+@media (max-width: 576px) {
+  .hero-slide-dots {
+    bottom: 18px;
+  }
+}
+
+/* Brief cross-fade of the title/description/buttons when the active slide
+   changes, so text swaps don't jump-cut mid-sentence. */
+.hero-content-overlay.is-swapping #heroSlideTitle,
+.hero-content-overlay.is-swapping #heroSlideDesc,
+.hero-content-overlay.is-swapping #heroSlideBtn1,
+.hero-content-overlay.is-swapping #heroSlideBtn2 {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#heroSlideTitle,
+#heroSlideDesc,
+#heroSlideBtn1,
+#heroSlideBtn2 {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
 /* Subtle gradient veil to lift content readability on the final frame */
 .hero-frame-stage::after {
   content: "";

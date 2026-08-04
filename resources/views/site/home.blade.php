@@ -117,27 +117,39 @@
       </div>
 
     @else
-      <!-- Static Hero (either has media from db or original fallback) -->
+      @php
+          // Every active slider is now one image slide in the hero carousel
+          // (title/desc/buttons travel with it) — replaces the old
+          // single-slide video hero. Falls back to the original static
+          // background when no slider has an image at all.
+          $heroSlides = $sliders->filter(fn ($s) => $s->image)->values();
+          if ($heroSlides->isEmpty()) {
+              $heroSlides = collect([(object) [
+                  'id' => 0,
+                  'image' => null,
+                  'title_ar' => 'أكاديمية العلامة الكاملة', 'title_en' => 'FULL MARKS ACADEMY',
+                  'desc_ar' => 'بوابتك للتميز الأكاديمي والمهني. مركز اختبارات العلامة الكاملة المعتمد والتدريب اللغوي الدولي.',
+                  'desc_en' => 'Step Into Professional Excellence. Approved Full Mark Test Center & Global Academic Preparation.',
+                  'btn1_text_ar' => 'حجز تحديد المستوى', 'btn1_text_en' => 'Placement Test Booking', 'btn1_link' => '#actions',
+                  'btn2_text_ar' => 'حجز مقعد دراسي', 'btn2_text_en' => 'Book A Course', 'btn2_link' => '#contact',
+              ]]);
+          }
+          $firstHeroSlide = $heroSlides->first();
+      @endphp
+
+      <!-- Animated image hero slider: one .hero-slide <img> per active
+           slider row, cross-faded + Ken-Burns'd by hero-animation.js, which
+           also swaps the overlay text/buttons below to match the active
+           slide (see window.HERO_SLIDES). -->
       <div class="hero-frame-stage" aria-hidden="true">
-        @php
-            $heroPoster = ($hasMedia && $firstSlider->image) ? asset('storage/' . $firstSlider->image) : asset('site/images/bg-main.jpg');
-        @endphp
-        @if($hasMedia)
-            @if($firstSlider->video1)
-            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('storage/' . $firstSlider->video1) }}" poster="{{ $heroPoster }}" muted playsinline preload="auto" fetchpriority="high"></video>
-            @endif
-            @if($firstSlider->video2)
-            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video {{ !$firstSlider->video1 ? 'is-active' : '' }}" src="{{ asset('storage/' . $firstSlider->video2) }}" poster="{{ $heroPoster }}" muted playsinline preload="auto"></video>
-            @endif
-            @if($firstSlider->image)
-            <img id="hero-bg-still" class="hero-frame-stage__media hero-frame-stage__still {{ (!$firstSlider->video1 && !$firstSlider->video2) ? 'is-active' : '' }}" src="{{ asset('storage/' . $firstSlider->image) }}" alt="">
-            @endif
-        @else
-            <!-- Fallback to original backgrounds -->
-            <video id="hero-bg-video-1" class="hero-frame-stage__media hero-frame-stage__video is-active" src="{{ asset('site/images/slider1.mp4') }}" poster="{{ $heroPoster }}" muted playsinline preload="auto" fetchpriority="high"></video>
-            <video id="hero-bg-video-2" class="hero-frame-stage__media hero-frame-stage__video" src="{{ asset('site/images/slider1.mp4') }}" poster="{{ $heroPoster }}" muted playsinline preload="auto"></video>
-            <img id="hero-bg-still" class="hero-frame-stage__media hero-frame-stage__still" src="{{ asset('site/images/bg-main.jpg') }}" alt="">
-        @endif
+        @foreach($heroSlides as $index => $slide)
+          <img
+            class="hero-frame-stage__media hero-slide {{ $index === 0 ? 'is-active' : '' }}"
+            src="{{ $slide->image ? asset('storage/' . $slide->image) : asset('site/images/bg-main.jpg') }}"
+            alt=""
+            {{ $index === 0 ? 'fetchpriority=high' : 'loading=lazy' }}
+          >
+        @endforeach
       </div>
 
       <div class="hero-overlay"></div>
@@ -148,58 +160,54 @@
       <div class="absolute bottom-1/4 right-20 w-36 h-36 bg-cyan-400 opacity-10 rounded-full blur-2xl float-medium parallax-layer" data-parallax-speed="-0.02"></div>
       <div class="absolute top-1/3 right-1/4 w-16 h-16 bg-purple-500 opacity-5 rounded-full blur-lg float-fast parallax-layer" data-parallax-speed="0.05"></div>
 
+      @if($heroSlides->count() > 1)
+        <div class="hero-slide-dots" role="tablist" aria-label="Hero slides">
+          @foreach($heroSlides as $index => $slide)
+            <button type="button" class="hero-slide-dot {{ $index === 0 ? 'is-active' : '' }}" data-slide-index="{{ $index }}" aria-label="Slide {{ $index + 1 }}"></button>
+          @endforeach
+        </div>
+      @endif
+
+      @php
+          // Computed here (not inline in @json) because Blade's directive
+          // parser chokes on multi-line expressions containing arrays.
+          $heroSlidesForJs = $heroSlides->map(fn ($s) => [
+              'title_ar' => $s->title_ar, 'title_en' => $s->title_en,
+              'desc_ar' => $s->desc_ar, 'desc_en' => $s->desc_en,
+              'btn1_text_ar' => $s->btn1_text_ar, 'btn1_text_en' => $s->btn1_text_en, 'btn1_link' => $s->btn1_link,
+              'btn2_text_ar' => $s->btn2_text_ar, 'btn2_text_en' => $s->btn2_text_en, 'btn2_link' => $s->btn2_link,
+          ]);
+      @endphp
+      <script>
+        // Consumed by hero-animation.js to cycle backgrounds + swap this
+        // text/button overlay in sync — keeps all slide copy admin-editable
+        // (Sliders panel) instead of hardcoded per slide in the template.
+        window.HERO_SLIDES = @json($heroSlidesForJs);
+      </script>
+
       <div id="hero-content-overlay" class="hero-content hero-content-overlay container px-4">
         <div class="reveal-scale">
           <h1 class="hero-stagger text-3xl md:text-5xl font-extrabold tracking-tight mb-3 uppercase" data-stagger="1" style="color: var(--text-primary);">
-            @if($firstSlider)
-                <span class="hero-academy-title" data-en="{{ $firstSlider->title_en }}" data-ar="{{ $firstSlider->title_ar }}">
-                    {{ app()->getLocale() == 'ar' ? $firstSlider->title_ar : $firstSlider->title_en }}
-                </span>
-            @else
-                <span class="hero-academy-title" data-en="FULL MARKS ACADEMY" data-ar="أكاديمية العلامة الكاملة">FULL MARKS ACADEMY</span>
-            @endif
+            <span id="heroSlideTitle" class="hero-academy-title" data-en="{{ $firstHeroSlide->title_en }}" data-ar="{{ $firstHeroSlide->title_ar }}">
+                {{ app()->getLocale() == 'ar' ? $firstHeroSlide->title_ar : $firstHeroSlide->title_en }}
+            </span>
           </h1>
-          
-          <p class="hero-stagger text-base md:text-xl text-secondary-class mb-6 max-w-2xl mx-auto leading-relaxed" data-stagger="2" style="color: var(--text-secondary);"
-             @if($firstSlider)
-             data-en="{{ $firstSlider->desc_en }}" data-ar="{{ $firstSlider->desc_ar }}"
-             @else
-             data-en="Step Into Professional Excellence. Approved Full Mark Test Center & Global Academic Preparation."
-             data-ar="بوابتك للتميز الأكاديمي والمهني. مركز اختبارات العلامة الكاملة المعتمد والتدريب اللغوي الدولي."
-             @endif
-             >
-            @if($firstSlider)
-                {{ app()->getLocale() == 'ar' ? $firstSlider->desc_ar : $firstSlider->desc_en }}
-            @else
-                {{ app()->getLocale() == 'ar' ? 'بوابتك للتميز الأكاديمي والمهني. مركز اختبارات العلامة الكاملة المعتمد والتدريب اللغوي الدولي.' : 'Step Into Professional Excellence. Approved Full Mark Test Center & Global Academic Preparation.' }}
-            @endif
+
+          <p id="heroSlideDesc" class="hero-stagger text-base md:text-xl text-secondary-class mb-6 max-w-2xl mx-auto leading-relaxed" data-stagger="2" style="color: var(--text-secondary);"
+             data-en="{{ $firstHeroSlide->desc_en }}" data-ar="{{ $firstHeroSlide->desc_ar }}">
+            {{ app()->getLocale() == 'ar' ? $firstHeroSlide->desc_ar : $firstHeroSlide->desc_en }}
           </p>
 
           <!-- CTA Buttons -->
           <div class="hero-stagger d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3" data-stagger="3">
-            @if($firstSlider)
-                @if($firstSlider->btn1_text_ar || $firstSlider->btn1_text_en)
-                <a href="{{ $firstSlider->btn1_link }}" class="btn btn-luxury px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center"
-                   data-en="{{ $firstSlider->btn1_text_en }}" data-ar="{{ $firstSlider->btn1_text_ar }}">
-                  {{ app()->getLocale() == 'ar' ? $firstSlider->btn1_text_ar : $firstSlider->btn1_text_en }}
-                </a>
-                @endif
-                @if($firstSlider->btn2_text_ar || $firstSlider->btn2_text_en)
-                <a href="{{ $firstSlider->btn2_link }}" class="btn btn-glass px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center"
-                   data-en="{{ $firstSlider->btn2_text_en }}" data-ar="{{ $firstSlider->btn2_text_ar }}">
-                  {{ app()->getLocale() == 'ar' ? $firstSlider->btn2_text_ar : $firstSlider->btn2_text_en }}
-                </a>
-                @endif
-            @else
-                <a href="#actions" class="btn btn-luxury px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center"
-                   data-en="Placement Test Booking" data-ar="حجز تحديد المستوى">
-                  Placement Test Booking
-                </a>
-                <a href="#contact" class="btn btn-glass px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center"
-                   data-en="Book A Course" data-ar="حجز مقعد دراسي">
-                  Book A Course
-                </a>
-            @endif
+            <a id="heroSlideBtn1" href="{{ $firstHeroSlide->btn1_link }}" class="btn btn-luxury px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center {{ ($firstHeroSlide->btn1_text_ar || $firstHeroSlide->btn1_text_en) ? '' : 'd-none' }}"
+               data-en="{{ $firstHeroSlide->btn1_text_en }}" data-ar="{{ $firstHeroSlide->btn1_text_ar }}">
+              {{ app()->getLocale() == 'ar' ? $firstHeroSlide->btn1_text_ar : $firstHeroSlide->btn1_text_en }}
+            </a>
+            <a id="heroSlideBtn2" href="{{ $firstHeroSlide->btn2_link }}" class="btn btn-glass px-4 py-2 rounded-xl w-60 sm:w-auto text-base d-flex align-items-center justify-content-center {{ ($firstHeroSlide->btn2_text_ar || $firstHeroSlide->btn2_text_en) ? '' : 'd-none' }}"
+               data-en="{{ $firstHeroSlide->btn2_text_en }}" data-ar="{{ $firstHeroSlide->btn2_text_ar }}">
+              {{ app()->getLocale() == 'ar' ? $firstHeroSlide->btn2_text_ar : $firstHeroSlide->btn2_text_en }}
+            </a>
           </div>
         </div>
 

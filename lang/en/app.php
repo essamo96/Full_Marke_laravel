@@ -507,13 +507,14 @@ return [
 
     // Sliders
     'sliders' => 'Sliders',
-    'media_and_backgrounds' => 'Media & Backgrounds',
-    'fallback_image_help' => 'Static image that appears when videos end or as an alternative background',
+    'media_and_backgrounds' => 'Slide Image',
+    'fallback_image_help' => "This is the background image for this slide in the homepage's animated hero slider. Each active slider row = one slide.",
     'first_bg_video' => 'First Background Video',
     'video_exists' => 'Video already uploaded',
-    'first_bg_video_help' => 'Acts as the slider background (muted)',
+    'first_bg_video_help' => 'Legacy/unused — the homepage now shows only the slide image above, not the video.',
     'second_bg_video' => 'Second Background Video',
-    'second_bg_video_help' => 'Plays consecutively after the first video',
+    'second_bg_video_help' => 'Legacy/unused — the homepage now shows only the slide image above, not the video.',
+    'legacy_video_fields' => 'Legacy fields (currently unused)',
     'texts_ar_en' => 'Texts (Arabic / English)',
     'title_ar' => 'Title in Arabic',
     'title_en' => 'Title in English',

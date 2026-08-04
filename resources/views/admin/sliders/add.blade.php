@@ -33,20 +33,34 @@
                             <!-- Media Section -->
                             <h3 class="mb-5 text-primary">@lang('app.media_and_backgrounds')</h3>
                             <div class="row mb-5">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     @include('admin.components.file-picker', ['name' => 'image', 'value' => $info?->image ?? old('image'), 'label' => __('app.image'), 'folder' => 'sliders'])
                                     <div class="text-muted fs-7 mt-2">@lang('app.fallback_image_help')</div>
                                 </div>
-                                <div class="col-md-4">
-                                    @include('admin.components.file-picker', ['name' => 'video1', 'value' => $info?->video1 ?? old('video1'), 'label' => __('app.first_bg_video'), 'folder' => 'sliders/videos'])
-                                    <div class="text-muted fs-7 mt-2">@lang('app.first_bg_video_help')</div>
-                                </div>
-                                <div class="col-md-4">
-                                    @include('admin.components.file-picker', ['name' => 'video2', 'value' => $info?->video2 ?? old('video2'), 'label' => __('app.second_bg_video'), 'folder' => 'sliders/videos'])
-                                    <div class="text-muted fs-7 mt-2">@lang('app.second_bg_video_help')</div>
+                            </div>
+
+                            <!-- Legacy video fields — the homepage hero is image-only now (see
+                                 fallback_image_help above); kept only so old records don't lose
+                                 their data, collapsed by default to avoid implying they still do
+                                 anything. -->
+                            <div class="mb-5">
+                                <a class="text-muted fs-7" data-bs-toggle="collapse" href="#legacyVideoFields" role="button" aria-expanded="false" aria-controls="legacyVideoFields">
+                                    <i class="bi bi-chevron-down"></i> @lang('app.legacy_video_fields')
+                                </a>
+                                <div class="collapse mt-3" id="legacyVideoFields">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            @include('admin.components.file-picker', ['name' => 'video1', 'value' => $info?->video1 ?? old('video1'), 'label' => __('app.first_bg_video'), 'folder' => 'sliders/videos'])
+                                            <div class="text-muted fs-7 mt-2">@lang('app.first_bg_video_help')</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            @include('admin.components.file-picker', ['name' => 'video2', 'value' => $info?->video2 ?? old('video2'), 'label' => __('app.second_bg_video'), 'folder' => 'sliders/videos'])
+                                            <div class="text-muted fs-7 mt-2">@lang('app.second_bg_video_help')</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            
+
                             <hr class="my-10">
 
                             <!-- Text Section -->

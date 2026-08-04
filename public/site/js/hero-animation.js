@@ -1,10 +1,13 @@
 /* ============================================================
-   Hero looping intro:
-   1) video1 (slider1.mp4) → crossfade → video2 (ezgif-...mp4)
-   2) ~2 frames before video2 ends, the 4K still image fades in
-   3) Hero content reveals with staggered delays
-   4) After 20s of content visible, content fades out and the
-      whole sequence loops indefinitely (like a slider).
+   Hero image slider:
+   1) One .hero-slide <img> per active admin-configured slider row,
+      cross-faded + Ken-Burns'd on a fixed interval (SLIDE_INTERVAL_MS).
+   2) The title/description/buttons overlay swaps in sync with the
+      background, sourced from window.HERO_SLIDES (see home.blade.php).
+   3) Hero content reveals once with staggered delays and then stays
+      visible continuously (no more hide/show loop — the old video
+      intro needed that to hide the "seam" between clips; a plain image
+      crossfade has no seam to hide).
    Also:
    - Particles wait for the first 'hero:complete' before starting.
    - Single scroll-track, scrollbar appears only when hero is done.
@@ -12,80 +15,26 @@
 (() => {
   'use strict';
 
-  const CROSSFADE_LEAD_SEC = 0.9;         // start video2 this many s before video1 ends
-  const STILL_LEAD_FRAMES = 2;           // show still N frames before video2 ends
-  const ASSUMED_FPS = 30;          // for the "frames" calculation
-  const CONTENT_VISIBLE_MS = 20000;       // 20 s before looping
+  const SLIDE_INTERVAL_MS = 6000;          // how long each slide stays fully visible
   const SAFETY_TIMEOUT_MS = 25000;
   const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Note: the global splash (#hero-preloader) is owned by site-splash.js —
-  // this file only drives the homepage's looping background video intro.
+  // this file only drives the homepage's looping hero background/content.
   const html = document.documentElement;
-  const v1 = document.getElementById('hero-bg-video-1');
-  const v2 = document.getElementById('hero-bg-video-2');
-  const still = document.getElementById('hero-bg-still');
+  const stage = document.querySelector('.hero-frame-stage');
+  const slides = stage ? Array.from(stage.querySelectorAll('.hero-slide')) : [];
   const overlay = document.getElementById('hero-content-overlay');
+  const dots = Array.from(document.querySelectorAll('.hero-slide-dot'));
+  const slideTitle = document.getElementById('heroSlideTitle');
+  const slideDesc = document.getElementById('heroSlideDesc');
+  const slideBtn1 = document.getElementById('heroSlideBtn1');
+  const slideBtn2 = document.getElementById('heroSlideBtn2');
+  const slideData = Array.isArray(window.HERO_SLIDES) ? window.HERO_SLIDES : [];
 
-  if (!v1 || !v2 || !overlay) return;
-
-  // ---------- Swap video sources to portrait versions on mobile -----------
-  // Mobile encoded copies (720x1280) with a blurred-fill background fix
-  // the cropping problem on portrait screens.
-  function pickResponsiveSources() {
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    const map = {
-      'hero-bg-video-1': isMobile
-        ? '/site/images/slider1.mp4'
-        : '/site/images/slider1.mp4',
-      'hero-bg-video-2': isMobile
-        ? '/site/images/slider2.mp4'
-        : '/site/images/slider2.mp4',
-      // Note: 'about-video' is intentionally NOT swapped here — its source is
-      // whatever the admin configured for the About Us page (video or image),
-      // rendered server-side. Hardcoding a mobile/desktop swap for it would
-      // silently override whatever the admin panel is set to display.
-    };
-    Object.entries(map).forEach(([id, src]) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      // Compare fully resolved URLs to avoid redundant calls to load()
-      const targetSrc = new URL(src, window.location.origin).href;
-      if (el.src === targetSrc) return;
-
-      const applySource = () => {
-        el.setAttribute('src', src);
-        try { el.load(); } catch (_) { }
-      };
-
-      // Don't reload a video mid-playback (e.g. on orientation change) —
-      // that causes a visible stutter/black-frame. Defer until it pauses.
-      if (el.paused) {
-        applySource();
-      } else {
-        el.addEventListener('pause', applySource, { once: true });
-      }
-    });
-  }
-  pickResponsiveSources();
-  // React to orientation / resize crossing the mobile breakpoint
-  const mqMobile = window.matchMedia('(max-width: 768px)');
-  if (mqMobile.addEventListener) mqMobile.addEventListener('change', pickResponsiveSources);
-  else if (mqMobile.addListener) mqMobile.addListener(pickResponsiveSources);
-
-
-  html.classList.add('hero-loading');
+  if (!stage || !slides.length || !overlay) return;
 
   // ---------- Preload helpers ----------
-  function whenVideoReady(v) {
-    return new Promise((resolve) => {
-      if (v.readyState >= 3) return resolve();
-      const done = () => resolve();
-      v.addEventListener('canplay', done, { once: true });
-      v.addEventListener('loadeddata', done, { once: true });
-      setTimeout(done, SAFETY_TIMEOUT_MS);
-    });
-  }
   function whenImageReady(img) {
     return new Promise((resolve) => {
       if (img.complete && img.naturalWidth) return resolve();
@@ -96,141 +45,94 @@
   }
 
   function preloadAll() {
-    return Promise.all([
-      whenVideoReady(v1),
-      whenVideoReady(v2),
-      whenImageReady(still),
-    ]);
+    return Promise.all(slides.map(whenImageReady));
   }
 
-  // ---------- One full intro cycle ----------
-  function resetLayers() {
-    // Re-stage for a fresh cycle.
-    v1.classList.add('is-active');
-    v2.classList.remove('is-active');
-    still.classList.remove('is-active');
-    try {
-      v1.pause(); v1.currentTime = 0;
-      v2.pause(); v2.currentTime = 0;
-    } catch (_) { }
+  // ---------- Overlay text/button sync ----------
+  function applyBtn(el, data, textKeyAr, textKeyEn, linkKey) {
+    if (!el) return;
+    const hasText = data[textKeyAr] || data[textKeyEn];
+    el.classList.toggle('d-none', !hasText);
+    if (!hasText) return;
+    el.setAttribute('data-ar', data[textKeyAr] || '');
+    el.setAttribute('data-en', data[textKeyEn] || '');
+    if (data[linkKey]) el.setAttribute('href', data[linkKey]);
+    const lang = (window.currentLang === 'ar') ? 'ar' : 'en';
+    el.textContent = data[lang === 'ar' ? textKeyAr : textKeyEn] || '';
   }
 
-  function playCycle() {
-    return new Promise((resolve) => {
-      resetLayers();
+  function syncOverlayToSlide(index) {
+    const data = slideData[index];
+    if (!data) return;
+    const lang = (window.currentLang === 'ar') ? 'ar' : 'en';
 
-      let safetyTimeout = null;
+    if (slideTitle) {
+      slideTitle.setAttribute('data-ar', data.title_ar || '');
+      slideTitle.setAttribute('data-en', data.title_en || '');
+      slideTitle.textContent = (lang === 'ar' ? data.title_ar : data.title_en) || '';
+    }
+    if (slideDesc) {
+      slideDesc.setAttribute('data-ar', data.desc_ar || '');
+      slideDesc.setAttribute('data-en', data.desc_en || '');
+      slideDesc.textContent = (lang === 'ar' ? data.desc_ar : data.desc_en) || '';
+    }
+    applyBtn(slideBtn1, data, 'btn1_text_ar', 'btn1_text_en', 'btn1_link');
+    applyBtn(slideBtn2, data, 'btn2_text_ar', 'btn2_text_en', 'btn2_link');
+  }
 
-      // ----- Video1 -> Video2 -----
-      let v1HandedOff = false;
-      const handoffToV2 = () => {
-        if (v1HandedOff) return;
-        v1HandedOff = true;
-        if (safetyTimeout) {
-          clearTimeout(safetyTimeout);
-          safetyTimeout = null;
-        }
-        try { v2.currentTime = 0; } catch (_) { }
-        const p = v2.play();
-        if (p && p.catch) {
-          p.catch((err) => {
-            console.warn("Autoplay blocked for video 2. Waiting for interaction to play it.", err);
+  // ---------- Slide cycling (background crossfade + Ken Burns) ----------
+  let activeIndex = 0;
+  function goToSlide(nextIndex) {
+    if (nextIndex === activeIndex && slides[activeIndex].classList.contains('is-active')) return;
 
-            const forcePlayV2 = () => {
-              v2.play().catch(() => { });
-              document.removeEventListener('click', forcePlayV2);
-              document.removeEventListener('touchstart', forcePlayV2);
-              document.removeEventListener('scroll', forcePlayV2);
-            };
+    slides.forEach((el, i) => el.classList.toggle('is-active', i === nextIndex));
+    dots.forEach((el, i) => el.classList.toggle('is-active', i === nextIndex));
 
-            document.addEventListener('click', forcePlayV2, { once: true });
-            document.addEventListener('touchstart', forcePlayV2, { once: true });
-            document.addEventListener('scroll', forcePlayV2, { once: true });
-          });
-        }
+    // Brief fade of the text block so title/desc changes don't jump-cut.
+    overlay.classList.add('is-swapping');
+    setTimeout(() => {
+      syncOverlayToSlide(nextIndex);
+      overlay.classList.remove('is-swapping');
+    }, slides.length > 1 ? 350 : 0);
 
-        // Wait for v2 to actually be playing before hiding v1 to avoid black screen
-        let v2Started = false;
-        const completeHandoff = () => {
-          if (v2Started) return;
-          v2Started = true;
-          v2.classList.add('is-active');
-          v1.classList.remove('is-active');
-        };
+    activeIndex = nextIndex;
+  }
 
-        v2.addEventListener('playing', completeHandoff, { once: true });
-        // Fallback if event fails
-        setTimeout(completeHandoff, 500);
+  let autoAdvanceTimer = null;
+  function startAutoAdvance() {
+    if (slides.length < 2 || REDUCED_MOTION) return;
+    stopAutoAdvance();
+    autoAdvanceTimer = setInterval(() => {
+      goToSlide((activeIndex + 1) % slides.length);
+    }, SLIDE_INTERVAL_MS);
+  }
+  function stopAutoAdvance() {
+    if (autoAdvanceTimer) clearInterval(autoAdvanceTimer);
+    autoAdvanceTimer = null;
+  }
 
-        scheduleStillReveal();
-      };
-
-      v1.addEventListener('ended', handoffToV2, { once: true });
-
-      // ----- Show still when video2 ends -----
-      let stillShown = false;
-      const showStill = () => {
-        if (stillShown) return;
-        stillShown = true;
-        still.classList.add('is-active');
-        v2.classList.remove('is-active');
-      };
-
-      const scheduleStillReveal = () => {
-        v2.addEventListener('ended', () => {
-          showStill();
-          setTimeout(resolve, 700);
-        }, { once: true });
-        
-        // Hard safety net (e.g. tab throttled).
-        setTimeout(() => { showStill(); resolve(); },
-          (isFinite(v2.duration) && v2.duration > 0 ? v2.duration * 1000 + 2000 : 10000));
-      };
-
-      // Start video1
-      const p1 = v1.play();
-      if (p1 && p1.catch) {
-        p1.catch((err) => {
-          console.warn("Autoplay blocked. Waiting for interaction to play video.", err);
-          
-          const forcePlay = () => {
-            v1.play().catch(() => {});
-            document.removeEventListener('click', forcePlay);
-            document.removeEventListener('touchstart', forcePlay);
-            document.removeEventListener('scroll', forcePlay);
-          };
-          
-          document.addEventListener('click', forcePlay, { once: true });
-          document.addEventListener('touchstart', forcePlay, { once: true });
-          document.addEventListener('scroll', forcePlay, { once: true });
-        });
-      }
-
-      // Hard safety net: if video 1 is blocked/frozen for a very long time
-      safetyTimeout = setTimeout(() => {
-        if (!v1HandedOff && v1.paused) {
-          console.warn("Video 1 safety timeout reached. Skipping to next layer.");
-          handoffToV2();
-        }
-      }, 15000); // give it plenty of time
+  dots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      const i = Number(dot.dataset.slideIndex);
+      if (Number.isNaN(i)) return;
+      goToSlide(i);
+      startAutoAdvance(); // restart the timer so a manual click doesn't get immediately overridden
     });
-  }
+  });
 
-  // ---------- Content reveal/hide ----------
+  // Re-sync overlay text whenever the language toggle fires, so a slide
+  // change mid-session still respects whichever language is active.
+  window.addEventListener('languageChanged', () => syncOverlayToSlide(activeIndex));
+
+  html.classList.add('hero-loading');
+
+  // ---------- Content reveal ----------
   function revealContent() {
     overlay.classList.remove('is-hiding');
     overlay.classList.add('is-revealed');
     // Re-enable particles fade-in
     const pc = document.getElementById('particles-canvas');
     if (pc) pc.classList.remove('is-fading-out');
-  }
-  function hideContent() {
-    // Trigger the REVERSE staggered fade-out
-    overlay.classList.add('is-hiding');
-    overlay.classList.remove('is-revealed');
-    // Fade particles out alongside the content
-    const pc = document.getElementById('particles-canvas');
-    if (pc) pc.classList.add('is-fading-out');
   }
 
   // ---------- About-section looping video: play in view, pause out of view ----------
@@ -318,58 +220,34 @@
     targets.forEach((el) => io.observe(el));
   }
 
-  // ---------- Loop driver ----------
-  let firstCycleDone = false;
-  async function loopForever() {
-    while (true) {
-      await playCycle();          // video1 → video2 → still
-      revealContent();            // staggered reveal kicks in
+  // ---------- Orchestrate ----------
+  function startHero() {
+    syncOverlayToSlide(activeIndex);
+    revealContent();
+    startAutoAdvance();
 
-      // Unlock the page on the very first cycle so the user can scroll.
-      if (!firstCycleDone) {
-        firstCycleDone = true;
-        html.classList.remove('hero-loading');
-        html.classList.add('hero-done');
-        window.dispatchEvent(new CustomEvent('hero:complete'));
-      }
-
-      // Hold the still + content for 20 s, then hide content and restart.
-      await new Promise((r) => setTimeout(r, CONTENT_VISIBLE_MS));
-      hideContent();
-      // Reverse-stagger fade-out: last delay (0.60s) + transition (1.1s) ≈ 1.8s
-      // Add a small visual breath before videos restart.
-      await new Promise((r) => setTimeout(r, 2000));
-    }
+    html.classList.remove('hero-loading');
+    html.classList.add('hero-done');
+    window.dispatchEvent(new CustomEvent('hero:complete'));
   }
 
-  // ---------- Orchestrate ----------
   async function run() {
     initSectionReveal();
     initAboutVideo();
     initNavbarScroll();
 
-    preloadAll();
+    await preloadAll();
 
-    if (REDUCED_MOTION) {
-      // Skip videos entirely.
-      still.classList.add('is-active');
-      revealContent();
-      html.classList.remove('hero-loading');
-      html.classList.add('hero-done');
-      window.dispatchEvent(new CustomEvent('hero:complete'));
-      return;
-    }
-
-    const startLoop = () => {
-      loopForever();
-    };
-
-    const splashContainer = document.getElementById('hero-preloader');
-    if (splashContainer && !splashContainer.classList.contains('is-hidden')) {
-      window.addEventListener('splash:complete', startLoop, { once: true });
+    if (splashPending()) {
+      window.addEventListener('splash:complete', startHero, { once: true });
     } else {
-      startLoop();
+      startHero();
     }
+  }
+
+  function splashPending() {
+    const splashContainer = document.getElementById('hero-preloader');
+    return !!splashContainer && !splashContainer.classList.contains('is-hidden');
   }
 
   if (document.readyState === 'loading') {

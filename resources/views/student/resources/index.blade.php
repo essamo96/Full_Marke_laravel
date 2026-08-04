@@ -157,6 +157,13 @@
     #lessonVideoContainer:-webkit-full-screen #lessonVideoEl {
       object-fit: contain;
     }
+
+    /* Hides the modal's title/size-toggle/close bar while the video is
+       fullscreen (see keepOverlayInFullscreen in student-video-player.js for
+       why it would otherwise still paint on top of the fullscreen video). */
+    #lessonVideoModal.video-is-fullscreen .modal-header {
+      display: none !important;
+    }
   </style>
 
   <!-- Secure lesson video modal -->

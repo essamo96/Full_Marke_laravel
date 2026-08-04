@@ -36,10 +36,26 @@
    * overlays — like the watermark canvas — behind on the non-fullscreen page,
    * so the watermark visually "disappears" while zoomed. Redirect fullscreen
    * to the wrapping container instead, which keeps the canvas layered on top.
+   *
+   * The modal's own header (title + size-toggle + close button) also has to
+   * be hidden while fullscreen: it lives outside #lessonVideoContainer, so it
+   * isn't part of the fullscreen element, but the modal's ancestor uses
+   * backdrop-filter (.glass-panel) — a Chromium quirk keeps such ancestors
+   * from fully isolating the fullscreen element into the browser's top
+   * layer, so that header bar was still painting on top of the fullscreen
+   * video instead of disappearing behind it. Explicitly hiding it via a
+   * class is the reliable fix, independent of that rendering quirk.
    */
   function keepOverlayInFullscreen(container, videoEl) {
+    var modal = container.closest('.modal');
+
     function onFullscreenChange() {
       var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+
+      if (modal) {
+        modal.classList.toggle('video-is-fullscreen', fsEl === container);
+      }
+
       if (fsEl !== videoEl) return;
 
       var exit = document.exitFullscreen
@@ -56,6 +72,7 @@
     return function destroy() {
       document.removeEventListener('fullscreenchange', onFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+      if (modal) modal.classList.remove('video-is-fullscreen');
     };
   }
 
