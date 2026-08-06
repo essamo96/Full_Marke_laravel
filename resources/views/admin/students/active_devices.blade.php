@@ -51,8 +51,30 @@
     const listUrl = '{{ route('students.active-devices.list') }}';
     const clearIpUrl = '{{ route('students.active-devices.clear-ip') }}';
     const maxDevicesUrl = '{{ route('students.active-devices.max-devices') }}';
-    const csrfToken = '{{ csrf_token() }}';
     let pollTimer = null;
+
+    // The token baked into the page at load time goes stale if this tab is
+    // left open across a session renewal (or is restored from bfcache/a
+    // page cache with an older session's token), which is what produced the
+    // "CSRF token mismatch" error. Laravel re-issues a fresh XSRF-TOKEN
+    // cookie reflecting the *current* session on every response, so reading
+    // it right before each write request — instead of reusing one token for
+    // the page's entire lifetime — keeps it valid even after that.
+    function currentCsrfToken() {
+        const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+        if (match) return decodeURIComponent(match[1]);
+        return '{{ csrf_token() }}';
+    }
+
+    // A 419 here means the token above was still stale (e.g. the session
+    // itself expired) — the only real fix is a fresh page load, so ask
+    // instead of leaving the dropdown/button silently no-op.
+    function handleCsrfExpired() {
+        if (typeof toastr !== 'undefined') {
+            toastr.error('انتهت صلاحية الجلسة، سيتم إعادة تحميل الصفحة.');
+        }
+        setTimeout(function () { window.location.reload(); }, 1200);
+    }
 
     function renderRows(rows) {
         const tbody = document.getElementById('activeDevicesBody');
@@ -123,13 +145,17 @@
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
+                'X-XSRF-TOKEN': currentCsrfToken()
             },
             credentials: 'same-origin',
             body: JSON.stringify({ id: select.dataset.id, max_devices: select.value })
         })
-        .then(function (res) { return res.json(); })
+        .then(function (res) {
+            if (res.status === 419) { handleCsrfExpired(); return null; }
+            return res.json();
+        })
         .then(function (data) {
+            if (!data) return;
             if (typeof toastr === 'undefined') { loadList(); return; }
             data.success ? toastr.success(data.message) : toastr.error(data.message);
             loadList();
@@ -157,13 +183,17 @@
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
+                    'X-XSRF-TOKEN': currentCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ id: id })
             })
-            .then(function (res) { return res.json(); })
+            .then(function (res) {
+                if (res.status === 419) { handleCsrfExpired(); return null; }
+                return res.json();
+            })
             .then(function (data) {
+                if (!data) return;
                 if (typeof toastr === 'undefined') { loadList(); return; }
                 data.success ? toastr.success(data.message) : toastr.error(data.message);
                 loadList();

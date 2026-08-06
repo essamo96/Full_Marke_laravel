@@ -300,7 +300,14 @@ class StudentsController extends AdminController
      */
     public function getActiveDevices()
     {
-        return view('admin.students.active_devices', array_merge(self::$data, ['active_menu' => 'students_active_devices']));
+        // This page bakes the admin's current CSRF token into the HTML; if a
+        // host-level page cache (e.g. LiteSpeed cache, common on shared
+        // hosting) ever served that cached copy to a different admin/session,
+        // every write on it would fail with a CSRF mismatch. no-store keeps
+        // this admin-only, session-specific page out of any such cache.
+        return response()
+            ->view('admin.students.active_devices', array_merge(self::$data, ['active_menu' => 'students_active_devices']))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     }
 
     public function getActiveDevicesList(Request $request)
