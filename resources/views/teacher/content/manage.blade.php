@@ -36,6 +36,17 @@
       z-index: 1050;
     }
 
+    /* .modal-content.glass-panel uses backdrop-filter, which keeps Chromium
+       from fully isolating a fullscreen descendant into the browser's top
+       layer — so the modal-header keeps painting on top of the fullscreen
+       video as a band across its upper part instead of disappearing behind
+       it. Hidden explicitly via this class (toggled in the fullscreenchange
+       handler below), same fix as the student-side viewers. */
+    #modal_protected_viewer.video-is-fullscreen .modal-header,
+    #modal_protected_viewer.video-is-fullscreen .modal-footer {
+      display: none !important;
+    }
+
     .teacher-content-accordion .teacher-content-collapse {
       visibility: visible !important;
     }
@@ -574,8 +585,15 @@
   // the page — same fix as the student-side player, so the watermark and the
   // right-click block on the video element both survive going fullscreen.
   function keepWatermarkInFullscreen(container, videoEl) {
+    var modal = container.closest('.modal');
+
     function onFullscreenChange() {
       var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+
+      if (modal) {
+        modal.classList.toggle('video-is-fullscreen', fsEl === container);
+      }
+
       if (fsEl !== videoEl) return;
       var exit = document.exitFullscreen
         ? document.exitFullscreen()
@@ -590,6 +608,7 @@
     return function destroy() {
       document.removeEventListener('fullscreenchange', onFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+      if (modal) modal.classList.remove('video-is-fullscreen');
     };
   }
 

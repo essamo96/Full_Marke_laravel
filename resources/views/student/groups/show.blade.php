@@ -357,6 +357,16 @@
                 #imageWrapper:fullscreen, #imageWrapper:-webkit-full-screen {
                     width: 100vw; height: 100vh; overflow: auto; border-radius: 0; background: #111;
                 }
+                /* #playerContainer uses .glass-panel (backdrop-filter), which keeps
+                   Chromium from fully isolating the fullscreen element into the
+                   browser's top layer — so the title/badge row above the video
+                   still paints on top of it as a big band across the upper part of
+                   the screen instead of disappearing behind it. Explicitly hiding
+                   it via a class (toggled in the fullscreenchange handler below) is
+                   the reliable fix, independent of that rendering quirk. */
+                #playerContainer.viewer-is-fullscreen #contentViewerHeader {
+                    display: none !important;
+                }
                 /* Drifting watermark over embedded (iframe) resources */
                 .embed-watermark {
                     position: absolute;
@@ -382,7 +392,7 @@
             </style>
 
             <div id="contentViewer" class="w-100 d-none text-start">
-                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div id="contentViewerHeader" class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                     <h2 class="fw-bold mb-0" id="contentTitle" style="color: var(--text-primary);"></h2>
                     <div class="d-flex align-items-center gap-2">
                         <button type="button" id="viewerFullscreenBtn" class="btn btn-sm btn-glass d-none rounded-pill px-3" onclick="toggleViewerFullscreen()" title="ملء الشاشة">
@@ -661,6 +671,17 @@
         var request = el.requestFullscreen || el.webkitRequestFullscreen;
         if (request) request.call(el);
     }
+
+    // Keeps the title/fullscreen-button/badge row from painting on top of the
+    // fullscreen video/embed (see #playerContainer.viewer-is-fullscreen CSS above).
+    function onViewerFullscreenChange() {
+        var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+        var isOurs = !!fsEl && (fsEl.id === 'groupVideoContainer' || fsEl.id === 'iframeWrapper' ||
+            fsEl.id === 'documentWrapper' || fsEl.id === 'imageWrapper');
+        document.getElementById('playerContainer').classList.toggle('viewer-is-fullscreen', isOurs);
+    }
+    document.addEventListener('fullscreenchange', onViewerFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onViewerFullscreenChange);
 
     function loadResource(resource) {
         // Highlight active item
