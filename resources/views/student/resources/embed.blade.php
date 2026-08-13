@@ -38,7 +38,15 @@
 
     @php
         $embedUrl = $resource->url;
-        
+
+        // A link pasted without a scheme (e.g. "youtube.com/watch?v=...")
+        // would otherwise be treated as relative to our own domain by the
+        // <iframe src="">, silently loading nothing from our own site
+        // instead of the intended external page.
+        if ($embedUrl && !preg_match('#^https?://#i', $embedUrl)) {
+            $embedUrl = 'https://' . ltrim($embedUrl, '/');
+        }
+
         // Fix Google Drive links for iframe embedding (Extract ID and force /preview)
         // Matches /file/d/ID
         if (preg_match('#drive\.google\.com/file/d/([a-zA-Z0-9_-]+)#', $embedUrl, $matches)) {
@@ -63,15 +71,28 @@
             $embedUrl = 'https://drive.google.com/embeddedfolderview?id=' . $matches[1] . '#list';
         }
 
-        // Fix YouTube links for iframe embedding
-        elseif (str_contains($embedUrl, 'youtube.com/watch')) {
-            parse_str(parse_url($embedUrl, PHP_URL_QUERY), $vars);
-            if (isset($vars['v'])) {
-                $embedUrl = 'https://www.youtube.com/embed/' . $vars['v'] . '?rel=0';
+        // Fix YouTube links for iframe embedding. Covers every URL shape
+        // YouTube itself hands out (watch, youtu.be share links, Shorts,
+        // live, mobile m.youtube.com, and already-correct /embed/ links),
+        // since a non-/embed/ URL simply refuses to load in an iframe
+        // (YouTube's own watch/shorts/live pages send X-Frame-Options) and
+        // shows the visitor a generic "playback error" instead of our
+        // content — the symptom reported when a Shorts/live link was pasted
+        // as an "external link" resource.
+        elseif (preg_match('#youtu(?:be\.com|\.be)#i', $embedUrl)) {
+            $videoId = null;
+
+            if (preg_match('#[?&]v=([a-zA-Z0-9_-]{6,})#', $embedUrl, $matches)) {
+                $videoId = $matches[1];
+            } elseif (preg_match('#youtu\.be/([a-zA-Z0-9_-]{6,})#', $embedUrl, $matches)) {
+                $videoId = $matches[1];
+            } elseif (preg_match('#youtube\.com/(?:shorts|live|embed)/([a-zA-Z0-9_-]{6,})#', $embedUrl, $matches)) {
+                $videoId = $matches[1];
             }
-        } elseif (str_contains($embedUrl, 'youtu.be/')) {
-            $path = parse_url($embedUrl, PHP_URL_PATH);
-            $embedUrl = 'https://www.youtube.com/embed' . $path . '?rel=0';
+
+            if ($videoId) {
+                $embedUrl = 'https://www.youtube.com/embed/' . $videoId . '?rel=0';
+            }
         }
     @endphp
 
