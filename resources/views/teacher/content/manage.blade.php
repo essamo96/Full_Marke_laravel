@@ -977,9 +977,12 @@
         return;
       }
 
+      const enteredTitle = (document.querySelector('#form_add_resource [name="title"]').value || '').trim();
+      const fallbackTitle = (data.original_filename || file.fileName || file.name || 'فيديو جديد').replace(/\.[^/.]+$/, '');
+
       const formData = new FormData();
       formData.append('_token', csrfToken);
-      formData.append('title', (data.original_filename || file.fileName || file.name || 'فيديو جديد').replace(/\.[^/.]+$/, ''));
+      formData.append('title', enteredTitle || fallbackTitle);
       formData.append('type', 'video');
       formData.append('uploaded_path', data.path);
       formData.append('original_filename', data.original_filename || file.fileName || file.name || 'video');

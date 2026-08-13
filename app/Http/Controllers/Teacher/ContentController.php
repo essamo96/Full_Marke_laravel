@@ -148,7 +148,7 @@ class ContentController extends Controller
     public function destroyUnit(EducationalUnit $unit)
     {
         $subject = $unit->stage?->subject;
-        abort_unless($subject && $this->teacher()->subjects->contains($subject->id), 403);
+        abort_unless($subject && $this->canAccessSubject($subject->id), 403);
 
         $unit->delete();
 
@@ -158,7 +158,7 @@ class ContentController extends Controller
     public function storeLesson(Request $request, EducationalUnit $unit)
     {
         $subject = $unit->stage?->subject;
-        abort_unless($subject && $this->teacher()->subjects->contains($subject->id), 403);
+        abort_unless($subject && $this->canAccessSubject($subject->id), 403);
 
         $data = $request->validate([
             'name_ar' => 'required|string|max:255',

@@ -36,7 +36,7 @@
       </div>
       <div class="col-md-6">
         <form id="joinGroupForm" class="d-flex gap-2">
-          <input type="text" id="groupJoinCodeInput" class="form-control form-control-solid bg-white/5 border-1 border-white/10 text-white" placeholder="أدخل الكود هنا (مثال: G-12345)" required>
+          <input type="text" id="groupJoinCodeInput" class="form-control form-control-solid bg-white/5 border-1 border-white/10" style="color: var(--text-primary);" placeholder="أدخل الكود هنا (مثال: G-12345)" required>
           <button type="submit" class="btn btn-luxury px-4 flex-shrink-0" id="joinGroupBtn">
             <span class="indicator-label" data-en="Join" data-ar="انضمام">انضمام</span>
             <span class="indicator-progress d-none"><i class="fas fa-circle-notch fa-spin"></i></span>

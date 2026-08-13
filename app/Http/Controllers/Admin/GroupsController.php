@@ -275,7 +275,7 @@ class GroupsController extends AdminController
             $group->joinCodes()->create([
                 'code' => $code,
                 'max_uses' => $request->max_uses,
-                'expires_at' => $request->expires_at,
+                'expires_at' => \Carbon\Carbon::parse($request->expires_at)->endOfDay(),
             ]);
 
             return response()->json([
