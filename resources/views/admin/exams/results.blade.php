@@ -142,6 +142,66 @@
                 </div>
             </div>
         </div>
+
+        @if($exam->allowsGuests())
+            <div class="card card-flush mt-5">
+                <div class="card-header align-items-center py-5">
+                    <div class="card-title flex-column">
+                        <h3 class="fw-bold mb-1">الطلاب الضيوف (غير المسجلين في المنصة)</h3>
+                        <div class="fs-6 fw-semibold text-muted">إجمالي المتقدمين: {{ $guestSubmissions->count() }}</div>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle table-row-dashed fs-6 gy-5">
+                            <thead>
+                                <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
+                                    <th>الاسم</th>
+                                    <th>رقم الجوال</th>
+                                    <th>البريد الإلكتروني</th>
+                                    <th>الدرجة</th>
+                                    <th>وقت التسليم</th>
+                                    <th>الوقت المنقضي</th>
+                                    <th>المخالفات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="fw-semibold text-gray-600">
+                                @forelse($guestSubmissions as $submission)
+                                    <tr>
+                                        <td class="text-gray-800 fw-bold">{{ $submission->guest_name }}</td>
+                                        <td>{{ $submission->guest_phone }}</td>
+                                        <td>{{ $submission->guest_email ?: '-' }}</td>
+                                        <td><span class="fw-bold text-gray-800">{{ $submission->score }} / {{ $submission->max_score }}</span></td>
+                                        <td>{{ $submission->created_at->format('Y-m-d h:i A') }}</td>
+                                        <td>
+                                            @if($submission->time_taken_minutes !== null)
+                                                {{ abs($submission->time_taken_minutes) }} دقيقة
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @php
+                                                $violations = ($submission->tab_switch_count ?? 0) + ($submission->fullscreen_exit_count ?? 0);
+                                            @endphp
+                                            @if($violations > 0)
+                                                <span class="badge badge-light-danger">{{ $violations }} مخالفة</span>
+                                            @else
+                                                <span class="badge badge-light-success">ملتزم</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">لا يوجد طلاب ضيوف قدّموا هذا الامتحان بعد.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

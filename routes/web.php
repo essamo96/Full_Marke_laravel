@@ -22,6 +22,7 @@ Route::middleware(['site.locale', 'site.maintenance'])->group(function () {
     Route::get('/lang/{locale}', [SiteLocaleController::class, 'switch'])->name('site.lang');
     Route::get('/news/{id}', [SiteController::class, 'newsDetails'])->name('site.news.show');
     Route::get('/qr/subject/{subject}', [\App\Http\Controllers\QrCodeController::class, 'subject'])->name('qr.subject');
+    Route::get('/qr/exam/{exam}', [\App\Http\Controllers\QrCodeController::class, 'exam'])->name('qr.exam');
     // Hit automatically by the deploy workflow after every FTP sync, since
     // compiled Blade views in storage/framework/views are never touched by
     // the deploy (excluded so runtime-generated files aren't clobbered) and
@@ -62,6 +63,15 @@ Route::middleware(['site.locale', 'site.maintenance'])->group(function () {
             'Content-Type' => 'application/json',
         ]);
     })->name('datatables.lang');
+
+    Route::prefix('exam/guest')->name('guest.exam.')->group(function () {
+        Route::get('/{exam}', [\App\Http\Controllers\GuestExamController::class, 'enter'])->name('enter');
+        Route::post('/{exam}/register', [\App\Http\Controllers\GuestExamController::class, 'register'])->name('register');
+        Route::get('/{exam}/take', [\App\Http\Controllers\GuestExamController::class, 'take'])->name('take');
+        Route::post('/{exam}/violation', [\App\Http\Controllers\GuestExamController::class, 'recordViolation'])->name('violation');
+        Route::post('/{exam}/submit', [\App\Http\Controllers\GuestExamController::class, 'submit'])->name('submit');
+        Route::get('/result/{submission}', [\App\Http\Controllers\GuestExamController::class, 'result'])->name('result');
+    });
 
     require __DIR__.'/student.php';
     require __DIR__.'/teacher.php';

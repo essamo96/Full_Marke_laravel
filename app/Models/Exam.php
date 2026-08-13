@@ -21,6 +21,7 @@ class Exam extends Model
         'status',
         'excluded_student_ids',
         'start_alert_sent_at',
+        'audience',
     ];
 
     protected $casts = [
@@ -48,5 +49,20 @@ class Exam extends Model
     public function grades()
     {
         return $this->hasMany(Grade::class);
+    }
+
+    public function guestSubmissions()
+    {
+        return $this->hasMany(ExamGuestSubmission::class);
+    }
+
+    public function allowsGuests(): bool
+    {
+        return in_array($this->audience, ['guests', 'both'], true);
+    }
+
+    public function allowsStudents(): bool
+    {
+        return in_array($this->audience, ['students', 'both'], true);
     }
 }

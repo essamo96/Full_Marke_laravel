@@ -8,7 +8,7 @@
         <div id="violationBadge" class="badge bg-danger rounded-pill px-3 py-2 d-none" style="font-size: 1rem;">
             <i class="bi bi-exclamation-triangle-fill me-1"></i> المخالفات: <span id="violationCountSpan">0</span> / 3
         </div>
-        
+
         @if($exam->duration_minutes)
             <div class="d-flex align-items-center gap-2 bg-dark rounded-pill px-4 py-2 border border-secondary" id="timerContainer">
                 <i class="bi bi-stopwatch text-gold fs-4"></i>
@@ -27,10 +27,11 @@
     <div id="examIntroContent">
         <i class="bi bi-shield-lock-fill text-gold" style="font-size: 4rem;"></i>
         <h2 class="text-white fw-bold mt-4 mb-3">{{ $exam->title }}</h2>
-        <p class="text-white opacity-75 mb-5" style="max-width: 480px;">
+        <p class="text-white opacity-75 mb-2" style="max-width: 480px;">
             هذا امتحان مراقب. سيتم تسجيل عدد مرات خروجك من الصفحة، ولا يجوز نسخ الأسئلة أو مغادرة وضع ملء الشاشة.
             بالضغط على "ابدأ الامتحان" أنت توافق على هذه الشروط.
         </p>
+        <p class="text-white opacity-50 mb-5" style="max-width: 480px;">مسجل باسم: {{ $guest['guest_name'] }}</p>
         <button type="button" id="examStartBtn" class="btn btn-gold btn-lg px-8 rounded-pill fw-bold">
             <i class="bi bi-play-circle-fill me-2"></i> ابدأ الامتحان
         </button>
@@ -43,7 +44,7 @@
 
 <div class="row justify-content-center" id="examContentWrapper" style="visibility: hidden;">
     <div class="col-lg-8">
-        <form action="{{ route('student.exams.submit', $exam) }}" method="POST" id="examForm" x-data="examEngine()">
+        <form action="{{ route('guest.exam.submit', $exam) }}" method="POST" id="examForm" x-data="examEngine()">
             @csrf
             <input type="hidden" name="auto_submitted" id="autoSubmittedField" value="0">
 
@@ -136,7 +137,6 @@
     .bg-gold\/10 {
         background-color: rgba(197, 168, 128, 0.1);
     }
-    /* Fix images in CKEditor content */
     .content-area img {
         max-width: 100%;
         height: auto;
@@ -151,10 +151,6 @@
         user-select: none;
         -webkit-user-select: none;
     }
-    /* Block text selection across the whole exam paper (question content,
-       labels, badges...) while still allowing normal typing/selection inside
-       the actual answer fields (radio labels' text stays unselectable too,
-       since selecting an option is done by clicking, not by highlighting). */
     #examContentWrapper {
         user-select: none;
         -webkit-user-select: none;
@@ -208,7 +204,7 @@
     });
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const violationUrl = '{{ route("student.exams.violation", $exam) }}';
+    const violationUrl = '{{ route("guest.exam.violation", $exam) }}';
     const VIOLATION_LIMIT = 3;
     let totalViolations = 0;
     let examStarted = false;
@@ -246,7 +242,6 @@
                 return;
             }
 
-            // Show warning badge
             const badge = document.getElementById('violationBadge');
             const countSpan = document.getElementById('violationCountSpan');
             if (badge && countSpan) {
@@ -265,13 +260,10 @@
         }).catch(() => {});
     }
 
-    // Anti-cheat deterrents (best-effort — cannot fully block DevTools, printscreen, or force the tab to stay open)
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('copy', e => { if (examStarted) e.preventDefault(); });
     document.addEventListener('cut', e => { if (examStarted) e.preventDefault(); });
     document.addEventListener('paste', e => {
-        // Still allow pasting into the answer fields themselves (essay
-        // textareas), just block pasting into anything else on the page.
         const tag = e.target.tagName;
         if (examStarted && tag !== 'TEXTAREA' && tag !== 'INPUT') e.preventDefault();
     });
@@ -285,16 +277,12 @@
         if (blockedKey) e.preventDefault();
     });
 
-    // Prevent loading from bfcache when user clicks back button
     window.addEventListener('pageshow', function(event) {
         if (event.persisted) {
             window.location.reload();
         }
     });
 
-    // Trap the browser back/forward buttons: keep re-pushing the current
-    // entry so navigating away requires an explicit tab close, and count the
-    // attempt as a violation like any other exit.
     history.pushState(null, '', location.href);
     window.addEventListener('popstate', () => {
         if (examStarted && !autoSubmitting) {
@@ -303,7 +291,6 @@
         }
     });
 
-    // Warn before closing/refreshing the tab while the exam is in progress.
     window.addEventListener('beforeunload', (e) => {
         if (examStarted && !autoSubmitting) {
             e.preventDefault();
@@ -327,9 +314,6 @@
         }
     });
 
-    // Removed beforeunload listener as requested
-
-    // Entry animation flow
     document.getElementById('examStartBtn').addEventListener('click', function () {
         const el = document.documentElement;
         if (el.requestFullscreen) {

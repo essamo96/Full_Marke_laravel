@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Exam;
 use App\Models\Subject;
 use Illuminate\Http\Response;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -66,5 +67,16 @@ class QrCodeController extends Controller
     public function admin(): Response
     {
         return $this->render(route('admin.login'));
+    }
+
+    /**
+     * QR code pointing to an exam's public guest-entry link, so a teacher can
+     * display/print it for students to scan instead of sharing the raw URL.
+     */
+    public function exam(Exam $exam): Response
+    {
+        abort_unless($exam->allowsGuests(), 404);
+
+        return $this->render(route('guest.exam.enter', $exam));
     }
 }

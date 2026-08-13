@@ -140,7 +140,11 @@ class ExamController extends AdminController
         $students = $studentsQuery->get();
         $grades = \App\Models\Grade::where('exam_id', $exam->id)->get()->keyBy('student_id');
 
-        return view('admin.exams.results', self::$data + compact('exam', 'students', 'grades'));
+        $guestSubmissions = $exam->allowsGuests()
+            ? \App\Models\ExamGuestSubmission::where('exam_id', $exam->id)->latest()->get()
+            : collect();
+
+        return view('admin.exams.results', self::$data + compact('exam', 'students', 'grades', 'guestSubmissions'));
     }
 
     public function approveGrade(\App\Models\Grade $grade)

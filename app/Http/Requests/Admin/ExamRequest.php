@@ -31,6 +31,7 @@ class ExamRequest extends FormRequest
             'end_time' => 'nullable|date|after_or_equal:start_time',
             'duration_minutes' => 'nullable|integer|min:1',
             'status' => 'required|in:draft,published,completed',
+            'audience' => 'required|in:students,guests,both',
             'excluded_student_ids' => 'nullable|array',
             'excluded_student_ids.*' => 'exists:students,id',
             
@@ -59,6 +60,7 @@ class ExamRequest extends FormRequest
             'end_time' => 'وقت الانتهاء',
             'duration_minutes' => 'مدة الامتحان',
             'status' => 'حالة الامتحان',
+            'audience' => 'الفئة المستهدفة',
             'excluded_student_ids' => 'الطلاب المستثنون',
             'questions.*.type' => 'نوع السؤال',
             'questions.*.content' => 'نص السؤال',

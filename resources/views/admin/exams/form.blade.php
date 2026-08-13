@@ -108,6 +108,16 @@
                         <option value="completed" {{ old('status', $exam->status ?? '') == 'completed' ? 'selected' : '' }}>مكتمل (مغلق)</option>
                     </select>
                 </div>
+
+                <div class="mb-5">
+                    <label class="required form-label">الفئة المستهدفة</label>
+                    <select name="audience" class="form-select" required>
+                        <option value="students" {{ old('audience', $exam->audience ?? 'students') == 'students' ? 'selected' : '' }}>طلاب المنصة فقط</option>
+                        <option value="guests" {{ old('audience', $exam->audience ?? '') == 'guests' ? 'selected' : '' }}>ضيوف فقط (غير مسجلين)</option>
+                        <option value="both" {{ old('audience', $exam->audience ?? '') == 'both' ? 'selected' : '' }}>الطلاب المسجلين والضيوف معاً</option>
+                    </select>
+                    <div class="text-muted fs-7">عند اختيار "ضيوف" سيُطلب من غير المسجلين إدخال الاسم ورقم الجوال والإيميل قبل بدء الامتحان.</div>
+                </div>
             </div>
         </div>
     </div>

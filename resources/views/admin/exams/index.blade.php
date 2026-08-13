@@ -66,6 +66,15 @@
                             <a href="{{ route('exams.results', $exam) }}" class="btn btn-icon btn-bg-light btn-active-color-info btn-sm me-1" title="نتائج الامتحان">
                                 <i class="ki-duotone ki-chart-simple fs-2"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span></i>
                             </a>
+                            @if($exam->allowsGuests())
+                                <button type="button" class="btn btn-icon btn-bg-light btn-active-color-warning btn-sm me-1" title="نسخ رابط الضيوف" onclick="copyGuestLink(this)" data-link="{{ route('guest.exam.enter', $exam) }}">
+                                    <i class="ki-duotone ki-copy fs-2"><span class="path1"></span><span class="path2"></span></i>
+                                </button>
+                                <button type="button" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1 btn-show-qr" title="QR Code"
+                                        data-url="{{ route('qr.exam', $exam) }}" data-name="{{ $exam->title }}">
+                                    <i class="bi bi-qr-code fs-5"></i>
+                                </button>
+                            @endif
                             <a href="{{ route('exams.edit', $exam) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="تعديل">
                                 <i class="ki-duotone ki-pencil fs-2"><span class="path1"></span><span class="path2"></span></i>
                             </a>
@@ -91,4 +100,49 @@
         </div>
     </div>
 </div>
+
+{{-- QR Code preview modal --}}
+<div class="modal fade" id="qr_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered mw-400px">
+        <div class="modal-content text-center">
+            <div class="modal-header">
+                <h2 class="fw-bold" id="qr_modal_title">QR Code</h2>
+                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <div class="modal-body py-10">
+                <img id="qr_modal_img" src="" alt="QR Code" class="w-100" style="max-width: 300px;">
+                <a id="qr_modal_download" href="" download class="btn btn-primary d-block mt-6 mx-auto" style="max-width: 200px;">
+                    <i class="bi bi-download me-1"></i> تحميل
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+    function copyGuestLink(btn) {
+        const link = btn.getAttribute('data-link');
+        navigator.clipboard.writeText(link).then(() => {
+            btn.classList.add('btn-active-color-success');
+            setTimeout(() => btn.classList.remove('btn-active-color-success'), 1500);
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-show-qr');
+        if (!btn) return;
+        const url = btn.dataset.url;
+        const name = btn.dataset.name;
+        document.getElementById('qr_modal_title').textContent = name;
+        document.getElementById('qr_modal_img').src = url + '?t=' + Date.now();
+        document.getElementById('qr_modal_download').setAttribute('href', url);
+        document.getElementById('qr_modal_download').setAttribute('download', name.replace(/\s+/g, '_') + '_qr.svg');
+        var modal = new bootstrap.Modal(document.getElementById('qr_modal'));
+        modal.show();
+    });
+</script>
+@endpush
