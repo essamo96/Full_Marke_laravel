@@ -20,47 +20,19 @@
     return id ? document.getElementById(id) : null;
   }
 
-  function measureMenuHeight(menu) {
-    var previous = menu.style.maxHeight;
-    menu.style.maxHeight = 'none';
-    var height = menu.scrollHeight;
-    menu.style.maxHeight = previous;
-    return height;
-  }
-
+  // Purely class-driven: the CSS transitions max-height between 0 and a
+  // large fixed cap (see .sidebar-submenu-wrapper.expanded), so there is no
+  // need to measure scrollHeight in JS. An earlier version computed pixel
+  // heights here, but scrollHeight/offsetHeight reads are sensitive to
+  // layout timing (e.g. reads happening before the browser has laid out the
+  // just-unhidden content) and could silently resolve to 0, leaving the
+  // menu's aria-expanded/chevron toggled correctly while the list itself
+  // never actually became visible. Toggling the class alone removes that
+  // whole failure mode.
   function setExpanded(trigger, menu, open) {
     if (!trigger || !menu) return;
     trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
     menu.classList.toggle('expanded', open);
-
-    if (open) {
-      var height = measureMenuHeight(menu);
-      if (height > 0) {
-        menu.style.maxHeight = '0px';
-        void menu.offsetHeight;
-        menu.style.maxHeight = height + 'px';
-      } else {
-        menu.style.removeProperty('max-height');
-      }
-    } else {
-      var currentHeight = menu.scrollHeight;
-      if (currentHeight > 0) {
-        menu.style.maxHeight = currentHeight + 'px';
-        void menu.offsetHeight;
-      }
-      menu.style.maxHeight = '0px';
-    }
-  }
-
-  function refreshOpenMenus(nav) {
-    nav.querySelectorAll('.sidebar-submenu-wrapper.expanded').forEach(function (menu) {
-      var height = measureMenuHeight(menu);
-      if (height > 0) {
-        menu.style.maxHeight = height + 'px';
-      } else {
-        menu.style.removeProperty('max-height');
-      }
-    });
   }
 
   function scrollMenuIntoView(nav, trigger, menu) {
@@ -106,33 +78,11 @@
         setExpanded(trigger, menu, !isOpen);
         if (!isOpen) {
           window.setTimeout(function () {
-            refreshOpenMenus(nav);
             scrollMenuIntoView(nav, trigger, menu);
           }, 40);
         }
       });
     });
-
-    window.addEventListener('resize', function () {
-      refreshOpenMenus(nav);
-    });
-
-    // Text length (and therefore submenu height) changes when the language
-    // is toggled or when web fonts finish swapping in after DOMContentLoaded,
-    // both of which happen after the initial max-height measurement above.
-    // Without this, an already-open submenu keeps its stale pixel height and
-    // clips/hides the items that no longer fit.
-    window.addEventListener('languageChanged', function () {
-      refreshOpenMenus(nav);
-    });
-    window.addEventListener('load', function () {
-      refreshOpenMenus(nav);
-    });
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(function () {
-        refreshOpenMenus(nav);
-      });
-    }
   }
 
   function markActiveLinks(sidebar) {
