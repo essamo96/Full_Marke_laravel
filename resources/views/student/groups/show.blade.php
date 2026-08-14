@@ -737,7 +737,7 @@
                 resourceId: resource.id,
                 container: document.getElementById('groupVideoContainer'),
                 videoEl: videoPlayer,
-                startUrl: '{{ url("student/videos") }}/' + resource.id + '/start',
+                startUrl: '{{ url("student/videos") }}/' + encodeURIComponent(resource.id) + '/start',
                 studentName: @json(auth()->guard('student')->user()->name),
                 studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
                 csrfToken: '{{ csrf_token() }}',
@@ -758,7 +758,7 @@
             document.getElementById('iframeWrapper').classList.remove('d-none');
             setFullscreenTarget('iframeWrapper');
             // Load the secure embed route
-            iframePlayer.src = '{{ url("student/secure-embed") }}/' + resource.id;
+            iframePlayer.src = '{{ url("student/secure-embed") }}/' + encodeURIComponent(resource.id);
         } else if (resource.is_pdf) {
             // Rendered in-page via the watermarked pdf.js canvas viewer — same
             // one used on the "Learning Resources" page — instead of opening
@@ -775,7 +775,7 @@
 
             groupDocumentDestroy = mountSecureDocumentViewer({
                 container: container,
-                fileUrl: '{{ url('student/resources') }}/' + resource.id + '/file',
+                fileUrl: '{{ url('student/resources') }}/' + encodeURIComponent(resource.id) + '/file',
                 studentName: @json(auth()->guard('student')->user()->name),
                 studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
                 onLoaded: function () {
@@ -798,7 +798,7 @@
 
             groupImageDestroy = mountSecureImageViewer({
                 container: container,
-                fileUrl: '{{ url('student/resources') }}/' + resource.id + '/file',
+                fileUrl: '{{ url('student/resources') }}/' + encodeURIComponent(resource.id) + '/file',
                 studentName: @json(auth()->guard('student')->user()->name),
                 studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
                 onLoaded: function () {
@@ -815,7 +815,7 @@
             document.getElementById('otherFileWrapper').classList.remove('d-none');
             document.getElementById('otherFileLink').href = resource.is_external
                 ? resource.url
-                : '{{ url("student/resources") }}/' + resource.id + '/file';
+                : '{{ url("student/resources") }}/' + encodeURIComponent(resource.id) + '/file';
         }
     }
 </script>

@@ -1,13 +1,10 @@
 /**
- * Secure lesson video player: fetches a single-use, single-session stream
- * URL, downloads it as a blob and plays it from a blob: object URL (rather
- * than pointing <video src> at the real network endpoint), and overlays a
- * moving watermark of the current student's name and photo so any
- * screen-recorded leak can be traced back to its source. The blob: URL only
- * resolves inside this tab for this page load, so a browser's native
- * "download"/"copy video address" affordance yields nothing usable outside
- * this session. None of this can stop screen capture itself — see the
- * protection study for why that boundary is technical, not a bug here.
+ * Secure lesson video player: starts an exclusive playback session, then
+ * streams the MP4 progressively via <video src> (Range requests) — the same
+ * approach teachers use. A moving watermark of the student's name/photo is
+ * overlaid so any screen-recorded leak can be traced. Session token + auth +
+ * referer locks on the stream endpoint still gate access; this cannot stop
+ * screen capture itself.
  */
 (function (global) {
   'use strict';
@@ -20,31 +17,22 @@
 
   function getEstimatedLoadMs() {
     var stored = Number(localStorage.getItem(LOAD_TIME_STORAGE_KEY));
-    return stored > 0 ? stored : 6000; // first-ever load: reasonable generic guess
+    return stored > 0 ? stored : 2500;
   }
 
   function recordLoadMs(ms) {
     var previous = Number(localStorage.getItem(LOAD_TIME_STORAGE_KEY));
-    // Exponential moving average so one slow/fast network blip doesn't swing the estimate wildly.
     var next = previous > 0 ? Math.round(previous * 0.7 + ms * 0.3) : ms;
     localStorage.setItem(LOAD_TIME_STORAGE_KEY, String(next));
   }
 
   /**
-   * Native video fullscreen (the button in the browser's own <video controls>)
-   * makes the <video> itself the fullscreen element, which leaves sibling
-   * overlays — like the watermark canvas — behind on the non-fullscreen page,
-   * so the watermark visually "disappears" while zoomed. Redirect fullscreen
-   * to the wrapping container instead, which keeps the canvas layered on top.
+   * Native video fullscreen makes the <video> itself the fullscreen element,
+   * which leaves sibling overlays (watermark canvas) behind. Redirect
+   * fullscreen to the wrapping container instead.
    *
-   * The modal's own header (title + size-toggle + close button) also has to
-   * be hidden while fullscreen: it lives outside #lessonVideoContainer, so it
-   * isn't part of the fullscreen element, but the modal's ancestor uses
-   * backdrop-filter (.glass-panel) — a Chromium quirk keeps such ancestors
-   * from fully isolating the fullscreen element into the browser's top
-   * layer, so that header bar was still painting on top of the fullscreen
-   * video instead of disappearing behind it. Explicitly hiding it via a
-   * class is the reliable fix, independent of that rendering quirk.
+   * Also hide the modal header while fullscreen: backdrop-filter ancestors
+   * can keep painting it over the fullscreen stage in Chromium.
    */
   function keepOverlayInFullscreen(container, videoEl) {
     var modal = container.closest('.modal');
@@ -91,12 +79,6 @@
     };
   }
 
-  /**
-   * Shows a spinner with a live elapsed-time counter and a progress bar
-   * that fills toward this browser's own historical average load time, so
-   * the wait (mostly HLS decryption + first-segment buffering) reads as
-   * "loading, ~N seconds left" instead of a frozen screen.
-   */
   function mountLoadingOverlay(container) {
     var overlay = document.createElement('div');
     overlay.className = 'video-loading-overlay';
@@ -132,21 +114,16 @@
     var estimatedMs = getEstimatedLoadMs();
     var timeEl = overlay.querySelector('.video-loading-time');
     var fillEl = overlay.querySelector('.video-loading-bar-fill');
-
     var textEl = overlay.querySelector('.video-loading-text');
 
     function tick() {
       var elapsed = Date.now() - startedAt;
-      // Countdown and bar are driven by the same ratio, so they always finish together:
-      // the number counts down to ~0 exactly as the bar reaches its (capped) fill.
       var remainingSeconds = Math.max(0, (estimatedMs - elapsed) / 1000);
       timeEl.textContent = remainingSeconds.toFixed(1) + ' ثانية متبقية تقريبًا';
       textEl.textContent = elapsed > estimatedMs
         ? 'يستغرق وقتًا أطول من المعتاد، لا يزال التحميل مستمرًا...'
         : 'جاري تجهيز الفيديو الآمن...';
 
-      // Approach — never fully reach — 92% while still waiting, so the bar
-      // never lies about being done before the video actually plays.
       var pct = Math.min(92, (elapsed / estimatedMs) * 100);
       fillEl.style.width = pct + '%';
     }
@@ -171,10 +148,10 @@
 
   /**
    * @param {Object} opts
-   * @param {number} opts.resourceId
-   * @param {HTMLElement} opts.container - wrapper the <video> and watermark canvas mount into (must be position:relative)
+   * @param {number|string} opts.resourceId
+   * @param {HTMLElement} opts.container
    * @param {HTMLVideoElement} opts.videoEl
-   * @param {string} opts.startUrl - route('student.video.start', resource)
+   * @param {string} opts.startUrl
    * @param {string} opts.studentName
    * @param {string} [opts.studentPhotoUrl]
    * @param {string} opts.csrfToken
@@ -184,16 +161,25 @@
     var cleanupFns = [];
     var loader = mountLoadingOverlay(opts.container);
     var firstPlayHandled = false;
-    var objectUrl = null;
+    var destroyed = false;
 
     function handleFirstFrame() {
       if (firstPlayHandled) return;
       firstPlayHandled = true;
       loader.finish();
     }
+
+    function handleMediaError() {
+      if (destroyed || firstPlayHandled) return;
+      loader.destroy();
+      if (opts.onError) opts.onError('تعذّر تشغيل الفيديو');
+    }
+
     opts.videoEl.addEventListener('canplay', handleFirstFrame);
+    opts.videoEl.addEventListener('error', handleMediaError);
     cleanupFns.push(function () {
       opts.videoEl.removeEventListener('canplay', handleFirstFrame);
+      opts.videoEl.removeEventListener('error', handleMediaError);
     });
 
     fetch(opts.startUrl, {
@@ -209,48 +195,32 @@
         return res.json();
       })
       .then(function (data) {
-        // Fetch the video into memory and play it from a blob: object URL
-        // instead of pointing <video src> at the real network endpoint.
-        // A blob: URL only exists inside this tab's memory for this page
-        // load — copying "video address" from the browser's native menu
-        // yields a URL that is meaningless anywhere else (a different
-        // browser, a new tab, or even this same tab after a reload), which
-        // closes off the native "download"/"copy link" escape hatch that
-        // controlsList/contextmenu blocking can't reach. Trade-off: the
-        // whole file must download before playback starts — no more
-        // progressive play-while-buffering — which is why the loading
-        // overlay above gives an honest estimate rather than pretending
-        // this is instant.
-        return fetch(data.stream_url, { credentials: 'same-origin' })
-          .then(function (res) {
-            if (!res.ok) throw new Error('تعذّر تحميل الفيديو');
-            return res.blob();
-          })
-          .then(function (blob) {
-            objectUrl = URL.createObjectURL(blob);
-            opts.videoEl.src = objectUrl;
-            opts.videoEl.load();
+        if (destroyed) return;
+        if (!data || !data.stream_url) throw new Error('تعذّر بدء التشغيل');
 
-            cleanupFns.push(mountWatermark(opts.container, opts.studentName, opts.studentPhotoUrl));
-            cleanupFns.push(applyDeterrents(opts.videoEl));
-            cleanupFns.push(keepOverlayInFullscreen(opts.container, opts.videoEl));
-          });
+        // Progressive Range streaming (same model as the teacher viewer).
+        // Full-file blob download was causing long countdowns then failure on
+        // larger lessons; seeking and play-while-buffering need a real src URL.
+        opts.videoEl.src = data.stream_url;
+        opts.videoEl.load();
+
+        cleanupFns.push(mountWatermark(opts.container, opts.studentName, opts.studentPhotoUrl));
+        cleanupFns.push(applyDeterrents(opts.videoEl));
+        cleanupFns.push(keepOverlayInFullscreen(opts.container, opts.videoEl));
       })
       .catch(function (err) {
+        if (destroyed) return;
         loader.destroy();
         if (opts.onError) opts.onError(err.message || 'حدث خطأ أثناء تشغيل الفيديو');
       });
 
     return function destroy() {
+      destroyed = true;
       loader.destroy();
       cleanupFns.forEach(function (fn) { fn(); });
       opts.videoEl.pause();
       opts.videoEl.removeAttribute('src');
       opts.videoEl.load();
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-        objectUrl = null;
-      }
     };
   }
 

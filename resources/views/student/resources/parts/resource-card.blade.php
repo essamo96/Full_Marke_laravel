@@ -21,7 +21,7 @@
             class="{{ $cardClass }}"
             {{ ($isProcessing || $isFailed) ? 'disabled' : '' }}
             @if(!$isProcessing && !$isFailed)
-              onclick="openLessonVideo('{{ $resource->getRouteKey() }}', '{{ addslashes($resource->title) }}')"
+              onclick="openLessonVideo(@js($resource->getRouteKey()), @js($resource->title))"
             @endif>
       <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
         <i class="bi bi-{{ $icon }} fs-5"></i>
@@ -40,7 +40,7 @@
   @elseif($resource->type === 'document' && $isPdf)
     <button type="button"
             class="{{ $cardClass }}"
-            onclick="openLessonDocument('{{ $resource->getRouteKey() }}', '{{ addslashes($resource->title) }}')">
+            onclick="openLessonDocument(@js($resource->getRouteKey()), @js($resource->title))">
       <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
         <i class="bi bi-{{ $icon }} fs-5"></i>
       </div>
@@ -67,7 +67,7 @@
   @elseif($isImage)
     <button type="button"
             class="{{ $cardClass }}"
-            onclick="openLessonImage('{{ $resource->getRouteKey() }}', '{{ addslashes($resource->title) }}')">
+            onclick="openLessonImage(@js($resource->getRouteKey()), @js($resource->title))">
       <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
         <i class="bi bi-image-fill fs-5"></i>
       </div>
@@ -81,7 +81,7 @@
   @elseif($isLinkLike)
     <button type="button"
             class="{{ $cardClass }}"
-            onclick="openLessonLink('{{ $resource->getRouteKey() }}', '{{ addslashes($resource->title) }}')">
+            onclick="openLessonLink(@js($resource->getRouteKey()), @js($resource->title))">
       <div class="resource-icon-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
         <i class="bi bi-{{ $icon }} fs-5"></i>
       </div>

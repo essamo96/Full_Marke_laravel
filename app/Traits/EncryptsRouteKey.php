@@ -14,9 +14,11 @@ trait EncryptsRouteKey
      */
     public function getRouteKey()
     {
-        $id = $this->getKey();
-        // Return a short hash/encrypted string instead of the raw ID
-        return urlencode(Crypt::encryptString($id));
+        // Return the raw ciphertext. Laravel's URL generator applies
+        // rawurlencode once when building routes. Pre-encoding here caused
+        // double-encoding with route() and broken + → space decoding when
+        // keys were concatenated manually in JavaScript.
+        return Crypt::encryptString((string) $this->getKey());
     }
 
     /**
@@ -28,11 +30,25 @@ trait EncryptsRouteKey
      */
     public function resolveRouteBinding($value, $field = null)
     {
-        try {
-            $decryptedId = Crypt::decryptString(urldecode($value));
-            return $this->where($field ?? $this->getRouteKeyName(), $decryptedId)->first();
-        } catch (DecryptException $e) {
-            abort(404);
+        $candidates = array_unique(array_filter([
+            $value,
+            rawurldecode((string) $value),
+            // Legacy keys were built with urlencode(); keep accepting them.
+            urldecode((string) $value),
+        ], fn ($candidate) => $candidate !== null && $candidate !== ''));
+
+        foreach ($candidates as $candidate) {
+            try {
+                $decryptedId = Crypt::decryptString($candidate);
+                $model = $this->where($field ?? $this->getRouteKeyName(), $decryptedId)->first();
+                if ($model) {
+                    return $model;
+                }
+            } catch (DecryptException) {
+                continue;
+            }
         }
+
+        abort(404);
     }
 }

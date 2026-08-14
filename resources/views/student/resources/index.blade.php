@@ -310,7 +310,7 @@
 
       lessonImageDestroy = mountSecureImageViewer({
         container: container,
-        fileUrl: '{{ url('student/resources') }}/' + resourceId + '/file',
+        fileUrl: '{{ url('student/resources') }}/' + encodeURIComponent(resourceId) + '/file',
         studentName: @json(auth()->guard('student')->user()->name),
         studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
         onLoaded: function () {
@@ -349,7 +349,7 @@
       lessonLinkModal.show();
 
       // Load the secure embed view
-      iframe.src = '{{ url('student/secure-embed') }}/' + resourceId;
+      iframe.src = '{{ url('student/secure-embed') }}/' + encodeURIComponent(resourceId);
       
       iframe.onload = function() {
         loadingEl.classList.add('d-none');
@@ -375,7 +375,7 @@
 
       lessonDocumentDestroy = mountSecureDocumentViewer({
         container: container,
-        fileUrl: '{{ url('student/resources') }}/' + resourceId + '/file',
+        fileUrl: '{{ url('student/resources') }}/' + encodeURIComponent(resourceId) + '/file',
         studentName: @json(auth()->guard('student')->user()->name),
         studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
         onLoaded: function () {
@@ -409,7 +409,7 @@
         resourceId: resourceId,
         container: document.getElementById('lessonVideoContainer'),
         videoEl: document.getElementById('lessonVideoEl'),
-        startUrl: '{{ url('student/videos') }}/' + resourceId + '/start',
+        startUrl: '{{ url('student/videos') }}/' + encodeURIComponent(resourceId) + '/start',
         studentName: @json(auth()->guard('student')->user()->name),
         studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
         csrfToken: '{{ csrf_token() }}',
