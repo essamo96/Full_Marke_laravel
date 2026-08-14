@@ -16,9 +16,11 @@
             data-en="@yield('page_title_en', 'Overview')" data-ar="@yield('page_title_ar', 'الرئيسية')">@yield('page_title_en', 'Overview')</h2>
       </div>
 
-      @php($headerTeacher = auth('teacher')->user())
-      @php($headerUnreadNotifications = $headerTeacher ? $headerTeacher->unreadNotifications()->latest()->limit(10)->get() : collect())
-      @php($headerUnreadCount = $headerTeacher ? $headerTeacher->unreadNotifications()->count() : 0)
+      @php
+        $headerTeacher = auth('teacher')->user();
+        $headerUnreadNotifications = $headerTeacher ? $headerTeacher->unreadNotifications()->latest()->limit(10)->get() : collect();
+        $headerUnreadCount = $headerTeacher ? $headerTeacher->unreadNotifications()->count() : 0;
+      @endphp
       <div class="d-flex align-items-center gap-1 gap-md-3">
         <!-- Language Switcher -->
         <button id="langToggleBtn" class="btn btn-glass icon-btn" onclick="toggleLanguage()" title="Toggle language">

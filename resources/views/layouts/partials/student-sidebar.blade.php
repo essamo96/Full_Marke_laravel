@@ -23,11 +23,11 @@
       <div class="sidebar-profile d-flex flex-column align-items-center mb-4 border-b pb-4" style="border-color: var(--separator-color) !important;">
         <div class="w-20 h-20 rounded-circle border-2 p-1 mb-3 position-relative overflow-hidden" style="border-color: var(--accent-color);">
           <img src="{{ $sidebarStudent?->photo_url ?? asset('assets/admin/media/avatars/blank.png') }}"
-               alt="{{ $sidebarStudent->name ?? 'Student' }}" class="w-100 h-100 object-cover rounded-circle">
+               alt="{{ $sidebarStudent?->name ?? 'Student' }}" class="w-100 h-100 object-cover rounded-circle">
         </div>
         <h6 class="fw-bold mb-0 text-center d-flex align-items-center justify-content-center" style="color: var(--text-primary);">
-          {{ $sidebarStudent->name ?? '' }}
-          @if($sidebarStudent && $sidebarStudent->is_active)
+          {{ $sidebarStudent?->name ?? '' }}
+          @if($sidebarStudent?->status)
             <i class="bi bi-patch-check-fill verified-badge ms-1" title="حساب مفعل"></i>
           @endif
         </h6>
@@ -42,11 +42,11 @@
         </a>
 
         <!-- Academy -->
-        <a href="#menuAcademy" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openAcademy ? 'true' : 'false' }}" aria-controls="menuAcademy">
+        <button type="button" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openAcademy ? 'true' : 'false' }}" aria-controls="menuAcademy">
           <i class="bi bi-mortarboard sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Academy" data-ar="الأكاديمية">Academy</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
-        </a>
+        </button>
         <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openAcademy ? 'expanded' : '' }}" id="menuAcademy">
           <li><a href="{{ route('student.programs') }}" class="sidebar-submenu-item {{ request()->routeIs('student.programs') ? 'active' : '' }}" data-en="Programs" data-ar="البرامج الدراسية">Programs</a></li>
           <li><a href="{{ route('student.groups') }}" class="sidebar-submenu-item {{ request()->routeIs('student.groups') || request()->routeIs('student.groups.*') ? 'active' : '' }}" data-en="Study Groups & Sessions" data-ar="المجموعات والجلسات الدراسية">Study Groups &amp; Sessions</a></li>
@@ -55,11 +55,11 @@
         </ul>
 
         <!-- Exams -->
-        <a href="#menuExams" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openExams ? 'true' : 'false' }}" aria-controls="menuExams">
+        <button type="button" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openExams ? 'true' : 'false' }}" aria-controls="menuExams">
           <i class="bi bi-journal-check sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Exams & Assessments" data-ar="الامتحانات والتقييمات">Exams & Assessments</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
-        </a>
+        </button>
         <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openExams ? 'expanded' : '' }}" id="menuExams">
           <li><a href="{{ route('student.exams.index') }}" class="sidebar-submenu-item {{ request()->routeIs('student.exams.*') ? 'active' : '' }}" data-en="Exams" data-ar="الامتحانات">Exams</a></li>
           <li><a href="{{ route('student.results.index') }}" class="sidebar-submenu-item {{ request()->routeIs('student.results.*') ? 'active' : '' }}" data-en="Results" data-ar="النتائج">Results</a></li>
@@ -68,32 +68,32 @@
         </ul>
 
         <!-- Attendance -->
-        <a href="#menuAttendance" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openAttendance ? 'true' : 'false' }}" aria-controls="menuAttendance">
+        <button type="button" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openAttendance ? 'true' : 'false' }}" aria-controls="menuAttendance">
           <i class="bi bi-calendar-check sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Attendance" data-ar="الحضور والغياب">Attendance</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
-        </a>
+        </button>
         <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openAttendance ? 'expanded' : '' }}" id="menuAttendance">
           <li><a href="{{ route('student.attendance.index') }}" class="sidebar-submenu-item {{ request()->routeIs('student.attendance.*') ? 'active' : '' }}" data-en="My Attendance" data-ar="سجل الحضور">My Attendance</a></li>
         </ul>
 
         <!-- Financials -->
-        <a href="#menuFinance" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openFinance ? 'true' : 'false' }}" aria-controls="menuFinance">
+        <button type="button" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openFinance ? 'true' : 'false' }}" aria-controls="menuFinance">
           <i class="bi bi-wallet2 sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Financials" data-ar="المالية">Financials</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
-        </a>
+        </button>
         <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openFinance ? 'expanded' : '' }}" id="menuFinance">
           <li><a href="{{ route('student.registrations') }}" class="sidebar-submenu-item {{ request()->routeIs('student.registrations') || request()->routeIs('student.registrations.*') ? 'active' : '' }}" data-en="My Registrations" data-ar="طلباتي">My Registrations</a></li>
           <li><a href="{{ route('student.checkout') }}" class="sidebar-submenu-item {{ request()->routeIs('student.checkout') ? 'active' : '' }}" data-en="Checkout" data-ar="الدفع">Checkout</a></li>
         </ul>
 
         <!-- Communication -->
-        <a href="#menuComm" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openComm ? 'true' : 'false' }}" aria-controls="menuComm">
+        <button type="button" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openComm ? 'true' : 'false' }}" aria-controls="menuComm">
           <i class="bi bi-chat-left-dots sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Communication" data-ar="التواصل">Communication</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
-        </a>
+        </button>
         <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openComm ? 'expanded' : '' }}" id="menuComm">
           <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Messages" data-ar="الرسائل">Messages</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
           <li><span class="sidebar-submenu-item sidebar-item-disabled" data-en="Announcements" data-ar="الإعلانات">Announcements</span> <span class="sidebar-soon-badge" data-en="Soon" data-ar="قريباً">Soon</span></li>
@@ -101,11 +101,11 @@
         </ul>
 
         <!-- Profile -->
-        <a href="#menuProfile" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openProfile ? 'true' : 'false' }}" aria-controls="menuProfile">
+        <button type="button" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openProfile ? 'true' : 'false' }}" aria-controls="menuProfile">
           <i class="bi bi-person sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="My Account" data-ar="حسابي">My Account</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
-        </a>
+        </button>
         <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openProfile ? 'expanded' : '' }}" id="menuProfile">
           <li><a href="{{ route('student.profile') }}" class="sidebar-submenu-item {{ request()->routeIs('student.profile', 'student.profile.*') ? 'active' : '' }}" data-en="Profile & Security" data-ar="الملف الشخصي والأمان">Profile &amp; Security</a></li>
           <li>
