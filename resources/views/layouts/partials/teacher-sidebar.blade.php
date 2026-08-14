@@ -16,6 +16,7 @@
         $openAcademic = request()->routeIs('teacher.subjects.*', 'teacher.groups.*', 'teacher.schedule.*');
         $openStudents = request()->routeIs('teacher.students.*', 'teacher.grading.*');
         $openContent = request()->routeIs('teacher.content.*');
+        $openSessions = false;
         $openExams = request()->routeIs('teacher.exams.*', 'teacher.grading.*');
         $openFinance = request()->routeIs('teacher.finance.*');
         $openComm = false;
