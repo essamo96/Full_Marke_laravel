@@ -404,9 +404,7 @@
                 </div>
 
                 <div id="videoWrapper" class="d-none mb-4 shadow-lg">
-                    <div id="groupVideoContainer" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;">
-                        <video id="videoPlayer" controls playsinline oncontextmenu="return false;" style="width: 100%; height: 100%; object-fit: contain;"></video>
-                    </div>
+                    <div id="groupVideoContainer" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;"></div>
                     <p id="groupVideoError" class="text-danger mt-2 mb-0 d-none"></p>
                 </div>
 
@@ -639,22 +637,23 @@
 </div>
 
 @push('scripts')
-<script src="{{ asset('assets/vendor/hlsjs/hls.min.js') }}"></script>
-<script src="{{ asset('assets/js/secure-watermark.js') }}"></script>
-<script src="{{ asset('assets/js/student-video-player.js') }}"></script>
-<script src="{{ asset('assets/vendor/pdfjs/pdf.min.js') }}"></script>
-<script src="{{ asset('assets/js/student-document-viewer.js') }}"></script>
-<script src="{{ asset('assets/js/student-image-viewer.js') }}"></script>
+<script src="{{ asset_ver('assets/js/secure-watermark.js') }}"></script>
+<script src="{{ asset_ver('assets/js/student-secure-media-player.js') }}"></script>
+<script src="{{ asset_ver('assets/vendor/pdfjs/pdf.min.js') }}"></script>
+<script src="{{ asset_ver('assets/js/student-document-viewer.js') }}"></script>
+<script src="{{ asset_ver('assets/js/student-image-viewer.js') }}"></script>
 <script>
-    // Same page-level protection as the Learning Resources screen
     document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
     var groupDocumentDestroy = null;
     var groupImageDestroy = null;
     var groupVideoDestroy = null;
-
-    // Which element the in-page fullscreen button targets for the current resource
     var fullscreenTargetId = null;
+    var studentMediaOpts = {
+        studentName: @json(auth()->guard('student')->user()->name),
+        studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
+        csrfToken: '{{ csrf_token() }}',
+    };
 
     function setFullscreenTarget(id) {
         fullscreenTargetId = id;
@@ -672,25 +671,39 @@
         if (request) request.call(el);
     }
 
-    // Keeps the title/fullscreen-button/badge row from painting on top of the
-    // fullscreen video/embed (see #playerContainer.viewer-is-fullscreen CSS above).
     function onViewerFullscreenChange() {
         var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
         var isOurs = !!fsEl && (fsEl.id === 'groupVideoContainer' || fsEl.id === 'iframeWrapper' ||
-            fsEl.id === 'documentWrapper' || fsEl.id === 'imageWrapper');
+            fsEl.id === 'documentWrapper' || fsEl.id === 'imageWrapper' ||
+            (fsEl.classList && fsEl.classList.contains('smp-root')));
         document.getElementById('playerContainer').classList.toggle('viewer-is-fullscreen', isOurs);
     }
     document.addEventListener('fullscreenchange', onViewerFullscreenChange);
     document.addEventListener('webkitfullscreenchange', onViewerFullscreenChange);
 
+    function mountGroupMedia(resourceId, errorEl) {
+        errorEl.classList.add('d-none');
+        return mountSecureMediaPlayer({
+            container: document.getElementById('groupVideoContainer'),
+            resourceId: resourceId,
+            resolveUrl: '{{ url("student/resources") }}/' + encodeURIComponent(resourceId) + '/resolve',
+            startUrl: '{{ url("student/videos") }}/' + encodeURIComponent(resourceId) + '/start',
+            studentName: studentMediaOpts.studentName,
+            studentPhotoUrl: studentMediaOpts.studentPhotoUrl,
+            csrfToken: studentMediaOpts.csrfToken,
+            onError: function (message) {
+                errorEl.textContent = message;
+                errorEl.classList.remove('d-none');
+            },
+        });
+    }
+
     function loadResource(resource) {
-        // Highlight active item
         document.querySelectorAll('.resource-item').forEach(el => el.classList.remove('active'));
         if(event && event.currentTarget) {
             event.currentTarget.classList.add('active');
         }
 
-        // Toggle visibility
         document.getElementById('emptyState').classList.add('d-none');
         document.getElementById('contentViewer').classList.remove('d-none');
 
@@ -706,7 +719,6 @@
         if (groupVideoDestroy) { groupVideoDestroy(); groupVideoDestroy = null; }
         setFullscreenTarget(null);
 
-        // Set Metadata
         document.getElementById('contentTitle').innerText = resource.title;
         const plainDescription = (resource.description || '').replace(/<[^>]*>/g, '').trim();
         document.getElementById('contentDescription').innerText = plainDescription || 'لا يوجد وصف متاح.';
@@ -716,53 +728,23 @@
         playerContainer.classList.remove('align-items-center', 'justify-content-center', 'text-center');
         playerContainer.classList.add('align-items-start');
 
-        const videoPlayer = document.getElementById('videoPlayer');
-        videoPlayer.pause();
-
         const iframePlayer = document.getElementById('iframePlayer');
         iframePlayer.src = 'about:blank';
 
-        if (resource.type === 'video') {
-            badge.innerText = 'فيديو';
-            badge.className = 'badge bg-danger text-white px-3 py-2 rounded-pill';
+        if (resource.type === 'video' || resource.type === 'link') {
+            badge.innerText = resource.type === 'video' ? 'فيديو' : 'رابط محمي';
+            badge.className = resource.type === 'video'
+                ? 'badge bg-danger text-white px-3 py-2 rounded-pill'
+                : 'badge bg-primary text-white px-3 py-2 rounded-pill';
             document.getElementById('videoWrapper').classList.remove('d-none');
             setFullscreenTarget('groupVideoContainer');
-
-            // Watermarked secure player — the same one used on the Learning
-            // Resources page (moving name+photo overlay, protected stream).
-            const videoError = document.getElementById('groupVideoError');
-            videoError.classList.add('d-none');
-
-            groupVideoDestroy = mountSecureVideoPlayer({
-                resourceId: resource.id,
-                container: document.getElementById('groupVideoContainer'),
-                videoEl: videoPlayer,
-                startUrl: '{{ url("student/videos") }}/' + encodeURIComponent(resource.id) + '/start',
-                studentName: @json(auth()->guard('student')->user()->name),
-                studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
-                csrfToken: '{{ csrf_token() }}',
-                onError: function (message) {
-                    videoError.textContent = message;
-                    videoError.classList.remove('d-none');
-                },
-            });
-
+            groupVideoDestroy = mountGroupMedia(resource.id, document.getElementById('groupVideoError'));
         } else if (resource.type === 'zoom') {
             badge.innerText = 'رابط خارجي';
             badge.className = 'badge bg-primary text-white px-3 py-2 rounded-pill';
             document.getElementById('zoomWrapper').classList.remove('d-none');
             document.getElementById('zoomLink').href = resource.url;
-        } else if (resource.type === 'link') {
-            badge.innerText = 'رابط محمي';
-            badge.className = 'badge bg-primary text-white px-3 py-2 rounded-pill';
-            document.getElementById('iframeWrapper').classList.remove('d-none');
-            setFullscreenTarget('iframeWrapper');
-            // Load the secure embed route
-            iframePlayer.src = '{{ url("student/secure-embed") }}/' + encodeURIComponent(resource.id);
         } else if (resource.is_pdf) {
-            // Rendered in-page via the watermarked pdf.js canvas viewer — same
-            // one used on the "Learning Resources" page — instead of opening
-            // the raw file in a new browser tab.
             badge.innerText = 'ملف PDF';
             badge.className = 'badge bg-info text-dark px-3 py-2 rounded-pill';
             document.getElementById('documentWrapper').classList.remove('d-none');
@@ -776,8 +758,8 @@
             groupDocumentDestroy = mountSecureDocumentViewer({
                 container: container,
                 fileUrl: '{{ url('student/resources') }}/' + encodeURIComponent(resource.id) + '/file',
-                studentName: @json(auth()->guard('student')->user()->name),
-                studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
+                studentName: studentMediaOpts.studentName,
+                studentPhotoUrl: studentMediaOpts.studentPhotoUrl,
                 onLoaded: function () {
                     const loadingEl = document.getElementById('documentLoading');
                     if (loadingEl) loadingEl.remove();
@@ -799,8 +781,8 @@
             groupImageDestroy = mountSecureImageViewer({
                 container: container,
                 fileUrl: '{{ url('student/resources') }}/' + encodeURIComponent(resource.id) + '/file',
-                studentName: @json(auth()->guard('student')->user()->name),
-                studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
+                studentName: studentMediaOpts.studentName,
+                studentPhotoUrl: studentMediaOpts.studentPhotoUrl,
                 onLoaded: function () {
                     const loadingEl = document.getElementById('imageLoading');
                     if (loadingEl) loadingEl.remove();
@@ -808,8 +790,6 @@
                 onError: function () {},
             });
         } else {
-            // Office formats (doc/xlsx/ppt/...) have no in-page viewer, so they
-            // still open via the authenticated file route in a new tab.
             badge.innerText = 'ملف مقروء';
             badge.className = 'badge bg-info text-dark px-3 py-2 rounded-pill';
             document.getElementById('otherFileWrapper').classList.remove('d-none');

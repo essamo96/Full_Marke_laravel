@@ -57,6 +57,7 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('schedule', [\App\Http\Controllers\Student\ScheduleController::class, 'index'])->name('schedule');
         Route::get('resources', [ResourcesController::class, 'index'])->name('resources');
         Route::get('secure-embed/{resource}', [\App\Http\Controllers\Student\SecureResourceController::class, 'embed'])->name('resources.embed');
+        Route::get('resources/{resource}/resolve', [\App\Http\Controllers\Student\SecureResourceController::class, 'resolve'])->name('resources.resolve');
         Route::post('videos/{resource}/start', [VideoStreamController::class, 'startSession'])->name('video.start');
         Route::get('videos/{resource}/stream', [VideoStreamController::class, 'stream'])->name('video.stream');
         Route::get('resources/{resource}/file', [VideoStreamController::class, 'file'])->name('resources.file');

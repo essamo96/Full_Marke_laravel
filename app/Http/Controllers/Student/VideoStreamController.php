@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Student;
 
+use App\Http\Controllers\Student\Concerns\AuthorizesStudentResourceAccess;
 use App\Http\Controllers\Controller;
 use App\Models\DocumentAccessLog;
 use App\Models\SubjectResource;
@@ -14,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class VideoStreamController extends Controller
 {
+    use AuthorizesStudentResourceAccess;
+
     /**
      * Files that make up an HLS rendition all live flat inside the same
      * per-resource directory, so we only need to allow the extensions that
@@ -23,21 +26,7 @@ class VideoStreamController extends Controller
 
     private function authorizeAccess(SubjectResource $resource): void
     {
-        $student = Auth::guard('student')->user();
-
-        // A copied stream URL opened in a different browser (or logged out
-        // entirely) has no student session to authorize against at all —
-        // fail that cleanly instead of crashing on a null->registrations() call.
-        abort_unless($student, 403);
-
-        abort_unless($resource->is_active, 404);
-
-        $isRegistered = $student->registrations()
-            ->where('subject_id', $resource->subject_id)
-            ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
-            ->exists();
-
-        abort_unless($isRegistered, 403);
+        $this->authorizeStudentResource($resource);
     }
 
     /**

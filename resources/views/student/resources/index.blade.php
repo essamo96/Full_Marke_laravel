@@ -142,44 +142,34 @@
     @endforeach
   @endif
 
-  <!-- Fullscreen is redirected from the <video> to #lessonVideoContainer (see
-       keepOverlayInFullscreen in student-video-player.js) so the watermark
-       canvas — a sibling of the video, not a child — stays visible when zoomed. -->
+  <!-- Fullscreen is redirected to #lessonMediaContainer so the watermark stays visible. -->
   <style>
-    #lessonVideoContainer:fullscreen,
-    #lessonVideoContainer:-webkit-full-screen {
+    #lessonMediaContainer:fullscreen,
+    #lessonMediaContainer:-webkit-full-screen,
+    #lessonMediaContainer .smp-root:fullscreen,
+    #lessonMediaContainer .smp-root:-webkit-full-screen {
       width: 100vw;
       height: 100vh;
       aspect-ratio: auto;
       border-radius: 0;
     }
-    #lessonVideoContainer:fullscreen #lessonVideoEl,
-    #lessonVideoContainer:-webkit-full-screen #lessonVideoEl {
-      object-fit: contain;
-    }
-
-    /* Hides the modal's title/size-toggle/close bar while the video is
-       fullscreen (see keepOverlayInFullscreen in student-video-player.js for
-       why it would otherwise still paint on top of the fullscreen video). */
-    #lessonVideoModal.video-is-fullscreen .modal-header {
+    #lessonMediaModal.video-is-fullscreen .modal-header {
       display: none !important;
     }
   </style>
 
-  <!-- Secure lesson video modal -->
-  <div class="modal fade" id="lessonVideoModal" tabindex="-1" aria-hidden="true">
+  <!-- Unified protected media modal (uploaded MP4 + YouTube + Drive) -->
+  <div class="modal fade" id="lessonMediaModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog viewer-modal size-md modal-dialog-centered">
       <div class="modal-content glass-panel">
         <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold" id="lessonVideoTitle" style="color: var(--text-primary);"></h5>
+          <h5 class="modal-title fw-bold" id="lessonMediaTitle" style="color: var(--text-primary);"></h5>
           @include('student.resources.parts.viewer-size-toggle')
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body pt-0">
-          <div id="lessonVideoContainer" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;">
-            <video id="lessonVideoEl" style="width: 100%; height: 100%; object-fit: contain;" controls playsinline></video>
-          </div>
-          <p id="lessonVideoError" class="text-danger mt-3 mb-0 d-none"></p>
+        <div class="modal-body pt-0" oncontextmenu="return false;">
+          <div id="lessonMediaContainer" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;"></div>
+          <p id="lessonMediaError" class="text-danger mt-3 mb-0 d-none"></p>
         </div>
       </div>
     </div>
@@ -222,57 +212,24 @@
       </div>
     </div>
   </div>
-
-  <!-- External link modal (YouTube embed, or a gated "open" action for non-embeddable links like Zoom) -->
-  <div class="modal fade" id="lessonLinkModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog viewer-modal size-md modal-dialog-centered">
-      <div class="modal-content glass-panel">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold" id="lessonLinkTitle" style="color: var(--text-primary);"></h5>
-          @include('student.resources.parts.viewer-size-toggle')
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body pt-0" oncontextmenu="return false;">
-          <div id="lessonLinkEmbedWrap" class="d-none" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;" oncontextmenu="return false;">
-            <iframe id="lessonLinkIframe" style="width: 100%; height: 100%; border: 0;" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" oncontextmenu="return false;"></iframe>
-          </div>
-          <div id="lessonLinkOpenWrap" class="d-none text-center py-4">
-            <p class="opacity-75 mb-3" style="color: var(--text-primary);">هذا الرابط يفتح في نافذة خارجية (مثل Zoom).</p>
-            <button type="button" id="lessonLinkOpenBtn" class="btn btn-glass px-4 py-2">فتح الرابط</button>
-          </div>
-          <div id="lessonLinkLoading" class="text-center opacity-75 py-4" style="color: var(--text-primary);">جاري التحقق من صلاحية الوصول...</div>
-          <p id="lessonLinkError" class="text-danger mt-3 mb-0 d-none"></p>
-        </div>
-      </div>
-    </div>
-  </div>
 @endsection
 
 @push('scripts')
-  <script src="{{ asset('assets/vendor/hlsjs/hls.min.js') }}"></script>
-  <script src="{{ asset('assets/js/secure-watermark.js') }}"></script>
-  <script src="{{ asset('assets/js/student-video-player.js') }}"></script>
-  <script src="{{ asset('assets/vendor/pdfjs/pdf.min.js') }}"></script>
-  <script src="{{ asset('assets/js/student-document-viewer.js') }}"></script>
-  <script src="{{ asset('assets/js/student-image-viewer.js') }}"></script>
+  <script src="{{ asset_ver('assets/js/secure-watermark.js') }}"></script>
+  <script src="{{ asset_ver('assets/js/student-secure-media-player.js') }}"></script>
+  <script src="{{ asset_ver('assets/vendor/pdfjs/pdf.min.js') }}"></script>
+  <script src="{{ asset_ver('assets/js/student-document-viewer.js') }}"></script>
+  <script src="{{ asset_ver('assets/js/student-image-viewer.js') }}"></script>
   <script>
-    // Disable right-click context menu on the entire page
     document.addEventListener('contextmenu', function(e) {
         e.preventDefault();
     });
 
-    // Small/medium/large display size for every secure viewer modal. The
-    // watermark canvas already re-fits itself via ResizeObserver whenever its
-    // container's pixel size changes, and right-click blocking is applied on
-    // the video/document/image/iframe elements themselves — not the modal
-    // dialog — so switching sizes here never drops either protection.
     var VIEWER_SIZE_KEY = 'lessonViewerSize';
 
     function applyViewerSize(dialog, size) {
         dialog.classList.remove('size-sm', 'size-md', 'size-lg', 'modal-fullscreen');
         dialog.classList.add('size-' + size);
-        // "large" = Bootstrap's real fullscreen modal (100vw/100vh, no margins),
-        // not just a wider dialog, so the "enlarge" button actually fills the screen.
         if (size === 'lg') dialog.classList.add('modal-fullscreen');
         var modalEl = dialog.closest('.modal');
         if (!modalEl) return;
@@ -296,6 +253,51 @@
         localStorage.setItem(VIEWER_SIZE_KEY, size);
     });
 
+    var studentMediaOpts = {
+      studentName: @json(auth()->guard('student')->user()->name),
+      studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
+      csrfToken: '{{ csrf_token() }}',
+    };
+
+    var lessonMediaDestroy = null;
+    var lessonMediaModalEl = document.getElementById('lessonMediaModal');
+    var lessonMediaModal = new bootstrap.Modal(lessonMediaModalEl);
+
+    function openProtectedMedia(resourceId, title) {
+      document.getElementById('lessonMediaTitle').textContent = title;
+      document.getElementById('lessonMediaError').classList.add('d-none');
+      if (lessonMediaDestroy) {
+        lessonMediaDestroy();
+        lessonMediaDestroy = null;
+      }
+      lessonMediaModal.show();
+
+      lessonMediaDestroy = mountSecureMediaPlayer({
+        container: document.getElementById('lessonMediaContainer'),
+        resourceId: resourceId,
+        resolveUrl: '{{ url('student/resources') }}/' + encodeURIComponent(resourceId) + '/resolve',
+        startUrl: '{{ url('student/videos') }}/' + encodeURIComponent(resourceId) + '/start',
+        studentName: studentMediaOpts.studentName,
+        studentPhotoUrl: studentMediaOpts.studentPhotoUrl,
+        csrfToken: studentMediaOpts.csrfToken,
+        onError: function (message) {
+          var errorEl = document.getElementById('lessonMediaError');
+          errorEl.textContent = message;
+          errorEl.classList.remove('d-none');
+        },
+      });
+    }
+
+    function openLessonVideo(resourceId, title) { openProtectedMedia(resourceId, title); }
+    function openLessonLink(resourceId, title) { openProtectedMedia(resourceId, title); }
+
+    lessonMediaModalEl.addEventListener('hidden.bs.modal', function () {
+      if (lessonMediaDestroy) {
+        lessonMediaDestroy();
+        lessonMediaDestroy = null;
+      }
+    });
+
     var lessonImageDestroy = null;
     var lessonImageModalEl = document.getElementById('lessonImageModal');
     var lessonImageModal = new bootstrap.Modal(lessonImageModalEl);
@@ -311,8 +313,8 @@
       lessonImageDestroy = mountSecureImageViewer({
         container: container,
         fileUrl: '{{ url('student/resources') }}/' + encodeURIComponent(resourceId) + '/file',
-        studentName: @json(auth()->guard('student')->user()->name),
-        studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
+        studentName: studentMediaOpts.studentName,
+        studentPhotoUrl: studentMediaOpts.studentPhotoUrl,
         onLoaded: function () {
           var loadingEl = document.getElementById('lessonImageLoading');
           if (loadingEl) loadingEl.remove();
@@ -331,36 +333,6 @@
       }
     });
 
-    var lessonLinkModalEl = document.getElementById('lessonLinkModal');
-    var lessonLinkModal = new bootstrap.Modal(lessonLinkModalEl);
-
-    function openLessonLink(resourceId, title) {
-      var embedWrap = document.getElementById('lessonLinkEmbedWrap');
-      var openWrap = document.getElementById('lessonLinkOpenWrap');
-      var loadingEl = document.getElementById('lessonLinkLoading');
-      var errorEl = document.getElementById('lessonLinkError');
-      var iframe = document.getElementById('lessonLinkIframe');
-
-      embedWrap.classList.add('d-none');
-      openWrap.classList.add('d-none');
-      errorEl.classList.add('d-none');
-      loadingEl.classList.remove('d-none');
-      document.getElementById('lessonLinkTitle').textContent = title;
-      lessonLinkModal.show();
-
-      // Load the secure embed view
-      iframe.src = '{{ url('student/secure-embed') }}/' + encodeURIComponent(resourceId);
-      
-      iframe.onload = function() {
-        loadingEl.classList.add('d-none');
-        embedWrap.classList.remove('d-none');
-      };
-    }
-
-    lessonLinkModalEl.addEventListener('hidden.bs.modal', function () {
-      document.getElementById('lessonLinkIframe').src = 'about:blank';
-    });
-
     var lessonDocumentDestroy = null;
     var lessonDocumentModalEl = document.getElementById('lessonDocumentModal');
     var lessonDocumentModal = new bootstrap.Modal(lessonDocumentModalEl);
@@ -376,8 +348,8 @@
       lessonDocumentDestroy = mountSecureDocumentViewer({
         container: container,
         fileUrl: '{{ url('student/resources') }}/' + encodeURIComponent(resourceId) + '/file',
-        studentName: @json(auth()->guard('student')->user()->name),
-        studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
+        studentName: studentMediaOpts.studentName,
+        studentPhotoUrl: studentMediaOpts.studentPhotoUrl,
         onLoaded: function () {
           var loadingEl = document.getElementById('lessonDocumentLoading');
           if (loadingEl) loadingEl.remove();
@@ -393,38 +365,6 @@
       if (lessonDocumentDestroy) {
         lessonDocumentDestroy();
         lessonDocumentDestroy = null;
-      }
-    });
-
-    var lessonVideoDestroy = null;
-    var lessonVideoModalEl = document.getElementById('lessonVideoModal');
-    var lessonVideoModal = new bootstrap.Modal(lessonVideoModalEl);
-
-    function openLessonVideo(resourceId, title) {
-      document.getElementById('lessonVideoTitle').textContent = title;
-      document.getElementById('lessonVideoError').classList.add('d-none');
-      lessonVideoModal.show();
-
-      lessonVideoDestroy = mountSecureVideoPlayer({
-        resourceId: resourceId,
-        container: document.getElementById('lessonVideoContainer'),
-        videoEl: document.getElementById('lessonVideoEl'),
-        startUrl: '{{ url('student/videos') }}/' + encodeURIComponent(resourceId) + '/start',
-        studentName: @json(auth()->guard('student')->user()->name),
-        studentPhotoUrl: @json(auth()->guard('student')->user()->photo_url),
-        csrfToken: '{{ csrf_token() }}',
-        onError: function (message) {
-          var errorEl = document.getElementById('lessonVideoError');
-          errorEl.textContent = message;
-          errorEl.classList.remove('d-none');
-        },
-      });
-    }
-
-    lessonVideoModalEl.addEventListener('hidden.bs.modal', function () {
-      if (lessonVideoDestroy) {
-        lessonVideoDestroy();
-        lessonVideoDestroy = null;
       }
     });
   </script>

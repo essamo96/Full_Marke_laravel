@@ -11,8 +11,8 @@
 
     <!-- ════ SIDEBAR ════ -->
     <aside id="dashboardSidebar" class="dashboard-sidebar">
-      @php($sidebarStudent = auth('student')->user())
       @php
+        $sidebarStudent = auth('student')->user();
         $openAcademy = request()->routeIs('student.programs', 'student.groups', 'student.groups.*', 'student.schedule', 'student.resources');
         $openExams = request()->routeIs('student.exams.*', 'student.results.*');
         $openAttendance = request()->routeIs('student.attendance.*');
