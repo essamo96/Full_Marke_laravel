@@ -21,13 +21,34 @@
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
+  gap: 0;
 }
 
-.dashboard-sidebar > nav {
+.dashboard-sidebar .sidebar-profile,
+.dashboard-sidebar .sidebar-footer {
+  flex: 0 0 auto;
+}
+
+.dashboard-sidebar > nav,
+.dashboard-sidebar .sidebar-nav {
   flex: 1 1 auto;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(197, 168, 128, 0.45) transparent;
+  padding-bottom: 8px;
+}
+
+.dashboard-sidebar > nav::-webkit-scrollbar,
+.dashboard-sidebar .sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+.dashboard-sidebar > nav::-webkit-scrollbar-thumb,
+.dashboard-sidebar .sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(197, 168, 128, 0.35);
+  border-radius: 999px;
 }
 
 [dir="rtl"] .dashboard-sidebar {
@@ -255,10 +276,14 @@
 .sidebar-submenu-wrapper {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease-out;
+  opacity: 0.55;
+  transition: max-height 0.28s ease, opacity 0.2s ease;
 }
 .sidebar-submenu-wrapper.expanded {
-  max-height: 500px; /* Arbitrary large height */
+  opacity: 1;
+}
+.sidebar-nav-item.accordion-trigger {
+  user-select: none;
 }
 .sidebar-nav-item[aria-expanded="true"] .sidebar-nav-item-chevron {
   transform: rotate(180deg);

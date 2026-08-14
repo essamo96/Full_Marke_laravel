@@ -12,7 +12,17 @@
     <!-- ════ SIDEBAR ════ -->
     <aside id="dashboardSidebar" class="dashboard-sidebar">
       @php($sidebarTeacher = auth('teacher')->user())
-      <div class="d-flex flex-column align-items-center mb-5 border-b pb-4" style="border-color: var(--separator-color) !important;">
+      @php
+        $openAcademic = request()->routeIs('teacher.subjects.*', 'teacher.groups.*', 'teacher.schedule.*');
+        $openStudents = request()->routeIs('teacher.students.*', 'teacher.grading.*');
+        $openContent = request()->routeIs('teacher.content.*');
+        $openSessions = false;
+        $openExams = request()->routeIs('teacher.exams.*', 'teacher.grading.*');
+        $openFinance = request()->routeIs('teacher.finance.*');
+        $openComm = false;
+        $openProfile = request()->routeIs('teacher.profile.*');
+      @endphp
+      <div class="sidebar-profile d-flex flex-column align-items-center mb-4 border-b pb-4" style="border-color: var(--separator-color) !important;">
         <div class="w-24 h-24 rounded-circle border-2 p-1 mb-3 position-relative overflow-hidden shadow-lg" style="border-color: var(--accent-color);">
           <img src="{{ $sidebarTeacher && $sidebarTeacher->photo ? asset('storage/'.$sidebarTeacher->photo) : asset('site/images/img/logo_backup.png') }}" alt="Teacher Profile" class="w-100 h-100 object-cover rounded-circle">
         </div>
@@ -21,7 +31,7 @@
         @endif
       </div>
 
-      <nav class="flex-1 d-flex flex-column gap-2 w-100 px-3 pb-4" style="font-family: 'Tajawal', 'Almarai', sans-serif;">
+      <nav class="sidebar-nav d-flex flex-column gap-2 w-100 px-3 pb-2" style="font-family: 'Tajawal', 'Almarai', sans-serif;">
         <!-- Overview -->
         <a href="{{ route('teacher.dashboard') }}" class="sidebar-nav-item {{ request()->routeIs('teacher.dashboard') ? 'active' : '' }} rounded-3 mb-1">
           <i class="bi bi-grid-1x2-fill sidebar-nav-item-icon"></i>
@@ -29,12 +39,12 @@
         </a>
 
         <!-- Academic Management -->
-        <a href="#menuAcademic" class="sidebar-nav-item accordion-trigger"  aria-expanded="false" aria-controls="menuAcademic">
+        <a href="#menuAcademic" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openAcademic ? 'true' : 'false' }}" aria-controls="menuAcademic">
           <i class="bi bi-journal-bookmark sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Academic Mgmt" data-ar="الإدارة الأكاديمية">Academic Mgmt</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
-        <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuAcademic">
+        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openAcademic ? 'expanded' : '' }}" id="menuAcademic">
           <li><a href="{{ route('teacher.subjects.index') }}" class="sidebar-submenu-item" data-en="Programs" data-ar="البرامج الدراسية">Programs</a></li>
           <li><a href="{{ route('teacher.subjects.index') }}" class="sidebar-submenu-item" data-en="Courses" data-ar="المواد التعليمية">Courses</a></li>
           <li><a href="{{ route('teacher.groups.index') }}" class="sidebar-submenu-item" data-en="Study Groups" data-ar="المجموعات الدراسية">Study Groups</a></li>
@@ -42,12 +52,12 @@
         </ul>
 
         <!-- Students -->
-        <a href="#menuStudents" class="sidebar-nav-item accordion-trigger"  aria-expanded="false" aria-controls="menuStudents">
+        <a href="#menuStudents" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openStudents ? 'true' : 'false' }}" aria-controls="menuStudents">
           <i class="bi bi-people sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Students" data-ar="الطلاب">Students</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
-        <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuStudents">
+        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openStudents ? 'expanded' : '' }}" id="menuStudents">
           <li><a href="{{ route('teacher.students.index') }}" class="sidebar-submenu-item" data-en="All Students" data-ar="جميع الطلاب">All Students</a></li>
           <li><a href="{{ route('teacher.students.index') }}" class="sidebar-submenu-item" data-en="Course Students" data-ar="طلاب المادة">Course Students</a></li>
           <li><a href="{{ route('teacher.groups.index') }}" class="sidebar-submenu-item" data-en="Attendance" data-ar="الحضور والغياب">Attendance</a></li>
@@ -56,12 +66,12 @@
         </ul>
 
         <!-- Educational Content -->
-        <a href="#menuContent" class="sidebar-nav-item accordion-trigger"  aria-expanded="false" aria-controls="menuContent">
+        <a href="#menuContent" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openContent ? 'true' : 'false' }}" aria-controls="menuContent">
           <i class="bi bi-collection-play sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Content" data-ar="المحتوى التعليمي">Content</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
-        <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuContent">
+        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openContent ? 'expanded' : '' }}" id="menuContent">
           <li><a href="{{ route('teacher.content.hub') }}" class="sidebar-submenu-item" data-en="Content Hub" data-ar="مركز المحتوى">Content Hub</a></li>
           <li><a href="{{ route('teacher.content.index') }}" class="sidebar-submenu-item" data-en="Files" data-ar="الملفات التعليمية">Files</a></li>
           <li><a href="{{ route('teacher.content.index') }}" class="sidebar-submenu-item" data-en="Videos" data-ar="الفيديوهات">Videos</a></li>
@@ -71,12 +81,12 @@
         </ul>
 
         <!-- Sessions -->
-        <a href="#menuSessions" class="sidebar-nav-item accordion-trigger"  aria-expanded="false" aria-controls="menuSessions">
+        <a href="#menuSessions" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openSessions ? 'true' : 'false' }}" aria-controls="menuSessions">
           <i class="bi bi-camera-video sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Sessions" data-ar="الجلسات والمحاضرات">Sessions</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
-        <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuSessions">
+        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openSessions ? 'expanded' : '' }}" id="menuSessions">
           <li><a href="#" class="sidebar-submenu-item" data-en="Upcoming" data-ar="الجلسات القادمة">Upcoming</a></li>
           <li><a href="#" class="sidebar-submenu-item" data-en="Live Sessions" data-ar="الجلسات المباشرة">Live Sessions</a></li>
           <li><a href="#" class="sidebar-submenu-item" data-en="Create Session" data-ar="إنشاء جلسة جديدة">Create Session</a></li>
@@ -84,12 +94,12 @@
         </ul>
 
         <!-- Exams & Assessments -->
-        <a href="#menuExams" class="sidebar-nav-item accordion-trigger"  aria-expanded="false" aria-controls="menuExams">
+        <a href="#menuExams" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openExams ? 'true' : 'false' }}" aria-controls="menuExams">
           <i class="bi bi-pencil-square sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Exams" data-ar="الامتحانات والتقييمات">Exams</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
-        <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuExams">
+        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openExams ? 'expanded' : '' }}" id="menuExams">
           <li><a href="{{ route('teacher.exams.index') }}" class="sidebar-submenu-item" data-en="Tests Management" data-ar="الامتحانات">Tests Management</a></li>
           <li><a href="{{ route('teacher.grading.index') }}" class="sidebar-submenu-item" data-en="Grading" data-ar="التصحيح">Grading</a></li>
           <li><a href="{{ route('teacher.grading.index') }}" class="sidebar-submenu-item" data-en="Scores" data-ar="الدرجات">Scores</a></li>
@@ -97,14 +107,12 @@
         </ul>
 
         <!-- Finance -->
-        <a href="#menuFinance" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ request()->routeIs('teacher.finance.*') ? 'true' : 'false' }}" aria-controls="menuFinance">
+        <a href="#menuFinance" class="sidebar-nav-item accordion-trigger" aria-expanded="{{ $openFinance ? 'true' : 'false' }}" aria-controls="menuFinance">
           <i class="bi bi-wallet2 sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text" data-en="Finance" data-ar="المالية">Finance</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
-        {{-- 'expanded' is the class the sidebar JS/CSS uses (not Bootstrap's 'show'),
-             so the section stays open while browsing inside finance. --}}
-        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ request()->routeIs('teacher.finance.*') ? 'expanded' : '' }}" id="menuFinance">
+        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openFinance ? 'expanded' : '' }}" id="menuFinance">
           <li><a href="{{ route('teacher.finance.index') }}" class="sidebar-submenu-item {{ request()->routeIs('teacher.finance.index') ? 'active' : '' }}" data-en="Overview" data-ar="نظرة عامة">Overview</a></li>
           <li><a href="{{ route('teacher.finance.groups') }}" class="sidebar-submenu-item {{ request()->routeIs('teacher.finance.groups') || request()->routeIs('teacher.finance.group') ? 'active' : '' }}" data-en="By Group" data-ar="حسب المجموعة">By Group</a></li>
           <li><a href="{{ route('teacher.finance.students') }}" class="sidebar-submenu-item {{ request()->routeIs('teacher.finance.students') || request()->routeIs('teacher.finance.registration') ? 'active' : '' }}" data-en="By Student" data-ar="حسب الطالب">By Student</a></li>
@@ -119,31 +127,31 @@
         </a>
 
         <!-- Communication -->
-        <a href="#menuComm" class="sidebar-nav-item accordion-trigger rounded-3 mb-1"  aria-expanded="false" aria-controls="menuComm">
+        <a href="#menuComm" class="sidebar-nav-item accordion-trigger rounded-3 mb-1" aria-expanded="{{ $openComm ? 'true' : 'false' }}" aria-controls="menuComm">
           <i class="bi bi-chat-left-dots sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text fw-medium fs-6" data-en="Communication" data-ar="التواصل">Communication</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
-        <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuComm">
+        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openComm ? 'expanded' : '' }}" id="menuComm">
           <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Messages" data-ar="الرسائل">Messages</a></li>
           <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Announcements" data-ar="الإعلانات">Announcements</a></li>
           <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Mass Notification" data-ar="إرسال إشعار جماعي">Mass Notification</a></li>
         </ul>
 
         <!-- Profile -->
-        <a href="#menuProfile" class="sidebar-nav-item accordion-trigger rounded-3 mb-1"  aria-expanded="false" aria-controls="menuProfile">
+        <a href="#menuProfile" class="sidebar-nav-item accordion-trigger rounded-3 mb-1" aria-expanded="{{ $openProfile ? 'true' : 'false' }}" aria-controls="menuProfile">
           <i class="bi bi-person sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text fw-medium fs-6" data-en="My Account" data-ar="حسابي">My Account</span>
           <i class="bi bi-chevron-down sidebar-nav-item-chevron"></i>
         </a>
-        <ul class="sidebar-submenu-wrapper sidebar-submenu" id="menuProfile">
+        <ul class="sidebar-submenu-wrapper sidebar-submenu {{ $openProfile ? 'expanded' : '' }}" id="menuProfile">
           <li><a href="{{ route('teacher.profile.edit') }}" class="sidebar-submenu-item rounded-3" data-en="Profile" data-ar="الملف الشخصي">Profile</a></li>
           <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Resume & Certs" data-ar="الشهادات والخبرات">Resume & Certs</a></li>
           <li><a href="#" class="sidebar-submenu-item rounded-3" data-en="Settings" data-ar="إعدادات الحساب">Settings</a></li>
         </ul>
       </nav>
 
-      <div class="mt-4 pt-4 border-t d-flex flex-column gap-2 px-3" style="border-color: var(--separator-color) !important;">
+      <div class="sidebar-footer mt-3 pt-3 border-t d-flex flex-column gap-2 px-3" style="border-color: var(--separator-color) !important;">
         <a href="#" class="sidebar-nav-item rounded-3">
           <i class="bi bi-gear sidebar-nav-item-icon"></i>
           <span class="sidebar-nav-item-text fw-medium fs-6" data-en="Settings" data-ar="الإعدادات">Settings</span>

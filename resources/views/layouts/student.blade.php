@@ -37,7 +37,7 @@
   <link rel="stylesheet" href="{{ asset_ver('site/css/animations/scroll-effects.css') }}">
   <link rel="stylesheet" href="{{ asset_ver('site/css/landing.css') }}">
   <link rel="stylesheet" href="{{ asset_ver('site/css/hero-animation.css') }}">
-  <link rel="stylesheet" href="{{ asset('student/css/dashboard.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('student/css/dashboard.css') }}">
   <link rel="stylesheet" href="{{ asset_ver('site/css/rtl.css') }}">
 
   <!-- Theme loading script -->
@@ -70,7 +70,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{{ asset_ver('site/js/lang.js') }}"></script>
-  <script src="{{ asset('student/js/dashboard.js') }}"></script>
+  <script src="{{ asset_ver('assets/js/dashboard-sidebar.js') }}"></script>
+  <script src="{{ asset_ver('student/js/dashboard.js') }}"></script>
   <script>
     // Initialize Theme Cycle logic dynamically using existing mechanism if available, 
     // or handle it individually for the dashboard.
