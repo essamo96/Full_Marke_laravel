@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DocumentAccessLog;
 use App\Models\SubjectResource;
 use App\Models\VideoAccessLog;
+use App\Support\StudentDeviceLock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -24,16 +25,78 @@ class VideoStreamController extends Controller
      */
     private const ALLOWED_EXTENSIONS = ['m3u8', 'key', 'ts'];
 
+    /** Minimum grace after the video length so buffering / rewatches still fit. */
+    private const TOKEN_MIN_GRACE_SECONDS = 30 * 60;
+
+    /** Hard ceiling so a missing/wrong duration cannot mint a forever token. */
+    private const TOKEN_MAX_TTL_SECONDS = 8 * 60 * 60;
+
+    /** Fallback TTL when duration_seconds is unknown. */
+    private const TOKEN_DEFAULT_TTL_SECONDS = 4 * 60 * 60;
+
     private function authorizeAccess(SubjectResource $resource): void
     {
         $this->authorizeStudentResource($resource);
     }
 
     /**
-     * Starts (and exclusively claims) a playback session for this resource.
-     * Any other session the student had open — on this resource or any
-     * other — is closed immediately, so a shared login can only ever stream
-     * one video at a time.
+     * Token lives for the lesson length + grace (25%, min 30 minutes),
+     * capped at 8 hours. Unknown duration → 4 hours.
+     */
+    private function tokenExpiresAt(SubjectResource $resource): \Illuminate\Support\Carbon
+    {
+        $duration = $this->resolveDurationSeconds($resource);
+
+        if ($duration <= 0) {
+            $ttl = self::TOKEN_DEFAULT_TTL_SECONDS;
+        } else {
+            $grace = max(self::TOKEN_MIN_GRACE_SECONDS, (int) round($duration * 0.25));
+            $ttl = $duration + $grace;
+        }
+
+        $ttl = min($ttl, self::TOKEN_MAX_TTL_SECONDS);
+
+        return now()->addSeconds($ttl);
+    }
+
+    /**
+     * Prefer stored duration_seconds; if missing, probe the file once and cache it.
+     */
+    private function resolveDurationSeconds(SubjectResource $resource): int
+    {
+        $stored = max(0, (int) ($resource->duration_seconds ?? 0));
+        if ($stored > 0) {
+            return $stored;
+        }
+
+        if (! $resource->url || ! Storage::disk('protected_videos')->exists($resource->url)) {
+            return 0;
+        }
+
+        try {
+            $seconds = (int) round(
+                \ProtoneMedia\LaravelFFMpeg\Support\FFMpeg::fromDisk('protected_videos')
+                    ->open($resource->url)
+                    ->getDurationInSeconds()
+            );
+
+            if ($seconds > 0) {
+                $resource->forceFill(['duration_seconds' => $seconds])->save();
+
+                return $seconds;
+            }
+        } catch (\Throwable) {
+            // FFmpeg unavailable / corrupt file — fall back to default TTL.
+        }
+
+        return 0;
+    }
+
+    /**
+     * Starts a playback session bound to this browser's device cookie.
+     * Students with max_devices > 1 may hold one active stream per allowed
+     * device (up to that limit); starting on a device replaces only that
+     * device's previous open session — other allowed devices keep watching.
      */
     public function startSession(Request $request, SubjectResource $resource)
     {
@@ -42,29 +105,75 @@ class VideoStreamController extends Controller
         abort_unless($resource->isVideo() && $resource->isReady(), 409, 'الفيديو غير جاهز للعرض بعد.');
 
         $student = Auth::guard('student')->user();
+        $deviceId = (string) $request->cookie(StudentDeviceLock::COOKIE);
+        abort_unless($deviceId !== '', 403, 'الجهاز غير معرّف — أعد تسجيل الدخول.');
 
+        $allowedDevices = $student->locked_device_ids;
+        // Mid-session first visit before login stamped a device should still
+        // match; if the account already has locks, require membership.
+        if (! empty($allowedDevices)) {
+            abort_unless(in_array($deviceId, $allowedDevices, true), 403, 'هذا الجهاز غير مصرّح له بتشغيل الفيديو.');
+        }
+
+        $maxDevices = max(1, min(5, (int) ($student->max_devices ?: 1)));
+
+        // Close any previous open session on THIS device only.
         VideoAccessLog::where('student_id', $student->id)
+            ->where('device_id', $deviceId)
             ->whereNull('ended_at')
             ->update(['ended_at' => now()]);
+
+        // Also expire stale open rows (TTL elapsed but ended_at still null).
+        VideoAccessLog::where('student_id', $student->id)
+            ->whereNull('ended_at')
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '<=', now())
+            ->update(['ended_at' => now()]);
+
+        // Cap concurrent streams across devices to max_devices (one per slot).
+        $activeOther = VideoAccessLog::where('student_id', $student->id)
+            ->whereNull('ended_at')
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->where(function ($q) use ($deviceId) {
+                $q->whereNull('device_id')->orWhere('device_id', '!=', $deviceId);
+            })
+            ->orderBy('created_at')
+            ->get();
+
+        $overflow = $activeOther->count() - ($maxDevices - 1);
+        if ($overflow > 0) {
+            $activeOther->take($overflow)->each(function (VideoAccessLog $log) {
+                $log->update(['ended_at' => now()]);
+            });
+        }
+
+        $expiresAt = $this->tokenExpiresAt($resource);
 
         $log = VideoAccessLog::create([
             'subject_resource_id' => $resource->id,
             'student_id' => $student->id,
             'session_token' => Str::random(48),
+            'device_id' => $deviceId,
             'ip_address' => $request->ip(),
             'user_agent' => substr((string) $request->userAgent(), 0, 255),
             'last_seen_at' => now(),
+            'expires_at' => $expiresAt,
         ]);
 
         return response()->json([
             'success' => true,
             'session_token' => $log->session_token,
-            'stream_url' => route('student.video.stream', ['resource' => $resource]) . '?st=' . $log->session_token,
+            'expires_at' => $expiresAt->toIso8601String(),
+            'expires_in' => max(0, $expiresAt->getTimestamp() - now()->getTimestamp()),
+            'stream_url' => route('student.video.stream', ['resource' => $resource]).'?st='.$log->session_token,
         ]);
     }
 
     /**
-     * Streams the MP4 file securely using Range requests and referer locks.
+     * Streams the MP4 file securely using Range requests, referer locks,
+     * device binding, and a duration-based token expiry.
      */
     public function stream(Request $request, SubjectResource $resource)
     {
@@ -72,22 +181,32 @@ class VideoStreamController extends Controller
 
         abort_unless($resource->isVideo() && $resource->url, 404);
 
-        // Referer Protection: Block direct URL sharing or IDM downloads
         $referer = $request->headers->get('referer');
         $host = $request->getHost();
-        if (!$referer || !str_contains(parse_url($referer, PHP_URL_HOST) ?? '', $host)) {
+        if (! $referer || ! str_contains(parse_url($referer, PHP_URL_HOST) ?? '', $host)) {
             abort(403, 'Unauthorized access: Invalid Referer.');
         }
 
         $student = Auth::guard('student')->user();
         $token = (string) $request->query('st');
+        $deviceId = (string) $request->cookie(StudentDeviceLock::COOKIE);
 
         $log = VideoAccessLog::where('student_id', $student->id)
             ->where('session_token', $token)
             ->whereNull('ended_at')
             ->first();
 
-        abort_unless($log, 403, 'انتهت هذه الجلسة — على الأرجح تم تشغيل الفيديو من جهاز آخر بنفس الحساب.');
+        abort_unless($log, 403, 'انتهت هذه الجلسة — على الأرجح تم تشغيل الفيديو من جهاز آخر أو انتهت صلاحية الرابط.');
+
+        if ($log->isExpired()) {
+            $log->update(['ended_at' => now()]);
+            abort(403, 'انتهت صلاحية رابط التشغيل حسب مدة الفيديو — أعد فتح الدرس.');
+        }
+
+        // Copied stream URL on a different allowed (or foreign) device fails.
+        if ($log->device_id && $log->device_id !== $deviceId) {
+            abort(403, 'رابط التشغيل مربوط بجهاز آخر ولا يمكن استخدامه هنا.');
+        }
 
         if (! $log->last_seen_at || $log->last_seen_at->diffInSeconds(now()) >= 10) {
             $log->update(['last_seen_at' => now()]);
