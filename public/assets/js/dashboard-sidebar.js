@@ -1,6 +1,7 @@
 /**
  * Shared dashboard sidebar: accordion menus + active route highlight.
- * Used by student and teacher portals.
+ * Height comes from the inner list's scrollHeight so a collapsed flex
+ * parent (max-height: 0) cannot report 0 and hide child items.
  */
 (function () {
   'use strict';
@@ -20,67 +21,57 @@
     return id ? document.getElementById(id) : null;
   }
 
-  function measureMenuHeight(menu) {
-    var previous = menu.style.maxHeight;
-    menu.style.maxHeight = 'none';
-    var height = menu.scrollHeight;
-    menu.style.maxHeight = previous;
-    return height;
+  function wrapBareMenus(sidebar) {
+    sidebar.querySelectorAll('ul.sidebar-submenu-wrapper').forEach(function (ul) {
+      var wrap = document.createElement('div');
+      wrap.className = 'sidebar-submenu-wrapper';
+      if (ul.classList.contains('expanded')) {
+        wrap.classList.add('expanded');
+      }
+      wrap.id = ul.id;
+      ul.removeAttribute('id');
+      ul.classList.remove('sidebar-submenu-wrapper', 'expanded');
+      if (!ul.classList.contains('sidebar-submenu')) {
+        ul.classList.add('sidebar-submenu');
+      }
+      ul.parentNode.insertBefore(wrap, ul);
+      wrap.appendChild(ul);
+    });
+  }
+
+  function contentHeight(menu) {
+    var inner = menu.querySelector('.sidebar-submenu') || menu;
+    var height = inner.scrollHeight;
+    if (height > 0) return height;
+    var sum = 0;
+    var children = inner.children;
+    for (var i = 0; i < children.length; i++) {
+      sum += children[i].offsetHeight;
+    }
+    return sum;
   }
 
   function setExpanded(trigger, menu, open) {
     if (!trigger || !menu) return;
     trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
     menu.classList.toggle('expanded', open);
-
     if (open) {
-      var height = measureMenuHeight(menu);
-      if (height > 0) {
-        menu.style.maxHeight = '0px';
-        void menu.offsetHeight;
-        menu.style.maxHeight = height + 'px';
-      } else {
-        menu.style.removeProperty('max-height');
-      }
+      var height = contentHeight(menu);
+      menu.style.maxHeight = (height > 0 ? height : 800) + 'px';
     } else {
-      var currentHeight = menu.scrollHeight;
-      if (currentHeight > 0) {
-        menu.style.maxHeight = currentHeight + 'px';
-        void menu.offsetHeight;
-      }
       menu.style.maxHeight = '0px';
     }
   }
 
-  function refreshOpenMenus(nav) {
-    nav.querySelectorAll('.sidebar-submenu-wrapper.expanded').forEach(function (menu) {
-      var height = measureMenuHeight(menu);
-      if (height > 0) {
-        menu.style.maxHeight = height + 'px';
-      } else {
-        menu.style.removeProperty('max-height');
-      }
-    });
-  }
-
-  function scrollMenuIntoView(nav, trigger, menu) {
-    if (!nav || !trigger || !menu) return;
-    window.requestAnimationFrame(function () {
-      var navRect = nav.getBoundingClientRect();
-      var menuRect = menu.getBoundingClientRect();
-      if (menuRect.bottom > navRect.bottom - 8) {
-        nav.scrollTop += menuRect.bottom - navRect.bottom + 16;
-      } else if (trigger.getBoundingClientRect().top < navRect.top + 8) {
-        nav.scrollTop -= navRect.top - trigger.getBoundingClientRect().top + 8;
-      }
+  function refreshOpenMenus(sidebar) {
+    sidebar.querySelectorAll('.sidebar-submenu-wrapper.expanded').forEach(function (menu) {
+      var height = contentHeight(menu);
+      menu.style.maxHeight = (height > 0 ? height : 800) + 'px';
     });
   }
 
   function initAccordion(sidebar) {
-    var nav = sidebar.querySelector('nav');
-    if (!nav) return;
-
-    var triggers = Array.from(nav.querySelectorAll('.sidebar-nav-item.accordion-trigger'));
+    var triggers = Array.from(sidebar.querySelectorAll('.sidebar-nav-item.accordion-trigger'));
 
     triggers.forEach(function (trigger) {
       var menu = menuForTrigger(trigger);
@@ -91,46 +82,33 @@
       } else {
         setExpanded(trigger, menu, false);
       }
+    });
 
-      trigger.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
+    sidebar.addEventListener('click', function (e) {
+      var trigger = e.target.closest('.sidebar-nav-item.accordion-trigger');
+      if (!trigger || !sidebar.contains(trigger)) return;
+      e.preventDefault();
+      e.stopPropagation();
 
-        var isOpen = trigger.getAttribute('aria-expanded') === 'true';
+      var menu = menuForTrigger(trigger);
+      if (!menu) return;
 
-        triggers.forEach(function (other) {
-          if (other === trigger) return;
-          setExpanded(other, menuForTrigger(other), false);
-        });
-
-        setExpanded(trigger, menu, !isOpen);
-        if (!isOpen) {
-          window.setTimeout(function () {
-            refreshOpenMenus(nav);
-            scrollMenuIntoView(nav, trigger, menu);
-          }, 40);
-        }
-      });
+      var isOpen = trigger.getAttribute('aria-expanded') === 'true';
+      setExpanded(trigger, menu, !isOpen);
     });
 
     window.addEventListener('resize', function () {
-      refreshOpenMenus(nav);
+      refreshOpenMenus(sidebar);
     });
-
-    // Text length (and therefore submenu height) changes when the language
-    // is toggled or when web fonts finish swapping in after DOMContentLoaded,
-    // both of which happen after the initial max-height measurement above.
-    // Without this, an already-open submenu keeps its stale pixel height and
-    // clips/hides the items that no longer fit.
     window.addEventListener('languageChanged', function () {
-      refreshOpenMenus(nav);
+      refreshOpenMenus(sidebar);
     });
     window.addEventListener('load', function () {
-      refreshOpenMenus(nav);
+      refreshOpenMenus(sidebar);
     });
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(function () {
-        refreshOpenMenus(nav);
+        refreshOpenMenus(sidebar);
       });
     }
   }
@@ -187,6 +165,7 @@
     var sidebar = document.getElementById('dashboardSidebar');
     if (!sidebar) return;
 
+    wrapBareMenus(sidebar);
     markActiveLinks(sidebar);
     initAccordion(sidebar);
     initMobileSidebar();
