@@ -16,11 +16,18 @@
   z-index: 1000;
   background: var(--bg-secondary);
   border-right: 1px solid var(--separator-color);
-  overflow-y: auto;
+  overflow: hidden;
   transition: transform var(--transition-normal);
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
+}
+
+.dashboard-sidebar > nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 [dir="rtl"] .dashboard-sidebar {
@@ -226,31 +233,7 @@
   }
 }
 
-/* "Show more" for nav lists that overflow the space allotted to the menu */
-.dashboard-sidebar nav.nav-clipped {
-  overflow: hidden;
-}
-.sidebar-more-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: calc(100% - 16px);
-  margin: 6px 8px 0 8px;
-  padding: 10px 14px;
-  border-radius: var(--radius-md, 10px);
-  border: 1px dashed rgba(197, 168, 128, 0.4);
-  background: rgba(197, 168, 128, 0.08);
-  color: var(--accent-color);
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all var(--transition-fast, 0.2s);
-}
-.sidebar-more-btn:hover {
-  background: rgba(197, 168, 128, 0.15);
-  border-style: solid;
-}
+/* Sidebar nav scrolls naturally — no clip / "show more" gate */
 
 .sidebar-overlay {
   position: fixed;
