@@ -439,8 +439,8 @@
                     </a>
                 </div>
 
-                <div id="iframeWrapper" class="d-none mb-4 shadow-lg" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;">
-                    <iframe id="iframePlayer" style="width: 100%; height: 100%; border: 0;" allow="encrypted-media; picture-in-picture"></iframe>
+                <div id="iframeWrapper" class="d-none mb-4 shadow-lg" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;" oncontextmenu="return false;">
+                    <iframe id="iframePlayer" style="width: 100%; height: 100%; border: 0;" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" oncontextmenu="return false;"></iframe>
                     <div class="embed-watermark">{{ auth()->guard('student')->user()->name }} — {{ auth()->guard('student')->user()->email }}</div>
                 </div>
 

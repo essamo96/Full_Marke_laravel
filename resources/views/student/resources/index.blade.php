@@ -233,8 +233,8 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body pt-0" oncontextmenu="return false;">
-          <div id="lessonLinkEmbedWrap" class="d-none" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;">
-            <iframe id="lessonLinkIframe" style="width: 100%; height: 100%; border: 0;" allow="encrypted-media; picture-in-picture" allowfullscreen oncontextmenu="return false;"></iframe>
+          <div id="lessonLinkEmbedWrap" class="d-none" style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden;" oncontextmenu="return false;">
+            <iframe id="lessonLinkIframe" style="width: 100%; height: 100%; border: 0;" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" oncontextmenu="return false;"></iframe>
           </div>
           <div id="lessonLinkOpenWrap" class="d-none text-center py-4">
             <p class="opacity-75 mb-3" style="color: var(--text-primary);">هذا الرابط يفتح في نافذة خارجية (مثل Zoom).</p>

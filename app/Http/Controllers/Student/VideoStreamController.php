@@ -239,7 +239,8 @@ class VideoStreamController extends Controller
             || preg_match('#youtube\.com/embed/([A-Za-z0-9_-]{6,})#i', $url, $m)
             || preg_match('#youtube\.com/shorts/([A-Za-z0-9_-]{6,})#i', $url, $m)
         ) {
-            return 'https://www.youtube-nocookie.com/embed/'.$m[1].'?rel=0&modestbranding=1';
+            return 'https://www.youtube-nocookie.com/embed/'.$m[1]
+                .'?rel=0&modestbranding=1&iv_load_policy=3&playsinline=1';
         }
 
         return null;

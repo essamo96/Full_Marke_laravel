@@ -672,10 +672,13 @@
       return 'https://drive.google.com/file/d/' + m[1] + '/preview';
     }
     if ((m = url.match(/youtube\.com\/watch\?(?:.*&)?v=([\w-]+)/))) {
-      return 'https://www.youtube.com/embed/' + m[1] + '?rel=0&modestbranding=1';
+      return 'https://www.youtube-nocookie.com/embed/' + m[1] + '?rel=0&modestbranding=1&iv_load_policy=3&playsinline=1';
     }
     if ((m = url.match(/youtu\.be\/([\w-]+)/))) {
-      return 'https://www.youtube.com/embed/' + m[1] + '?rel=0&modestbranding=1';
+      return 'https://www.youtube-nocookie.com/embed/' + m[1] + '?rel=0&modestbranding=1&iv_load_policy=3&playsinline=1';
+    }
+    if ((m = url.match(/youtube\.com\/(?:shorts|live|embed)\/([\w-]+)/))) {
+      return 'https://www.youtube-nocookie.com/embed/' + m[1] + '?rel=0&modestbranding=1&iv_load_policy=3&playsinline=1';
     }
     return url;
   }
