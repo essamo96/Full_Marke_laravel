@@ -116,6 +116,23 @@
     window.addEventListener('resize', function () {
       refreshOpenMenus(nav);
     });
+
+    // Text length (and therefore submenu height) changes when the language
+    // is toggled or when web fonts finish swapping in after DOMContentLoaded,
+    // both of which happen after the initial max-height measurement above.
+    // Without this, an already-open submenu keeps its stale pixel height and
+    // clips/hides the items that no longer fit.
+    window.addEventListener('languageChanged', function () {
+      refreshOpenMenus(nav);
+    });
+    window.addEventListener('load', function () {
+      refreshOpenMenus(nav);
+    });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        refreshOpenMenus(nav);
+      });
+    }
   }
 
   function markActiveLinks(sidebar) {
