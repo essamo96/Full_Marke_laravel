@@ -58,6 +58,22 @@
                 </div>
             </div>
             <div class="card-body pt-2">
+                @if($groups->count() > 0)
+                    <ul class="nav nav-pills mb-6" id="kt_group_tabs">
+                        <li class="nav-item">
+                            <a class="nav-link {{ is_null($selectedGroupId) ? 'active' : '' }}" href="{{ route('subject_content.manage', \Illuminate\Support\Facades\Crypt::encrypt($subject->id)) }}">
+                                محتوى مشترك (كل المجموعات)
+                            </a>
+                        </li>
+                        @foreach($groups as $group)
+                            <li class="nav-item">
+                                <a class="nav-link {{ $selectedGroupId === $group->id ? 'active' : '' }}" href="{{ route('subject_content.manage', \Illuminate\Support\Facades\Crypt::encrypt($subject->id)) }}?group={{ $group->id }}">
+                                    {{ $group->name }}
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
                 <!-- Accordion for Units -->
                 <div class="accordion accordion-icon-toggle" id="kt_accordion_units">
                     @forelse($units as $unit)
@@ -169,6 +185,14 @@
                     <div class="mb-5">
                         <label class="form-label">اسم الوحدة بالإنجليزية</label>
                         <input type="text" name="name_en" class="form-control" placeholder="مثال: Unit 1: Introduction"/>
+                    </div>
+                    <input type="hidden" name="group_id" value="{{ $selectedGroupId }}"/>
+                    <div class="text-muted fs-7">
+                        @if($selectedGroupId)
+                            سيتم إضافة هذه الوحدة لمجموعة "{{ $groups->firstWhere('id', $selectedGroupId)?->name }}" فقط.
+                        @else
+                            سيتم إضافة هذه الوحدة كمحتوى مشترك يظهر لكل المجموعات.
+                        @endif
                     </div>
                 </div>
                 <div class="modal-footer">

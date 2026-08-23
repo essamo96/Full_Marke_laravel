@@ -64,6 +64,11 @@ class Group extends Model
         return $this->hasMany(Attendance::class);
     }
 
+    public function educationalUnits(): HasMany
+    {
+        return $this->hasMany(EducationalUnit::class);
+    }
+
     public function hasAvailableCapacity(): bool
     {
         // Calculate pending registrations + active ones, or just current_count if it handles it.

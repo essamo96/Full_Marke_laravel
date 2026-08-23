@@ -13,12 +13,15 @@ trait AuthorizesStudentResourceAccess
         abort_unless($student, 403);
         abort_unless($resource->is_active, 404);
 
-        $isRegistered = $student->registrations()
+        $registration = $student->registrations()
             ->where('subject_id', $resource->subject_id)
             ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
-            ->exists();
+            ->first();
 
-        abort_unless($isRegistered, 403);
+        abort_unless($registration, 403);
+
+        $unitGroupId = $resource->lesson?->unit?->group_id;
+        abort_unless(is_null($unitGroupId) || $unitGroupId === $registration->group_id, 403);
     }
 
     /**

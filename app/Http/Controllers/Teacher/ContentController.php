@@ -47,6 +47,19 @@ class ContentController extends Controller
         return $subjectId !== null && in_array($subjectId, $this->allowedSubjectIds(), true);
     }
 
+    /** Group IDs this teacher owns. */
+    private function allowedGroupIds(): array
+    {
+        $teacher = $this->teacher();
+
+        return once(fn () => Group::where('teacher_id', $teacher->id)->pluck('id')->all());
+    }
+
+    private function canAccessGroup(?int $groupId): bool
+    {
+        return $groupId !== null && in_array($groupId, $this->allowedGroupIds(), true);
+    }
+
     private function authorizeSubject(Subject $subject): void
     {
         abort_unless($this->canAccessSubject($subject->id), 403);
@@ -97,13 +110,22 @@ class ContentController extends Controller
         return view('teacher.content.hub', compact('subjects', 'groups'));
     }
 
-    public function manage(Subject $subject)
+    public function manage(Request $request, Subject $subject)
     {
         $this->authorizeSubject($subject);
+
+        $teacher = $this->teacher();
+        $groups = Group::where('subject_id', $subject->id)->where('teacher_id', $teacher->id)->orderBy('name')->get();
+
+        $selectedGroupId = $request->query('group') ? (int) $request->query('group') : null;
+        if ($selectedGroupId && ! $groups->contains('id', $selectedGroupId)) {
+            $selectedGroupId = null;
+        }
 
         $units = EducationalUnit::whereHas('stage', function ($q) use ($subject) {
                 $q->where('subject_id', $subject->id);
             })
+            ->forGroup($selectedGroupId)
             ->where('is_active', true)
             ->with(['lessons' => function ($q) {
                 $q->where('is_active', true)->orderBy('sort_order');
@@ -119,7 +141,7 @@ class ContentController extends Controller
             ->map(fn ($resource) => $resource->getRouteKey())
             ->toArray();
 
-        return view('teacher.content.manage', compact('subject', 'units', 'processingResources'));
+        return view('teacher.content.manage', compact('subject', 'units', 'processingResources', 'groups', 'selectedGroupId'));
     }
 
     private function stageFor(Subject $subject): EducationalStage
@@ -137,10 +159,22 @@ class ContentController extends Controller
         $data = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
+            'group_id' => 'nullable|integer',
         ]);
 
+        if (! empty($data['group_id'])) {
+            abort_unless($this->canAccessGroup((int) $data['group_id']), 403);
+            $group = Group::find($data['group_id']);
+            abort_unless($group && $group->subject_id === $subject->id, 422);
+        }
+
         $stage = $this->stageFor($subject);
-        $unit = $stage->units()->create($data + ['is_active' => true]);
+        $unit = $stage->units()->create([
+            'name_ar' => $data['name_ar'],
+            'name_en' => $data['name_en'] ?? null,
+            'group_id' => $data['group_id'] ?? null,
+            'is_active' => true,
+        ]);
 
         return response()->json(['success' => true, 'id' => $unit->id]);
     }

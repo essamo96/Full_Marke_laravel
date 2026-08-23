@@ -6,6 +6,7 @@ use App\Models\Subject;
 use App\Models\EducationalStage;
 use App\Models\EducationalUnit;
 use App\Models\EducationalLesson;
+use App\Models\Group;
 use App\Models\SubjectResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -26,7 +27,7 @@ class SubjectContentController extends AdminController
         return view('admin.subject_content.index', self::$data + compact('subjects'));
     }
 
-    public function manage($id)
+    public function manage(Request $request, $id)
     {
         try {
             $subject = Subject::findOrFail(Crypt::decrypt($id));
@@ -34,9 +35,17 @@ class SubjectContentController extends AdminController
             return redirect()->route('subject_content.view')->with('danger', __('app.not_found'));
         }
 
+        $groups = Group::where('subject_id', $subject->id)->orderBy('name')->get();
+
+        $selectedGroupId = $request->query('group') ? (int) $request->query('group') : null;
+        if ($selectedGroupId && ! $groups->contains('id', $selectedGroupId)) {
+            $selectedGroupId = null;
+        }
+
         $units = EducationalUnit::whereHas('stage', function ($q) use ($subject) {
                 $q->where('subject_id', $subject->id);
             })
+            ->forGroup($selectedGroupId)
             ->where('is_active', true)
             ->with(['lessons' => function ($q) {
                 $q->where('is_active', true)->orderBy('sort_order');
@@ -54,7 +63,7 @@ class SubjectContentController extends AdminController
             })
             ->toArray();
 
-        return view('admin.subject_content.manage', self::$data + compact('subject', 'units', 'processingResources'));
+        return view('admin.subject_content.manage', self::$data + compact('subject', 'units', 'processingResources', 'groups', 'selectedGroupId'));
     }
 
     private function stageFor(Subject $subject): EducationalStage
@@ -76,10 +85,21 @@ class SubjectContentController extends AdminController
         $data = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
+            'group_id' => 'nullable|integer|exists:groups,id',
         ]);
 
+        if (! empty($data['group_id'])) {
+            $group = Group::where('id', $data['group_id'])->where('subject_id', $subject->id)->first();
+            abort_unless($group, 422, __('app.not_found'));
+        }
+
         $stage = $this->stageFor($subject);
-        $unit = $stage->units()->create($data + ['is_active' => true]);
+        $unit = $stage->units()->create([
+            'name_ar' => $data['name_ar'],
+            'name_en' => $data['name_en'] ?? null,
+            'group_id' => $data['group_id'] ?? null,
+            'is_active' => true,
+        ]);
 
         return response()->json(['success' => true, 'id' => $unit->id]);
     }

@@ -12,10 +12,16 @@ class ResourcesController extends Controller
     {
         $student = Auth::guard('student')->user();
 
-        $subjectIds = $student->registrations()
+        $registrations = $student->registrations()
             ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
-            ->pluck('subject_id')
-            ->unique();
+            ->get();
+
+        $subjectIds = $registrations->pluck('subject_id')->unique();
+
+        // A student's group (and therefore which group-specific units they
+        // may see) can differ per subject, so this is keyed by subject_id
+        // rather than a single group for the whole page.
+        $groupIdBySubject = $registrations->pluck('group_id', 'subject_id');
 
         // Same unit -> lesson -> resource tree the admin/teacher content
         // manager is built around (Subject -> Stages -> Units -> Lessons ->
@@ -38,10 +44,14 @@ class ResourcesController extends Controller
                 }]);
             }])
             ->get()
-            ->map(function ($subject) {
+            ->map(function ($subject) use ($groupIdBySubject) {
                 // Flatten stages away — the student view only ever needs
                 // Subject -> Units -> Lessons, stages are an admin-side detail.
-                $subject->units = $subject->stages->flatMap->units->sortBy('sort_order')->values();
+                $groupId = $groupIdBySubject->get($subject->id);
+                $subject->units = $subject->stages->flatMap->units
+                    ->filter(fn ($unit) => is_null($unit->group_id) || $unit->group_id === $groupId)
+                    ->sortBy('sort_order')
+                    ->values();
                 return $subject;
             })
             ->filter(function ($subject) {

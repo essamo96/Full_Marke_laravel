@@ -144,15 +144,16 @@ class GroupsController extends Controller
                 });
         };
         $subject->load([
-            'stages' => function ($q) use ($hasVisibleResource) {
+            'stages' => function ($q) use ($hasVisibleResource, $group) {
                 $q->where('is_active', true)
-                    ->whereHas('units', function ($uq) use ($hasVisibleResource) {
-                        $uq->where('is_active', true)->whereHas('lessons', $hasVisibleResource);
+                    ->whereHas('units', function ($uq) use ($hasVisibleResource, $group) {
+                        $uq->forGroup($group->id)->where('is_active', true)->whereHas('lessons', $hasVisibleResource);
                     })
                     ->orderBy('sort_order');
             },
-            'stages.units' => function ($q) use ($hasVisibleResource) {
-                $q->where('is_active', true)
+            'stages.units' => function ($q) use ($hasVisibleResource, $group) {
+                $q->forGroup($group->id)
+                    ->where('is_active', true)
                     ->whereHas('lessons', $hasVisibleResource)
                     ->orderBy('sort_order');
             },

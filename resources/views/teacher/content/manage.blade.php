@@ -113,6 +113,23 @@
     </button>
   </div>
 
+  @if($groups->count() > 0)
+    <ul class="nav nav-pills mb-4 flex-wrap gap-2">
+      <li class="nav-item">
+        <a class="btn btn-sm {{ is_null($selectedGroupId) ? 'btn-luxury' : 'btn-outline-primary' }}" href="{{ route('teacher.content.manage', $subject) }}">
+          محتوى مشترك (كل مجموعاتي)
+        </a>
+      </li>
+      @foreach($groups as $group)
+        <li class="nav-item">
+          <a class="btn btn-sm {{ $selectedGroupId === $group->id ? 'btn-luxury' : 'btn-outline-primary' }}" href="{{ route('teacher.content.manage', $subject) }}?group={{ $group->id }}">
+            {{ $group->name }}
+          </a>
+        </li>
+      @endforeach
+    </ul>
+  @endif
+
   <div class="accordion teacher-accordion teacher-content-accordion" id="unitsAccordion">
     @forelse($units as $unit)
       <div class="glass-panel rounded-4 p-3 mb-3">
@@ -244,6 +261,14 @@
             <div class="mb-3">
               <label class="form-label">اسم الوحدة بالإنجليزية</label>
               <input type="text" name="name_en" class="form-control">
+            </div>
+            <input type="hidden" name="group_id" value="{{ $selectedGroupId }}">
+            <div class="text-muted small">
+              @if($selectedGroupId)
+                سيتم إضافة هذه الوحدة لمجموعة "{{ $groups->firstWhere('id', $selectedGroupId)?->name }}" فقط.
+              @else
+                سيتم إضافة هذه الوحدة كمحتوى مشترك يظهر لكل مجموعاتك.
+              @endif
             </div>
           </div>
           <div class="modal-footer">
