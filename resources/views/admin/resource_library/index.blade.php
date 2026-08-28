@@ -14,7 +14,7 @@
 </div>
 
 <div class="glass-panel rounded-4 p-4 mb-4" style="border: 1px solid var(--separator-color);">
-  <form action="{{ route('admin.resource-library.index') }}" method="GET" class="row g-3 align-items-end">
+  <form action="{{ route('resource-library.view') }}" method="GET" class="row g-3 align-items-end">
     <div class="col-md-5">
       <label class="form-label text-muted">اختر المادة الدراسية لعرض مكتبة المرفقات:</label>
       <select name="subject_id" class="form-select bg-dark text-light border-secondary" onchange="this.form.submit()">
