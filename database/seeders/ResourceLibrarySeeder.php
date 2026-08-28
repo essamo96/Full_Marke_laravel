@@ -29,9 +29,16 @@ class ResourceLibrarySeeder extends Seeder
         $perm = Permission::firstOrCreate(['name' => 'admin.resource-library.view', 'guard_name' => 'admin']);
 
         // 3. إعطاء الصلاحية للأدمن الرئيسي
-        $role = Role::findByName('super-admin', 'admin');
-        if ($role) {
+        try {
+            $role = Role::findByName('Super Admin', 'admin');
             $role->givePermissionTo($perm);
+        } catch (\Exception $e) {
+            // Ignore if role doesn't exist
+            // Try assigning directly to admin ID 1
+            $admin = \App\Models\Admin::find(1);
+            if ($admin) {
+                $admin->givePermissionTo($perm);
+            }
         }
     }
 }
