@@ -174,11 +174,12 @@
                                                                                 @endphp
                                                                                 
                                                                                 @php
-                                                                                    $previewLink = $resource->isExternalLink() ? $resource->url : route('subject_content.resources.file', $resource->id);
+                                                                                    $isExternal = $resource->isExternalLink() || in_array($resourceType, ['link', 'zoom']);
+                                                                                    $previewLink = $isExternal ? (preg_match('#^https?://#i', $resource->url) ? $resource->url : 'https://' . $resource->url) : route('subject_content.resources.file', $resource);
                                                                                     $btnIcon = $resourceType === 'link' ? 'ki-link' : 'ki-eye';
                                                                                     $btnText = $resourceType === 'link' ? 'فتح الرابط' : 'معاينة';
                                                                                     
-                                                                                    if ($resourceType === 'video') {
+                                                                                    if ($resourceType === 'video' && !$isExternal) {
                                                                                         $fsType = 'video';
                                                                                     } elseif ($resourceType === 'image') {
                                                                                         $fsType = 'image';
