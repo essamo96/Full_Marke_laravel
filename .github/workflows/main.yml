@@ -45,17 +45,6 @@ jobs:
           npm run build
 
       - name: 📂 Sync files to Server (FTP Deploy Action, FTPS)
-        # This action keeps a state file (.ftp-deploy-sync-state.json) on the
-        # server and diffs against it on every run, so it uploads only files
-        # that actually changed since the last successful deploy (and removes
-        # only files that were actually deleted) instead of re-mirroring
-        # everything like the previous lftp-based step did.
-        #
-        # Retried below up to 3 times total. Plain FTP started failing with
-        # "Timeout (control socket)" on every attempt — the host likely
-        # firewalls/drops unencrypted FTP from cloud IPs while still
-        # allowing FTPS, so the retries alternate protocol (FTPS/FTP/FTPS)
-        # instead of blindly repeating the same failing config three times.
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         id: ftp-deploy
         continue-on-error: true
