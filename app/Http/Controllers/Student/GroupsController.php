@@ -137,10 +137,10 @@ class GroupsController extends Controller
         // Only surface stages/units/lessons that still have at least one active
         // resource beneath them — a lesson whose only resource was deleted (or
         // deactivated) shouldn't show up to students as an empty entry.
-        $hasVisibleResource = function ($lessonQuery) {
+        $hasVisibleResource = function ($lessonQuery) use ($group) {
             $lessonQuery->where('is_active', true)
-                ->whereHas('resources', function ($q) {
-                    $q->where('is_active', true);
+                ->whereHas('resources', function ($q) use ($group) {
+                    $q->where('is_active', true)->forGroup($group->id);
                 });
         };
         $subject->load([
@@ -161,8 +161,8 @@ class GroupsController extends Controller
                 $hasVisibleResource($q);
                 $q->orderBy('sort_order');
             },
-            'stages.units.lessons.resources' => function ($q) {
-                $q->where('is_active', true)->orderBy('sort_order');
+            'stages.units.lessons.resources' => function ($q) use ($group) {
+                $q->where('is_active', true)->forGroup($group->id)->orderBy('sort_order');
             }
         ]);
 
@@ -170,6 +170,7 @@ class GroupsController extends Controller
         $generalResources = \App\Models\SubjectResource::where('subject_id', $subject->id)
             ->where('is_active', true)
             ->whereNull('educational_lesson_id')
+            ->forGroup($group->id)
             ->orderBy('sort_order')
             ->get();
 

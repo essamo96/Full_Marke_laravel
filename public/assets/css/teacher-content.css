@@ -1,0 +1,92 @@
+/* Teacher Content & Resource Card Styles */
+
+/* Color/border/background rules for these modals now come from the
+   shared .glass-panel + .modal-content.glass-panel rules in
+   landing.css, which read the active theme's CSS variables — the
+   hardcoded rgba(255,255,255,...) values previously here made the
+   modal invisible/illegible under theme-light. */
+.teacher-content-modal .form-control,
+.teacher-content-modal .form-select {
+  box-shadow: none;
+}
+
+.teacher-content-modal .btn-luxury {
+  box-shadow: 0 12px 30px var(--accent-glow);
+}
+
+.teacher-content-modal {
+  z-index: 1060;
+}
+
+.teacher-content-modal .modal-backdrop {
+  z-index: 1050;
+}
+
+/* .modal-content.glass-panel uses backdrop-filter, which keeps Chromium
+   from fully isolating a fullscreen descendant into the browser's top
+   layer — so the modal-header keeps painting on top of the fullscreen
+   video as a band across its upper part instead of disappearing behind
+   it. Hidden explicitly via this class (toggled in the fullscreenchange
+   handler below), same fix as the student-side viewers. */
+#modal_protected_viewer.video-is-fullscreen .modal-header,
+#modal_protected_viewer.video-is-fullscreen .modal-footer {
+  display: none !important;
+}
+
+.teacher-content-accordion .teacher-content-collapse {
+  visibility: visible !important;
+}
+
+.teacher-content-accordion .teacher-content-collapse:not(.show) {
+  display: none;
+}
+
+.teacher-content-accordion .teacher-content-collapse.show {
+  display: block;
+}
+
+.teacher-resource-card {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 1rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(14px);
+  height: 100%;
+}
+
+.teacher-resource-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,0.24);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.16);
+}
+
+.teacher-resource-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.teacher-resource-icon.video { background: linear-gradient(135deg, #ff6b6b, #ff3d71); }
+.teacher-resource-icon.document { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.teacher-resource-icon.image { background: linear-gradient(135deg, #10b981, #059669); }
+.teacher-resource-icon.link { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.teacher-resource-icon.zoom { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+.teacher-resource-badge {
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255,255,255,0.12);
+  color: var(--text-primary);
+}

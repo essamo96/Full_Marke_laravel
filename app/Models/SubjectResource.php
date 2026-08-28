@@ -15,13 +15,14 @@ class SubjectResource extends Model
     protected $table = 'subject_resources';
 
     protected $fillable = [
-        'subject_id', 'educational_lesson_id', 'category', 'title', 'type', 'url', 'description', 'is_active', 'sort_order',
+        'subject_id', 'educational_lesson_id', 'group_ids', 'category', 'title', 'type', 'url', 'description', 'is_active', 'sort_order',
         'processing_status', 'hls_path', 'encryption_key_path', 'duration_seconds', 'original_filename', 'processing_error',
         'allow_download',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'group_ids' => 'array',
     ];
 
     public function subject(): BelongsTo
@@ -42,6 +43,15 @@ class SubjectResource extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeForGroup($query, $groupId)
+    {
+        return $query->where(function ($q) use ($groupId) {
+            $q->whereNull('group_ids')
+              ->orWhereJsonContains('group_ids', (string) $groupId)
+              ->orWhereJsonContains('group_ids', (int) $groupId);
+        });
     }
 
     public function isVideo(): bool

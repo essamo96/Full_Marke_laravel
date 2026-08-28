@@ -122,12 +122,14 @@
                                                                             @if($resource->isExternalLink())
                                                                                 <a href="{{ $resource->url }}" target="_blank" class="btn btn-sm btn-light-primary">فتح</a>
                                                                             @elseif($resource->type === 'document' || $resource->isImage())
+                                                                                <button type="button" class="btn btn-sm btn-light-info" onclick="previewResource('{{ route('subject_content.resources.file', $resource) }}', '{{ $resource->type }}', '{{ addslashes($resource->title) }}')"><i class="bi bi-eye"></i> معاينة</button>
                                                                                 <a href="{{ route('subject_content.resources.file', $resource) }}" target="_blank" class="btn btn-sm btn-light-primary">فتح</a>
                                                                             @elseif($resource->processing_status === 'processing')
                                                                                 <span class="badge badge-light-warning">جاري المعالجة...</span>
                                                                             @elseif($resource->processing_status === 'failed')
                                                                                 <span class="badge badge-light-danger" title="{{ $resource->processing_error }}">فشلت المعالجة</span>
                                                                             @else
+                                                                                <button type="button" class="btn btn-sm btn-light-info" onclick="previewResource('{{ route('subject_content.resources.file', $resource) }}', 'video', '{{ addslashes($resource->title) }}')"><i class="bi bi-eye"></i> معاينة</button>
                                                                                 <span class="badge badge-light-success">جاهز (يُعرض للطالب)</span>
                                                                             @endif
                                                                         </td>
@@ -260,6 +262,14 @@
                             <option value="zoom">رابط Zoom</option>
                         </select>
                     </div>
+                    <div class="mb-5">
+                        <label class="form-label">المجموعات (اتركه فارغاً لجعله عاماً لجميع المجموعات)</label>
+                        <select name="group_ids[]" id="resource_groups" class="form-select" data-control="select2" data-placeholder="اختر المجموعات..." multiple="multiple">
+                            @foreach($groups as $group)
+                                <option value="{{ $group->id }}">{{ $group->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="mb-5" id="resource_video_field">
                         <label class="form-label">رفع فيديو</label>
                         <div class="d-flex align-items-center gap-3">
@@ -336,6 +346,14 @@
                             <option value="image">صورة</option>
                             <option value="link">رابط خارجي (يوتيوب، إلخ)</option>
                             <option value="zoom">رابط Zoom</option>
+                        </select>
+                    </div>
+                    <div class="mb-5">
+                        <label class="form-label">المجموعات (اتركه فارغاً لجعله عاماً لجميع المجموعات)</label>
+                        <select name="group_ids[]" id="edit_resource_groups" class="form-select" data-control="select2" data-placeholder="اختر المجموعات..." multiple="multiple">
+                            @foreach($groups as $group)
+                                <option value="{{ $group->id }}">{{ $group->name }}</option>
+                            @endforeach
                         </select>
                     </div>
                     
@@ -480,6 +498,24 @@
         </div>
     </div>
 </div>
+
+<!-- Preview Resource Modal -->
+<div class="modal fade" tabindex="-1" id="kt_modal_preview_resource">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="preview_modal_title">معاينة المرفق</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close" onclick="stopPreviewVideo()">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <div class="modal-body p-0" id="preview_modal_body" style="min-height: 500px; display: flex; align-items: center; justify-content: center; background-color: #000;">
+                <!-- Content will be injected here -->
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -752,6 +788,41 @@
         }).then(function (result) {
             if (result.value) callback();
         });
+    }
+
+    // Preview Resource logic
+    let modalPreviewResource;
+    document.addEventListener('DOMContentLoaded', function () {
+        modalPreviewResource = new bootstrap.Modal(document.getElementById('kt_modal_preview_resource'));
+        document.getElementById('kt_modal_preview_resource').addEventListener('hidden.bs.modal', function () {
+            stopPreviewVideo();
+        });
+    });
+
+    function previewResource(url, type, title) {
+        document.getElementById('preview_modal_title').textContent = title;
+        const body = document.getElementById('preview_modal_body');
+        body.innerHTML = ''; // clear previous content
+
+        if (type === 'video') {
+            body.innerHTML = `
+                <video controls autoplay style="width: 100%; max-height: 80vh; outline: none;">
+                    <source src="${url}" type="video/mp4">
+                    متصفحك لا يدعم تشغيل الفيديو.
+                </video>
+            `;
+        } else if (type === 'document' || type === 'image') {
+            body.innerHTML = `
+                <iframe src="${url}" style="width: 100%; height: 80vh; border: none;"></iframe>
+            `;
+        }
+
+        modalPreviewResource.show();
+    }
+
+    function stopPreviewVideo() {
+        const body = document.getElementById('preview_modal_body');
+        body.innerHTML = '';
     }
 
     $('#kt_form_add_unit').on('submit', function (e) {

@@ -7,93 +7,10 @@
 @section('content')
   <h1 class="h3 fw-bold mb-4" style="color: var(--text-primary);" data-en="Learning Resources" data-ar="الموارد التعليمية">Learning Resources</h1>
 
-  <style>
-    .resource-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--separator-color);
-      transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
-      min-width: 0;
-    }
-    .resource-card:not(:disabled):hover {
-      border-color: var(--accent-color);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(0,0,0,.12);
-    }
-    .resource-card.has-download {
-      padding-inline-end: 64px !important;
-    }
-    .resource-card .resource-text {
-      min-width: 0;
-      overflow-wrap: anywhere;
-      text-align: start;
-    }
-    .resource-icon-circle {
-      width: 44px; height: 44px;
-      background: rgba(197,168,128,0.12);
-      color: var(--accent-color);
-      border: 1px solid rgba(197,168,128,0.25);
-    }
-    .resource-download-btn {
-      position: absolute;
-      top: 50%;
-      inset-inline-end: 24px;
-      transform: translateY(-50%);
-      z-index: 10;
-      width: 40px; height: 40px;
-      background: rgba(197,168,128,0.15);
-      color: var(--accent-color);
-      text-decoration: none;
-      transition: background .2s ease;
-    }
-    .resource-download-btn:hover {
-      background: rgba(197,168,128,0.3);
-      color: var(--accent-color);
-    }
-
-    /* Viewer size modes — student-controlled small/medium/large display for
-       every secure viewer modal (video, document, image, link). */
-    .viewer-modal.size-sm { max-width: 420px; }
-    .viewer-modal.size-md { max-width: 800px; }
-    /* "large" uses Bootstrap's own .modal-fullscreen class (added/removed in
-       JS) so it genuinely fills the entire viewport — no margins, no rounded
-       corners — instead of just being a wide dialog. */
-    .viewer-modal.modal-fullscreen .modal-content { border-radius: 0; }
-    .viewer-modal.modal-fullscreen #lessonVideoContainer,
-    .viewer-modal.modal-fullscreen #lessonLinkEmbedWrap {
-      height: 100% !important;
-      aspect-ratio: unset !important;
-    }
-    .viewer-modal.modal-fullscreen #lessonDocumentContainer,
-    .viewer-modal.modal-fullscreen #lessonImageContainer {
-      height: 100% !important;
-      min-height: 0 !important;
-    }
-    .viewer-modal.modal-fullscreen .modal-body {
-      display: flex;
-      flex-direction: column;
-      height: calc(100vh - 80px);
-    }
-    .viewer-size-toggle {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-inline-end: 12px;
-    }
-    .viewer-size-toggle button {
-      width: 30px; height: 30px;
-      display: flex; align-items: center; justify-content: center;
-      background: transparent;
-      border: 1px solid var(--separator-color);
-      border-radius: 6px;
-      color: var(--text-secondary);
-      transition: background .15s ease, color .15s ease;
-    }
-    .viewer-size-toggle button.active {
-      background: var(--accent-color);
-      color: #000;
-      border-color: var(--accent-color);
-    }
-  </style>
+@push('styles')
+  <link rel="stylesheet" href="{{ asset_ver('assets/css/student-resources.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('assets/css/curriculum-accordion.css') }}">
+@endpush
 
   @if($subjects->isEmpty())
     <div class="glass-panel rounded-4 p-5 text-center">
@@ -110,34 +27,46 @@
           <span class="badge rounded-pill px-3 py-2" style="background: rgba(197,168,128,0.12); color: var(--accent-color);">{{ $subjectResourceCount }} <span data-en="resource(s)" data-ar="مورد">مورد</span></span>
         </div>
 
-        @foreach($subject->units as $unit)
-          @php $unitResourceCount = $unit->lessons->sum(fn($l) => $l->resources->count()); @endphp
-          @continue($unitResourceCount === 0)
-          <div class="mb-3">
-            <h6 class="fw-bold mb-2 d-flex align-items-center gap-2" style="color: var(--text-primary);">
-              <i class="bi bi-folder2-open" style="color: var(--accent-color);"></i>
-              {{ $unit->name_ar ?? $unit->name_en }}
-            </h6>
-
-            @foreach($unit->lessons as $lesson)
-              @continue($lesson->resources->isEmpty())
-              <div class="rounded-3 p-3 mb-3" style="background: var(--bg-secondary); border: 1px solid var(--separator-color);">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-                  <span class="fw-semibold d-flex align-items-center gap-2" style="color: var(--text-primary);">
-                    <i class="bi bi-journal-text opacity-75"></i>
-                    {{ $lesson->name_ar ?? $lesson->name_en }}
-                  </span>
-                  <span class="badge rounded-pill px-3 py-1" style="background: rgba(197,168,128,0.1); color: var(--accent-color); font-size: 0.75rem;">{{ $lesson->resources->count() }} <span data-en="resource(s)" data-ar="مورد">مورد</span></span>
-                </div>
-                <div class="row g-3">
-                  @foreach($lesson->resources as $resource)
-                    @include('student.resources.parts.resource-card', ['resource' => $resource])
-                  @endforeach
-                </div>
+        <div class="accordion curriculum-accordion" id="accordion_subject_{{ $subject->id }}">
+          @foreach($subject->units as $unitIndex => $unit)
+            @php $unitResourceCount = $unit->lessons->sum(fn($l) => $l->resources->count()); @endphp
+            @continue($unitResourceCount === 0)
+            
+            <div class="unit-card">
+              <button type="button" class="unit-toggle" data-bs-toggle="collapse" data-bs-target="#unitPanel{{ $unit->id }}" aria-expanded="{{ $unitIndex === 0 ? 'true' : 'false' }}">
+                <span class="unit-num">{{ $unitIndex + 1 }}</span>
+                <span class="flex-grow-1">
+                  <span class="unit-title d-block">{{ $unit->name_ar ?? $unit->name_en }}</span>
+                  <span class="unit-meta d-block">{{ $unit->lessons->count() }} <span data-en="lesson(s)" data-ar="درس">درس</span> · {{ $unitResourceCount }} <span data-en="resource(s)" data-ar="مورد">مورد</span></span>
+                </span>
+                <i class="bi bi-chevron-down"></i>
+              </button>
+              
+              <div id="unitPanel{{ $unit->id }}" class="collapse {{ $unitIndex === 0 ? 'show' : '' }}">
+                @foreach($unit->lessons as $lesson)
+                  @continue($lesson->resources->isEmpty())
+                  <div class="lesson-block">
+                    <button type="button" class="lesson-toggle collapsed" data-bs-toggle="collapse" data-bs-target="#lessonPanel{{ $lesson->id }}" aria-expanded="false">
+                      <i class="bi bi-journal-text" style="color: var(--accent-color);"></i>
+                      <span>{{ $lesson->name_ar ?? $lesson->name_en }}</span>
+                      <span class="lesson-count">{{ $lesson->resources->count() }}</span>
+                      <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div id="lessonPanel{{ $lesson->id }}" class="collapse">
+                      <div class="lesson-resources">
+                        <div class="row g-3">
+                          @foreach($lesson->resources as $resource)
+                            @include('student.resources.parts.resource-card', ['resource' => $resource])
+                          @endforeach
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                @endforeach
               </div>
-            @endforeach
-          </div>
-        @endforeach
+            </div>
+          @endforeach
+        </div>
       </div>
     @endforeach
   @endif

@@ -141,6 +141,8 @@ class SubjectContentController extends AdminController
             'original_filename' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'allow_download' => 'nullable|boolean',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'integer|exists:groups,id',
         ]);
 
         $unit = $lesson->unit;
@@ -184,6 +186,7 @@ class SubjectContentController extends AdminController
             'description' => $data['description'] ?? null,
             'allow_download' => $data['allow_download'] ?? false,
             'is_active' => true,
+            'group_ids' => !empty($data['group_ids']) ? array_map('intval', $data['group_ids']) : null,
         ]);
 
         return response()->json(['success' => true, 'id' => $resource->getRouteKey(), 'processing_status' => $resource->processing_status]);
@@ -200,6 +203,8 @@ class SubjectContentController extends AdminController
             'original_filename' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'allow_download' => 'nullable|boolean',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'integer|exists:groups,id',
         ]);
 
         $storedPath = $resource->url;
@@ -244,6 +249,7 @@ class SubjectContentController extends AdminController
             'processing_status' => $processingStatus,
             'description' => $data['description'] ?? null,
             'allow_download' => $data['allow_download'] ?? false,
+            'group_ids' => !empty($data['group_ids']) ? array_map('intval', $data['group_ids']) : null,
         ]);
 
         return response()->json(['success' => true, 'id' => $resource->getRouteKey(), 'processing_status' => $processingStatus]);

@@ -226,6 +226,8 @@ class ContentController extends Controller
             'original_filename' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'allow_download' => 'nullable|boolean',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'integer|exists:groups,id',
         ]);
 
         $storedPath = null;
@@ -253,6 +255,7 @@ class ContentController extends Controller
             'description' => $data['description'] ?? null,
             'allow_download' => $data['allow_download'] ?? false,
             'is_active' => true,
+            'group_ids' => !empty($data['group_ids']) ? array_map('intval', $data['group_ids']) : null,
         ]);
 
         return response()->json(['success' => true, 'id' => $resource->getRouteKey()]);

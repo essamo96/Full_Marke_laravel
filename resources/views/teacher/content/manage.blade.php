@@ -13,98 +13,10 @@
 
 @section('content')
 
-  <style>
-    /* Color/border/background rules for these modals now come from the
-       shared .glass-panel + .modal-content.glass-panel rules in
-       landing.css, which read the active theme's CSS variables — the
-       hardcoded rgba(255,255,255,...) values previously here made the
-       modal invisible/illegible under theme-light. */
-    .teacher-content-modal .form-control,
-    .teacher-content-modal .form-select {
-      box-shadow: none;
-    }
-
-    .teacher-content-modal .btn-luxury {
-      box-shadow: 0 12px 30px var(--accent-glow);
-    }
-
-    .teacher-content-modal {
-      z-index: 1060;
-    }
-
-    .teacher-content-modal .modal-backdrop {
-      z-index: 1050;
-    }
-
-    /* .modal-content.glass-panel uses backdrop-filter, which keeps Chromium
-       from fully isolating a fullscreen descendant into the browser's top
-       layer — so the modal-header keeps painting on top of the fullscreen
-       video as a band across its upper part instead of disappearing behind
-       it. Hidden explicitly via this class (toggled in the fullscreenchange
-       handler below), same fix as the student-side viewers. */
-    #modal_protected_viewer.video-is-fullscreen .modal-header,
-    #modal_protected_viewer.video-is-fullscreen .modal-footer {
-      display: none !important;
-    }
-
-    .teacher-content-accordion .teacher-content-collapse {
-      visibility: visible !important;
-    }
-
-    .teacher-content-accordion .teacher-content-collapse:not(.show) {
-      display: none;
-    }
-
-    .teacher-content-accordion .teacher-content-collapse.show {
-      display: block;
-    }
-
-    .teacher-resource-card {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 1rem;
-      padding: 1rem;
-      transition: all 0.2s ease;
-      backdrop-filter: blur(14px);
-      height: 100%;
-    }
-
-    .teacher-resource-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(255,255,255,0.24);
-      box-shadow: 0 10px 24px rgba(0,0,0,0.16);
-    }
-
-    .teacher-resource-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: 14px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.15rem;
-      color: white;
-      flex-shrink: 0;
-    }
-
-    .teacher-resource-icon.video { background: linear-gradient(135deg, #ff6b6b, #ff3d71); }
-    .teacher-resource-icon.document { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    .teacher-resource-icon.image { background: linear-gradient(135deg, #10b981, #059669); }
-    .teacher-resource-icon.link { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-    .teacher-resource-icon.zoom { background: linear-gradient(135deg, #f59e0b, #d97706); }
-
-    .teacher-resource-badge {
-      border-radius: 999px;
-      padding: 0.35rem 0.7rem;
-      font-size: 0.78rem;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      background: rgba(255,255,255,0.12);
-      color: var(--text-primary);
-    }
-  </style>
+@push('styles')
+  <link rel="stylesheet" href="{{ asset_ver('assets/css/teacher-content.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('assets/css/curriculum-accordion.css') }}">
+@endpush
 
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h1 class="h3 fw-bold mb-0" style="color: var(--text-primary);">{{ $subject->name }}</h1>
@@ -131,106 +43,115 @@
   @endif
 
   <div class="accordion teacher-accordion teacher-content-accordion" id="unitsAccordion">
-    @forelse($units as $unit)
-      <div class="glass-panel rounded-4 p-3 mb-3">
-        <div class="d-flex justify-content-between align-items-center" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#unit_{{ $unit->id }}">
-          <h5 class="fw-bold mb-0" style="color: var(--text-primary);">{{ $unit->name_ar ?? $unit->name_en }}</h5>
-          <div class="d-flex gap-2">
+    @forelse($units as $unitIndex => $unit)
+      <div class="unit-card mb-3">
+        <div class="unit-toggle" data-bs-toggle="collapse" data-bs-target="#unit_{{ $unit->id }}" aria-expanded="{{ $unitIndex === 0 ? 'true' : 'false' }}">
+          <span class="unit-num">{{ $unitIndex + 1 }}</span>
+          <span class="flex-grow-1">
+            <span class="unit-title d-block">{{ $unit->name_ar ?? $unit->name_en }}</span>
+            <span class="unit-meta d-block">{{ $unit->lessons->count() }} <span data-en="lesson(s)" data-ar="درس">درس</span></span>
+          </span>
+          <div class="d-flex gap-2 ms-auto me-3 align-items-center">
             <button type="button" class="btn btn-sm btn-outline-success" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal('{{ $unit->getRouteKey() }}')"><i class="bi bi-plus-lg"></i></button>
             <button type="button" class="btn btn-sm btn-outline-danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit('{{ $unit->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
           </div>
+          <i class="bi bi-chevron-down"></i>
         </div>
-        <div id="unit_{{ $unit->id }}" class="collapse mt-3 teacher-content-collapse">
+        
+        <div id="unit_{{ $unit->id }}" class="collapse {{ $unitIndex === 0 ? 'show' : '' }} teacher-content-collapse">
           @forelse($unit->lessons as $lesson)
-            <div class="rounded-3 p-3 mb-2" style="background: var(--bg-secondary);">
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="fw-medium" style="color: var(--text-primary);">{{ $lesson->name_ar ?? $lesson->name_en }}</span>
-                <div class="d-flex gap-2 align-items-center">
-                  <span class="badge bg-gold text-dark">{{ $lesson->resources->count() }} مرفق</span>
-                  <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#lesson_res_{{ $lesson->id }}">إدارة المرفقات</button>
-                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteLesson('{{ $lesson->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
+            <div class="lesson-block">
+              <div class="lesson-toggle collapsed" data-bs-toggle="collapse" data-bs-target="#lesson_res_{{ $lesson->id }}" aria-expanded="false">
+                <i class="bi bi-journal-text" style="color: var(--accent-color);"></i>
+                <span class="flex-grow-1">{{ $lesson->name_ar ?? $lesson->name_en }}</span>
+                
+                <div class="d-flex gap-2 align-items-center me-3">
+                  <span class="lesson-count">{{ $lesson->resources->count() }} مرفق</span>
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteLesson('{{ $lesson->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                 </div>
+                <i class="bi bi-chevron-down"></i>
               </div>
-              <div id="lesson_res_{{ $lesson->id }}" class="collapse mt-3 teacher-content-collapse">
-                <div class="row g-3 mb-3">
-                  @forelse($lesson->resources as $resource)
-                    @php
-                      $resourceType = $resource->type ?? 'link';
-                      $iconMap = [
-                        'video' => 'bi-play-circle-fill',
-                        'document' => 'bi-file-earmark-pdf-fill',
-                        'image' => 'bi-image-fill',
-                        'link' => 'bi-link-45deg',
-                        'zoom' => 'bi-camera-video-fill',
-                      ];
-                      $icon = $iconMap[$resourceType] ?? 'bi-link-45deg';
-                      $title = match($resourceType) {
-                        'video' => 'فيديو',
-                        'document' => 'ملف',
-                        'image' => 'صورة',
-                        'zoom' => 'Zoom',
-                        default => 'رابط',
-                      };
-                    @endphp
-                    <div class="col-12 col-md-6 col-xl-4">
-                      <div class="teacher-resource-card">
-                        <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
-                          <div class="d-flex align-items-center gap-2">
-                            <span class="teacher-resource-icon {{ $resourceType }}"><i class="{{ $icon }}"></i></span>
-                            <div>
-                              <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
-                              <div class="teacher-resource-badge mt-1">{{ $title }}</div>
+
+              <div id="lesson_res_{{ $lesson->id }}" class="collapse teacher-content-collapse">
+                <div class="lesson-resources mt-2">
+                  <div class="row g-3 mb-3">
+                    @forelse($lesson->resources as $resource)
+                      @php
+                        $resourceType = $resource->type ?? 'link';
+                        $iconMap = [
+                          'video' => 'bi-play-circle-fill',
+                          'document' => 'bi-file-earmark-pdf-fill',
+                          'image' => 'bi-image-fill',
+                          'link' => 'bi-link-45deg',
+                          'zoom' => 'bi-camera-video-fill',
+                        ];
+                        $icon = $iconMap[$resourceType] ?? 'bi-link-45deg';
+                        $title = match($resourceType) {
+                          'video' => 'فيديو',
+                          'document' => 'ملف',
+                          'image' => 'صورة',
+                          'zoom' => 'Zoom',
+                          default => 'رابط',
+                        };
+                      @endphp
+                      <div class="col-12 col-md-6 col-xl-4">
+                        <div class="teacher-resource-card h-100">
+                          <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                              <span class="teacher-resource-icon {{ $resourceType }}"><i class="{{ $icon }}"></i></span>
+                              <div>
+                                <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
+                                <div class="teacher-resource-badge mt-1">{{ $title }}</div>
+                              </div>
                             </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                           </div>
-                          <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
-                        </div>
 
-                        <div class="small text-muted mb-3">
-                          @if($resource->isExternalLink())
-                            <span>رابط خارجي</span>
-                          @elseif($resource->processing_status === 'processing')
-                            <span class="text-warning">جاري المعالجة...</span>
-                          @elseif($resource->processing_status === 'failed')
-                            <span class="text-danger">فشلت المعالجة</span>
-                          @else
-                            <span class="text-success">متاح للطلاب</span>
-                          @endif
-                        </div>
+                          <div class="small text-muted mb-3">
+                            @if($resource->isExternalLink())
+                              <span>رابط خارجي</span>
+                            @elseif($resource->processing_status === 'processing')
+                              <span class="text-warning">جاري المعالجة...</span>
+                            @elseif($resource->processing_status === 'failed')
+                              <span class="text-danger">فشلت المعالجة</span>
+                            @else
+                              <span class="text-success">متاح للطلاب</span>
+                            @endif
+                          </div>
 
-                        {{-- Everything opens in the in-page protected viewer instead of a
-                             new tab, so the underlying file URL is never exposed in the
-                             address bar or available to "open in new tab" / "save as". --}}
-                        <div class="d-flex flex-wrap gap-2">
-                          @if($resource->isExternalLink())
-                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                    onclick="openProtectedViewer('link', @js($resource->url), @js($resource->title))">فتح الرابط</button>
-                          @elseif($resource->type === 'document' || $resource->isImage())
-                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                    onclick="openProtectedViewer('{{ $resource->isImage() ? 'image' : 'document' }}', @js(route('teacher.content.view-file', $resource)), @js($resource->title))">فتح الملف</button>
-                          @elseif($resource->type === 'video' && $resource->isReady())
-                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                    onclick="openProtectedViewer('video', @js(route('teacher.content.view-file', $resource)), @js($resource->title))">مشاهدة الفيديو</button>
-                          @elseif($resource->type === 'video')
-                            <span class="btn btn-sm btn-outline-secondary disabled">الفيديو قيد المعالجة</span>
-                          @else
-                            <span class="btn btn-sm btn-outline-secondary disabled">لا يوجد محتوى</span>
-                          @endif
+                          <div class="d-flex flex-wrap gap-2 mt-auto">
+                            @if($resource->isExternalLink())
+                              <button type="button" class="btn btn-sm btn-outline-primary w-100"
+                                      onclick="openProtectedViewer('link', @js($resource->url), @js($resource->title))">فتح الرابط</button>
+                            @elseif($resource->type === 'document' || $resource->isImage())
+                              <button type="button" class="btn btn-sm btn-outline-primary w-100"
+                                      onclick="openProtectedViewer('{{ $resource->isImage() ? 'image' : 'document' }}', @js(route('teacher.content.view-file', $resource)), @js($resource->title))">فتح الملف</button>
+                            @elseif($resource->type === 'video' && $resource->isReady())
+                              <button type="button" class="btn btn-sm btn-outline-primary w-100"
+                                      onclick="openProtectedViewer('video', @js(route('teacher.content.view-file', $resource)), @js($resource->title))">مشاهدة الفيديو</button>
+                            @elseif($resource->type === 'video')
+                              <span class="btn btn-sm btn-outline-secondary disabled w-100">الفيديو قيد المعالجة</span>
+                            @else
+                              <span class="btn btn-sm btn-outline-secondary disabled w-100">لا يوجد محتوى</span>
+                            @endif
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  @empty
-                    <div class="col-12">
-                      <div class="text-center text-muted py-3" data-en="No resources for this lesson." data-ar="لا توجد مرفقات لهذا الدرس.">لا توجد مرفقات لهذا الدرس.</div>
-                    </div>
-                  @endforelse
-                </div>
-                <div class="d-flex flex-wrap gap-2">
-                  <button type="button" class="btn btn-sm btn-outline-success" onclick="selectVideoForLesson('{{ $lesson->getRouteKey() }}')">
-                    <i class="bi bi-cloud-arrow-up me-1"></i> رفع فيديو
-                  </button>
-                  <button type="button" class="btn btn-sm btn-outline-primary" onclick="openResourceModal('{{ $lesson->getRouteKey() }}')">
-                    <i class="bi bi-plus-lg me-1"></i> إضافة مرفق (PDF / رابط)
-                  </button>
+                    @empty
+                      <div class="col-12">
+                        <div class="text-center text-muted py-3" data-en="No resources for this lesson." data-ar="لا توجد مرفقات لهذا الدرس.">لا توجد مرفقات لهذا الدرس.</div>
+                      </div>
+                    @endforelse
+                  </div>
+                  
+                  <div class="d-flex flex-wrap gap-2 pt-2 border-top border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="selectVideoForLesson('{{ $lesson->getRouteKey() }}')">
+                      <i class="bi bi-cloud-arrow-up me-1"></i> رفع فيديو
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="openResourceModal('{{ $lesson->getRouteKey() }}')">
+                      <i class="bi bi-plus-lg me-1"></i> إضافة مرفق (PDF / رابط)
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -330,6 +251,14 @@
                 <option value="image">صورة</option>
                 <option value="link">رابط خارجي (يوتيوب، إلخ)</option>
                 <option value="zoom">رابط Zoom</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">المجموعات (اتركه فارغاً لجعله عاماً لجميع مجموعاتك)</label>
+              <select name="group_ids[]" id="resource_groups" class="form-select" data-control="select2" data-placeholder="اختر المجموعات..." multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}">{{ $group->name }}</option>
+                @endforeach
               </select>
             </div>
             <div class="mb-3" id="resource_video_field">
