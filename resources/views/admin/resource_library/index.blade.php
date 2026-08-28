@@ -156,12 +156,16 @@
                                                                             @foreach($groupLessonResources as $resource)
                                                                                 @php
                                                                                     $resourceType = $resource->type ?? 'link';
+                                                                                    if ($resourceType === 'link' && str_contains($resource->url ?? '', 'drive.google.com')) {
+                                                                                        $resourceType = 'drive';
+                                                                                    }
                                                                                     $iconMap = [
                                                                                         'video' => 'ki-youtube',
                                                                                         'document' => 'ki-file',
                                                                                         'image' => 'ki-picture',
                                                                                         'link' => 'ki-link',
                                                                                         'zoom' => 'ki-monitor-mobile',
+                                                                                        'drive' => 'ki-cloud',
                                                                                     ];
                                                                                     $icon = $iconMap[$resourceType] ?? 'ki-link';
                                                                                     $title = match($resourceType) {
@@ -169,6 +173,7 @@
                                                                                         'document' => 'ملف',
                                                                                         'image' => 'صورة',
                                                                                         'zoom' => 'Zoom',
+                                                                                        'drive' => 'جوجل درايف',
                                                                                         default => 'رابط',
                                                                                     };
                                                                                 @endphp

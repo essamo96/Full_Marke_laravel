@@ -30,6 +30,7 @@
 .admin-resource-icon.image { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 .admin-resource-icon.link { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
 .admin-resource-icon.zoom { background: rgba(45, 140, 255, 0.15); color: #2D8CFF; }
+.admin-resource-icon.drive { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
 
 .admin-resource-badge {
   font-size: 0.7rem;
