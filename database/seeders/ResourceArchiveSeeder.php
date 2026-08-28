@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\PermissionsGroup;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class ResourceArchiveSeeder extends Seeder
 {
@@ -13,42 +15,36 @@ class ResourceArchiveSeeder extends Seeder
      */
     public function run(): void
     {
-        // Define route base name to easily manage it
         $routeName = 'resource-archive';
 
-        // 1. Check if "Resource Archive" menu item already exists
-        $existingMenu = PermissionsGroup::where('name', $routeName)->first();
+        $maxSort = PermissionsGroup::where('parent_id', 0)->max('sort') ?? 0;
 
-        if (!$existingMenu) {
-            // Find a good parent or create it as a root menu
-            // Let's create it as a root menu for visibility, next to "مكتبة المرفقات"
-            
-            // Get max sort
-            $maxSort = PermissionsGroup::where('parent_id', 0)->max('sort') ?? 0;
-
-            $menu = PermissionsGroup::create([
-                'name' => $routeName,
-                'name_ar' => 'أرشيف المرفقات',
+        // 1. إضافة الرابط في القائمة الجانبية للأدمن (جدول permissions_groups)
+        DB::table('permissions_groups')->updateOrInsert(
+            ['name' => $routeName],
+            [
                 'name_en' => 'Resource Archive',
-                'parent_id' => 0,
+                'name_ar' => 'أرشيف المرفقات',
                 'icon' => 'ki-trash',
                 'color' => 'danger',
+                'parent_id' => 0,
                 'sort' => $maxSort + 1,
-            ]);
+            ]
+        );
 
-            // Give permission to super admin
-            // Check for the super admin role
-            $superAdminRole = DB::table('roles')->where('name', 'super-admin')->first() 
-                            ?? DB::table('roles')->where('name', 'Super Admin')->first()
-                            ?? DB::table('roles')->first();
+        // 2. إنشاء صلاحية العرض في نظام Spatie
+        $perm = Permission::firstOrCreate(['name' => 'admin.resource-archive.view', 'guard_name' => 'admin']);
 
-            if ($superAdminRole) {
-                // Add view permission
-                DB::table('permission_role')->insertOrIgnore([
-                    'permission_id' => $menu->id,
-                    'role_id' => $superAdminRole->id,
-                    'permission_type' => 'view' // as used by this project
-                ]);
+        // 3. إعطاء الصلاحية للأدمن الرئيسي
+        try {
+            $role = Role::findByName('Super Admin', 'admin');
+            $role->givePermissionTo($perm);
+        } catch (\Exception $e) {
+            // Ignore if role doesn't exist
+            // Try assigning directly to admin ID 1
+            $admin = \App\Models\Admin::find(1);
+            if ($admin) {
+                $admin->givePermissionTo($perm);
             }
         }
     }
