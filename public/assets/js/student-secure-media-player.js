@@ -114,18 +114,26 @@
     bar.className = 'smp-controls';
     bar.innerHTML =
       '<button type="button" data-act="play" title="تشغيل / إيقاف">▶</button>' +
+      '<button type="button" data-act="rewind" title="تأخير 10 ثوان" style="font-size:14px;line-height:1;">⏪</button>' +
+      '<button type="button" data-act="forward" title="تقديم 10 ثوان" style="font-size:14px;line-height:1;">⏩</button>' +
       '<input type="range" class="smp-progress" data-act="seek" min="0" max="1000" value="0" step="1">' +
       '<div class="smp-time" data-act="time">0:00 / 0:00</div>' +
+      '<button type="button" data-act="speed" title="سرعة التشغيل" style="font-size:13px;font-weight:bold;">1x</button>' +
       '<button type="button" data-act="mute" title="كتم">🔊</button>' +
       '<button type="button" data-act="fs" title="ملء الشاشة داخل المنصة">⛶</button>';
     root.appendChild(bar);
 
     var playBtn = bar.querySelector('[data-act="play"]');
+    var rewindBtn = bar.querySelector('[data-act="rewind"]');
+    var forwardBtn = bar.querySelector('[data-act="forward"]');
     var seek = bar.querySelector('[data-act="seek"]');
     var timeEl = bar.querySelector('[data-act="time"]');
+    var speedBtn = bar.querySelector('[data-act="speed"]');
     var muteBtn = bar.querySelector('[data-act="mute"]');
     var fsBtn = bar.querySelector('[data-act="fs"]');
     var seeking = false;
+    var speeds = [1, 1.25, 1.5, 2, 0.5, 0.75];
+    var currentSpeedIdx = 0;
 
     function setPlaying(isPlaying) {
       playBtn.textContent = isPlaying ? '❚❚' : '▶';
@@ -139,6 +147,14 @@
 
     big.addEventListener('click', function () { handlers.togglePlay(); });
     playBtn.addEventListener('click', function () { handlers.togglePlay(); });
+    rewindBtn.addEventListener('click', function () { handlers.seekOffset(-10); });
+    forwardBtn.addEventListener('click', function () { handlers.seekOffset(10); });
+    speedBtn.addEventListener('click', function () {
+      currentSpeedIdx = (currentSpeedIdx + 1) % speeds.length;
+      var rate = speeds[currentSpeedIdx];
+      speedBtn.textContent = rate + 'x';
+      handlers.setSpeed(rate);
+    });
     muteBtn.addEventListener('click', function () {
       var muted = handlers.toggleMute();
       muteBtn.textContent = muted ? '🔇' : '🔊';
@@ -278,6 +294,13 @@
             if (!video.duration) return;
             video.currentTime = ratio * video.duration;
           },
+          seekOffset: function (seconds) {
+            if (!video.duration) return;
+            video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+          },
+          setSpeed: function (rate) {
+            video.playbackRate = rate;
+          },
           destroy: function () {
             destroyed = true;
             if (poll) clearInterval(poll);
@@ -365,6 +388,14 @@
                 seek: function (ratio) {
                   var d = player.getDuration() || 0;
                   player.seekTo(ratio * d, true);
+                },
+                seekOffset: function (seconds) {
+                  var d = player.getDuration() || 0;
+                  var c = player.getCurrentTime() || 0;
+                  player.seekTo(Math.max(0, Math.min(d, c + seconds)), true);
+                },
+                setSpeed: function (rate) {
+                  player.setPlaybackRate(rate);
                 },
                 destroy: function () {
                   if (poll) clearInterval(poll);
@@ -484,6 +515,8 @@
       togglePlay: function () { if (engineApi) engineApi.togglePlay(); },
       toggleMute: function () { return engineApi ? engineApi.toggleMute() : false; },
       seek: function (ratio) { if (engineApi) engineApi.seek(ratio); },
+      seekOffset: function (seconds) { if (engineApi && engineApi.seekOffset) engineApi.seekOffset(seconds); },
+      setSpeed: function (rate) { if (engineApi && engineApi.setSpeed) engineApi.setSpeed(rate); },
       toggleFullscreen: function () { fullscreen.toggle(); },
     });
 
