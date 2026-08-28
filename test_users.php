@@ -1,1 +1,0 @@
-﻿<?php require 'vendor/autoload.php'; $app = require_once 'bootstrap/app.php'; Auth::guard('admin')->loginUsingId(1); $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class); $response = $kernel->handle(Illuminate\Http\Request::create('/admin/users/list', 'GET')); file_put_contents('test_dt.json', $response->getContent());

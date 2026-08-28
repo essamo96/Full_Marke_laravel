@@ -207,7 +207,7 @@
                                                                                                 <i class="ki-duotone ki-copy fs-4 me-1"><span class="path1"></span><span class="path2"></span></i> نسخ الرابط
                                                                                             </button>
 
-                                                                                            <a href="{{ $previewLink }}" data-fslightbox="gallery_{{ $resource->id }}" data-type="{{ $fsType }}" class="btn btn-sm btn-light-success fw-bold">
+                                                                                            <a href="{{ $previewLink }}" target="_blank" class="btn btn-sm btn-light-success fw-bold">
                                                                                                 <i class="ki-duotone {{ $btnIcon }} fs-4 me-1"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i> {{ $btnText }}
                                                                                             </a>
 
@@ -248,7 +248,6 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('assets/admin/plugins/custom/fslightbox/fslightbox.bundle.js') }}"></script>
 <script>
     function copyToClipboard(button) {
         const link = button.getAttribute('data-clipboard-text');
