@@ -207,9 +207,20 @@
                                                                                                 <i class="ki-duotone ki-copy fs-4 me-1"><span class="path1"></span><span class="path2"></span></i> نسخ الرابط
                                                                                             </button>
 
-                                                                                            <a href="{{ $previewLink }}" target="_blank" class="btn btn-sm btn-light-success fw-bold">
-                                                                                                <i class="ki-duotone {{ $btnIcon }} fs-4 me-1"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i> {{ $btnText }}
-                                                                                            </a>
+                                                                                            @php
+                                                                                                if ($resourceType === 'video' && !$isExternal) {
+                                                                                                    $viewerType = 'video';
+                                                                                                } elseif ($resourceType === 'image') {
+                                                                                                    $viewerType = 'image';
+                                                                                                } elseif (in_array($resourceType, ['link', 'zoom'])) {
+                                                                                                    $viewerType = 'external_link';
+                                                                                                } else {
+                                                                                                    $viewerType = 'iframe';
+                                                                                                }
+                                                                                            @endphp
+                                                                                            <button type="button" class="btn btn-sm btn-light-success fw-bold" onclick="openPreviewModal('{{ $previewLink }}', '{{ $viewerType }}', '{{ addslashes($resource->title) }}')">
+                                                                                                <i class="ki-duotone ki-eye fs-4 me-1"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i> معاينة
+                                                                                            </button>
 
                                                                                             <a href="{{ route('subject_content.manage', \Illuminate\Support\Facades\Crypt::encrypt($selectedSubject->id)) }}" class="btn btn-sm btn-light-primary fw-bold">
                                                                                                 <i class="ki-duotone ki-pencil fs-4 me-1"><span class="path1"></span><span class="path2"></span></i> تعديل
@@ -245,10 +256,70 @@
     </div>
 </div>
 
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="previewModalTitle">معاينة المورد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" id="previewModalBody" style="min-height: 400px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                <!-- Content will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
+    function openPreviewModal(url, type, title) {
+        const modalEl = document.getElementById('previewModal');
+        const modal = new bootstrap.Modal(modalEl);
+        
+        document.getElementById('previewModalTitle').innerText = title;
+        const body = document.getElementById('previewModalBody');
+        
+        // Show loading spinner
+        body.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">جاري التحميل...</span></div>';
+        
+        modal.show();
+
+        setTimeout(() => {
+            let content = '';
+            if (type === 'image') {
+                content = `<img src="${url}" class="img-fluid" style="max-height: 75vh;" alt="${title}">`;
+            } else if (type === 'video') {
+                content = `<video controls autoplay style="width: 100%; max-height: 75vh;"><source src="${url}" type="video/mp4">المتصفح الخاص بك لا يدعم تشغيل الفيديو.</video>`;
+            } else if (type === 'external_link') {
+                content = `
+                    <div class="text-center p-10 py-20 w-100">
+                        <i class="ki-duotone ki-link fs-5tx text-primary mb-5"><span class="path1"></span><span class="path2"></span></i>
+                        <h3 class="mb-5 text-gray-800">هذا المرفق عبارة عن رابط خارجي</h3>
+                        <p class="text-gray-500 mb-8 fs-5">لضمان عرض الرابط بشكل صحيح وتجنب مشاكل الأمان، يرجى فتحه في صفحة جديدة.</p>
+                        <a href="${url}" target="_blank" class="btn btn-primary btn-lg px-10">
+                            <i class="ki-duotone ki-external-link fs-2 me-2"><span class="path1"></span><span class="path2"></span></i> فتح الرابط الآن
+                        </a>
+                    </div>
+                `;
+            } else {
+                // iframe
+                content = `<iframe src="${url}" style="width: 100%; height: 75vh; border: none;" allowfullscreen></iframe>`;
+            }
+            body.innerHTML = content;
+        }, 300);
+    }
+
+    // Stop video and clear content when modal closes
+    document.getElementById('previewModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('previewModalBody').innerHTML = '';
+    });
+
     function copyToClipboard(button) {
         const link = button.getAttribute('data-clipboard-text');
         navigator.clipboard.writeText(link).then(() => {
