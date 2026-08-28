@@ -21,8 +21,7 @@ class ResourceLibrarySeeder extends Seeder
                 'name_en' => 'Resource Library',
                 'name_ar' => 'مكتبة المرفقات',
                 'icon' => 'ki-duotone ki-briefcase',
-                'color' => '#d4af37',
-                'sort_order' => 2
+                'color' => '#d4af37'
             ]
         );
 
