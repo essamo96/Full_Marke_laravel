@@ -22,7 +22,6 @@ Route::prefix('admin')->name('admin.')->middleware('admin.locale')->group(functi
     Route::middleware('auth:admin')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('qr-code', [\App\Http\Controllers\QrCodeController::class, 'admin'])->name('qr.admin');
-        Route::get('resource-library', [\App\Http\Controllers\Admin\ResourceLibraryController::class, 'index'])->name('resource-library.index');
 
         Route::get('/test-broadcast', function() {
             $student = \App\Models\Student::first();
@@ -110,6 +109,9 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     Route::get('/subject-content/resources/{resource}/file', [\App\Http\Controllers\Admin\SubjectContentController::class, 'viewResourceFile'])->name('subject_content.resources.file');
     Route::post('/subject-content/upload-chunk', [\App\Http\Controllers\Admin\VideoChunkUploadController::class, 'upload'])->name('subject_content.upload_chunk');
     Route::get('/subject-content/resources/{resource}/progress', [\App\Http\Controllers\Admin\SubjectContentController::class, 'progress'])->name('subject_content.resources.progress');
+
+    // Resource Library
+    Route::get('/resource-library', [\App\Http\Controllers\Admin\ResourceLibraryController::class, 'index'])->name('resource-library.view');
 });
 Route::get('auto-login', function () { Auth::guard('admin')->loginUsingId(1); return redirect('/admin/users'); });
 Route::get('test-dt', function() { Auth::guard('admin')->loginUsingId(1); return app(App\Http\Controllers\Admin\UsersController::class)->getList(request()); });
