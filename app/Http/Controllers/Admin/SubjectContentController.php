@@ -257,7 +257,7 @@ class SubjectContentController extends AdminController
 
     public function viewResourceFile(SubjectResource $resource)
     {
-        abort_if($resource->isVideo() || $resource->isExternalLink() || ! $resource->url, 404);
+        abort_if($resource->isExternalLink() || ! $resource->url, 404);
         abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404);
 
         return Storage::disk('protected_videos')->response($resource->url, $resource->original_filename);

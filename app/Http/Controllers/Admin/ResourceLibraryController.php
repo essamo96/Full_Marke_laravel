@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Subject;
 use App\Models\Group;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 
 class ResourceLibraryController extends AdminController
 {
@@ -22,7 +23,15 @@ class ResourceLibraryController extends AdminController
         // Load all active subjects with their programs
         $subjects = Subject::with('program')->orderBy('name_ar')->get();
         
-        $selectedSubjectId = $request->query('subject_id') ? (int) $request->query('subject_id') : null;
+        $selectedSubjectId = $request->query('subject_id') ? $request->query('subject_id') : null;
+        if ($selectedSubjectId) {
+            try {
+                $selectedSubjectId = (int) Crypt::decrypt($selectedSubjectId);
+            } catch (\Exception $e) {
+                $selectedSubjectId = null;
+            }
+        }
+        
         if ($selectedSubjectId && !$subjects->contains('id', $selectedSubjectId)) {
             $selectedSubjectId = null;
         }

@@ -36,7 +36,7 @@
                         <select name="subject_id" class="form-select form-select-solid" data-control="select2" data-placeholder="-- اختر المادة --" onchange="document.getElementById('filterForm').submit()">
                             <option value=""></option>
                             @foreach($subjects as $subject)
-                                <option value="{{ $subject->id }}" {{ $selectedSubjectId == $subject->id ? 'selected' : '' }}>
+                                <option value="{{ \Illuminate\Support\Facades\Crypt::encrypt($subject->id) }}" {{ $selectedSubjectId == $subject->id ? 'selected' : '' }}>
                                     {{ $subject->name_ar ?? $subject->name }} ({{ $subject->program->name_ar ?? $subject->program->title ?? '' }})
                                 </option>
                             @endforeach
@@ -173,6 +173,10 @@
                                                                                     };
                                                                                 @endphp
                                                                                 
+                                                                                @php
+                                                                                    $previewLink = $resource->isExternalLink() ? $resource->url : route('subject_content.resources.file', $resource->id);
+                                                                                    $isLightbox = in_array($resourceType, ['video', 'image']);
+                                                                                @endphp
                                                                                 <div class="col-12 col-md-6">
                                                                                     <div class="admin-resource-card bg-body">
                                                                                         <div class="d-flex align-items-start gap-3 mb-3">
@@ -183,7 +187,15 @@
                                                                                             </div>
                                                                                         </div>
 
-                                                                                        <div class="mt-auto pt-2 border-top border-gray-200 border-dashed d-flex justify-content-end align-items-center">
+                                                                                        <div class="mt-auto pt-2 border-top border-gray-200 border-dashed d-flex justify-content-end align-items-center flex-wrap gap-2">
+                                                                                            <button type="button" class="btn btn-sm btn-light-info fw-bold copy-btn" data-clipboard-text="{{ $previewLink }}" onclick="copyToClipboard(this)">
+                                                                                                <i class="ki-duotone ki-copy fs-4 me-1"><span class="path1"></span><span class="path2"></span></i> نسخ الرابط
+                                                                                            </button>
+
+                                                                                            <a href="{{ $previewLink }}" @if($isLightbox) data-fslightbox="gallery_{{ $resource->id }}" @else target="_blank" @endif class="btn btn-sm btn-light-success fw-bold">
+                                                                                                <i class="ki-duotone ki-eye fs-4 me-1"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i> معاينة
+                                                                                            </a>
+
                                                                                             <a href="{{ route('subject_content.manage', \Illuminate\Support\Facades\Crypt::encrypt($selectedSubject->id)) }}" class="btn btn-sm btn-light-primary fw-bold">
                                                                                                 <i class="ki-duotone ki-pencil fs-4 me-1"><span class="path1"></span><span class="path2"></span></i> تعديل
                                                                                             </a>
@@ -219,3 +231,24 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script src="{{ asset('assets/admin/plugins/custom/fslightbox/fslightbox.bundle.js') }}"></script>
+<script>
+    function copyToClipboard(button) {
+        const link = button.getAttribute('data-clipboard-text');
+        navigator.clipboard.writeText(link).then(() => {
+            const originalHtml = button.innerHTML;
+            button.innerHTML = '<i class="ki-duotone ki-check fs-4 me-1"><span class="path1"></span><span class="path2"></span></i> تم النسخ';
+            button.classList.remove('btn-light-info');
+            button.classList.add('btn-light-success');
+            
+            setTimeout(() => {
+                button.innerHTML = originalHtml;
+                button.classList.remove('btn-light-success');
+                button.classList.add('btn-light-info');
+            }, 2000);
+        });
+    }
+</script>
+@endpush
