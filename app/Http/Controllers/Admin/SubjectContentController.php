@@ -265,20 +265,7 @@ class SubjectContentController extends AdminController
 
     public function destroyResource(SubjectResource $resource)
     {
-        if ($resource->isExternalLink()) {
-            $resource->delete();
-
-            return response()->json(['success' => true]);
-        }
-
-        // Remove the whole per-resource directory: source file (if still processing),
-        // HLS playlists, segments and rotating encryption keys all live under it.
-        Storage::disk('protected_videos')->deleteDirectory("resources/{$resource->id}");
-
-        if ($resource->url && Storage::disk('protected_videos')->exists($resource->url)) {
-            Storage::disk('protected_videos')->delete($resource->url);
-        }
-
+        $resource->update(['deleted_by' => auth('admin')->id()]);
         $resource->delete();
 
         return response()->json(['success' => true]);

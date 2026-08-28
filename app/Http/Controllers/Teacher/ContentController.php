@@ -298,18 +298,6 @@ class ContentController extends Controller
     {
         $this->authorizeSubjectResource($resource);
 
-        if ($resource->isExternalLink()) {
-            $resource->delete();
-
-            return response()->json(['success' => true]);
-        }
-
-        Storage::disk('protected_videos')->deleteDirectory("resources/{$resource->id}");
-
-        if ($resource->url && Storage::disk('protected_videos')->exists($resource->url)) {
-            Storage::disk('protected_videos')->delete($resource->url);
-        }
-
         $resource->delete();
 
         return response()->json(['success' => true]);

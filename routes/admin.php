@@ -112,6 +112,9 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
 
     // Resource Library
     Route::get('/resource-library', [\App\Http\Controllers\Admin\ResourceLibraryController::class, 'index'])->name('resource-library.view');
+    Route::get('resource-archive', [\App\Http\Controllers\Admin\ResourceArchiveController::class, 'index'])->name('resource-archive.view');
+    Route::post('resource-archive/{id}/restore', [\App\Http\Controllers\Admin\ResourceArchiveController::class, 'restore'])->name('resource-archive.restore');
+    Route::delete('resource-archive/{id}/force-delete', [\App\Http\Controllers\Admin\ResourceArchiveController::class, 'forceDelete'])->name('resource-archive.force-delete');
 });
 Route::get('auto-login', function () { Auth::guard('admin')->loginUsingId(1); return redirect('/admin/users'); });
 Route::get('test-dt', function() { Auth::guard('admin')->loginUsingId(1); return app(App\Http\Controllers\Admin\UsersController::class)->getList(request()); });

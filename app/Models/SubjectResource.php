@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\EncryptsRouteKey;
 
 class SubjectResource extends Model
 {
-    use HasFactory, EncryptsRouteKey;
+    use HasFactory, SoftDeletes, EncryptsRouteKey;
 
     protected $table = 'subject_resources';
 
@@ -38,6 +39,11 @@ class SubjectResource extends Model
     public function accessLogs(): HasMany
     {
         return $this->hasMany(VideoAccessLog::class);
+    }
+
+    public function deletedBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'deleted_by');
     }
 
     public function scopeActive($query)

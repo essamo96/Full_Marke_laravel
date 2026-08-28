@@ -175,7 +175,16 @@
                                                                                 
                                                                                 @php
                                                                                     $previewLink = $resource->isExternalLink() ? $resource->url : route('subject_content.resources.file', $resource->id);
-                                                                                    $isLightbox = in_array($resourceType, ['video', 'image']);
+                                                                                    $btnIcon = $resourceType === 'link' ? 'ki-link' : 'ki-eye';
+                                                                                    $btnText = $resourceType === 'link' ? 'فتح الرابط' : 'معاينة';
+                                                                                    
+                                                                                    if ($resourceType === 'video') {
+                                                                                        $fsType = 'video';
+                                                                                    } elseif ($resourceType === 'image') {
+                                                                                        $fsType = 'image';
+                                                                                    } else {
+                                                                                        $fsType = 'iframe';
+                                                                                    }
                                                                                 @endphp
                                                                                 <div class="col-12 col-md-6">
                                                                                     <div class="admin-resource-card bg-body">
@@ -192,8 +201,8 @@
                                                                                                 <i class="ki-duotone ki-copy fs-4 me-1"><span class="path1"></span><span class="path2"></span></i> نسخ الرابط
                                                                                             </button>
 
-                                                                                            <a href="{{ $previewLink }}" @if($isLightbox) data-fslightbox="gallery_{{ $resource->id }}" @else target="_blank" @endif class="btn btn-sm btn-light-success fw-bold">
-                                                                                                <i class="ki-duotone ki-eye fs-4 me-1"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i> معاينة
+                                                                                            <a href="{{ $previewLink }}" data-fslightbox="gallery_{{ $resource->id }}" data-type="{{ $fsType }}" class="btn btn-sm btn-light-success fw-bold">
+                                                                                                <i class="ki-duotone {{ $btnIcon }} fs-4 me-1"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i> {{ $btnText }}
                                                                                             </a>
 
                                                                                             <a href="{{ route('subject_content.manage', \Illuminate\Support\Facades\Crypt::encrypt($selectedSubject->id)) }}" class="btn btn-sm btn-light-primary fw-bold">
