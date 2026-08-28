@@ -7,8 +7,13 @@ use App\Models\Subject;
 use App\Models\Group;
 use Illuminate\Http\Request;
 
-class ResourceLibraryController extends Controller
+class ResourceLibraryController extends AdminController
 {
+    public function __construct()
+    {
+        parent::__construct();
+        self::$data['active_menu'] = 'resource-library';
+    }
     /**
      * Display the Resource Library grouping resources by Subject -> Group -> Curriculum.
      */
@@ -48,6 +53,6 @@ class ResourceLibraryController extends Controller
                 ->get();
         }
 
-        return view('admin.resource_library.index', compact('subjects', 'selectedSubject', 'selectedSubjectId', 'groups', 'units'));
+        return view('admin.resource_library.index', self::$data + compact('subjects', 'selectedSubject', 'selectedSubjectId', 'groups', 'units'));
     }
 }
