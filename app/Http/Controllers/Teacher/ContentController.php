@@ -127,10 +127,10 @@ class ContentController extends Controller
             })
             ->forGroup($selectedGroupId)
             ->where('is_active', true)
-            ->with(['lessons' => function ($q) {
-                $q->where('is_active', true)->orderBy('sort_order');
+            ->with(['groups', 'lessons' => function ($q) {
+                $q->where('is_active', true)->with('groups')->orderBy('sort_order');
             }, 'lessons.resources' => function ($q) {
-                $q->orderBy('sort_order');
+                $q->with('groups')->orderBy('sort_order');
             }])
             ->orderBy('sort_order')
             ->get();
