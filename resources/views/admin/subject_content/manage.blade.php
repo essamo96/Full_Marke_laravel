@@ -9,6 +9,137 @@
         <span class="bullet bg-gray-400 w-5px h-2px"></span>
     </li>
     <li class="breadcrumb-item text-dark">{{ $subject->name_ar }}</li>
+
+  <!-- Edit Unit Modal -->
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_edit_unit">
+    <div class="modal-dialog">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h5 class="modal-title">تعديل وحدة تعليمية</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="form_edit_unit">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">اسم الوحدة بالعربية</label>
+              <input type="text" name="name_ar" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">اسم الوحدة بالإنجليزية</label>
+              <input type="text" name="name_en" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">المجموعات</label>
+              <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}">{{ $group->name }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-luxury">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Lesson Modal -->
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_edit_lesson">
+    <div class="modal-dialog">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h5 class="modal-title">تعديل درس</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="form_edit_lesson">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">اسم الدرس بالعربية</label>
+              <input type="text" name="name_ar" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">اسم الدرس بالإنجليزية</label>
+              <input type="text" name="name_en" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">المجموعات</label>
+              <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}">{{ $group->name }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-luxury">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Resource Modal -->
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_edit_resource">
+    <div class="modal-dialog">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h5 class="modal-title">تعديل مرفق</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="form_edit_resource" enctype="multipart/form-data">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">عنوان المرفق</label>
+              <input type="text" name="title" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">نوع المرفق</label>
+              <select name="type" class="form-select" disabled>
+                <option value="video">فيديو</option>
+                <option value="document">ملف / PDF</option>
+                <option value="image">صورة</option>
+                <option value="link">رابط خارجي</option>
+                <option value="zoom">رابط Zoom</option>
+              </select>
+              <input type="hidden" name="type">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">المجموعات</label>
+              <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}">{{ $group->name }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="mb-3 edit_resource_url_field">
+              <label class="form-label">رابط خارجي</label>
+              <input type="text" name="url" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">وصف مختصر</label>
+              <textarea name="description" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" value="1" id="edit_allow_download_check_admin" name="allow_download">
+                <label class="form-check-label" for="edit_allow_download_check_admin">
+                  السماح للطلاب بالتحميل
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-luxury">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 @endsection
 
 @section('page-content')
@@ -516,10 +647,142 @@
     </div>
 </div>
 
+
+  <!-- Edit Unit Modal -->
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_edit_unit">
+    <div class="modal-dialog">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h5 class="modal-title">تعديل وحدة تعليمية</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="form_edit_unit">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">اسم الوحدة بالعربية</label>
+              <input type="text" name="name_ar" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">اسم الوحدة بالإنجليزية</label>
+              <input type="text" name="name_en" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">المجموعات</label>
+              <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}">{{ $group->name }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-luxury">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Lesson Modal -->
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_edit_lesson">
+    <div class="modal-dialog">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h5 class="modal-title">تعديل درس</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="form_edit_lesson">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">اسم الدرس بالعربية</label>
+              <input type="text" name="name_ar" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">اسم الدرس بالإنجليزية</label>
+              <input type="text" name="name_en" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">المجموعات</label>
+              <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}">{{ $group->name }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-luxury">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Resource Modal -->
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_edit_resource">
+    <div class="modal-dialog">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h5 class="modal-title">تعديل مرفق</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="form_edit_resource" enctype="multipart/form-data">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">عنوان المرفق</label>
+              <input type="text" name="title" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">نوع المرفق</label>
+              <select name="type" class="form-select" disabled>
+                <option value="video">فيديو</option>
+                <option value="document">ملف / PDF</option>
+                <option value="image">صورة</option>
+                <option value="link">رابط خارجي</option>
+                <option value="zoom">رابط Zoom</option>
+              </select>
+              <input type="hidden" name="type">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">المجموعات</label>
+              <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}">{{ $group->name }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="mb-3 edit_resource_url_field">
+              <label class="form-label">رابط خارجي</label>
+              <input type="text" name="url" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">وصف مختصر</label>
+              <textarea name="description" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" value="1" id="edit_allow_download_check_admin" name="allow_download">
+                <label class="form-check-label" for="edit_allow_download_check_admin">
+                  السماح للطلاب بالتحميل
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-luxury">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 @endsection
 
 @push('scripts')
 <script src="{{ asset('assets/vendor/resumable/resumable.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
     const subjectContentUnitsStoreUrl = '{{ route('subject_content.units.store', \Illuminate\Support\Facades\Crypt::encrypt($subject->id)) }}';
     const subjectContentUnitsBaseUrl = '{{ url('admin/subject-content/units') }}';
@@ -530,7 +793,124 @@
     const chunkUploadUrl = '{{ route('subject_content.upload_chunk') }}';
 
     let modalAddUnit, modalAddLesson, modalAddResource, modalEditResource;
-    let currentUnitId = null;
+      let modalEditUnit, modalEditLesson, modalEditResource;
+  let editUnitId = null;
+  let editLessonId = null;
+  let editResourceId = null;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    modalEditUnit = new bootstrap.Modal(document.getElementById('modal_edit_unit'));
+    modalEditLesson = new bootstrap.Modal(document.getElementById('modal_edit_lesson'));
+    modalEditResource = new bootstrap.Modal(document.getElementById('modal_edit_resource'));
+
+    // Initialize Sortable for units
+    const unitsAccordion = document.getElementById('unitsAccordion');
+    if (unitsAccordion) {
+      new Sortable(unitsAccordion, {
+        animation: 150,
+        handle: '.unit-toggle',
+        onEnd: function (evt) {
+          let order = Array.from(unitsAccordion.children).map(el => el.getAttribute('data-id')).filter(Boolean);
+          $.post(unitsBaseUrl + '/reorder', { _token: csrfToken, order: order });
+        }
+      });
+    }
+
+    // Initialize Sortable for lessons
+    document.querySelectorAll('[data-sortable="lessons"]').forEach(el => {
+      new Sortable(el, {
+        animation: 150,
+        handle: '.lesson-toggle',
+        onEnd: function (evt) {
+          let order = Array.from(el.children).map(child => child.getAttribute('data-id')).filter(Boolean);
+          $.post(lessonsBaseUrl + '/reorder', { _token: csrfToken, order: order });
+        }
+      });
+    });
+
+    // Initialize Sortable for resources
+    document.querySelectorAll('[data-sortable="resources"]').forEach(el => {
+      new Sortable(el, {
+        animation: 150,
+        onEnd: function (evt) {
+          let order = Array.from(el.children).map(child => child.getAttribute('data-id')).filter(Boolean);
+          $.post(resourcesBaseUrl + '/reorder', { _token: csrfToken, order: order });
+        }
+      });
+    });
+  });
+
+  function openEditUnitModal(unitId, data) {
+    editUnitId = unitId;
+    const form = document.getElementById('form_edit_unit');
+    form.name_ar.value = data.name_ar || '';
+    form.name_en.value = data.name_en || '';
+    $(form).find('select[name="group_ids[]"]').val(data.group_ids).trigger('change');
+    modalEditUnit.show();
+  }
+
+  function openEditLessonModal(lessonId, data) {
+    editLessonId = lessonId;
+    const form = document.getElementById('form_edit_lesson');
+    form.name_ar.value = data.name_ar || '';
+    form.name_en.value = data.name_en || '';
+    $(form).find('select[name="group_ids[]"]').val(data.group_ids).trigger('change');
+    modalEditLesson.show();
+  }
+
+  function openEditResourceModal(resourceId, data) {
+    editResourceId = resourceId;
+    const form = document.getElementById('form_edit_resource');
+    form.title.value = data.title || '';
+    form.type.value = data.type;
+    form.querySelector('input[name="type"]').value = data.type;
+    form.url.value = data.url || '';
+    form.description.value = data.description || '';
+    form.allow_download.checked = data.allow_download;
+    $(form).find('select[name="group_ids[]"]').val(data.group_ids).trigger('change');
+    
+    if (data.type === 'link' || data.type === 'zoom') {
+        $(form).find('.edit_resource_url_field').show();
+    } else {
+        $(form).find('.edit_resource_url_field').hide();
+    }
+    
+    modalEditResource.show();
+  }
+
+  $('#form_edit_unit').on('submit', function (e) {
+    e.preventDefault();
+    $.ajax({
+      url: unitsBaseUrl + '/' + editUnitId,
+      type: 'PUT',
+      data: $(this).serialize() + '&_token=' + csrfToken,
+      success: function () { location.reload(); },
+      error: function () { Swal.fire('خطأ', 'حدث خطأ، يرجى التأكد من البيانات.', 'error'); }
+    });
+  });
+
+  $('#form_edit_lesson').on('submit', function (e) {
+    e.preventDefault();
+    $.ajax({
+      url: lessonsBaseUrl + '/' + editLessonId,
+      type: 'PUT',
+      data: $(this).serialize() + '&_token=' + csrfToken,
+      success: function () { location.reload(); },
+      error: function () { Swal.fire('خطأ', 'حدث خطأ، يرجى التأكد من البيانات.', 'error'); }
+    });
+  });
+
+  $('#form_edit_resource').on('submit', function (e) {
+    e.preventDefault();
+    $.ajax({
+      url: resourcesBaseUrl + '/' + editResourceId,
+      type: 'POST', // Laravel needs _method=PUT for multipart forms
+      data: $(this).serialize() + '&_token=' + csrfToken + '&_method=PUT',
+      success: function () { location.reload(); },
+      error: function () { Swal.fire('خطأ', 'حدث خطأ، يرجى التأكد من البيانات.', 'error'); }
+    });
+  });
+  let currentUnitId = null;
     let currentLessonId = null;
     let currentEditResourceId = null;
     let videoUploadResumable = null;

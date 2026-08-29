@@ -159,33 +159,89 @@ class ContentController extends Controller
         $data = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
-            'group_id' => 'nullable|integer',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'integer',
         ]);
 
-        if (! empty($data['group_id'])) {
-            abort_unless($this->canAccessGroup((int) $data['group_id']), 403);
-            $group = Group::find($data['group_id']);
-            abort_unless($group && $group->subject_id === $subject->id, 422);
+        if (! empty($data['group_ids'])) {
+            foreach ($data['group_ids'] as $gid) {
+                abort_unless($this->canAccessGroup((int) $gid), 403);
+                $group = Group::find($gid);
+                abort_unless($group && $group->subject_id === $subject->id, 422);
+            }
         }
 
         $stage = $this->stageFor($subject);
         $unit = $stage->units()->create([
             'name_ar' => $data['name_ar'],
             'name_en' => $data['name_en'] ?? null,
-            'group_id' => $data['group_id'] ?? null,
             'is_active' => true,
         ]);
+
+        if (!empty($data['group_ids'])) {
+            $unit->groups()->sync($data['group_ids']);
+        }
 
         return response()->json(['success' => true, 'id' => $unit->id]);
     }
 
-    public function destroyUnit(EducationalUnit $unit)
+    public function updateUnit(Request $request, EducationalUnit $unit)
     {
         $subject = $unit->stage?->subject;
         abort_unless($subject && $this->canAccessSubject($subject->id), 403);
 
+        $data = $request->validate([
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'nullable|string|max:255',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'integer',
+        ]);
+
+        if (! empty($data['group_ids'])) {
+            foreach ($data['group_ids'] as $gid) {
+                abort_unless($this->canAccessGroup((int) $gid), 403);
+                $group = Group::find($gid);
+                abort_unless($group && $group->subject_id === $subject->id, 422);
+            }
+        }
+
+        $unit->update([
+            'name_ar' => $data['name_ar'],
+            'name_en' => $data['name_en'] ?? null,
+        ]);
+
+        if (array_key_exists('group_ids', $data)) {
+            $unit->groups()->sync($data['group_ids'] ?? []);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroyUnit(Request $request, EducationalUnit $unit)
+    {
+        $subject = $unit->stage?->subject;
+        abort_unless($subject && $this->canAccessSubject($subject->id), 403);
+
+        $detachGroupId = $request->query('detach_group_id');
+        if ($detachGroupId) {
+            $unit->groups()->detach($detachGroupId);
+            return response()->json(['success' => true]);
+        }
+
         $unit->delete();
 
+        return response()->json(['success' => true]);
+    }
+
+    public function reorderUnits(Request $request)
+    {
+        $data = $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'integer',
+        ]);
+        foreach ($data['order'] as $index => $id) {
+            EducationalUnit::where('id', $id)->update(['sort_order' => $index + 1]);
+        }
         return response()->json(['success' => true]);
     }
 
@@ -197,19 +253,82 @@ class ContentController extends Controller
         $data = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'integer',
         ]);
 
-        $lesson = $unit->lessons()->create($data + ['is_active' => true]);
+        if (! empty($data['group_ids'])) {
+            foreach ($data['group_ids'] as $gid) {
+                abort_unless($this->canAccessGroup((int) $gid), 403);
+            }
+        }
+
+        $lesson = $unit->lessons()->create([
+            'name_ar' => $data['name_ar'],
+            'name_en' => $data['name_en'] ?? null,
+            'is_active' => true,
+        ]);
+
+        if (!empty($data['group_ids'])) {
+            $lesson->groups()->sync($data['group_ids']);
+        }
 
         return response()->json(['success' => true, 'id' => $lesson->id]);
     }
 
-    public function destroyLesson(EducationalLesson $lesson)
+    public function updateLesson(Request $request, EducationalLesson $lesson)
     {
         $this->authorizeLesson($lesson);
 
+        $data = $request->validate([
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'nullable|string|max:255',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'integer',
+        ]);
+
+        if (! empty($data['group_ids'])) {
+            foreach ($data['group_ids'] as $gid) {
+                abort_unless($this->canAccessGroup((int) $gid), 403);
+            }
+        }
+
+        $lesson->update([
+            'name_ar' => $data['name_ar'],
+            'name_en' => $data['name_en'] ?? null,
+        ]);
+
+        if (array_key_exists('group_ids', $data)) {
+            $lesson->groups()->sync($data['group_ids'] ?? []);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroyLesson(Request $request, EducationalLesson $lesson)
+    {
+        $this->authorizeLesson($lesson);
+
+        $detachGroupId = $request->query('detach_group_id');
+        if ($detachGroupId) {
+            $lesson->groups()->detach($detachGroupId);
+            return response()->json(['success' => true]);
+        }
+
         $lesson->delete();
 
+        return response()->json(['success' => true]);
+    }
+
+    public function reorderLessons(Request $request)
+    {
+        $data = $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'integer',
+        ]);
+        foreach ($data['order'] as $index => $id) {
+            EducationalLesson::where('id', $id)->update(['sort_order' => $index + 1]);
+        }
         return response()->json(['success' => true]);
     }
 
@@ -255,10 +374,75 @@ class ContentController extends Controller
             'description' => $data['description'] ?? null,
             'allow_download' => $data['allow_download'] ?? false,
             'is_active' => true,
-            'group_ids' => !empty($data['group_ids']) ? array_map('intval', $data['group_ids']) : null,
         ]);
 
+        if (!empty($data['group_ids'])) {
+            $resource->groups()->sync($data['group_ids']);
+        }
+
         return response()->json(['success' => true, 'id' => $resource->getRouteKey()]);
+    }
+
+    public function updateResource(Request $request, SubjectResource $resource)
+    {
+        $this->authorizeSubjectResource($resource);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'type' => 'required|in:video,document,image,link,zoom',
+            'url' => 'nullable|string|max:500',
+            'file' => 'nullable|file|max:51200|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,webp,gif',
+            'uploaded_path' => 'nullable|string|starts_with:incoming/',
+            'original_filename' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'allow_download' => 'nullable|boolean',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'integer|exists:groups,id',
+        ]);
+
+        $storedPath = $resource->url;
+        $originalFilename = $resource->original_filename;
+        $fileChanged = false;
+
+        if (! empty($data['uploaded_path'])) {
+            if (Storage::disk('protected_videos')->exists($data['uploaded_path'])) {
+                $extension = pathinfo($data['uploaded_path'], PATHINFO_EXTENSION);
+                if (!$extension) $extension = $data['type'] === 'video' ? 'mp4' : 'bin';
+                $storedPath = 'resources/'.Str::uuid().'.'.$extension;
+                Storage::disk('protected_videos')->move($data['uploaded_path'], $storedPath);
+                $originalFilename = $data['original_filename'] ?? null;
+                $fileChanged = true;
+            }
+        } elseif ($request->hasFile('file')) {
+            $storedPath = $request->file('file')->store('resources', 'protected_videos');
+            $originalFilename = $request->file('file')->getClientOriginalName();
+            $fileChanged = true;
+        } elseif (!empty($data['url']) && in_array($data['type'], ['link', 'zoom'])) {
+            if ($data['url'] !== $resource->url) {
+                $storedPath = $data['url'];
+                $fileChanged = true;
+            }
+        }
+
+        if ($fileChanged && !preg_match('#^https?://#i', (string) $resource->url)) {
+            Storage::disk('protected_videos')->delete($resource->url);
+        }
+
+        $resource->update([
+            'title' => $data['title'],
+            'type' => $data['type'],
+            'category' => $data['type'],
+            'url' => $storedPath,
+            'original_filename' => $originalFilename,
+            'description' => $data['description'] ?? null,
+            'allow_download' => $data['allow_download'] ?? false,
+        ]);
+
+        if (array_key_exists('group_ids', $data)) {
+            $resource->groups()->sync($data['group_ids'] ?? []);
+        }
+
+        return response()->json(['success' => true]);
     }
 
     public function viewResourceFile(SubjectResource $resource)
@@ -294,12 +478,30 @@ class ContentController extends Controller
         return response()->file($path, $headers);
     }
 
-    public function destroyResource(SubjectResource $resource)
+    public function destroyResource(Request $request, SubjectResource $resource)
     {
         $this->authorizeSubjectResource($resource);
 
+        $detachGroupId = $request->query('detach_group_id');
+        if ($detachGroupId) {
+            $resource->groups()->detach($detachGroupId);
+            return response()->json(['success' => true]);
+        }
+
         $resource->delete();
 
+        return response()->json(['success' => true]);
+    }
+
+    public function reorderResources(Request $request)
+    {
+        $data = $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'integer',
+        ]);
+        foreach ($data['order'] as $index => $id) {
+            SubjectResource::where('id', $id)->update(['sort_order' => $index + 1]);
+        }
         return response()->json(['success' => true]);
     }
 

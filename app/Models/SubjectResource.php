@@ -14,16 +14,14 @@ class SubjectResource extends Model
     use HasFactory, SoftDeletes, EncryptsRouteKey;
 
     protected $table = 'subject_resources';
-
     protected $fillable = [
-        'subject_id', 'educational_lesson_id', 'group_ids', 'category', 'title', 'type', 'url', 'description', 'is_active', 'sort_order',
+        'subject_id', 'educational_lesson_id', 'category', 'title', 'type', 'url', 'description', 'is_active', 'sort_order',
         'processing_status', 'hls_path', 'encryption_key_path', 'duration_seconds', 'original_filename', 'processing_error',
         'allow_download',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'group_ids' => 'array',
     ];
 
     public function subject(): BelongsTo
@@ -46,6 +44,11 @@ class SubjectResource extends Model
         return $this->belongsTo(Admin::class, 'deleted_by');
     }
 
+    public function groups()
+    {
+        return $this->belongsToMany(Group::class, 'group_subject_resource');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
@@ -54,9 +57,12 @@ class SubjectResource extends Model
     public function scopeForGroup($query, $groupId)
     {
         return $query->where(function ($q) use ($groupId) {
-            $q->whereNull('group_ids')
-              ->orWhereJsonContains('group_ids', (string) $groupId)
-              ->orWhereJsonContains('group_ids', (int) $groupId);
+            $q->doesntHave('groups');
+            if ($groupId) {
+                $q->orWhereHas('groups', function ($q2) use ($groupId) {
+                    $q2->where('groups.id', $groupId);
+                });
+            }
         });
     }
 

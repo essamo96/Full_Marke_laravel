@@ -100,12 +100,17 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     Route::get('/subject-content', [\App\Http\Controllers\Admin\SubjectContentController::class, 'index'])->name('subject_content.view');
     Route::get('/subject-content/{id}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'manage'])->name('subject_content.manage');
     Route::post('/subject-content/{id}/units', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeUnit'])->name('subject_content.units.store');
+    Route::put('/subject-content/units/{unit}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'updateUnit'])->name('subject_content.units.update');
     Route::delete('/subject-content/units/{unit}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyUnit'])->name('subject_content.units.destroy');
+    Route::post('/subject-content/units/reorder', [\App\Http\Controllers\Admin\SubjectContentController::class, 'reorderUnits'])->name('subject_content.units.reorder');
     Route::post('/subject-content/units/{unit}/lessons', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeLesson'])->name('subject_content.lessons.store');
+    Route::put('/subject-content/lessons/{lesson}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'updateLesson'])->name('subject_content.lessons.update');
     Route::delete('/subject-content/lessons/{lesson}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyLesson'])->name('subject_content.lessons.destroy');
+    Route::post('/subject-content/lessons/reorder', [\App\Http\Controllers\Admin\SubjectContentController::class, 'reorderLessons'])->name('subject_content.lessons.reorder');
     Route::post('/subject-content/lessons/{lesson}/resources', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeResource'])->name('subject_content.resources.store');
     Route::put('/subject-content/resources/{resource}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'updateResource'])->name('subject_content.resources.update');
     Route::delete('/subject-content/resources/{resource}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyResource'])->name('subject_content.resources.destroy');
+    Route::post('/subject-content/resources/reorder', [\App\Http\Controllers\Admin\SubjectContentController::class, 'reorderResources'])->name('subject_content.resources.reorder');
     Route::get('/subject-content/resources/{resource}/file', [\App\Http\Controllers\Admin\SubjectContentController::class, 'viewResourceFile'])->name('subject_content.resources.file');
     Route::post('/subject-content/upload-chunk', [\App\Http\Controllers\Admin\VideoChunkUploadController::class, 'upload'])->name('subject_content.upload_chunk');
     Route::get('/subject-content/resources/{resource}/progress', [\App\Http\Controllers\Admin\SubjectContentController::class, 'progress'])->name('subject_content.resources.progress');

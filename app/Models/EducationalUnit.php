@@ -11,7 +11,7 @@ class EducationalUnit extends Model
 {
     use \App\Traits\EncryptsRouteKey;
 
-    protected $fillable = ['educational_stage_id', 'group_id', 'name_ar', 'name_en', 'sort_order', 'is_active'];
+    protected $fillable = ['educational_stage_id', 'name_ar', 'name_en', 'sort_order', 'is_active'];
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -22,9 +22,9 @@ class EducationalUnit extends Model
         return $this->belongsTo(EducationalStage::class, 'educational_stage_id');
     }
 
-    public function group(): BelongsTo
+    public function groups()
     {
-        return $this->belongsTo(Group::class);
+        return $this->belongsToMany(Group::class, 'educational_unit_group');
     }
 
     public function lessons(): HasMany
@@ -40,9 +40,11 @@ class EducationalUnit extends Model
     public function scopeForGroup($query, ?int $groupId)
     {
         return $query->where(function ($q) use ($groupId) {
-            $q->whereNull('group_id');
+            $q->doesntHave('groups');
             if ($groupId) {
-                $q->orWhere('group_id', $groupId);
+                $q->orWhereHas('groups', function ($q2) use ($groupId) {
+                    $q2->where('groups.id', $groupId);
+                });
             }
         });
     }

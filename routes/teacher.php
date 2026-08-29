@@ -59,11 +59,17 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::get('content-hub', [ContentController::class, 'hub'])->name('content.hub');
         Route::get('content/{subject}', [ContentController::class, 'manage'])->name('content.manage');
         Route::post('content/{subject}/units', [ContentController::class, 'storeUnit'])->name('content.store-unit');
+        Route::put('content/units/{unit}', [ContentController::class, 'updateUnit'])->name('content.update-unit');
         Route::delete('content/units/{unit}', [ContentController::class, 'destroyUnit'])->name('content.destroy-unit');
+        Route::post('content/units/reorder', [ContentController::class, 'reorderUnits'])->name('content.reorder-units');
         Route::post('content/units/{unit}/lessons', [ContentController::class, 'storeLesson'])->name('content.store-lesson');
+        Route::put('content/lessons/{lesson}', [ContentController::class, 'updateLesson'])->name('content.update-lesson');
         Route::delete('content/lessons/{lesson}', [ContentController::class, 'destroyLesson'])->name('content.destroy-lesson');
+        Route::post('content/lessons/reorder', [ContentController::class, 'reorderLessons'])->name('content.reorder-lessons');
         Route::post('content/lessons/{lesson}/resources', [ContentController::class, 'storeResource'])->name('content.store-resource');
+        Route::put('content/resources/{resource}', [ContentController::class, 'updateResource'])->name('content.update-resource');
         Route::delete('content/resources/{resource}', [ContentController::class, 'destroyResource'])->name('content.destroy-resource');
+        Route::post('content/resources/reorder', [ContentController::class, 'reorderResources'])->name('content.reorder-resources');
         Route::get('content/resources/{resource}/file', [ContentController::class, 'viewResourceFile'])->name('content.view-file');
         Route::get('content/resources/{resource}/progress', [ContentController::class, 'progress'])->name('content.progress');
         Route::post('content/upload-chunk', [VideoChunkUploadController::class, 'upload'])->name('content.upload-chunk');

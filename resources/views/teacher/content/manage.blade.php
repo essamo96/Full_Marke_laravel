@@ -8,6 +8,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('assets/vendor/resumable/resumable.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script src="{{ asset('assets/js/secure-watermark.js') }}"></script>
 @endpush
 
@@ -42,9 +43,9 @@
     </ul>
   @endif
 
-  <div class="accordion teacher-accordion teacher-content-accordion" id="unitsAccordion">
+  <div class="accordion teacher-accordion teacher-content-accordion" id="unitsAccordion" data-sortable="units">
     @forelse($units as $unitIndex => $unit)
-      <div class="unit-card mb-3">
+      <div class="unit-card mb-3" data-id="{{ $unit->id }}">
         <div class="unit-toggle" data-bs-toggle="collapse" data-bs-target="#unit_{{ $unit->id }}" aria-expanded="{{ $unitIndex === 0 ? 'true' : 'false' }}">
           <span class="unit-num">{{ $unitIndex + 1 }}</span>
           <span class="flex-grow-1">
@@ -52,20 +53,22 @@
             <span class="unit-meta d-block">{{ $unit->lessons->count() }} <span data-en="lesson(s)" data-ar="درس">درس</span></span>
           </span>
           <div class="d-flex gap-2 ms-auto me-3 align-items-center">
+            <button type="button" class="btn btn-sm btn-outline-primary" title="تعديل الوحدة" onclick="event.stopPropagation(); openEditUnitModal('{{ $unit->getRouteKey() }}', {{ json_encode(['name_ar' => $unit->name_ar, 'name_en' => $unit->name_en, 'group_ids' => $unit->groups->pluck('id')]) }})"><i class="bi bi-pencil"></i></button>
             <button type="button" class="btn btn-sm btn-outline-success" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal('{{ $unit->getRouteKey() }}')"><i class="bi bi-plus-lg"></i></button>
             <button type="button" class="btn btn-sm btn-outline-danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit('{{ $unit->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
           </div>
           <i class="bi bi-chevron-down"></i>
         </div>
         
-        <div id="unit_{{ $unit->id }}" class="collapse {{ $unitIndex === 0 ? 'show' : '' }} teacher-content-collapse">
+        <div id="unit_{{ $unit->id }}" class="collapse {{ $unitIndex === 0 ? 'show' : '' }} teacher-content-collapse" data-sortable="lessons">
           @forelse($unit->lessons as $lesson)
-            <div class="lesson-block">
+            <div class="lesson-block" data-id="{{ $lesson->id }}">
               <div class="lesson-toggle collapsed" data-bs-toggle="collapse" data-bs-target="#lesson_res_{{ $lesson->id }}" aria-expanded="false">
                 <i class="bi bi-journal-text" style="color: var(--accent-color);"></i>
                 <span class="flex-grow-1">{{ $lesson->name_ar ?? $lesson->name_en }}</span>
                 
                 <div class="d-flex gap-2 align-items-center me-3">
+                  <button type="button" class="btn btn-sm btn-outline-primary" title="تعديل الدرس" onclick="event.stopPropagation(); openEditLessonModal('{{ $lesson->getRouteKey() }}', {{ json_encode(['name_ar' => $lesson->name_ar, 'name_en' => $lesson->name_en, 'group_ids' => $lesson->groups->pluck('id')]) }})"><i class="bi bi-pencil"></i></button>
                   <span class="lesson-count">{{ $lesson->resources->count() }} مرفق</span>
                   <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteLesson('{{ $lesson->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                 </div>
@@ -74,7 +77,7 @@
 
               <div id="lesson_res_{{ $lesson->id }}" class="collapse teacher-content-collapse">
                 <div class="lesson-resources mt-2">
-                  <div class="row g-3 mb-3">
+                  <div class="row g-3 mb-3" data-sortable="resources">
                     @forelse($lesson->resources as $resource)
                       @php
                         $resourceType = $resource->type ?? 'link';
@@ -94,7 +97,7 @@
                           default => 'رابط',
                         };
                       @endphp
-                      <div class="col-12 col-md-6 col-xl-4">
+                      <div class="col-12 col-md-6 col-xl-4" data-id="{{ $resource->id }}">
                         <div class="teacher-resource-card h-100">
                           <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
                             <div class="d-flex align-items-center gap-2">
@@ -104,7 +107,8 @@
                                 <div class="teacher-resource-badge mt-1">{{ $title }}</div>
                               </div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditResourceModal('{{ $resource->getRouteKey() }}', {{ json_encode(['title' => $resource->title, 'type' => $resource->type, 'url' => $resource->url, 'description' => $resource->description, 'allow_download' => $resource->allow_download, 'group_ids' => $resource->groups->pluck('id')]) }})"><i class="bi bi-pencil"></i></button>
+                             <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                           </div>
 
                           <div class="small text-muted mb-3">
@@ -183,13 +187,13 @@
               <label class="form-label">اسم الوحدة بالإنجليزية</label>
               <input type="text" name="name_en" class="form-control">
             </div>
-            <input type="hidden" name="group_id" value="{{ $selectedGroupId }}">
-            <div class="text-muted small">
-              @if($selectedGroupId)
-                سيتم إضافة هذه الوحدة لمجموعة "{{ $groups->firstWhere('id', $selectedGroupId)?->name }}" فقط.
-              @else
-                سيتم إضافة هذه الوحدة كمحتوى مشترك يظهر لكل مجموعاتك.
-              @endif
+            <div class="mb-3">
+              <label class="form-label">المجموعات (اتركه فارغاً لجعله عاماً لجميع مجموعاتك)</label>
+              <select name="group_ids[]" id="unit_groups" class="form-select" data-control="select2" data-placeholder="اختر المجموعات..." multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}" {{ $selectedGroupId == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
+                @endforeach
+              </select>
             </div>
           </div>
           <div class="modal-footer">
@@ -218,6 +222,14 @@
             <div class="mb-3">
               <label class="form-label">اسم الدرس بالإنجليزية</label>
               <input type="text" name="name_en" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">المجموعات (اتركه فارغاً لجعله عاماً لجميع مجموعاتك)</label>
+              <select name="group_ids[]" id="lesson_groups" class="form-select" data-control="select2" data-placeholder="اختر المجموعات..." multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}" {{ $selectedGroupId == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
+                @endforeach
+              </select>
             </div>
           </div>
           <div class="modal-footer">
@@ -309,6 +321,137 @@
     </div>
   </div>
 
+  
+  <!-- Edit Unit Modal -->
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_edit_unit">
+    <div class="modal-dialog">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h5 class="modal-title">تعديل وحدة تعليمية</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="form_edit_unit">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">اسم الوحدة بالعربية</label>
+              <input type="text" name="name_ar" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">اسم الوحدة بالإنجليزية</label>
+              <input type="text" name="name_en" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">المجموعات</label>
+              <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}">{{ $group->name }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-luxury">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Lesson Modal -->
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_edit_lesson">
+    <div class="modal-dialog">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h5 class="modal-title">تعديل درس</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="form_edit_lesson">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">اسم الدرس بالعربية</label>
+              <input type="text" name="name_ar" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">اسم الدرس بالإنجليزية</label>
+              <input type="text" name="name_en" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">المجموعات</label>
+              <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}">{{ $group->name }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-luxury">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Resource Modal -->
+  <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_edit_resource">
+    <div class="modal-dialog">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h5 class="modal-title">تعديل مرفق</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="form_edit_resource" enctype="multipart/form-data">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">عنوان المرفق</label>
+              <input type="text" name="title" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">نوع المرفق</label>
+              <select name="type" class="form-select" disabled>
+                <option value="video">فيديو</option>
+                <option value="document">ملف / PDF</option>
+                <option value="image">صورة</option>
+                <option value="link">رابط خارجي</option>
+                <option value="zoom">رابط Zoom</option>
+              </select>
+              <input type="hidden" name="type">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">المجموعات</label>
+              <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
+                @foreach($groups as $group)
+                  <option value="{{ $group->id }}">{{ $group->name }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="mb-3 edit_resource_url_field">
+              <label class="form-label">رابط خارجي</label>
+              <input type="text" name="url" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">وصف مختصر</label>
+              <textarea name="description" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" value="1" id="edit_allow_download_check" name="allow_download">
+                <label class="form-check-label" for="edit_allow_download_check">
+                  السماح للطلاب بالتحميل
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-luxury">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
   <!-- Protected viewer: keeps resource URLs out of the address bar and blocks
        the usual save/right-click/new-tab routes to the underlying file. -->
   <div class="modal fade" tabindex="-1" id="modal_protected_viewer" aria-hidden="true">
@@ -815,6 +958,123 @@
   });
 
   let modalAddUnit, modalAddLesson, modalAddResource;
+    let modalEditUnit, modalEditLesson, modalEditResource;
+  let editUnitId = null;
+  let editLessonId = null;
+  let editResourceId = null;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    modalEditUnit = new bootstrap.Modal(document.getElementById('modal_edit_unit'));
+    modalEditLesson = new bootstrap.Modal(document.getElementById('modal_edit_lesson'));
+    modalEditResource = new bootstrap.Modal(document.getElementById('modal_edit_resource'));
+
+    // Initialize Sortable for units
+    const unitsAccordion = document.getElementById('unitsAccordion');
+    if (unitsAccordion) {
+      new Sortable(unitsAccordion, {
+        animation: 150,
+        handle: '.unit-toggle',
+        onEnd: function (evt) {
+          let order = Array.from(unitsAccordion.children).map(el => el.getAttribute('data-id')).filter(Boolean);
+          $.post(unitsBaseUrl + '/reorder', { _token: csrfToken, order: order });
+        }
+      });
+    }
+
+    // Initialize Sortable for lessons
+    document.querySelectorAll('[data-sortable="lessons"]').forEach(el => {
+      new Sortable(el, {
+        animation: 150,
+        handle: '.lesson-toggle',
+        onEnd: function (evt) {
+          let order = Array.from(el.children).map(child => child.getAttribute('data-id')).filter(Boolean);
+          $.post(lessonsBaseUrl + '/reorder', { _token: csrfToken, order: order });
+        }
+      });
+    });
+
+    // Initialize Sortable for resources
+    document.querySelectorAll('[data-sortable="resources"]').forEach(el => {
+      new Sortable(el, {
+        animation: 150,
+        onEnd: function (evt) {
+          let order = Array.from(el.children).map(child => child.getAttribute('data-id')).filter(Boolean);
+          $.post(resourcesBaseUrl + '/reorder', { _token: csrfToken, order: order });
+        }
+      });
+    });
+  });
+
+  function openEditUnitModal(unitId, data) {
+    editUnitId = unitId;
+    const form = document.getElementById('form_edit_unit');
+    form.name_ar.value = data.name_ar || '';
+    form.name_en.value = data.name_en || '';
+    $(form).find('select[name="group_ids[]"]').val(data.group_ids).trigger('change');
+    modalEditUnit.show();
+  }
+
+  function openEditLessonModal(lessonId, data) {
+    editLessonId = lessonId;
+    const form = document.getElementById('form_edit_lesson');
+    form.name_ar.value = data.name_ar || '';
+    form.name_en.value = data.name_en || '';
+    $(form).find('select[name="group_ids[]"]').val(data.group_ids).trigger('change');
+    modalEditLesson.show();
+  }
+
+  function openEditResourceModal(resourceId, data) {
+    editResourceId = resourceId;
+    const form = document.getElementById('form_edit_resource');
+    form.title.value = data.title || '';
+    form.type.value = data.type;
+    form.querySelector('input[name="type"]').value = data.type;
+    form.url.value = data.url || '';
+    form.description.value = data.description || '';
+    form.allow_download.checked = data.allow_download;
+    $(form).find('select[name="group_ids[]"]').val(data.group_ids).trigger('change');
+    
+    if (data.type === 'link' || data.type === 'zoom') {
+        $(form).find('.edit_resource_url_field').show();
+    } else {
+        $(form).find('.edit_resource_url_field').hide();
+    }
+    
+    modalEditResource.show();
+  }
+
+  $('#form_edit_unit').on('submit', function (e) {
+    e.preventDefault();
+    $.ajax({
+      url: unitsBaseUrl + '/' + editUnitId,
+      type: 'PUT',
+      data: $(this).serialize() + '&_token=' + csrfToken,
+      success: function () { location.reload(); },
+      error: function () { Swal.fire('خطأ', 'حدث خطأ، يرجى التأكد من البيانات.', 'error'); }
+    });
+  });
+
+  $('#form_edit_lesson').on('submit', function (e) {
+    e.preventDefault();
+    $.ajax({
+      url: lessonsBaseUrl + '/' + editLessonId,
+      type: 'PUT',
+      data: $(this).serialize() + '&_token=' + csrfToken,
+      success: function () { location.reload(); },
+      error: function () { Swal.fire('خطأ', 'حدث خطأ، يرجى التأكد من البيانات.', 'error'); }
+    });
+  });
+
+  $('#form_edit_resource').on('submit', function (e) {
+    e.preventDefault();
+    $.ajax({
+      url: resourcesBaseUrl + '/' + editResourceId,
+      type: 'POST', // Laravel needs _method=PUT for multipart forms, or we can just send PUT here for non-files
+      data: $(this).serialize() + '&_token=' + csrfToken + '&_method=PUT',
+      success: function () { location.reload(); },
+      error: function () { Swal.fire('خطأ', 'حدث خطأ، يرجى التأكد من البيانات.', 'error'); }
+    });
+  });
   let currentUnitId = null;
   let currentLessonId = null;
   let pendingLessonId = null;
@@ -1093,19 +1353,19 @@
 
   function deleteUnit(unitId) {
     confirmDelete(function () {
-      $.ajax({ url: unitsBaseUrl + '/' + unitId, type: 'DELETE', data: { _token: csrfToken }, success: function () { location.reload(); } });
+      $.ajax({ url: unitsBaseUrl + '/' + unitId + '{{ $selectedGroupId ? '?detach_group_id='.$selectedGroupId : '' }}', type: 'DELETE', data: { _token: csrfToken }, success: function () { location.reload(); } });
     });
   }
 
   function deleteLesson(lessonId) {
     confirmDelete(function () {
-      $.ajax({ url: lessonsBaseUrl + '/' + lessonId, type: 'DELETE', data: { _token: csrfToken }, success: function () { location.reload(); } });
+      $.ajax({ url: lessonsBaseUrl + '/' + lessonId + '{{ $selectedGroupId ? '?detach_group_id='.$selectedGroupId : '' }}', type: 'DELETE', data: { _token: csrfToken }, success: function () { location.reload(); } });
     });
   }
 
   function deleteResource(resourceId) {
     confirmDelete(function () {
-      $.ajax({ url: resourcesBaseUrl + '/' + resourceId, type: 'DELETE', data: { _token: csrfToken }, success: function () { location.reload(); } });
+      $.ajax({ url: resourcesBaseUrl + '/' + resourceId + '{{ $selectedGroupId ? '?detach_group_id='.$selectedGroupId : '' }}', type: 'DELETE', data: { _token: csrfToken }, success: function () { location.reload(); } });
     });
   }
 </script>

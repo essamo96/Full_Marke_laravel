@@ -139,6 +139,7 @@ class GroupsController extends Controller
         // deactivated) shouldn't show up to students as an empty entry.
         $hasVisibleResource = function ($lessonQuery) use ($group) {
             $lessonQuery->where('is_active', true)
+                ->forGroup($group->id)
                 ->whereHas('resources', function ($q) use ($group) {
                     $q->where('is_active', true)->forGroup($group->id);
                 });

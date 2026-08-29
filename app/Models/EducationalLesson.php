@@ -27,6 +27,23 @@ class EducationalLesson extends Model
         return $this->hasMany(SubjectResource::class)->orderBy('sort_order');
     }
 
+    public function groups()
+    {
+        return $this->belongsToMany(Group::class, 'educational_lesson_group');
+    }
+
+    public function scopeForGroup($query, ?int $groupId)
+    {
+        return $query->where(function ($q) use ($groupId) {
+            $q->doesntHave('groups');
+            if ($groupId) {
+                $q->orWhereHas('groups', function ($q2) use ($groupId) {
+                    $q2->where('groups.id', $groupId);
+                });
+            }
+        });
+    }
+
     public function getNameAttribute(): string
     {
         return app()->getLocale() === 'ar' ? $this->name_ar : ($this->name_en ?: $this->name_ar);
