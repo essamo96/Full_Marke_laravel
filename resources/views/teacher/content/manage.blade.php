@@ -188,7 +188,14 @@
               <input type="text" name="name_en" class="form-control">
             </div>
             <div class="mb-3">
-              <label class="form-label">المجموعات (اتركه فارغاً لجعله عاماً لجميع مجموعاتك)</label>
+              <div class="form-check form-switch">
+                <input type="hidden" name="is_shared" value="0">
+                <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" {{ $selectedGroupId ? '' : 'checked' }}>
+                <label class="form-check-label">محتوى عام لجميع المجموعات (Shared)</label>
+              </div>
+            </div>
+            <div class="mb-3 group-selection-container" style="{{ $selectedGroupId ? '' : 'display: none;' }}">
+              <label class="form-label">المجموعات المستهدفة</label>
               <select name="group_ids[]" id="unit_groups" class="form-select" data-control="select2" data-placeholder="اختر المجموعات..." multiple="multiple">
                 @foreach($groups as $group)
                   <option value="{{ $group->id }}" {{ $selectedGroupId == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
@@ -224,7 +231,14 @@
               <input type="text" name="name_en" class="form-control">
             </div>
             <div class="mb-3">
-              <label class="form-label">المجموعات (اتركه فارغاً لجعله عاماً لجميع مجموعاتك)</label>
+              <div class="form-check form-switch">
+                <input type="hidden" name="is_shared" value="0">
+                <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" {{ $selectedGroupId ? '' : 'checked' }}>
+                <label class="form-check-label">محتوى عام لجميع المجموعات (Shared)</label>
+              </div>
+            </div>
+            <div class="mb-3 group-selection-container" style="{{ $selectedGroupId ? '' : 'display: none;' }}">
+              <label class="form-label">المجموعات المستهدفة</label>
               <select name="group_ids[]" id="lesson_groups" class="form-select" data-control="select2" data-placeholder="اختر المجموعات..." multiple="multiple">
                 @foreach($groups as $group)
                   <option value="{{ $group->id }}" {{ $selectedGroupId == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
@@ -266,10 +280,17 @@
               </select>
             </div>
             <div class="mb-3">
-              <label class="form-label">المجموعات (اتركه فارغاً لجعله عاماً لجميع مجموعاتك)</label>
+              <div class="form-check form-switch">
+                <input type="hidden" name="is_shared" value="0">
+                <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" {{ $selectedGroupId ? '' : 'checked' }}>
+                <label class="form-check-label">محتوى عام لجميع المجموعات (Shared)</label>
+              </div>
+            </div>
+            <div class="mb-3 group-selection-container" style="{{ $selectedGroupId ? '' : 'display: none;' }}">
+              <label class="form-label">المجموعات المستهدفة</label>
               <select name="group_ids[]" id="resource_groups" class="form-select" data-control="select2" data-placeholder="اختر المجموعات..." multiple="multiple">
                 @foreach($groups as $group)
-                  <option value="{{ $group->id }}">{{ $group->name }}</option>
+                  <option value="{{ $group->id }}" {{ $selectedGroupId == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
                 @endforeach
               </select>
             </div>
@@ -342,6 +363,7 @@
             </div>
                         <div class="mb-3">
               <div class="form-check form-switch">
+                <input type="hidden" name="is_shared" value="0">
                 <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" checked>
                 <label class="form-check-label">محتوى عام لجميع المجموعات (Shared)</label>
               </div>
@@ -384,6 +406,7 @@
             </div>
                         <div class="mb-3">
               <div class="form-check form-switch">
+                <input type="hidden" name="is_shared" value="0">
                 <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" checked>
                 <label class="form-check-label">محتوى عام لجميع المجموعات (Shared)</label>
               </div>
@@ -433,6 +456,7 @@
             </div>
                         <div class="mb-3">
               <div class="form-check form-switch">
+                <input type="hidden" name="is_shared" value="0">
                 <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" checked>
                 <label class="form-check-label">محتوى عام لجميع المجموعات (Shared)</label>
               </div>
@@ -1031,13 +1055,20 @@ let editUnitId = null;
     });
   });
 
+  function setSharedCheckbox(form, isShared) {
+    const sharedCb = form.querySelector('.is-shared-checkbox');
+    if (!sharedCb) return;
+    sharedCb.checked = !!isShared;
+    $(sharedCb).trigger('change');
+  }
+
   function openEditUnitModal(unitId, data) {
     editUnitId = unitId;
     const form = document.getElementById('form_edit_unit');
     form.name_ar.value = data.name_ar || '';
     form.name_en.value = data.name_en || '';
-    if(form.is_shared) { form.is_shared.checked = data.is_shared; $(form.is_shared).trigger('change'); }
-    $(form).find('select[name="group_ids[]"]').val(data.group_ids).trigger('change');
+    setSharedCheckbox(form, data.is_shared);
+    $(form).find('select[name="group_ids[]"]').val(data.group_ids || []).trigger('change');
     modalEditUnit.show();
   }
 
@@ -1046,8 +1077,8 @@ let editUnitId = null;
     const form = document.getElementById('form_edit_lesson');
     form.name_ar.value = data.name_ar || '';
     form.name_en.value = data.name_en || '';
-    if(form.is_shared) { form.is_shared.checked = data.is_shared; $(form.is_shared).trigger('change'); }
-    $(form).find('select[name="group_ids[]"]').val(data.group_ids).trigger('change');
+    setSharedCheckbox(form, data.is_shared);
+    $(form).find('select[name="group_ids[]"]').val(data.group_ids || []).trigger('change');
     modalEditLesson.show();
   }
 
@@ -1060,8 +1091,8 @@ let editUnitId = null;
     form.url.value = data.url || '';
     form.description.value = data.description || '';
     form.allow_download.checked = data.allow_download;
-    if(form.is_shared) { form.is_shared.checked = !!data.is_shared; $(form.is_shared).trigger('change'); }
-    $(form).find('select[name="group_ids[]"]').val(data.group_ids).trigger('change');
+    setSharedCheckbox(form, data.is_shared);
+    $(form).find('select[name="group_ids[]"]').val(data.group_ids || []).trigger('change');
     
     if (data.type === 'link' || data.type === 'zoom') {
         $(form).find('.edit_resource_url_field').show();
@@ -1380,22 +1411,51 @@ let editUnitId = null;
     });
   });
 
-  function deleteUnit(unitId) {
+  function deleteWithSharedGuard(url) {
     confirmDelete(function () {
-      $.ajax({ url: unitsBaseUrl + '/' + unitId + '{{ $selectedGroupId ? '?detach_group_id='.$selectedGroupId : '' }}', type: 'DELETE', data: { _token: csrfToken }, success: function () { location.reload(); } });
+      $.ajax({
+        url: url,
+        type: 'DELETE',
+        data: { _token: csrfToken },
+        success: function () { location.reload(); },
+        error: function (xhr) {
+          if (xhr.status === 409 && xhr.responseJSON && xhr.responseJSON.code === 'shared_content') {
+            Swal.fire({
+              title: 'محتوى مشترك',
+              text: xhr.responseJSON.message || 'الحذف سيزيله من كل المجموعات.',
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonText: 'نعم، احذف من الكل',
+              cancelButtonText: 'إلغاء',
+              confirmButtonColor: '#dc3545'
+            }).then(function (result) {
+              if (!result.isConfirmed) return;
+              $.ajax({
+                url: url + (url.indexOf('?') >= 0 ? '&' : '?') + 'confirm_shared_delete=1',
+                type: 'DELETE',
+                data: { _token: csrfToken, confirm_shared_delete: 1 },
+                success: function () { location.reload(); },
+                error: function () { Swal.fire('خطأ', 'تعذر الحذف', 'error'); }
+              });
+            });
+            return;
+          }
+          Swal.fire('خطأ', (xhr.responseJSON && xhr.responseJSON.message) || 'تعذر الحذف', 'error');
+        }
+      });
     });
+  }
+
+  function deleteUnit(unitId) {
+    deleteWithSharedGuard(unitsBaseUrl + '/' + unitId + '{{ $selectedGroupId ? '?detach_group_id='.$selectedGroupId : '' }}');
   }
 
   function deleteLesson(lessonId) {
-    confirmDelete(function () {
-      $.ajax({ url: lessonsBaseUrl + '/' + lessonId + '{{ $selectedGroupId ? '?detach_group_id='.$selectedGroupId : '' }}', type: 'DELETE', data: { _token: csrfToken }, success: function () { location.reload(); } });
-    });
+    deleteWithSharedGuard(lessonsBaseUrl + '/' + lessonId + '{{ $selectedGroupId ? '?detach_group_id='.$selectedGroupId : '' }}');
   }
 
   function deleteResource(resourceId) {
-    confirmDelete(function () {
-      $.ajax({ url: resourcesBaseUrl + '/' + resourceId + '{{ $selectedGroupId ? '?detach_group_id='.$selectedGroupId : '' }}', type: 'DELETE', data: { _token: csrfToken }, success: function () { location.reload(); } });
-    });
+    deleteWithSharedGuard(resourcesBaseUrl + '/' + resourceId + '{{ $selectedGroupId ? '?detach_group_id='.$selectedGroupId : '' }}');
   }
 </script>
 @endpush

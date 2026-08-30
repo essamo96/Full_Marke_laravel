@@ -71,7 +71,7 @@
       <!-- Educational Resources -->
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h3 class="h4 fw-bold mb-0 border-start border-4 ps-3" style="border-color: var(--accent-color) !important; color: var(--text-primary);" data-en="Educational Resources" data-ar="الموارد التعليمية">الموارد التعليمية</h3>
-        <a href="{{ route('teacher.content.manage', $group->subject) }}" class="btn btn-sm btn-outline-gold rounded-pill px-3" data-en="Manage Resources" data-ar="إدارة الموارد">إدارة الموارد</a>
+        <a href="{{ route('teacher.content.manage', $group->subject) }}?group={{ $group->id }}" class="btn btn-sm btn-outline-gold rounded-pill px-3" data-en="Manage Resources" data-ar="إدارة الموارد">إدارة الموارد</a>
       </div>
       
       <div class="glass-panel rounded-4 p-3 mb-5 shadow-sm" style="border: 1px solid var(--separator-color);">

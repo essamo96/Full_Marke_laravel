@@ -23,9 +23,22 @@ class ResourceArchiveController extends AdminController
     public function restore($id)
     {
         $resource = SubjectResource::onlyTrashed()->findOrFail($id);
-        
+
         $resource->update(['deleted_by' => null]);
         $resource->restore();
+
+        $fileMissing = ! $resource->isExternalLink()
+            && $resource->url
+            && ! Storage::disk('protected_videos')->exists($resource->url);
+
+        if ($fileMissing) {
+            return redirect()->back()->with(
+                'danger',
+                'تمت استعادة سجل المرفق، لكن ملف الفيديو/المستند غير موجود على السيرفر. '
+                .'غالباً لأن نسخة هوستنغر رجّعت قاعدة البيانات بدون مجلد storage/app/private/protected_videos، '
+                .'أو لأن الملف حُذف نهائياً من الأرشيف سابقاً. أعد رفع الملف أو استرجع مجلد الفيديوهات من النسخة الاحتياطية.'
+            );
+        }
 
         return redirect()->back()->with('success_message', 'تم استعادة المرفق بنجاح');
     }

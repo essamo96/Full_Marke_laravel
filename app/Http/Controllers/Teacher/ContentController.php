@@ -9,6 +9,7 @@ use App\Models\EducationalUnit;
 use App\Models\Group;
 use App\Models\Subject;
 use App\Models\SubjectResource;
+use App\Support\EducationalContentVisibility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -127,10 +128,10 @@ class ContentController extends Controller
             })
             ->forGroup($selectedGroupId)
             ->where('is_active', true)
-            ->with(['groups', 'lessons' => function ($q) {
-                $q->where('is_active', true)->with('groups')->orderBy('sort_order');
-            }, 'lessons.resources' => function ($q) {
-                $q->with('groups')->orderBy('sort_order');
+            ->with(['groups', 'lessons' => function ($q) use ($selectedGroupId) {
+                $q->forGroup($selectedGroupId)->where('is_active', true)->with('groups')->orderBy('sort_order');
+            }, 'lessons.resources' => function ($q) use ($selectedGroupId) {
+                $q->forGroup($selectedGroupId)->with('groups')->orderBy('sort_order');
             }])
             ->orderBy('sort_order')
             ->get();
@@ -161,6 +162,7 @@ class ContentController extends Controller
             'name_en' => 'nullable|string|max:255',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer',
+            'is_shared' => 'nullable|boolean',
         ]);
 
         if (! empty($data['group_ids'])) {
@@ -172,15 +174,16 @@ class ContentController extends Controller
         }
 
         $stage = $this->stageFor($subject);
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
         $unit = $stage->units()->create([
             'name_ar' => $data['name_ar'],
             'name_en' => $data['name_en'] ?? null,
             'is_active' => true,
+            'is_shared' => $isShared,
+            'sort_order' => EducationalContentVisibility::nextSortOrder(new EducationalUnit, 'educational_stage_id', $stage->id),
         ]);
 
-        if (!empty($data['group_ids'])) {
-            $unit->groups()->sync($data['group_ids']);
-        }
+        EducationalContentVisibility::apply($unit, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true, 'id' => $unit->id]);
     }
@@ -195,6 +198,7 @@ class ContentController extends Controller
             'name_en' => 'nullable|string|max:255',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer',
+            'is_shared' => 'nullable|boolean',
         ]);
 
         if (! empty($data['group_ids'])) {
@@ -210,9 +214,8 @@ class ContentController extends Controller
             'name_en' => $data['name_en'] ?? null,
         ]);
 
-        if (array_key_exists('group_ids', $data)) {
-            $unit->groups()->sync($data['group_ids'] ?? []);
-        }
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
+        EducationalContentVisibility::apply($unit, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true]);
     }
@@ -222,15 +225,24 @@ class ContentController extends Controller
         $subject = $unit->stage?->subject;
         abort_unless($subject && $this->canAccessSubject($subject->id), 403);
 
-        $detachGroupId = $request->query('detach_group_id');
-        if ($detachGroupId) {
-            $unit->groups()->detach($detachGroupId);
-            return response()->json(['success' => true]);
+        $detachGroupId = $request->query('detach_group_id') ? (int) $request->query('detach_group_id') : null;
+        $result = EducationalContentVisibility::destroyForGroup($unit, $detachGroupId);
+
+        if ($result === 'blocked_shared') {
+            if ($request->boolean('confirm_shared_delete')) {
+                $unit->delete();
+
+                return response()->json(['success' => true, 'scope' => 'global']);
+            }
+
+            return response()->json([
+                'success' => false,
+                'code' => 'shared_content',
+                'message' => 'هذا محتوى مشترك يظهر لكل المجموعات. الحذف سيزيله من الجميع.',
+            ], 409);
         }
 
-        $unit->delete();
-
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'scope' => $result]);
     }
 
     public function reorderUnits(Request $request)
@@ -255,6 +267,7 @@ class ContentController extends Controller
             'name_en' => 'nullable|string|max:255',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer',
+            'is_shared' => 'nullable|boolean',
         ]);
 
         if (! empty($data['group_ids'])) {
@@ -263,15 +276,16 @@ class ContentController extends Controller
             }
         }
 
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
         $lesson = $unit->lessons()->create([
             'name_ar' => $data['name_ar'],
             'name_en' => $data['name_en'] ?? null,
             'is_active' => true,
+            'is_shared' => $isShared,
+            'sort_order' => EducationalContentVisibility::nextSortOrder(new EducationalLesson, 'educational_unit_id', $unit->id),
         ]);
 
-        if (!empty($data['group_ids'])) {
-            $lesson->groups()->sync($data['group_ids']);
-        }
+        EducationalContentVisibility::apply($lesson, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true, 'id' => $lesson->id]);
     }
@@ -285,6 +299,7 @@ class ContentController extends Controller
             'name_en' => 'nullable|string|max:255',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer',
+            'is_shared' => 'nullable|boolean',
         ]);
 
         if (! empty($data['group_ids'])) {
@@ -298,9 +313,8 @@ class ContentController extends Controller
             'name_en' => $data['name_en'] ?? null,
         ]);
 
-        if (array_key_exists('group_ids', $data)) {
-            $lesson->groups()->sync($data['group_ids'] ?? []);
-        }
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
+        EducationalContentVisibility::apply($lesson, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true]);
     }
@@ -309,15 +323,24 @@ class ContentController extends Controller
     {
         $this->authorizeLesson($lesson);
 
-        $detachGroupId = $request->query('detach_group_id');
-        if ($detachGroupId) {
-            $lesson->groups()->detach($detachGroupId);
-            return response()->json(['success' => true]);
+        $detachGroupId = $request->query('detach_group_id') ? (int) $request->query('detach_group_id') : null;
+        $result = EducationalContentVisibility::destroyForGroup($lesson, $detachGroupId);
+
+        if ($result === 'blocked_shared') {
+            if ($request->boolean('confirm_shared_delete')) {
+                $lesson->delete();
+
+                return response()->json(['success' => true, 'scope' => 'global']);
+            }
+
+            return response()->json([
+                'success' => false,
+                'code' => 'shared_content',
+                'message' => 'هذا محتوى مشترك يظهر لكل المجموعات. الحذف سيزيله من الجميع.',
+            ], 409);
         }
 
-        $lesson->delete();
-
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'scope' => $result]);
     }
 
     public function reorderLessons(Request $request)
@@ -347,6 +370,7 @@ class ContentController extends Controller
             'allow_download' => 'nullable|boolean',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer|exists:groups,id',
+            'is_shared' => 'nullable|boolean',
         ]);
 
         $storedPath = null;
@@ -362,6 +386,7 @@ class ContentController extends Controller
             $storedPath = $data['url'] ?? null;
         }
 
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
         $resource = SubjectResource::create([
             'subject_id' => $subject->id,
             'educational_lesson_id' => $lesson->id,
@@ -374,11 +399,11 @@ class ContentController extends Controller
             'description' => $data['description'] ?? null,
             'allow_download' => $data['allow_download'] ?? false,
             'is_active' => true,
+            'is_shared' => $isShared,
+            'sort_order' => EducationalContentVisibility::nextSortOrder(new SubjectResource, 'educational_lesson_id', $lesson->id),
         ]);
 
-        if (!empty($data['group_ids'])) {
-            $resource->groups()->sync($data['group_ids']);
-        }
+        EducationalContentVisibility::apply($resource, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true, 'id' => $resource->getRouteKey()]);
     }
@@ -398,6 +423,7 @@ class ContentController extends Controller
             'allow_download' => 'nullable|boolean',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer|exists:groups,id',
+            'is_shared' => 'nullable|boolean',
         ]);
 
         $storedPath = $resource->url;
@@ -438,9 +464,8 @@ class ContentController extends Controller
             'allow_download' => $data['allow_download'] ?? false,
         ]);
 
-        if (array_key_exists('group_ids', $data)) {
-            $resource->groups()->sync($data['group_ids'] ?? []);
-        }
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
+        EducationalContentVisibility::apply($resource, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true]);
     }
@@ -482,15 +507,24 @@ class ContentController extends Controller
     {
         $this->authorizeSubjectResource($resource);
 
-        $detachGroupId = $request->query('detach_group_id');
-        if ($detachGroupId) {
-            $resource->groups()->detach($detachGroupId);
-            return response()->json(['success' => true]);
+        $detachGroupId = $request->query('detach_group_id') ? (int) $request->query('detach_group_id') : null;
+        $result = EducationalContentVisibility::destroyForGroup($resource, $detachGroupId);
+
+        if ($result === 'blocked_shared') {
+            if ($request->boolean('confirm_shared_delete')) {
+                $resource->delete();
+
+                return response()->json(['success' => true, 'scope' => 'soft_deleted']);
+            }
+
+            return response()->json([
+                'success' => false,
+                'code' => 'shared_content',
+                'message' => 'هذا مرفق مشترك يظهر لكل المجموعات. الحذف سيزيله من الجميع (يمكن استرجاعه من الأرشيف).',
+            ], 409);
         }
 
-        $resource->delete();
-
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'scope' => $result]);
     }
 
     public function reorderResources(Request $request)

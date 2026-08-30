@@ -37,11 +37,12 @@ class GroupsController extends Controller
         abort_unless($group->teacher_id === $teacher->id, 403);
 
         $group->load('subject.program');
+        $groupId = $group->id;
         $group->subject->load([
             'stages' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
-            'stages.units' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
-            'stages.units.lessons' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
-            'stages.units.lessons.resources' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
+            'stages.units' => fn ($q) => $q->forGroup($groupId)->where('is_active', true)->orderBy('sort_order'),
+            'stages.units.lessons' => fn ($q) => $q->forGroup($groupId)->where('is_active', true)->orderBy('sort_order'),
+            'stages.units.lessons.resources' => fn ($q) => $q->forGroup($groupId)->where('is_active', true)->orderBy('sort_order'),
         ]);
 
         $roster = $group->registrations()

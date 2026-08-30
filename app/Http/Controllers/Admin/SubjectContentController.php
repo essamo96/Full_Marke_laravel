@@ -8,6 +8,7 @@ use App\Models\EducationalUnit;
 use App\Models\EducationalLesson;
 use App\Models\Group;
 use App\Models\SubjectResource;
+use App\Support\EducationalContentVisibility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
@@ -47,10 +48,10 @@ class SubjectContentController extends AdminController
             })
             ->forGroup($selectedGroupId)
             ->where('is_active', true)
-            ->with(['groups', 'lessons' => function ($q) {
-                $q->where('is_active', true)->with('groups')->orderBy('sort_order');
-            }, 'lessons.resources' => function ($q) {
-                $q->with('groups')->orderBy('sort_order');
+            ->with(['groups', 'lessons' => function ($q) use ($selectedGroupId) {
+                $q->forGroup($selectedGroupId)->where('is_active', true)->with('groups')->orderBy('sort_order');
+            }, 'lessons.resources' => function ($q) use ($selectedGroupId) {
+                $q->forGroup($selectedGroupId)->with('groups')->orderBy('sort_order');
             }])
             ->orderBy('sort_order')
             ->get();
@@ -87,6 +88,7 @@ class SubjectContentController extends AdminController
             'name_en' => 'nullable|string|max:255',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer|exists:groups,id',
+            'is_shared' => 'nullable|boolean',
         ]);
 
         if (! empty($data['group_ids'])) {
@@ -97,15 +99,16 @@ class SubjectContentController extends AdminController
         }
 
         $stage = $this->stageFor($subject);
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
         $unit = $stage->units()->create([
             'name_ar' => $data['name_ar'],
             'name_en' => $data['name_en'] ?? null,
             'is_active' => true,
+            'is_shared' => $isShared,
+            'sort_order' => EducationalContentVisibility::nextSortOrder(new EducationalUnit, 'educational_stage_id', $stage->id),
         ]);
 
-        if (!empty($data['group_ids'])) {
-            $unit->groups()->sync($data['group_ids']);
-        }
+        EducationalContentVisibility::apply($unit, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true, 'id' => $unit->id]);
     }
@@ -119,6 +122,7 @@ class SubjectContentController extends AdminController
             'name_en' => 'nullable|string|max:255',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer|exists:groups,id',
+            'is_shared' => 'nullable|boolean',
         ]);
 
         if (! empty($data['group_ids'])) {
@@ -133,23 +137,32 @@ class SubjectContentController extends AdminController
             'name_en' => $data['name_en'] ?? null,
         ]);
 
-        if (array_key_exists('group_ids', $data)) {
-            $unit->groups()->sync($data['group_ids'] ?? []);
-        }
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
+        EducationalContentVisibility::apply($unit, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true]);
     }
 
     public function destroyUnit(Request $request, EducationalUnit $unit)
     {
-        $detachGroupId = $request->query('detach_group_id');
-        if ($detachGroupId) {
-            $unit->groups()->detach($detachGroupId);
-            return response()->json(['success' => true]);
+        $detachGroupId = $request->query('detach_group_id') ? (int) $request->query('detach_group_id') : null;
+        $result = EducationalContentVisibility::destroyForGroup($unit, $detachGroupId);
+
+        if ($result === 'blocked_shared') {
+            if ($request->boolean('confirm_shared_delete')) {
+                $unit->delete();
+
+                return response()->json(['success' => true, 'scope' => 'global']);
+            }
+
+            return response()->json([
+                'success' => false,
+                'code' => 'shared_content',
+                'message' => 'هذا محتوى مشترك يظهر لكل المجموعات. الحذف سيزيله من الجميع.',
+            ], 409);
         }
 
-        $unit->delete();
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'scope' => $result]);
     }
 
     public function reorderUnits(Request $request)
@@ -171,17 +184,19 @@ class SubjectContentController extends AdminController
             'name_en' => 'nullable|string|max:255',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer|exists:groups,id',
+            'is_shared' => 'nullable|boolean',
         ]);
 
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
         $lesson = $unit->lessons()->create([
             'name_ar' => $data['name_ar'],
             'name_en' => $data['name_en'] ?? null,
             'is_active' => true,
+            'is_shared' => $isShared,
+            'sort_order' => EducationalContentVisibility::nextSortOrder(new EducationalLesson, 'educational_unit_id', $unit->id),
         ]);
 
-        if (!empty($data['group_ids'])) {
-            $lesson->groups()->sync($data['group_ids']);
-        }
+        EducationalContentVisibility::apply($lesson, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true, 'id' => $lesson->id]);
     }
@@ -193,6 +208,7 @@ class SubjectContentController extends AdminController
             'name_en' => 'nullable|string|max:255',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer|exists:groups,id',
+            'is_shared' => 'nullable|boolean',
         ]);
 
         $lesson->update([
@@ -200,23 +216,32 @@ class SubjectContentController extends AdminController
             'name_en' => $data['name_en'] ?? null,
         ]);
 
-        if (array_key_exists('group_ids', $data)) {
-            $lesson->groups()->sync($data['group_ids'] ?? []);
-        }
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
+        EducationalContentVisibility::apply($lesson, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true]);
     }
 
     public function destroyLesson(Request $request, EducationalLesson $lesson)
     {
-        $detachGroupId = $request->query('detach_group_id');
-        if ($detachGroupId) {
-            $lesson->groups()->detach($detachGroupId);
-            return response()->json(['success' => true]);
+        $detachGroupId = $request->query('detach_group_id') ? (int) $request->query('detach_group_id') : null;
+        $result = EducationalContentVisibility::destroyForGroup($lesson, $detachGroupId);
+
+        if ($result === 'blocked_shared') {
+            if ($request->boolean('confirm_shared_delete')) {
+                $lesson->delete();
+
+                return response()->json(['success' => true, 'scope' => 'global']);
+            }
+
+            return response()->json([
+                'success' => false,
+                'code' => 'shared_content',
+                'message' => 'هذا محتوى مشترك يظهر لكل المجموعات. الحذف سيزيله من الجميع.',
+            ], 409);
         }
 
-        $lesson->delete();
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'scope' => $result]);
     }
 
     public function reorderLessons(Request $request)
@@ -237,15 +262,14 @@ class SubjectContentController extends AdminController
             'title' => 'required|string|max:255',
             'type' => 'required|in:video,document,image,link,zoom',
             'url' => 'nullable|required_without_all:uploaded_path,file|string|max:500',
-            // Small, non-chunked fallback upload (kept for quick document/image attachments).
             'file' => 'nullable|file|max:51200|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,webp,gif',
-            // Path produced by the resumable chunk-upload endpoint, relative to the protected_videos disk.
             'uploaded_path' => 'nullable|string|starts_with:incoming/',
             'original_filename' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'allow_download' => 'nullable|boolean',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer|exists:groups,id',
+            'is_shared' => 'nullable|boolean',
         ]);
 
         $unit = $lesson->unit;
@@ -273,10 +297,7 @@ class SubjectContentController extends AdminController
             return response()->json(['success' => false, 'message' => 'يرجى إرفاق ملف أو رابط صحيح'], 422);
         }
 
-        // Uploaded videos are served directly (protected MP4 streaming with a
-        // session token + Referer lock — see VideoStreamController), so there's
-        // no HLS transcode/encryption step to wait on: a video is ready the
-        // moment its bytes are on disk, same as every other resource type.
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
         $resource = SubjectResource::create([
             'subject_id' => $subjectId,
             'educational_lesson_id' => $lesson->id,
@@ -289,11 +310,11 @@ class SubjectContentController extends AdminController
             'description' => $data['description'] ?? null,
             'allow_download' => $data['allow_download'] ?? false,
             'is_active' => true,
+            'is_shared' => $isShared,
+            'sort_order' => EducationalContentVisibility::nextSortOrder(new SubjectResource, 'educational_lesson_id', $lesson->id),
         ]);
 
-        if (!empty($data['group_ids'])) {
-            $resource->groups()->sync($data['group_ids']);
-        }
+        EducationalContentVisibility::apply($resource, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true, 'id' => $resource->getRouteKey(), 'processing_status' => $resource->processing_status]);
     }
@@ -311,6 +332,7 @@ class SubjectContentController extends AdminController
             'allow_download' => 'nullable|boolean',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer|exists:groups,id',
+            'is_shared' => 'nullable|boolean',
         ]);
 
         $storedPath = $resource->url;
@@ -343,7 +365,6 @@ class SubjectContentController extends AdminController
             Storage::disk('protected_videos')->deleteDirectory("resources/{$resource->id}");
         }
 
-        // No HLS transcode/encryption step — see storeResource() above.
         $processingStatus = 'ready';
 
         $resource->update([
@@ -357,9 +378,8 @@ class SubjectContentController extends AdminController
             'allow_download' => $data['allow_download'] ?? false,
         ]);
 
-        if (array_key_exists('group_ids', $data)) {
-            $resource->groups()->sync($data['group_ids'] ?? []);
-        }
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
+        EducationalContentVisibility::apply($resource, $isShared, $data['group_ids'] ?? []);
 
         return response()->json(['success' => true, 'id' => $resource->getRouteKey(), 'processing_status' => $processingStatus]);
     }
@@ -374,9 +394,23 @@ class SubjectContentController extends AdminController
 
     public function destroyResource(Request $request, SubjectResource $resource)
     {
-        $detachGroupId = $request->query('detach_group_id');
-        if ($detachGroupId) {
+        $detachGroupId = $request->query('detach_group_id') ? (int) $request->query('detach_group_id') : null;
+
+        if ($detachGroupId && (bool) $resource->is_shared && ! $request->boolean('confirm_shared_delete')) {
+            return response()->json([
+                'success' => false,
+                'code' => 'shared_content',
+                'message' => 'هذا مرفق مشترك يظهر لكل المجموعات. الحذف سيزيله من الجميع (يمكن استرجاعه من الأرشيف).',
+            ], 409);
+        }
+
+        if ($detachGroupId && ! (bool) $resource->is_shared) {
             $resource->groups()->detach($detachGroupId);
+            if ($resource->groups()->count() === 0) {
+                $resource->update(['deleted_by' => auth('admin')->id()]);
+                $resource->delete();
+            }
+
             return response()->json(['success' => true]);
         }
 

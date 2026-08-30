@@ -37,6 +37,15 @@
                         </div>
                     </div>
                 @endif
+                @if(session('danger'))
+                    <div class="alert alert-danger d-flex align-items-center p-5 mb-10">
+                        <i class="ki-duotone ki-information-5 fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span></i>
+                        <div class="d-flex flex-column">
+                            <h4 class="mb-1 text-danger">تنبيه</h4>
+                            <span>{{ session('danger') }}</span>
+                        </div>
+                    </div>
+                @endif
                 
                 @if($resources->isEmpty())
                     <div class="d-flex flex-column flex-center text-center p-10">

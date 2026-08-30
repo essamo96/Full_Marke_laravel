@@ -11,10 +11,11 @@ class EducationalLesson extends Model
 {
     use \App\Traits\EncryptsRouteKey;
 
-    protected $fillable = ['educational_unit_id', 'name_ar', 'name_en', 'sort_order', 'is_active'];
+    protected $fillable = ['educational_unit_id', 'name_ar', 'name_en', 'is_shared', 'sort_order', 'is_active'];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_shared' => 'boolean',
     ];
 
     public function unit(): BelongsTo
