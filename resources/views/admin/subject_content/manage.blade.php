@@ -83,7 +83,7 @@
                                 <span class="accordion-icon"><i class="ki-duotone ki-arrow-right fs-4"><span class="path1"></span><span class="path2"></span></i></span>
                                 <h3 class="fs-4 fw-semibold mb-0 ms-4">{{ $unit->name_ar }}</h3>
                                 <div class="ms-auto">
-                                    <button type="button" class="btn btn-sm btn-icon btn-light-primary me-2" title="تعديل الوحدة" onclick="event.stopPropagation(); openEditUnitModal('{{ $unit->getRouteKey() }}', {{ json_encode(['name_ar' => $unit->name_ar, 'name_en' => $unit->name_en, 'group_ids' => $unit->groups->pluck('id')]) }})"><i class="bi bi-pencil"></i></button>
+                                    <button type="button" class="btn btn-sm btn-icon btn-light-primary me-2" title="تعديل الوحدة" onclick="event.stopPropagation(); openEditUnitModal('{{ $unit->getRouteKey() }}', {{ json_encode(['name_ar' => $unit->name_ar, 'name_en' => $unit->name_en, 'group_ids' => $unit->groups->pluck('id'), 'is_shared' => $unit->is_shared]) }})"><i class="bi bi-pencil"></i></button>
                                     <button type="button" class="btn btn-sm btn-icon btn-light-success me-2" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal('{{ $unit->getRouteKey() }}')"><i class="ki-duotone ki-plus fs-4"></i></button>
                                     <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit('{{ $unit->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                                 </div>
@@ -100,7 +100,7 @@
                                                     </div>
                                                     <div>
                                                         <span class="badge badge-light-info me-2">{{ $lesson->resources->count() }} مرفق</span>
-                                                        <button type="button" class="btn btn-sm btn-icon btn-light-primary me-2" title="تعديل الدرس" onclick="openEditLessonModal('{{ $lesson->getRouteKey() }}', {{ json_encode(['name_ar' => $lesson->name_ar, 'name_en' => $lesson->name_en, 'group_ids' => $lesson->groups->pluck('id')]) }})"><i class="bi bi-pencil"></i></button>
+                                                        <button type="button" class="btn btn-sm btn-icon btn-light-primary me-2" title="تعديل الدرس" onclick="openEditLessonModal('{{ $lesson->getRouteKey() }}', {{ json_encode(['name_ar' => $lesson->name_ar, 'name_en' => $lesson->name_en, 'group_ids' => $lesson->groups->pluck('id'), 'is_shared' => $lesson->is_shared]) }})"><i class="bi bi-pencil"></i></button>
                                                         <button type="button" class="btn btn-sm btn-light-primary" data-bs-toggle="collapse" data-bs-target="#kt_lesson_resources_{{ $lesson->id }}">إدارة المرفقات</button>
                                                         <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="حذف الدرس" onclick="deleteLesson('{{ $lesson->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                                                     </div>
@@ -191,13 +191,19 @@
                         <label class="form-label">اسم الوحدة بالإنجليزية</label>
                         <input type="text" name="name_en" class="form-control" placeholder="مثال: Unit 1: Introduction"/>
                     </div>
-                    <input type="hidden" name="group_id" value="{{ $selectedGroupId }}"/>
-                    <div class="text-muted fs-7">
-                        @if($selectedGroupId)
-                            سيتم إضافة هذه الوحدة لمجموعة "{{ $groups->firstWhere('id', $selectedGroupId)?->name }}" فقط.
-                        @else
-                            سيتم إضافة هذه الوحدة كمحتوى مشترك يظهر لكل المجموعات.
-                        @endif
+                    <div class="mb-5">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" {{ !$selectedGroupId ? 'checked' : '' }}>
+                            <label class="form-check-label fw-bold">محتوى عام لجميع المجموعات (Shared)</label>
+                        </div>
+                    </div>
+                    <div class="mb-5 group-selection-container" style="display: {{ !$selectedGroupId ? 'none' : 'block' }};">
+                        <label class="form-label fw-bold">المجموعات (تترك فارغة لحفظها كمسودة)</label>
+                        <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
+                            @foreach($groups as $group)
+                                <option value="{{ $group->id }}" {{ $selectedGroupId == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -538,8 +544,14 @@
               <label class="form-label">اسم الوحدة بالإنجليزية</label>
               <input type="text" name="name_en" class="form-control">
             </div>
-            <div class="mb-3">
-              <label class="form-label">المجموعات</label>
+                        <div class="mb-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" checked>
+                <label class="form-check-label">محتوى عام لجميع المجموعات (Shared)</label>
+              </div>
+            </div>
+            <div class="mb-3 group-selection-container" style="display: none;">
+              <label class="form-label">المجموعات (تترك فارغة لحفظها كمسودة)</label>
               <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
                 @foreach($groups as $group)
                   <option value="{{ $group->id }}">{{ $group->name }}</option>
@@ -574,8 +586,14 @@
               <label class="form-label">اسم الدرس بالإنجليزية</label>
               <input type="text" name="name_en" class="form-control">
             </div>
-            <div class="mb-3">
-              <label class="form-label">المجموعات</label>
+                        <div class="mb-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" checked>
+                <label class="form-check-label">محتوى عام لجميع المجموعات (Shared)</label>
+              </div>
+            </div>
+            <div class="mb-3 group-selection-container" style="display: none;">
+              <label class="form-label">المجموعات (تترك فارغة لحفظها كمسودة)</label>
               <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
                 @foreach($groups as $group)
                   <option value="{{ $group->id }}">{{ $group->name }}</option>
@@ -617,7 +635,15 @@
 
     let modalAddUnit, modalAddLesson, modalAddResource, modalEditResource;
       let modalEditUnit, modalEditLesson;
-  let editUnitId = null;
+  document.addEventListener('change', function(e) {
+    if (e.target.matches('.is-shared-checkbox')) {
+        const container = e.target.closest('form').querySelector('.group-selection-container');
+        if (container) {
+            container.style.display = e.target.checked ? 'none' : 'block';
+        }
+    }
+});
+let editUnitId = null;
   let editLessonId = null;
   let editResourceId = null;
 
@@ -668,6 +694,7 @@
     const form = document.getElementById('form_edit_unit');
     form.name_ar.value = data.name_ar || '';
     form.name_en.value = data.name_en || '';
+    if(form.is_shared) { form.is_shared.checked = data.is_shared; $(form.is_shared).trigger('change'); }
     $(form).find('select[name="group_ids[]"]').val(data.group_ids).trigger('change');
     modalEditUnit.show();
   }
@@ -677,6 +704,7 @@
     const form = document.getElementById('form_edit_lesson');
     form.name_ar.value = data.name_ar || '';
     form.name_en.value = data.name_en || '';
+    if(form.is_shared) { form.is_shared.checked = data.is_shared; $(form.is_shared).trigger('change'); }
     $(form).find('select[name="group_ids[]"]').val(data.group_ids).trigger('change');
     modalEditLesson.show();
   }
@@ -1221,6 +1249,9 @@
         document.getElementById('edit_resource_type').value = resourceObj.type || 'video';
         document.getElementById('edit_resource_description').value = resourceObj.description || '';
         $(document.getElementById('kt_form_edit_resource')).find('select[name="group_ids[]"]').val(resourceObj.groups ? resourceObj.groups.map(g => g.id) : []).trigger('change');
+        const isShared = resourceObj.is_shared;
+        const isSharedCheckbox = document.getElementById('kt_form_edit_resource').querySelector('.is-shared-checkbox');
+        if (isSharedCheckbox) { isSharedCheckbox.checked = !!isShared; $(isSharedCheckbox).trigger('change'); }
         if (resourceObj.allow_download) {
             document.getElementById('edit_allow_download_check').checked = true;
         }

@@ -35,11 +35,16 @@ class EducationalLesson extends Model
     public function scopeForGroup($query, ?int $groupId)
     {
         return $query->where(function ($q) use ($groupId) {
-            $q->doesntHave('groups');
             if ($groupId) {
-                $q->orWhereHas('groups', function ($q2) use ($groupId) {
-                    $q2->where('groups.id', $groupId);
-                });
+                // Student View: Shared items OR items specific to this group
+                $q->where('is_shared', true)
+                  ->orWhereHas('groups', function ($q2) use ($groupId) {
+                      $q2->where('groups.id', $groupId);
+                  });
+            } else {
+                // Admin/Teacher Shared View: Shared items OR Drafts (0 groups)
+                $q->where('is_shared', true)
+                  ->orDoesntHave('groups');
             }
         });
     }
