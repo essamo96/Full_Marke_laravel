@@ -76,17 +76,16 @@ class GroupsController extends Controller
             return response()->json(['success' => false, 'message' => 'حسابك غير فعال حالياً. يرجى التواصل مع الإدارة.'], 400);
         }
 
-        // The student must already be registered in the subject with a confirmed
-        // payment — the join code never registers or takes payment by itself.
+        // The student must already be registered in the subject (pending, partially_paid, or fully_paid).
         $registration = Registration::where('student_id', $student->id)
             ->where('subject_id', $group->subject_id)
-            ->whereIn('status', ['partially_paid', 'fully_paid'])
+            ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
             ->first();
 
         if (!$registration) {
             return response()->json([
                 'success' => false,
-                'message' => 'لا يمكن استخدام الكود: يجب أن تكون مسجلاً في المادة التابعة لهذه المجموعة وأن تكون دفعتك المالية مؤكدة من الإدارة. يرجى التواصل مع الإدارة.'
+                'message' => 'لا يمكن استخدام الكود: يجب أن تكون مسجلاً في المادة التابعة لهذه المجموعة أولاً. يرجى التواصل مع الإدارة.'
             ], 400);
         }
 

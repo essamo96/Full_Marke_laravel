@@ -88,6 +88,12 @@
         </div>
     </div>
 </div>
-<div class="modal-footer">
+</div>
+<div class="modal-footer justify-content-between">
+    @can('admin.groups.generate_code')
+    <button type="button" class="btn btn-primary btn-generate-code" data-id="{{ Crypt::encrypt($group->id) }}" data-bs-dismiss="modal">
+        <i class="bi bi-qr-code"></i> إنشاء كود الانضمام
+    </button>
+    @endcan
     <button type="button" class="btn btn-light" data-bs-dismiss="modal">إغلاق</button>
 </div>
