@@ -154,6 +154,28 @@ class ExamController extends AdminController
         return back()->with('success', 'تم اعتماد علامة الطالب بنجاح.');
     }
 
+    public function gradeAnswers(\App\Models\Grade $grade)
+    {
+        $grade->load([
+            'student:id,full_name_ar,full_name_en,phone',
+            'exam:id,title,allow_student_review',
+            'group:id,name',
+            'answers.question.options',
+            'answers.selectedOption',
+        ]);
+
+        $html = view('admin.exams.partials.grade-answers-modal-body', compact('grade'))->render();
+
+        return response()->json([
+            'success' => true,
+            'student' => $grade->student?->full_name_ar ?? $grade->student?->full_name_en,
+            'exam' => $grade->exam?->title ?? $grade->exam_name,
+            'score' => $grade->score,
+            'max_score' => $grade->max_score,
+            'html' => $html,
+        ]);
+    }
+
     public function allResults(Request $request)
     {
         $query = \App\Models\Grade::with(['student', 'exam', 'group']);

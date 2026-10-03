@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\Registration;
 use App\Models\Program;
 use App\Models\Subject;
+use App\Services\StudentContentGrantService;
 
 class EnrolmentController extends AdminController
 {
@@ -79,7 +80,7 @@ class EnrolmentController extends AdminController
         return response()->json($students);
     }
 
-    public function enroll(Request $request)
+    public function enroll(Request $request, StudentContentGrantService $grantService)
     {
         $request->validate([
             'student_ids' => 'required|array',
@@ -158,6 +159,16 @@ class EnrolmentController extends AdminController
                 }
 
                 $previousGroup = $existingReg->group_id ? Group::find($existingReg->group_id) : null;
+
+                if ($previousGroup) {
+                    $grantService->grantPreviousGroupContentOnTransfer(
+                        (int) $studentId,
+                        $subjectId,
+                        (int) $previousGroup->id,
+                        (int) $targetGroup->id
+                    );
+                }
+
                 $existingReg->group_id = $targetGroup->id;
                 $existingReg->save();
 

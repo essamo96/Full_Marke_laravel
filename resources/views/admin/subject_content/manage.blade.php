@@ -53,6 +53,9 @@
                     <span class="text-gray-400 mt-1 fw-semibold fs-6">إدارة الوحدات، الدروس، والمرفقات</span>
                 </h3>
                 <div class="card-toolbar">
+                    <button type="button" class="btn btn-sm btn-light-success me-2" onclick="openGeneralResourceModal()">
+                        <i class="ki-duotone ki-plus fs-2"></i> مرفق عام (بدون وحدة)
+                    </button>
                     <button type="button" class="btn btn-sm btn-light-primary" onclick="openUnitModal()">
                         <i class="ki-duotone ki-plus fs-2"></i> إضافة وحدة جديدة
                     </button>
@@ -75,15 +78,60 @@
                         @endforeach
                     </ul>
                 @endif
+                @php
+                    $buildPreviewItem = function ($resource, $lessonName = null) {
+                        $isExternal = $resource->isExternalLink();
+                        $status = $resource->processing_status;
+                        $ready = true;
+                        $viewer = $resource->type;
+                        $url = null;
+
+                        if ($isExternal) {
+                            $url = $resource->url;
+                            $viewer = in_array($resource->type, ['video', 'link', 'zoom'], true) ? 'link' : $resource->type;
+                        } elseif ($resource->type === 'video' && in_array($status, ['processing', 'failed'], true)) {
+                            $ready = false;
+                            $viewer = 'video';
+                        } else {
+                            $url = route('subject_content.resources.file', $resource);
+                            if ($resource->isImage()) {
+                                $viewer = 'image';
+                            } elseif ($resource->type === 'video') {
+                                $viewer = 'video';
+                            } else {
+                                $viewer = 'document';
+                            }
+                        }
+
+                        return [
+                            'id' => $resource->id,
+                            'title' => $resource->title,
+                            'type' => $resource->type,
+                            'viewer' => $viewer,
+                            'url' => $url,
+                            'ready' => $ready,
+                            'status' => $status,
+                            'lesson' => $lessonName,
+                        ];
+                    };
+                @endphp
+
                 <!-- Accordion for Units -->
                 <div class="accordion accordion-icon-toggle" id="kt_accordion_units">
                     @forelse($units as $unit)
+                        @php
+                            $unitPreviewItems = $unit->lessons->flatMap(function ($lesson) use ($buildPreviewItem) {
+                                return $lesson->resources->map(fn ($r) => $buildPreviewItem($r, $lesson->name_ar));
+                            })->values();
+                        @endphp
                         <div class="mb-5">
                             <div class="accordion-header py-3 d-flex" data-bs-toggle="collapse" data-bs-target="#kt_accordion_unit_{{ $unit->id }}">
                                 <span class="accordion-icon"><i class="ki-duotone ki-arrow-right fs-4"><span class="path1"></span><span class="path2"></span></i></span>
                                 <h3 class="fs-4 fw-semibold mb-0 ms-4">{{ $unit->name_ar }}</h3>
                                 <div class="ms-auto">
+                                    <button type="button" class="btn btn-sm btn-icon btn-light-info me-2" title="معاينة مرفقات الوحدة" onclick='event.stopPropagation(); openGalleryPreview(@json($unitPreviewItems), @json($unit->name_ar), "وحدة")'><i class="bi bi-eye"></i></button>
                                     <button type="button" class="btn btn-sm btn-icon btn-light-primary me-2" title="تعديل الوحدة" onclick="event.stopPropagation(); openEditUnitModal('{{ $unit->getRouteKey() }}', {{ json_encode(['name_ar' => $unit->name_ar, 'name_en' => $unit->name_en, 'group_ids' => $unit->groups->pluck('id'), 'is_shared' => $unit->is_shared]) }})"><i class="bi bi-pencil"></i></button>
+                                    <button type="button" class="btn btn-sm btn-icon btn-light-warning me-2" title="مشاركة مع مجموعات أخرى" onclick="event.stopPropagation(); openShareModal('unit', '{{ $unit->getRouteKey() }}', {{ json_encode($unit->groups->pluck('id')) }}, {{ $unit->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
                                     <button type="button" class="btn btn-sm btn-icon btn-light-success me-2" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal('{{ $unit->getRouteKey() }}')"><i class="ki-duotone ki-plus fs-4"></i></button>
                                     <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit('{{ $unit->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                                 </div>
@@ -92,6 +140,9 @@
                                 <div class="p-5 border border-dashed rounded mt-4">
                                     @if($unit->lessons->count() > 0)
                                         @foreach($unit->lessons as $lesson)
+                                            @php
+                                                $lessonPreviewItems = $lesson->resources->map(fn ($r) => $buildPreviewItem($r, $lesson->name_ar))->values();
+                                            @endphp
                                             <div class="bg-light p-3 rounded mb-3">
                                                 <div class="d-flex flex-stack">
                                                     <div class="d-flex align-items-center">
@@ -100,7 +151,9 @@
                                                     </div>
                                                     <div>
                                                         <span class="badge badge-light-info me-2">{{ $lesson->resources->count() }} مرفق</span>
+                                                        <button type="button" class="btn btn-sm btn-icon btn-light-info me-2" title="معاينة مرفقات الدرس" onclick='openGalleryPreview(@json($lessonPreviewItems), @json($lesson->name_ar), "درس")'><i class="bi bi-eye"></i></button>
                                                         <button type="button" class="btn btn-sm btn-icon btn-light-primary me-2" title="تعديل الدرس" onclick="openEditLessonModal('{{ $lesson->getRouteKey() }}', {{ json_encode(['name_ar' => $lesson->name_ar, 'name_en' => $lesson->name_en, 'group_ids' => $lesson->groups->pluck('id'), 'is_shared' => $lesson->is_shared]) }})"><i class="bi bi-pencil"></i></button>
+                                                        <button type="button" class="btn btn-sm btn-icon btn-light-warning me-2" title="مشاركة مع مجموعات أخرى" onclick="openShareModal('lesson', '{{ $lesson->getRouteKey() }}', {{ json_encode($lesson->groups->pluck('id')) }}, {{ $lesson->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
                                                         <button type="button" class="btn btn-sm btn-light-primary" data-bs-toggle="collapse" data-bs-target="#kt_lesson_resources_{{ $lesson->id }}">إدارة المرفقات</button>
                                                         <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="حذف الدرس" onclick="deleteLesson('{{ $lesson->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                                                     </div>
@@ -118,26 +171,46 @@
                                                             </thead>
                                                             <tbody>
                                                                 @forelse($lesson->resources as $resource)
+                                                                    @php
+                                                                        $excludedIds = $resource->contentExclusions->pluck('student_id')->values();
+                                                                        $resourcePayload = [
+                                                                            'title' => $resource->title,
+                                                                            'type' => $resource->type,
+                                                                            'url' => $resource->url,
+                                                                            'description' => $resource->description,
+                                                                            'allow_download' => $resource->allow_download,
+                                                                            'is_shared' => (bool) $resource->is_shared,
+                                                                            'group_ids' => $resource->groups->pluck('id'),
+                                                                            'excluded_student_ids' => $excludedIds,
+                                                                            'groups' => $resource->groups->map(fn ($g) => ['id' => $g->id, 'name' => $g->name]),
+                                                                        ];
+                                                                        $singlePreview = [$buildPreviewItem($resource, $lesson->name_ar)];
+                                                                    @endphp
                                                                     <tr>
                                                                         <td>{{ $resource->title }}</td>
                                                                         <td><span class="badge badge-light-primary">{{ $resource->type }}</span></td>
                                                                         <td>
                                                                             @if($resource->isExternalLink())
+                                                                                <button type="button" class="btn btn-sm btn-light-info me-1" title="معاينة" onclick='openGalleryPreview(@json($singlePreview), @json($resource->title), "مرفق")'><i class="bi bi-eye"></i></button>
                                                                                 <a href="{{ $resource->url }}" target="_blank" class="btn btn-sm btn-light-primary">فتح</a>
                                                                             @elseif($resource->type === 'document' || $resource->isImage())
-                                                                                <button type="button" class="btn btn-sm btn-light-info" onclick="previewResource('{{ route('subject_content.resources.file', $resource) }}', '{{ $resource->type }}', '{{ addslashes($resource->title) }}')"><i class="bi bi-eye"></i> معاينة</button>
+                                                                                <button type="button" class="btn btn-sm btn-light-info me-1" title="معاينة" onclick='openGalleryPreview(@json($singlePreview), @json($resource->title), "مرفق")'><i class="bi bi-eye"></i></button>
                                                                                 <a href="{{ route('subject_content.resources.file', $resource) }}" target="_blank" class="btn btn-sm btn-light-primary">فتح</a>
                                                                             @elseif($resource->processing_status === 'processing')
                                                                                 <span class="badge badge-light-warning">جاري المعالجة...</span>
                                                                             @elseif($resource->processing_status === 'failed')
                                                                                 <span class="badge badge-light-danger" title="{{ $resource->processing_error }}">فشلت المعالجة</span>
                                                                             @else
-                                                                                <button type="button" class="btn btn-sm btn-light-info" onclick="previewResource('{{ route('subject_content.resources.file', $resource) }}', 'video', '{{ addslashes($resource->title) }}')"><i class="bi bi-eye"></i> معاينة</button>
+                                                                                <button type="button" class="btn btn-sm btn-light-info me-1" title="معاينة" onclick='openGalleryPreview(@json($singlePreview), @json($resource->title), "مرفق")'><i class="bi bi-eye"></i></button>
                                                                                 <span class="badge badge-light-success">جاهز (يُعرض للطالب)</span>
+                                                                            @endif
+                                                                            @if($excludedIds->count())
+                                                                                <span class="badge badge-light-danger ms-1">{{ $excludedIds->count() }} مستثنى</span>
                                                                             @endif
                                                                         </td>
                                                                         <td class="text-end">
-                                                                            <button type="button" class="btn btn-icon btn-sm btn-light-primary me-1" onclick="openEditResourceModal('{{ $resource->getRouteKey() }}', {{ $resource->toJson() }})"><i class="bi bi-pencil"></i></button>
+                                                                            <button type="button" class="btn btn-icon btn-sm btn-light-primary me-1" onclick='openEditResourceModal(@json($resource->getRouteKey()), @json($resourcePayload))'><i class="bi bi-pencil"></i></button>
+                                                                            <button type="button" class="btn btn-icon btn-sm btn-light-warning me-1" title="مشاركة مع مجموعات أخرى" onclick='openShareModal("resource", @json($resource->getRouteKey()), @json($resource->groups->pluck("id")), {{ $resource->is_shared ? "true" : "false" }})'><i class="bi bi-share"></i></button>
                                                                             <button type="button" class="btn btn-icon btn-sm btn-light-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                                                                         </td>
                                                                     </tr>
@@ -162,9 +235,83 @@
                     @empty
                         <div class="text-center text-muted py-10">
                             <i class="ki-duotone ki-folder-cross fs-3x mb-3 text-gray-400"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <h5>لا يوجد محتوى لهذه المادة حتى الآن</h5>
+                            <h5>لا توجد وحدات لهذه المادة حتى الآن</h5>
                         </div>
                     @endforelse
+                </div>
+
+                {{-- Standalone resources (no unit/lesson) --}}
+                <div class="separator my-8"></div>
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <h4 class="fw-bold mb-1">مرفقات عامة (بدون وحدة)</h4>
+                        <div class="text-muted fs-7">تظهر مباشرة للطالب مع نفس تحكم السكوب والاستثناءات</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        @php
+                            $generalPreviewItems = $generalResources->map(fn ($r) => $buildPreviewItem($r, null))->values();
+                        @endphp
+                        <button type="button" class="btn btn-sm btn-light-info" title="معاينة المرفقات العامة" onclick='openGalleryPreview(@json($generalPreviewItems), "مرفقات عامة", "عام")'>
+                            <i class="bi bi-eye me-1"></i> معاينة الكل
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light-success" onclick="openGeneralResourceModal()">
+                            <i class="bi bi-plus-lg me-1"></i> إضافة مرفق عام
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-row-bordered align-middle">
+                        <thead>
+                            <tr class="fw-semibold fs-7 text-gray-700">
+                                <th>العنوان</th>
+                                <th>النوع</th>
+                                <th>السكوب</th>
+                                <th>مستثنون</th>
+                                <th class="text-end">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($generalResources as $resource)
+                                @php
+                                    $excludedIds = $resource->contentExclusions->pluck('student_id')->values();
+                                    $resourcePayload = [
+                                        'title' => $resource->title,
+                                        'type' => $resource->type,
+                                        'url' => $resource->url,
+                                        'description' => $resource->description,
+                                        'allow_download' => $resource->allow_download,
+                                        'is_shared' => (bool) $resource->is_shared,
+                                        'group_ids' => $resource->groups->pluck('id'),
+                                        'excluded_student_ids' => $excludedIds,
+                                        'groups' => $resource->groups->map(fn ($g) => ['id' => $g->id, 'name' => $g->name]),
+                                    ];
+                                    $singlePreview = [$buildPreviewItem($resource, null)];
+                                @endphp
+                                <tr>
+                                    <td>{{ $resource->title }}</td>
+                                    <td><span class="badge badge-light-primary">{{ $resource->type }}</span></td>
+                                    <td>
+                                        @if($resource->is_shared)
+                                            <span class="badge badge-light-success">كل المجموعات</span>
+                                        @elseif($resource->groups->isEmpty())
+                                            <span class="badge badge-light-warning">مسودة</span>
+                                        @else
+                                            {{ $resource->groups->pluck('name')->join('، ') }}
+                                        @endif
+                                    </td>
+                                    <td>{{ $excludedIds->count() ?: '—' }}</td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-icon btn-sm btn-light-info me-1" title="معاينة" onclick='openGalleryPreview(@json($singlePreview), @json($resource->title), "مرفق")'><i class="bi bi-eye"></i></button>
+                                        <button type="button" class="btn btn-icon btn-sm btn-light-primary me-1" onclick='openEditResourceModal(@json($resource->getRouteKey()), @json($resourcePayload))'><i class="bi bi-pencil"></i></button>
+                                        <button type="button" class="btn btn-icon btn-sm btn-light-warning me-1" title="مشاركة" onclick='openShareModal("resource", @json($resource->getRouteKey()), @json($resource->groups->pluck("id")), {{ $resource->is_shared ? "true" : "false" }})'><i class="bi bi-share"></i></button>
+                                        <button type="button" class="btn btn-icon btn-sm btn-light-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="5" class="text-center text-muted py-5">لا توجد مرفقات عامة بعد</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -194,11 +341,11 @@
                     <div class="mb-5">
                         <div class="form-check form-switch">
                             <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" {{ !$selectedGroupId ? 'checked' : '' }}>
-                            <label class="form-check-label fw-bold">محتوى عام لجميع المجموعات (Shared)</label>
+                            <label class="form-check-label fw-bold">مرئي لكل مجموعات المادة (بدون تحديد مجموعة)</label>
                         </div>
                     </div>
                     <div class="mb-5 group-selection-container" style="display: {{ !$selectedGroupId ? 'none' : 'block' }};">
-                        <label class="form-label fw-bold">المجموعات (تترك فارغة لحفظها كمسودة)</label>
+                        <label class="form-label fw-bold">مرئي في المجموعات المحددة (يمكن اختيار أكثر من مجموعة دون إعادة رفع)</label>
                         <select name="group_ids[]" class="form-select" data-control="select2" multiple="multiple">
                             @foreach($groups as $group)
                                 <option value="{{ $group->id }}" {{ $selectedGroupId == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
@@ -272,12 +419,28 @@
                         </select>
                     </div>
                     <div class="mb-5">
-                        <label class="form-label">المجموعات (اتركه فارغاً لجعله عاماً لجميع المجموعات)</label>
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="is_shared" value="0">
+                            <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" {{ !$selectedGroupId ? 'checked' : '' }}>
+                            <label class="form-check-label fw-bold">مرئي لكل مجموعات المادة</label>
+                        </div>
+                    </div>
+                    <div class="mb-5 group-selection-container" style="display: {{ !$selectedGroupId ? 'none' : 'block' }};">
+                        <label class="form-label fw-bold">مرئي في المجموعات المحددة</label>
                         <select name="group_ids[]" id="resource_groups" class="form-select" data-control="select2" data-placeholder="اختر المجموعات..." multiple="multiple">
                             @foreach($groups as $group)
-                                <option value="{{ $group->id }}">{{ $group->name }}</option>
+                                <option value="{{ $group->id }}" {{ $selectedGroupId == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="mb-5">
+                        <label class="form-label fw-bold">استثناء طلاب (لن يروا هذا المرفق رغم السكوب)</label>
+                        <select name="excluded_student_ids[]" id="resource_excluded_students" class="form-select" data-control="select2" data-placeholder="اختر طلاباً للاستثناء..." multiple="multiple">
+                            @foreach($subjectStudents as $st)
+                                <option value="{{ $st['id'] }}" data-group-id="{{ $st['group_id'] }}">{{ $st['name'] }}</option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">الاستثناء يتفوق على المشاركة والمجموعات والمنح الفردية.</div>
                     </div>
                     <div class="mb-5" id="resource_video_field">
                         <label class="form-label">رفع فيديو</label>
@@ -358,10 +521,25 @@
                         </select>
                     </div>
                     <div class="mb-5">
-                        <label class="form-label">المجموعات (اتركه فارغاً لجعله عاماً لجميع المجموعات)</label>
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="is_shared" value="0">
+                            <input class="form-check-input is-shared-checkbox" type="checkbox" value="1" name="is_shared" id="edit_resource_is_shared">
+                            <label class="form-check-label fw-bold">مرئي لكل مجموعات المادة</label>
+                        </div>
+                    </div>
+                    <div class="mb-5 group-selection-container">
+                        <label class="form-label fw-bold">مرئي في المجموعات المحددة</label>
                         <select name="group_ids[]" id="edit_resource_groups" class="form-select" data-control="select2" data-placeholder="اختر المجموعات..." multiple="multiple">
                             @foreach($groups as $group)
                                 <option value="{{ $group->id }}">{{ $group->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-5">
+                        <label class="form-label fw-bold">استثناء طلاب</label>
+                        <select name="excluded_student_ids[]" id="edit_resource_excluded_students" class="form-select" data-control="select2" data-placeholder="اختر طلاباً للاستثناء..." multiple="multiple">
+                            @foreach($subjectStudents as $st)
+                                <option value="{{ $st['id'] }}" data-group-id="{{ $st['group_id'] }}">{{ $st['name'] }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -508,25 +686,52 @@
     </div>
 </div>
 
-<!-- Preview Resource Modal -->
-<div class="modal fade" tabindex="-1" id="kt_modal_preview_resource">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="preview_modal_title">معاينة المرفق</h3>
-                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close" onclick="stopPreviewVideo()">
+<!-- Gallery Preview Modal -->
+<div class="modal fade" tabindex="-1" id="kt_modal_gallery_preview" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content overflow-hidden">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h3 class="modal-title mb-1" id="gallery_preview_title">معاينة المحتوى</h3>
+                    <div class="text-muted fs-7" id="gallery_preview_subtitle"></div>
+                </div>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
                     <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
                 </div>
             </div>
-            <div class="modal-body p-0" id="preview_modal_body" style="min-height: 500px; display: flex; align-items: center; justify-content: center; background-color: #000;">
-                <!-- Content will be injected here -->
+            <div class="modal-body pt-4 pb-0 px-0">
+                <div class="row g-0 gallery-preview-layout">
+                    <div class="col-lg-4 col-xl-3 border-end gallery-preview-sidebar">
+                        <div class="px-5 pb-3 d-flex align-items-center justify-content-between">
+                            <span class="fw-bold text-gray-800">المرفقات</span>
+                            <span class="badge badge-light-primary" id="gallery_count">0</span>
+                        </div>
+                        <div class="gallery-preview-list px-3 pb-4" id="gallery_list"></div>
+                    </div>
+                    <div class="col-lg-8 col-xl-9 d-flex flex-column">
+                        <div class="gallery-preview-stage flex-grow-1" id="gallery_stage">
+                            <div class="text-center text-muted p-10" id="gallery_empty_state">
+                                <i class="bi bi-eye fs-2x mb-3 d-block"></i>
+                                اختر مرفقاً من القائمة للمعاينة
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between px-5 py-3 border-top">
+                            <button type="button" class="btn btn-sm btn-light" id="gallery_prev_btn" onclick="galleryNavigate(-1)">
+                                <i class="bi bi-chevron-right"></i> السابق
+                            </button>
+                            <span class="fs-7 text-muted" id="gallery_position_label">—</span>
+                            <button type="button" class="btn btn-sm btn-light" id="gallery_next_btn" onclick="galleryNavigate(1)">
+                                التالي <i class="bi bi-chevron-left"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-
-  <!-- Edit Unit Modal -->
+<!-- Edit Unit Modal -->
   <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_edit_unit">
     <div class="modal-dialog">
       <div class="modal-content glass-panel">
@@ -610,16 +815,98 @@
     </div>
   </div>
 
-  
-          <div class="modal-footer">
-            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
-            <button type="submit" class="btn btn-luxury">حفظ</button>
-          </div>
-        </form>
-      </div>
+{{-- Share content with additional groups without re-upload --}}
+<div class="modal fade" tabindex="-1" id="kt_modal_share_content">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">مشاركة مع مجموعات أخرى</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <form id="kt_form_share_content">
+                <div class="modal-body">
+                    <input type="hidden" id="share_content_type">
+                    <input type="hidden" id="share_content_id">
+                    <div class="alert alert-info fs-7 py-2">
+                        ستظهر نفس الوحدة/الدرس/الملف للمجموعات المختارة بدون رفع من جديد. لن يُزال من مجموعاته الحالية.
+                    </div>
+                    <div id="share_already_shared_msg" class="alert alert-success d-none">هذا المحتوى مرئي لكل مجموعات المادة بالفعل.</div>
+                    <div class="mb-5" id="share_groups_wrap">
+                        <label class="form-label fw-bold">المجموعات الإضافية</label>
+                        <select id="share_group_ids" class="form-select" data-control="select2" multiple="multiple" data-placeholder="اختر المجموعات...">
+                            @foreach($groups as $group)
+                                <option value="{{ $group->id }}">{{ $group->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" id="share_submit_btn">مشاركة</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
+</div>
 @endsection
+
+@push('styles')
+<style>
+    .gallery-preview-layout { min-height: 62vh; }
+    .gallery-preview-sidebar { background: var(--bs-body-bg); }
+    .gallery-preview-list { max-height: 58vh; overflow-y: auto; }
+    .gallery-preview-item {
+        display: flex; align-items: flex-start; gap: .75rem;
+        width: 100%; text-align: start; border: 1px solid transparent;
+        border-radius: .75rem; padding: .75rem .85rem; margin-bottom: .5rem;
+        background: var(--bs-gray-100, #f5f8fa); color: inherit; transition: .15s ease;
+    }
+    [data-bs-theme="dark"] .gallery-preview-item { background: rgba(255,255,255,.04); }
+    .gallery-preview-item:hover { border-color: var(--bs-primary); }
+    .gallery-preview-item.is-active {
+        border-color: var(--bs-primary);
+        background: rgba(var(--bs-primary-rgb, 0, 158, 247), .08);
+        box-shadow: 0 0 0 1px rgba(var(--bs-primary-rgb, 0, 158, 247), .15);
+    }
+    .gallery-preview-item__icon {
+        width: 2.25rem; height: 2.25rem; border-radius: .65rem;
+        display: grid; place-items: center; flex: 0 0 auto;
+        background: rgba(var(--bs-primary-rgb, 0, 158, 247), .12);
+        color: var(--bs-primary);
+    }
+    .gallery-preview-item__title {
+        font-weight: 700; font-size: .9rem; line-height: 1.35;
+        color: var(--bs-body-color); margin-bottom: .15rem;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .gallery-preview-item__meta { font-size: .75rem; color: var(--bs-secondary-color, #a1a5b7); }
+    .gallery-preview-stage {
+        min-height: 52vh; display: flex; align-items: center; justify-content: center;
+        background: var(--bs-body-bg); position: relative; overflow: hidden;
+    }
+    .gallery-preview-stage.is-media { background: #0b0d12; }
+    .gallery-preview-stage video,
+    .gallery-preview-stage iframe,
+    .gallery-preview-stage img {
+        width: 100%; height: 100%; max-height: 62vh; border: 0; outline: none;
+    }
+    .gallery-preview-stage img { object-fit: contain; max-width: 100%; height: auto; padding: 1rem; }
+    .gallery-preview-stage video { max-height: 62vh; background: #000; }
+    .gallery-preview-link-card {
+        width: min(520px, 92%); margin: 1.5rem auto; text-align: center;
+        padding: 2rem 1.5rem; border-radius: 1rem;
+        border: 1px dashed var(--bs-border-color);
+        background: var(--bs-body-bg);
+    }
+    @media (max-width: 991.98px) {
+        .gallery-preview-sidebar { border-inline-end: 0 !important; border-bottom: 1px solid var(--bs-border-color); }
+        .gallery-preview-list { max-height: 220px; }
+        .gallery-preview-stage { min-height: 42vh; }
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script src="{{ asset('assets/vendor/resumable/resumable.js') }}"></script>
@@ -629,7 +916,9 @@
     const subjectContentUnitsBaseUrl = '{{ url('admin/subject-content/units') }}';
     const subjectContentLessonsBaseUrl = '{{ url('admin/subject-content/lessons') }}';
     const subjectContentResourcesBaseUrl = '{{ url('admin/subject-content/resources') }}';
+    const subjectContentGeneralResourcesStoreUrl = '{{ route('subject_content.general_resources.store', \Illuminate\Support\Facades\Crypt::encrypt($subject->id)) }}';
     const csrfToken = '{{ csrf_token() }}';
+    let isGeneralResourceMode = false;
 
     const chunkUploadUrl = '{{ route('subject_content.upload_chunk') }}';
 
@@ -955,11 +1244,40 @@ let editUnitId = null;
 
     function openResourceModal(lessonId) {
         currentLessonId = lessonId;
+        isGeneralResourceMode = false;
+        const titleEl = document.querySelector('#kt_modal_add_resource .modal-title');
+        if (titleEl) titleEl.textContent = 'إضافة مرفق تعليمي';
         $('#kt_form_add_resource')[0].reset();
         document.getElementById('resource_uploaded_path').value = '';
         document.getElementById('resource_original_filename').value = '';
         document.getElementById('resource_video_filename').textContent = '';
         document.getElementById('resource_video_progress_wrap').classList.add('d-none');
+        $('#resource_excluded_students').val(null).trigger('change');
+        @if($selectedGroupId)
+        $('#resource_groups').val(['{{ $selectedGroupId }}']).trigger('change');
+        @endif
+        videoUploadDone = false;
+        if (videoUploadResumable) videoUploadResumable.files = [];
+        toggleResourceFields();
+        modalAddResource.show();
+    }
+
+    function openGeneralResourceModal() {
+        currentLessonId = null;
+        isGeneralResourceMode = true;
+        const titleEl = document.querySelector('#kt_modal_add_resource .modal-title');
+        if (titleEl) titleEl.textContent = 'إضافة مرفق عام (بدون وحدة)';
+        $('#kt_form_add_resource')[0].reset();
+        document.getElementById('resource_uploaded_path').value = '';
+        document.getElementById('resource_original_filename').value = '';
+        document.getElementById('resource_video_filename').textContent = '';
+        document.getElementById('resource_video_progress_wrap').classList.add('d-none');
+        $('#resource_excluded_students').val(null).trigger('change');
+        @if($selectedGroupId)
+        const sharedCb = document.querySelector('#kt_form_add_resource .is-shared-checkbox');
+        if (sharedCb) { sharedCb.checked = false; $(sharedCb).trigger('change'); }
+        $('#resource_groups').val(['{{ $selectedGroupId }}']).trigger('change');
+        @endif
         videoUploadDone = false;
         if (videoUploadResumable) videoUploadResumable.files = [];
         toggleResourceFields();
@@ -1003,39 +1321,235 @@ let editUnitId = null;
         });
     }
 
-    // Preview Resource logic
-    let modalPreviewResource;
+    // Gallery preview — loads only the selected attachment
+    let modalGalleryPreview = null;
+    let galleryItems = [];
+    let galleryIndex = 0;
+
     document.addEventListener('DOMContentLoaded', function () {
-        modalPreviewResource = new bootstrap.Modal(document.getElementById('kt_modal_preview_resource'));
-        document.getElementById('kt_modal_preview_resource').addEventListener('hidden.bs.modal', function () {
-            stopPreviewVideo();
-        });
+        const el = document.getElementById('kt_modal_gallery_preview');
+        if (!el) return;
+        modalGalleryPreview = new bootstrap.Modal(el);
+        el.addEventListener('hidden.bs.modal', clearGalleryStage);
     });
 
-    function previewResource(url, type, title) {
-        document.getElementById('preview_modal_title').textContent = title;
-        const body = document.getElementById('preview_modal_body');
-        body.innerHTML = ''; // clear previous content
+    function galleryTypeMeta(type) {
+        const map = {
+            video: { label: 'فيديو', icon: 'bi-play-circle' },
+            document: { label: 'مستند', icon: 'bi-file-earmark-pdf' },
+            image: { label: 'صورة', icon: 'bi-image' },
+            link: { label: 'رابط', icon: 'bi-link-45deg' },
+            zoom: { label: 'Zoom', icon: 'bi-camera-video' },
+        };
+        return map[type] || { label: type || 'مرفق', icon: 'bi-paperclip' };
+    }
 
-        if (type === 'video') {
-            body.innerHTML = `
-                <video controls autoplay style="width: 100%; max-height: 80vh; outline: none;">
-                    <source src="${url}" type="video/mp4">
+    function toEmbeddableUrl(url) {
+        if (!url) return url;
+        let m;
+        if ((m = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/))) {
+            return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+        }
+        if ((m = url.match(/drive\.google\.com\/(?:open|uc)\?(?:export=\w+&)?id=([\w-]+)/))) {
+            return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+        }
+        if ((m = url.match(/youtube\.com\/watch\?(?:.*&)?v=([\w-]+)/))) {
+            return 'https://www.youtube-nocookie.com/embed/' + m[1] + '?rel=0&modestbranding=1';
+        }
+        if ((m = url.match(/youtu\.be\/([\w-]+)/))) {
+            return 'https://www.youtube-nocookie.com/embed/' + m[1] + '?rel=0&modestbranding=1';
+        }
+        if ((m = url.match(/youtube\.com\/(?:shorts|live|embed)\/([\w-]+)/))) {
+            return 'https://www.youtube-nocookie.com/embed/' + m[1] + '?rel=0&modestbranding=1';
+        }
+        return url;
+    }
+
+    function stopGalleryMedia() {
+        const stage = document.getElementById('gallery_stage');
+        if (!stage) return;
+        stage.querySelectorAll('video').forEach(function (v) {
+            try { v.pause(); } catch (e) {}
+            v.removeAttribute('src');
+            try { v.load(); } catch (e2) {}
+        });
+        stage.querySelectorAll('iframe').forEach(function (frame) {
+            frame.src = 'about:blank';
+        });
+    }
+
+    function clearGalleryStage() {
+        const stage = document.getElementById('gallery_stage');
+        if (!stage) return;
+        stopGalleryMedia();
+        stage.innerHTML = '<div class="text-center text-muted p-10" id="gallery_empty_state"><i class="bi bi-eye fs-2x mb-3 d-block"></i>اختر مرفقاً من القائمة للمعاينة</div>';
+        stage.classList.remove('is-media');
+    }
+
+    function openGalleryPreview(items, title, scopeLabel) {
+        galleryItems = Array.isArray(items) ? items : [];
+        galleryIndex = 0;
+
+        document.getElementById('gallery_preview_title').textContent = title || 'معاينة المحتوى';
+        document.getElementById('gallery_preview_subtitle').textContent = scopeLabel
+            ? ('معاينة على مستوى ' + scopeLabel + ' — يُحمّل المرفق المحدد فقط')
+            : 'يُحمّل المرفق المحدد فقط';
+        document.getElementById('gallery_count').textContent = String(galleryItems.length);
+
+        renderGalleryList();
+
+        if (!galleryItems.length) {
+            clearGalleryStage();
+            document.getElementById('gallery_position_label').textContent = 'لا توجد مرفقات';
+            document.getElementById('gallery_prev_btn').disabled = true;
+            document.getElementById('gallery_next_btn').disabled = true;
+            modalGalleryPreview.show();
+            return;
+        }
+
+        selectGalleryItem(0);
+        modalGalleryPreview.show();
+    }
+
+    function renderGalleryList() {
+        const list = document.getElementById('gallery_list');
+        if (!galleryItems.length) {
+            list.innerHTML = '<div class="text-center text-muted py-8 px-3">لا توجد مرفقات للمعاينة في هذا المستوى</div>';
+            return;
+        }
+
+        list.innerHTML = galleryItems.map(function (item, index) {
+            const meta = galleryTypeMeta(item.type || item.viewer);
+            const lesson = item.lesson ? '<div class="gallery-preview-item__meta">' + escapeHtml(item.lesson) + '</div>' : '';
+            const statusNote = !item.ready
+                ? '<div class="gallery-preview-item__meta text-warning">غير جاهز للمعاينة</div>'
+                : '';
+            return `
+                <button type="button" class="gallery-preview-item ${index === galleryIndex ? 'is-active' : ''}" data-index="${index}" onclick="selectGalleryItem(${index})">
+                    <span class="gallery-preview-item__icon"><i class="bi ${meta.icon}"></i></span>
+                    <span class="flex-grow-1 min-w-0">
+                        <div class="gallery-preview-item__title">${escapeHtml(item.title || 'بدون عنوان')}</div>
+                        <div class="gallery-preview-item__meta">${meta.label}</div>
+                        ${lesson}${statusNote}
+                    </span>
+                </button>
+            `;
+        }).join('');
+    }
+
+    function escapeHtml(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function selectGalleryItem(index) {
+        if (!galleryItems.length) return;
+        galleryIndex = Math.max(0, Math.min(index, galleryItems.length - 1));
+        renderGalleryList();
+        renderGalleryStage(galleryItems[galleryIndex]);
+
+        document.getElementById('gallery_position_label').textContent =
+            (galleryIndex + 1) + ' / ' + galleryItems.length;
+        document.getElementById('gallery_prev_btn').disabled = galleryIndex <= 0;
+        document.getElementById('gallery_next_btn').disabled = galleryIndex >= galleryItems.length - 1;
+
+        const active = document.querySelector('.gallery-preview-item.is-active');
+        if (active) active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    function galleryNavigate(step) {
+        selectGalleryItem(galleryIndex + step);
+    }
+
+    function renderGalleryStage(item) {
+        const stage = document.getElementById('gallery_stage');
+        stopGalleryMedia();
+        stage.innerHTML = '';
+        stage.classList.remove('is-media');
+
+        if (!item) {
+            clearGalleryStage();
+            return;
+        }
+
+        if (!item.ready) {
+            const statusText = item.status === 'failed' ? 'فشلت معالجة هذا المرفق' : 'جاري معالجة هذا المرفق...';
+            stage.innerHTML = `
+                <div class="text-center p-10">
+                    <i class="bi bi-hourglass-split fs-2x text-warning mb-3 d-block"></i>
+                    <div class="fw-bold text-gray-800 mb-1">${escapeHtml(item.title || '')}</div>
+                    <div class="text-muted">${statusText}</div>
+                </div>
+            `;
+            return;
+        }
+
+        if (!item.url) {
+            stage.innerHTML = '<div class="text-center text-muted p-10">لا يتوفر رابط معاينة لهذا المرفق</div>';
+            return;
+        }
+
+        const viewer = item.viewer || item.type;
+
+        if (viewer === 'video') {
+            stage.classList.add('is-media');
+            stage.innerHTML = `
+                <video controls playsinline controlsList="nodownload" style="width:100%;max-height:62vh;">
+                    <source src="${escapeHtml(item.url)}" type="video/mp4">
                     متصفحك لا يدعم تشغيل الفيديو.
                 </video>
             `;
-        } else if (type === 'document' || type === 'image') {
-            body.innerHTML = `
-                <iframe src="${url}" style="width: 100%; height: 80vh; border: none;"></iframe>
-            `;
+            return;
         }
 
-        modalPreviewResource.show();
+        if (viewer === 'image') {
+            stage.classList.add('is-media');
+            stage.innerHTML = `<img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.title || '')}">`;
+            return;
+        }
+
+        if (viewer === 'link' || viewer === 'zoom') {
+            const embed = toEmbeddableUrl(item.url);
+            if (embed !== item.url) {
+                stage.classList.add('is-media');
+                stage.innerHTML = `<iframe src="${escapeHtml(embed)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="no-referrer"></iframe>`;
+            } else {
+                stage.innerHTML = `
+                    <div class="gallery-preview-link-card">
+                        <i class="bi bi-box-arrow-up-right fs-2x text-primary mb-4 d-block"></i>
+                        <div class="fw-bold fs-4 mb-2 text-gray-800">${escapeHtml(item.title || 'رابط خارجي')}</div>
+                        <div class="text-muted mb-5 fs-7" style="word-break:break-all;">${escapeHtml(item.url)}</div>
+                        <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" class="btn btn-primary">فتح الرابط</a>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        stage.classList.add('is-media');
+        stage.innerHTML = `<iframe src="${escapeHtml(item.url)}" allowfullscreen></iframe>`;
+    }
+
+    // Backward-compatible alias used by any leftover callers
+    function previewResource(url, type, title) {
+        openGalleryPreview([{
+            id: null,
+            title: title,
+            type: type,
+            viewer: type,
+            url: url,
+            ready: true,
+            status: 'ready',
+            lesson: null,
+        }], title, 'مرفق');
     }
 
     function stopPreviewVideo() {
-        const body = document.getElementById('preview_modal_body');
-        body.innerHTML = '';
+        clearGalleryStage();
     }
 
     $('#kt_form_add_unit').on('submit', function (e) {
@@ -1077,8 +1591,11 @@ let editUnitId = null;
 
         const formData = new FormData(this);
         formData.append('_token', csrfToken);
+        const storeUrl = isGeneralResourceMode
+            ? subjectContentGeneralResourcesStoreUrl
+            : (subjectContentLessonsBaseUrl + '/' + currentLessonId + '/resources');
         $.ajax({
-            url: subjectContentLessonsBaseUrl + '/' + currentLessonId + '/resources',
+            url: storeUrl,
             type: 'POST',
             data: formData,
             contentType: false,
@@ -1136,6 +1653,60 @@ let editUnitId = null;
             });
         });
     }
+
+    let modalShareContent = null;
+    function openShareModal(type, id, currentGroupIds, isShared) {
+        if (!modalShareContent) {
+            modalShareContent = new bootstrap.Modal(document.getElementById('kt_modal_share_content'));
+        }
+        $('#share_content_type').val(type);
+        $('#share_content_id').val(id);
+        const $select = $('#share_group_ids');
+        $select.find('option').prop('disabled', false).prop('selected', false);
+        (currentGroupIds || []).forEach(function (gid) {
+            $select.find('option[value="' + gid + '"]').prop('disabled', true);
+        });
+        $select.trigger('change');
+
+        if (isShared) {
+            $('#share_already_shared_msg').removeClass('d-none');
+            $('#share_groups_wrap').addClass('d-none');
+            $('#share_submit_btn').prop('disabled', true);
+        } else {
+            $('#share_already_shared_msg').addClass('d-none');
+            $('#share_groups_wrap').removeClass('d-none');
+            $('#share_submit_btn').prop('disabled', false);
+        }
+        modalShareContent.show();
+    }
+
+    $('#kt_form_share_content').on('submit', function (e) {
+        e.preventDefault();
+        const type = $('#share_content_type').val();
+        const id = $('#share_content_id').val();
+        const groupIds = $('#share_group_ids').val() || [];
+        if (!groupIds.length) {
+            if (typeof toastr !== 'undefined') toastr.warning('اختر مجموعة واحدة على الأقل');
+            return;
+        }
+        const base = type === 'unit' ? subjectContentUnitsBaseUrl
+            : (type === 'lesson' ? subjectContentLessonsBaseUrl : subjectContentResourcesBaseUrl);
+        $.ajax({
+            url: base + '/' + id + '/share',
+            type: 'POST',
+            data: { _token: csrfToken, group_ids: groupIds },
+            success: function (res) {
+                if (typeof toastr !== 'undefined') toastr.success(res.message || 'تمت المشاركة');
+                location.reload();
+            },
+            error: function (xhr) {
+                const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'تعذر إتمام المشاركة';
+                if (typeof toastr !== 'undefined') toastr.error(msg);
+                else alert(msg);
+            }
+        });
+    });
+
     function toggleEditResourceFields() {
         const type = document.getElementById('edit_resource_type').value;
         const videoField = document.getElementById('edit_resource_video_field');
@@ -1248,7 +1819,11 @@ let editUnitId = null;
         document.getElementById('edit_resource_title').value = resourceObj.title || '';
         document.getElementById('edit_resource_type').value = resourceObj.type || 'video';
         document.getElementById('edit_resource_description').value = resourceObj.description || '';
-        $(document.getElementById('kt_form_edit_resource')).find('select[name="group_ids[]"]').val(resourceObj.groups ? resourceObj.groups.map(g => g.id) : []).trigger('change');
+        const groupIds = resourceObj.group_ids
+            || (resourceObj.groups ? resourceObj.groups.map(g => g.id) : []);
+        $(document.getElementById('kt_form_edit_resource')).find('select[name="group_ids[]"]').val(groupIds).trigger('change');
+        const excludedIds = (resourceObj.excluded_student_ids || []).map(String);
+        $('#edit_resource_excluded_students').val(excludedIds).trigger('change');
         const isShared = resourceObj.is_shared;
         const isSharedCheckbox = document.getElementById('kt_form_edit_resource').querySelector('.is-shared-checkbox');
         if (isSharedCheckbox) { isSharedCheckbox.checked = !!isShared; $(isSharedCheckbox).trigger('change'); }

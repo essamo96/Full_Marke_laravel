@@ -42,13 +42,23 @@
                         </div>
                     @endif
 
-                    <div class="pt-3 border-top border-white border-opacity-10 d-flex justify-content-between align-items-center">
+                    <div class="pt-3 border-top border-white border-opacity-10 d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div class="fs-8 text-white opacity-50">
                             تاريخ التقديم: {{ $result->created_at->format('Y-m-d') }}
+                            @if($result->group)
+                                · {{ $result->group->name }}
+                            @endif
                         </div>
-                        <a href="{{ route('student.results.show', $result) }}" class="btn btn-sm btn-outline-light rounded-pill">
-                            عرض التفاصيل
-                        </a>
+                        <div class="d-flex gap-2">
+                            @if($result->exam?->allow_student_review)
+                                <a href="{{ route('student.results.pdf', $result) }}" class="btn btn-sm btn-outline-light rounded-pill">
+                                    PDF
+                                </a>
+                            @endif
+                            <a href="{{ route('student.results.show', $result) }}" class="btn btn-sm btn-outline-light rounded-pill">
+                                مراجعة الإجابات
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

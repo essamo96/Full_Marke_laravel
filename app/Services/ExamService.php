@@ -13,15 +13,21 @@ class ExamService
     public function saveExam(array $data, ?Exam $exam = null): Exam
     {
         return DB::transaction(function () use ($data, $exam) {
+            $questions = $data['questions'] ?? null;
+            unset($data['questions']);
+
+            if (array_key_exists('allow_student_review', $data)) {
+                $data['allow_student_review'] = filter_var($data['allow_student_review'], FILTER_VALIDATE_BOOLEAN);
+            }
+
             if ($exam) {
                 $exam->update($data);
             } else {
                 $exam = Exam::create($data);
             }
 
-            // Sync questions if provided
-            if (isset($data['questions'])) {
-                $this->syncQuestions($exam, $data['questions']);
+            if (is_array($questions)) {
+                $this->syncQuestions($exam, $questions);
             }
 
             return $exam;

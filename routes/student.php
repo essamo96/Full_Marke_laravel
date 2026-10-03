@@ -70,6 +70,7 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::post('exams/{exam}/violation', [\App\Http\Controllers\Student\ExamsController::class, 'recordViolation'])->name('exams.violation');
         Route::get('results', [\App\Http\Controllers\Student\ResultsController::class, 'index'])->name('results.index');
         Route::get('results/{grade}', [\App\Http\Controllers\Student\ResultsController::class, 'show'])->name('results.show');
+        Route::get('results/{grade}/pdf', [\App\Http\Controllers\Student\ResultsController::class, 'downloadPdf'])->name('results.pdf');
         Route::get('attendance', [\App\Http\Controllers\Student\AttendanceController::class, 'index'])->name('attendance.index');
 
         Route::post('notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');

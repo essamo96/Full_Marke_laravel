@@ -12,6 +12,7 @@ use App\Traits\EncryptsRouteKey;
 class SubjectResource extends Model
 {
     use HasFactory, SoftDeletes, EncryptsRouteKey;
+    use Concerns\HasEducationalContentVisibility;
 
     protected $table = 'subject_resources';
     protected $fillable = [

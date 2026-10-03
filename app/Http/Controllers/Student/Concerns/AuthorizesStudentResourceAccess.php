@@ -20,8 +20,8 @@ trait AuthorizesStudentResourceAccess
 
         abort_unless($registration, 403);
 
-        $unitGroupId = $resource->lesson?->unit?->group_id;
-        abort_unless(is_null($unitGroupId) || $unitGroupId === $registration->group_id, 403);
+        $groupId = $registration->group_id ? (int) $registration->group_id : null;
+        abort_unless($resource->isVisibleToStudent((int) $student->id, $groupId), 403);
     }
 
     /**

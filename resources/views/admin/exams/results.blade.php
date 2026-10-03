@@ -54,6 +54,7 @@
                                 <th>وقت البدء</th>
                                 <th>الوقت المنقضي</th>
                                 <th>المخالفات</th>
+                                <th class="text-end">مراجعة</th>
                             </tr>
                         </thead>
                         <tbody class="fw-semibold text-gray-600">
@@ -131,6 +132,17 @@
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
+                                    <td class="text-end">
+                                        @if($grade)
+                                            <button type="button"
+                                                class="btn btn-sm btn-light-primary review-answers-btn"
+                                                data-url="{{ route('exams.grades.answers', $grade) }}">
+                                                <i class="bi bi-eye me-1"></i> الإجابات والأخطاء
+                                            </button>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
@@ -204,4 +216,55 @@
         @endif
     </div>
 </div>
+
+{{-- Professional answers review modal --}}
+<div class="modal fade" tabindex="-1" id="kt_modal_grade_answers">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">مراجعة إجابات الطالب والأخطاء</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <div class="modal-body" id="grade_answers_modal_body">
+                <div class="text-center py-10 text-muted">
+                    <span class="spinner-border spinner-border-sm me-2"></span> جاري التحميل...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('js')
+<script>
+(function () {
+    const modalEl = document.getElementById('kt_modal_grade_answers');
+    if (!modalEl) return;
+    const modal = new bootstrap.Modal(modalEl);
+    const body = document.getElementById('grade_answers_modal_body');
+
+    document.querySelectorAll('.review-answers-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            body.innerHTML = '<div class="text-center py-10 text-muted"><span class="spinner-border spinner-border-sm me-2"></span> جاري التحميل...</div>';
+            modal.show();
+            fetch(btn.dataset.url, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data.success) throw new Error('fail');
+                body.innerHTML = data.html;
+            })
+            .catch(function () {
+                body.innerHTML = '<div class="alert alert-danger">تعذر تحميل تفاصيل الإجابات.</div>';
+            });
+        });
+    });
+})();
+</script>
 @endsection

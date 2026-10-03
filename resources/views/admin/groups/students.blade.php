@@ -77,6 +77,9 @@
                 <div class="modal-body">
                     <input type="hidden" id="transfer_registration_id">
                     <p class="text-muted fs-7 mb-3">المجموعة الحالية: <strong id="transfer_current_group">-</strong></p>
+                    <div class="alert alert-info fs-7 py-2">
+                        سيحتفظ الطالب بمحتوى مجموعته الحالية (فيديوهات وملفات غير مشتركة) بالإضافة إلى محتوى المجموعة الجديدة.
+                    </div>
                     <div id="transfer_no_groups_msg" class="alert alert-warning d-none">لا توجد مجموعات أخرى متاحة لنفس المادة.</div>
                     <div class="mb-3" id="transfer_group_select_wrap">
                         <label class="form-label fw-bold">المجموعة الجديدة</label>

@@ -79,10 +79,17 @@ class PermissionsGroup extends Model
     {
         $actions = empty($actions) ? self::ACTIONS : $actions;
         foreach ($actions as $action) {
-            Permission::firstOrCreate(
+            $permission = Permission::firstOrCreate(
                 ['name' => "admin.{$this->name}.{$action}", 'guard_name' => 'admin'],
                 ['group_id' => $this->id]
             );
+
+            // Keep the permission attached to the active group even if it was
+            // created earlier under a renamed/soft-deleted permissions_groups row.
+            if ((int) $permission->group_id !== (int) $this->id) {
+                $permission->group_id = $this->id;
+                $permission->save();
+            }
         }
     }
 }

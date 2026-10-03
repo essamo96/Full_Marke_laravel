@@ -1047,9 +1047,16 @@
 									$tRawIcon = $parent_item->icon ?: 'bi-circle';
 									$tParentIcon = str_starts_with($tRawIcon, 'ki-') ? $tRawIcon : 'bi ' . $tRawIcon;
 									?>
-									@can($tParentPermission)
+									<?php
+									$tHasChildren = $parent_item->mychild && sizeof($parent_item->mychild) > 0;
+									$tCanSeeParent = auth('admin')->user()?->can($tParentPermission);
+									$tCanSeeAnyChild = $tHasChildren && $parent_item->mychild->contains(
+										fn ($child) => auth('admin')->user()?->can('admin.' . $child->name . '.view')
+									);
+									?>
+									@if ($tCanSeeParent || $tCanSeeAnyChild)
 										<div class="tablet-menu-item">
-											@if ($parent_item->mychild && sizeof($parent_item->mychild) > 0)
+											@if ($tHasChildren)
 												<div class="tablet-menu-dropdown-wrap">
 													<button type="button" class="btn btn-sm btn-color-gray-700 btn-active-light-primary tablet-menu-btn" data-tablet-menu-toggle>
 														<i class="{{ $tParentIcon }} fs-4"></i>
@@ -1081,7 +1088,7 @@
 												</a>
 											@endif
 										</div>
-									@endcan
+									@endif
 								@endforeach
 							@endif
 						</div>

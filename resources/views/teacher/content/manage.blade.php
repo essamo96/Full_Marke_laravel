@@ -54,6 +54,7 @@
           </span>
           <div class="d-flex gap-2 ms-auto me-3 align-items-center">
             <button type="button" class="btn btn-sm btn-outline-primary" title="تعديل الوحدة" onclick="event.stopPropagation(); openEditUnitModal('{{ $unit->getRouteKey() }}', {{ json_encode(['name_ar' => $unit->name_ar, 'name_en' => $unit->name_en, 'group_ids' => $unit->groups->pluck('id'), 'is_shared' => $unit->is_shared]) }})"><i class="bi bi-pencil"></i></button>
+            <button type="button" class="btn btn-sm btn-outline-warning" title="مشاركة مع مجموعات أخرى" onclick="event.stopPropagation(); openShareModal('unit', '{{ $unit->getRouteKey() }}', {{ json_encode($unit->groups->pluck('id')) }}, {{ $unit->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
             <button type="button" class="btn btn-sm btn-outline-success" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal('{{ $unit->getRouteKey() }}')"><i class="bi bi-plus-lg"></i></button>
             <button type="button" class="btn btn-sm btn-outline-danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit('{{ $unit->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
           </div>
@@ -69,6 +70,7 @@
                 
                 <div class="d-flex gap-2 align-items-center me-3">
                   <button type="button" class="btn btn-sm btn-outline-primary" title="تعديل الدرس" onclick="event.stopPropagation(); openEditLessonModal('{{ $lesson->getRouteKey() }}', {{ json_encode(['name_ar' => $lesson->name_ar, 'name_en' => $lesson->name_en, 'group_ids' => $lesson->groups->pluck('id'), 'is_shared' => $lesson->is_shared]) }})"><i class="bi bi-pencil"></i></button>
+                  <button type="button" class="btn btn-sm btn-outline-warning" title="مشاركة مع مجموعات أخرى" onclick="event.stopPropagation(); openShareModal('lesson', '{{ $lesson->getRouteKey() }}', {{ json_encode($lesson->groups->pluck('id')) }}, {{ $lesson->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
                   <span class="lesson-count">{{ $lesson->resources->count() }} مرفق</span>
                   <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteLesson('{{ $lesson->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                 </div>
@@ -108,6 +110,7 @@
                               </div>
                             </div>
                             <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditResourceModal('{{ $resource->getRouteKey() }}', {{ json_encode(['title' => $resource->title, 'type' => $resource->type, 'url' => $resource->url, 'description' => $resource->description, 'allow_download' => $resource->allow_download, 'group_ids' => $resource->groups->pluck('id'), 'is_shared' => $resource->is_shared]) }})"><i class="bi bi-pencil"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-warning" title="مشاركة مع مجموعات أخرى" onclick="openShareModal('resource', '{{ $resource->getRouteKey() }}', {{ json_encode($resource->groups->pluck('id')) }}, {{ $resource->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
                              <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                           </div>
 
@@ -554,6 +557,40 @@
       <button type="button" class="upload-monitor__cancel" id="upload_monitor_cancel">إلغاء الرفع</button>
     </div>
   </div>
+
+{{-- Share content with additional groups without re-upload --}}
+<div class="modal fade teacher-content-modal" tabindex="-1" id="modal_share_content">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">مشاركة مع مجموعات أخرى</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="form_share_content">
+        <div class="modal-body">
+          <input type="hidden" id="share_content_type">
+          <input type="hidden" id="share_content_id">
+          <div class="alert alert-info py-2 small">
+            ستظهر نفس الوحدة/الدرس/الملف للمجموعات المختارة بدون رفع من جديد.
+          </div>
+          <div id="share_already_shared_msg" class="alert alert-success d-none">هذا المحتوى مرئي لكل مجموعات المادة بالفعل.</div>
+          <div class="mb-3" id="share_groups_wrap">
+            <label class="form-label fw-bold">المجموعات الإضافية</label>
+            <select id="share_group_ids" class="form-select" data-control="select2" multiple="multiple" data-placeholder="اختر المجموعات...">
+              @foreach($groups as $group)
+                <option value="{{ $group->id }}">{{ $group->name }}</option>
+              @endforeach
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary" id="share_submit_btn">مشاركة</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 @endsection
 
@@ -1457,5 +1494,57 @@ let editUnitId = null;
   function deleteResource(resourceId) {
     deleteWithSharedGuard(resourcesBaseUrl + '/' + resourceId + '{{ $selectedGroupId ? '?detach_group_id='.$selectedGroupId : '' }}');
   }
+
+  let modalShareContent = null;
+  function openShareModal(type, id, currentGroupIds, isShared) {
+    if (!modalShareContent) {
+      modalShareContent = new bootstrap.Modal(document.getElementById('modal_share_content'));
+    }
+    $('#share_content_type').val(type);
+    $('#share_content_id').val(id);
+    const $select = $('#share_group_ids');
+    $select.find('option').prop('disabled', false).prop('selected', false);
+    (currentGroupIds || []).forEach(function (gid) {
+      $select.find('option[value="' + gid + '"]').prop('disabled', true);
+    });
+    $select.trigger('change');
+
+    if (isShared) {
+      $('#share_already_shared_msg').removeClass('d-none');
+      $('#share_groups_wrap').addClass('d-none');
+      $('#share_submit_btn').prop('disabled', true);
+    } else {
+      $('#share_already_shared_msg').addClass('d-none');
+      $('#share_groups_wrap').removeClass('d-none');
+      $('#share_submit_btn').prop('disabled', false);
+    }
+    modalShareContent.show();
+  }
+
+  $('#form_share_content').on('submit', function (e) {
+    e.preventDefault();
+    const type = $('#share_content_type').val();
+    const id = $('#share_content_id').val();
+    const groupIds = $('#share_group_ids').val() || [];
+    if (!groupIds.length) {
+      Swal.fire({ icon: 'warning', title: 'اختر مجموعة واحدة على الأقل' });
+      return;
+    }
+    const base = type === 'unit' ? unitsBaseUrl
+      : (type === 'lesson' ? lessonsBaseUrl : resourcesBaseUrl);
+    $.ajax({
+      url: base + '/' + id + '/share',
+      type: 'POST',
+      data: { _token: csrfToken, group_ids: groupIds },
+      success: function (res) {
+        Swal.fire({ icon: 'success', title: res.message || 'تمت المشاركة', timer: 1500, showConfirmButton: false });
+        location.reload();
+      },
+      error: function (xhr) {
+        const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'تعذر إتمام المشاركة';
+        Swal.fire({ icon: 'error', title: msg });
+      }
+    });
+  });
 </script>
 @endpush

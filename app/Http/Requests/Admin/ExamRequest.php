@@ -32,6 +32,7 @@ class ExamRequest extends FormRequest
             'duration_minutes' => 'nullable|integer|min:1',
             'status' => 'required|in:draft,published,completed',
             'audience' => 'required|in:students,guests,both',
+            'allow_student_review' => 'nullable|boolean',
             'excluded_student_ids' => 'nullable|array',
             'excluded_student_ids.*' => 'exists:students,id',
             
@@ -61,6 +62,7 @@ class ExamRequest extends FormRequest
             'duration_minutes' => 'مدة الامتحان',
             'status' => 'حالة الامتحان',
             'audience' => 'الفئة المستهدفة',
+            'allow_student_review' => 'سماح مراجعة الإجابات للطلاب',
             'excluded_student_ids' => 'الطلاب المستثنون',
             'questions.*.type' => 'نوع السؤال',
             'questions.*.content' => 'نص السؤال',

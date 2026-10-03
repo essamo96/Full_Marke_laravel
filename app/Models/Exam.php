@@ -22,6 +22,7 @@ class Exam extends Model
         'excluded_student_ids',
         'start_alert_sent_at',
         'audience',
+        'allow_student_review',
     ];
 
     protected $casts = [
@@ -29,6 +30,7 @@ class Exam extends Model
         'end_time' => 'datetime',
         'excluded_student_ids' => 'array',
         'start_alert_sent_at' => 'datetime',
+        'allow_student_review' => 'boolean',
     ];
 
     public function subject()
@@ -64,5 +66,10 @@ class Exam extends Model
     public function allowsStudents(): bool
     {
         return in_array($this->audience, ['students', 'both'], true);
+    }
+
+    public function studentGrants()
+    {
+        return $this->hasMany(StudentExamGrant::class);
     }
 }

@@ -20,12 +20,26 @@
     </div>
   @else
     @foreach($subjects as $subject)
-      @php $subjectResourceCount = $subject->units->sum(fn($u) => $u->lessons->sum(fn($l) => $l->resources->count())); @endphp
+      @php
+        $generalCount = ($subject->general_resources ?? collect())->count();
+        $subjectResourceCount = $subject->units->sum(fn($u) => $u->lessons->sum(fn($l) => $l->resources->count())) + $generalCount;
+      @endphp
       <div class="glass-panel rounded-4 p-4 mb-4">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
           <h5 class="fw-bold mb-0 border-start border-4 ps-3" style="color: var(--text-primary); border-color: var(--accent-color) !important;">{{ $subject->name }}</h5>
           <span class="badge rounded-pill px-3 py-2" style="background: rgba(197,168,128,0.12); color: var(--accent-color);">{{ $subjectResourceCount }} <span data-en="resource(s)" data-ar="مورد">مورد</span></span>
         </div>
+
+        @if($generalCount > 0)
+          <div class="mb-4">
+            <h6 class="fw-bold mb-3" style="color: var(--text-primary);" data-en="General resources" data-ar="مرفقات عامة">مرفقات عامة</h6>
+            <div class="row g-3">
+              @foreach($subject->general_resources as $resource)
+                @include('student.resources.parts.resource-card', ['resource' => $resource])
+              @endforeach
+            </div>
+          </div>
+        @endif
 
         <div class="accordion curriculum-accordion" id="accordion_subject_{{ $subject->id }}">
           @foreach($subject->units as $unitIndex => $unit)

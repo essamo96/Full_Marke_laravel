@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class EducationalUnit extends Model
 {
     use \App\Traits\EncryptsRouteKey;
+    use Concerns\HasEducationalContentVisibility;
+    use \Illuminate\Database\Eloquent\Factories\HasFactory;
 
     protected $fillable = ['educational_stage_id', 'name_ar', 'name_en', 'is_shared', 'sort_order', 'is_active'];
 

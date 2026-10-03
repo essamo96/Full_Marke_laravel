@@ -67,7 +67,11 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::delete('content/lessons/{lesson}', [ContentController::class, 'destroyLesson'])->name('content.destroy-lesson');
         Route::post('content/lessons/reorder', [ContentController::class, 'reorderLessons'])->name('content.reorder-lessons');
         Route::post('content/lessons/{lesson}/resources', [ContentController::class, 'storeResource'])->name('content.store-resource');
+        Route::post('content/{subject}/general-resources', [ContentController::class, 'storeGeneralResource'])->name('content.store-general-resource');
         Route::put('content/resources/{resource}', [ContentController::class, 'updateResource'])->name('content.update-resource');
+        Route::post('content/units/{unit}/share', [ContentController::class, 'shareUnit'])->name('content.share-unit');
+        Route::post('content/lessons/{lesson}/share', [ContentController::class, 'shareLesson'])->name('content.share-lesson');
+        Route::post('content/resources/{resource}/share', [ContentController::class, 'shareResource'])->name('content.share-resource');
         Route::delete('content/resources/{resource}', [ContentController::class, 'destroyResource'])->name('content.destroy-resource');
         Route::post('content/resources/reorder', [ContentController::class, 'reorderResources'])->name('content.reorder-resources');
         Route::get('content/resources/{resource}/file', [ContentController::class, 'viewResourceFile'])->name('content.view-file');

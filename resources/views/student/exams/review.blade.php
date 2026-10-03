@@ -24,84 +24,59 @@
       <div class="alert alert-warning mt-4 mb-0">{{ $grade->notes }}</div>
     @endif
 
-    <div class="mt-4 d-flex justify-content-center gap-4 no-print">
-      <button type="button" class="btn btn-glass" onclick="window.print()">
-        <i class="bi bi-printer-fill me-1"></i> طباعة / تحميل النتيجة
-      </button>
-      <button type="button" class="btn btn-outline-light" onclick="toggleReviewSection()">
-        <i class="bi bi-search me-1"></i> مراجعة الاخطاء
-      </button>
+    @if($grade->admin_approved_at)
+      <div class="mt-3"><span class="badge bg-success">النتيجة معتمدة</span></div>
+    @elseif($grade->teacher_reviewed_at)
+      <div class="mt-3"><span class="badge bg-warning text-dark">بانتظار اعتماد الإدارة</span></div>
+    @endif
+
+    <div class="mt-4 d-flex justify-content-center gap-3 flex-wrap no-print">
+      @if($canReview)
+        <a href="{{ route('student.results.pdf', $grade) }}" class="btn btn-glass">
+          <i class="bi bi-file-earmark-pdf-fill me-1"></i> تحميل PDF
+        </a>
+        <button type="button" class="btn btn-outline-light" onclick="toggleReviewSection()">
+          <i class="bi bi-search me-1"></i> إظهار / إخفاء المراجعة
+        </button>
+      @endif
       <a href="{{ route('student.results.index') }}" class="btn btn-gold">
         <i class="bi bi-arrow-right me-1"></i> رجوع للنتائج
       </a>
     </div>
   </div>
 
-  <div id="mistakesReviewSection" style="display: none;">
-    @php
-      $orderedAnswers = $grade->answers->sortBy(fn($a) => $a->question?->sort_order ?? 0)->values();
-    @endphp
-
-    @forelse($orderedAnswers as $index => $answer)
-      <div class="glass-panel rounded-4 p-4 p-md-5 mb-4">
-        <div class="d-flex justify-content-between align-items-start mb-4">
-          <h5 class="text-gold fw-bold m-0">سؤال {{ $index + 1 }}</h5>
-          <span class="badge {{ $answer->is_correct === true ? 'bg-success' : ($answer->is_correct === false ? 'bg-danger' : 'bg-secondary') }} text-white">
-            {{ $answer->points_earned !== null ? $answer->points_earned : '؟' }} / {{ $answer->question?->points }}
-          </span>
-        </div>
-
-        <div class="text-white fs-5 lh-lg mb-4 content-area no-select">
-          {!! $answer->question?->content ?? '' !!}
-        </div>
-
-        @if($answer->question?->type === 'essay')
-          <div class="rounded-3 p-3 mb-2" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
-            <div class="text-white opacity-50 fs-8 mb-1">إجابتك:</div>
-            <div class="text-white no-select">{!! $answer->essay_answer ?: 'لم تُجب' !!}</div>
-          </div>
-          @if($answer->points_earned === null)
-            <div class="text-warning fs-7"><i class="bi bi-hourglass-split me-1"></i> بانتظار التصحيح اليدوي من المدرّس</div>
-          @endif
-        @else
-          <div class="d-flex flex-column gap-2">
-            @foreach($answer->question?->options ?? [] as $option)
-              @php
-                $isSelected = $option->id === $answer->selected_option_id;
-                $isCorrectOpt = $option->is_correct;
-              @endphp
-              <div class="d-flex align-items-center gap-2 p-3 rounded-3 border no-select"
-                   style="{{ $isCorrectOpt ? 'background: rgba(40,167,69,0.15); border-color: rgba(40,167,69,0.4) !important;' : ($isSelected ? 'background: rgba(220,53,69,0.15); border-color: rgba(220,53,69,0.4) !important;' : 'border-color: rgba(255,255,255,0.08) !important;') }}">
-                @if($isCorrectOpt) <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                @elseif($isSelected) <i class="bi bi-x-circle-fill text-danger fs-5"></i>
-                @else <i class="bi bi-circle text-white opacity-25 fs-5"></i> @endif
-                
-                <span class="{{ $isCorrectOpt ? 'text-success fw-bold' : ($isSelected ? 'text-danger fw-bold' : 'text-white') }}">
-                  {!! $option->option_text !!}
-                </span>
-                
-                @if($isSelected) <span class="fs-8 {{ $isCorrectOpt ? 'text-success' : 'text-danger' }} opacity-75 ms-auto">(إجابتك)</span> @endif
-              </div>
-            @endforeach
-          </div>
-        @endif
+  @if($canReview)
+    <div id="mistakesReviewSection">
+      <div class="glass-panel rounded-4 p-3 mb-4 no-print">
+        <div class="text-white fw-bold mb-1"><i class="bi bi-list-check me-2"></i>مراجعة الإجابات والأخطاء</div>
+        <div class="text-white opacity-75 fs-7">الإجابة الصحيحة بالأخضر، إجابتك الخاطئة بالأحمر.</div>
       </div>
-    @empty
-      <div class="glass-panel rounded-4 p-5 text-center text-white opacity-75">
-        لا تتوفر تفاصيل الإجابات لهذا التقديم.
-      </div>
-    @endforelse
-  </div>
+      @include('partials.exam-answers-review', ['grade' => $grade, 'showCorrect' => true, 'compact' => false])
+    </div>
+  @else
+    <div class="glass-panel rounded-4 p-5 text-center text-white opacity-75">
+      <i class="bi bi-lock-fill fs-1 d-block mb-3"></i>
+      مراجعة تفاصيل الإجابات غير مفعّلة لهذا الامتحان من قبل الإدارة. يمكنك الاطلاع على الدرجة النهائية فقط.
+    </div>
+  @endif
 
 </div>
 @push('scripts')
 <script>
-    // Prevent user from going back to the exam submission page
     if (window.history && window.history.pushState) {
         window.history.pushState('forward', null, window.location.href);
-        window.addEventListener('popstate', function(e) {
+        window.addEventListener('popstate', function () {
             window.history.pushState('forward', null, window.location.href);
         });
+    }
+
+    function toggleReviewSection() {
+        const section = document.getElementById('mistakesReviewSection');
+        if (!section) return;
+        section.style.display = (section.style.display === 'none') ? 'block' : 'none';
+        if (section.style.display !== 'none') {
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
     }
 </script>
 @endpush
@@ -109,17 +84,10 @@
 
 @push('styles')
 <style>
-  .no-select {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-  }
   .text-gold { color: var(--accent-color); }
   .btn-gold { background: var(--accent-color); color: #000; border: none; }
   .btn-gold:hover { background: #d4af37; color: #000; }
   .content-area img { max-width: 100%; height: auto; border-radius: 0.5rem; }
-
   @media print {
     body * { visibility: hidden; }
     #examReviewPrintArea, #examReviewPrintArea * { visibility: visible; }
@@ -129,31 +97,4 @@
     .no-print { display: none !important; }
   }
 </style>
-@endpush
-
-@push('scripts')
-<script>
-  function toggleReviewSection() {
-      const section = document.getElementById('mistakesReviewSection');
-      if (section.style.display === 'none') {
-          section.style.display = 'block';
-          section.scrollIntoView({ behavior: 'smooth' });
-      } else {
-          section.style.display = 'none';
-      }
-  }
-
-  // Anti-cheat deterrents
-  document.addEventListener('contextmenu', e => e.preventDefault());
-  document.addEventListener('copy', e => e.preventDefault());
-  document.addEventListener('cut', e => e.preventDefault());
-  document.addEventListener('selectstart', e => e.preventDefault());
-  document.addEventListener('keydown', e => {
-      const blockedKey = e.key === 'F12'
-          || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C', 'i', 'j', 'c'].includes(e.key))
-          || (e.ctrlKey && ['u', 'U', 's', 'S'].includes(e.key))
-          || (e.ctrlKey && ['c', 'C', 'v', 'V'].includes(e.key));
-      if (blockedKey) e.preventDefault();
-  });
-</script>
 @endpush

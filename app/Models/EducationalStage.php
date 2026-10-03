@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EducationalStage extends Model
 {
+    use \Illuminate\Database\Eloquent\Factories\HasFactory;
+
     protected $fillable = ['subject_id', 'name_ar', 'name_en', 'sort_order', 'is_active'];
 
     protected $casts = [

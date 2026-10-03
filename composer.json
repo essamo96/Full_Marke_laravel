@@ -38,7 +38,8 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "ArPHP\\I18N\\": "app/Support/ArPhp/"
         },
         "files": [
             "app/Helpers/functions.php"

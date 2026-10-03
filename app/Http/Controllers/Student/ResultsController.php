@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Grade;
+use App\Support\ArabicPdf;
+use App\Support\ExamReviewAccess;
 
 class ResultsController extends Controller
 {
@@ -11,7 +13,10 @@ class ResultsController extends Controller
     {
         $student = auth('student')->user();
 
+        // All grades for this student remain visible after group transfer
+        // (grades are keyed by student_id, not current registration group).
         $results = Grade::where('student_id', $student->id)
+            ->with(['exam', 'group'])
             ->latest()
             ->paginate(10);
 
@@ -23,8 +28,25 @@ class ResultsController extends Controller
         $student = auth('student')->user();
         abort_unless($grade->student_id === $student->id, 403);
 
-        $grade->load(['exam', 'answers.question.options', 'answers.selectedOption']);
+        $grade->load(['exam', 'group', 'answers.question.options', 'answers.selectedOption', 'student']);
 
-        return view('student.exams.review', compact('grade'));
+        $canReview = ExamReviewAccess::studentCanReviewAnswers($grade);
+
+        return view('student.exams.review', compact('grade', 'canReview'));
+    }
+
+    public function downloadPdf(Grade $grade)
+    {
+        $student = auth('student')->user();
+        abort_unless($grade->student_id === $student->id, 403);
+        abort_unless(ExamReviewAccess::studentCanDownloadPdf($grade), 403, 'مراجعة الإجابات غير مفعّلة لهذا الامتحان.');
+
+        $grade->load(['exam', 'group', 'answers.question.options', 'answers.selectedOption', 'student']);
+
+        $pdf = ArabicPdf::loadView('student.exams.result-pdf', compact('grade'));
+
+        $filename = 'exam-result-'.$grade->id.'.pdf';
+
+        return $pdf->download($filename);
     }
 }

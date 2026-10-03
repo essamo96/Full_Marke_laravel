@@ -3,65 +3,81 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Exam;
+use App\Services\StudentExamGrantService;
+use Illuminate\Http\Request;
 
 class ExamsController extends Controller
 {
-    public function index()
+    public function index(StudentExamGrantService $examGrants)
     {
         $student = auth('student')->user();
-        
-        // Get all groups the student is registered to
+
         $groupIds = $student->registrations()
-            ->whereIn('status', ['partially_paid', 'fully_paid'])
-            ->pluck('group_id');
-            
-        // Get exams for these groups
-        $exams = Exam::whereIn('group_id', $groupIds)
+            ->whereIn('status', ['partially_paid', 'fully_paid', 'pending'])
+            ->pluck('group_id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->values();
+
+        $grantedExamIds = $examGrants->grantedExamIdsForStudent((int) $student->id);
+
+        $exams = Exam::query()
             ->where('status', 'published')
-            ->where(function($query) use ($student) {
-                // Not in excluded array (using JSON contains workaround)
+            ->where(function ($q) use ($groupIds, $grantedExamIds) {
+                $q->whereIn('group_id', $groupIds);
+                if ($grantedExamIds->isNotEmpty()) {
+                    $q->orWhereIn('id', $grantedExamIds);
+                }
+            })
+            ->where(function ($query) use ($student) {
                 $query->whereNull('excluded_student_ids')
-                      ->orWhereJsonDoesntContain('excluded_student_ids', $student->id);
+                    ->orWhereJsonDoesntContain('excluded_student_ids', $student->id);
+            })
+            ->where(function ($q) {
+                $q->whereNull('audience')
+                    ->orWhereIn('audience', ['students', 'both']);
             })
             ->with(['grades' => function ($query) use ($student) {
                 $query->where('student_id', $student->id);
             }])
             ->latest()
             ->get();
-            
+
         return view('student.exams.index', compact('exams'));
     }
 
-    public function take(Exam $exam)
+    public function take(Exam $exam, StudentExamGrantService $examGrants)
     {
         $student = auth('student')->user();
 
-        // Check if student already submitted this exam
+        $this->authorizeExamAccess($exam, $student, $examGrants);
+
         $existingGrade = \App\Models\Grade::where('student_id', $student->id)
-                            ->where('exam_id', $exam->id)
-                            ->first();
-                            
+            ->where('exam_id', $exam->id)
+            ->first();
+
         if ($existingGrade) {
-            return redirect()->route('student.results.show', $existingGrade->id) // assuming this route exists or we can just redirect to index
+            return redirect()->route('student.results.show', $existingGrade->id)
                 ->with('error', 'لقد قمت بتقديم هذا الامتحان مسبقاً.');
         }
 
         $exam->load('questions.options');
-        
-        $cacheKey = 'exam_start_' . $student->id . '_' . $exam->id;
-        
-        if (!\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+
+        $cacheKey = 'exam_start_'.$student->id.'_'.$exam->id;
+
+        if (! \Illuminate\Support\Facades\Cache::has($cacheKey)) {
             \Illuminate\Support\Facades\Cache::put($cacheKey, now(), now()->addDay());
         }
 
         return view('student.exams.take', compact('exam'));
     }
 
-    public function recordViolation(Request $request, Exam $exam)
+    public function recordViolation(Request $request, Exam $exam, StudentExamGrantService $examGrants)
     {
         $student = auth('student')->user();
+        $this->authorizeExamAccess($exam, $student, $examGrants);
+
         $type = $request->input('type') === 'fullscreen_exit' ? 'fullscreen' : 'tab';
         $cacheKey = "exam_violation_{$type}_{$student->id}_{$exam->id}";
 
@@ -77,22 +93,23 @@ class ExamsController extends Controller
         ]);
     }
 
-    public function submit(Request $request, Exam $exam)
+    public function submit(Request $request, Exam $exam, StudentExamGrantService $examGrants)
     {
         $student = auth('student')->user();
-        
-        // Prevent re-submission
+
+        $this->authorizeExamAccess($exam, $student, $examGrants);
+
         $existingGrade = \App\Models\Grade::where('student_id', $student->id)
-                            ->where('exam_id', $exam->id)
-                            ->first();
-                            
+            ->where('exam_id', $exam->id)
+            ->first();
+
         if ($existingGrade) {
             return redirect()->route('student.results.show', $existingGrade->id)
                 ->with('error', 'لا يمكنك تسليم الامتحان أكثر من مرة. تم احتساب نتيجتك السابقة.');
         }
 
         $exam->load('questions.options');
-        
+
         $totalPoints = 0;
         $earnedPoints = 0;
         $answerRows = [];
@@ -100,7 +117,7 @@ class ExamsController extends Controller
         foreach ($exam->questions as $question) {
             $totalPoints += $question->points;
 
-            $answerId = $request->input('answers.' . $question->id);
+            $answerId = $request->input('answers.'.$question->id);
 
             if ($question->type === 'multiple_choice' || $question->type === 'true_false') {
                 $correctOption = $question->options->where('is_correct', true)->first();
@@ -117,19 +134,18 @@ class ExamsController extends Controller
                     'is_correct' => $isCorrect,
                     'points_earned' => $pointsEarned,
                 ];
-            } else if ($question->type === 'essay') {
-                // Essay needs manual grading later by the teacher; no points recorded yet.
+            } elseif ($question->type === 'essay') {
                 $answerRows[] = [
                     'question_id' => $question->id,
                     'selected_option_id' => null,
-                    'essay_answer' => $request->input('answers.' . $question->id),
+                    'essay_answer' => $request->input('answers.'.$question->id),
                     'is_correct' => null,
                     'points_earned' => null,
                 ];
             }
         }
 
-        $cacheKey = 'exam_start_' . $student->id . '_' . $exam->id;
+        $cacheKey = 'exam_start_'.$student->id.'_'.$exam->id;
         $startTime = \Illuminate\Support\Facades\Cache::get($cacheKey);
         $timeTaken = $startTime ? abs(now()->diffInMinutes($startTime)) : null;
 
@@ -144,7 +160,6 @@ class ExamsController extends Controller
             $notes = 'تم إنهاء الامتحان تلقائياً بسبب تجاوز عدد مرات الخروج المسموح بها من صفحة الامتحان';
         }
 
-        // Save the result to grades table
         $grade = \App\Models\Grade::create([
             'student_id' => $student->id,
             'group_id' => $exam->group_id,
@@ -174,5 +189,18 @@ class ExamsController extends Controller
 
         return redirect()->route('student.results.show', $grade)
             ->with('success', "تم استلام امتحانك بنجاح. نتيجتك المبدئية: {$earnedPoints} من {$totalPoints}.");
+    }
+
+    protected function authorizeExamAccess(Exam $exam, $student, StudentExamGrantService $examGrants): void
+    {
+        $groupIds = $student->registrations()
+            ->whereIn('status', ['partially_paid', 'fully_paid', 'pending'])
+            ->pluck('group_id');
+
+        abort_unless(
+            $examGrants->studentCanAccessExam($exam, (int) $student->id, $groupIds),
+            403,
+            'ليس لديك صلاحية للوصول إلى هذا الامتحان.'
+        );
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Group;
 use App\Models\Registration;
 use App\Models\Subject;
 use App\Models\Teacher;
+use App\Services\StudentContentGrantService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Yajra\DataTables\Facades\DataTables;
@@ -212,7 +213,7 @@ class GroupsController extends AdminController
         ]);
     }
 
-    public function postTransferStudent(Request $request)
+    public function postTransferStudent(Request $request, StudentContentGrantService $grantService)
     {
         $data = $request->validate([
             'registration_id' => 'required|exists:registrations,id',
@@ -228,9 +229,20 @@ class GroupsController extends AdminController
             return response()->json(['success' => false, 'message' => 'المجموعة المختارة لا تتبع نفس المادة.'], 422);
         }
 
+        $oldGroupId = $registration->group_id;
+
+        if ($oldGroupId) {
+            $grantService->grantPreviousGroupContentOnTransfer(
+                $registration->student_id,
+                $registration->subject_id,
+                (int) $oldGroupId,
+                (int) $newGroup->id
+            );
+        }
+
         $registration->update(['group_id' => $newGroup->id]);
 
-        return response()->json(['success' => true, 'message' => 'تم نقل الطالب إلى المجموعة الجديدة بنجاح.']);
+        return response()->json(['success' => true, 'message' => 'تم نقل الطالب إلى المجموعة الجديدة بنجاح مع الاحتفاظ بالمحتوى السابق.']);
     }
 
     /**

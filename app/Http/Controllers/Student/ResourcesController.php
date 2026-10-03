@@ -12,6 +12,7 @@ class ResourcesController extends Controller
     public function index()
     {
         $student = Auth::guard('student')->user();
+        $studentId = (int) $student->id;
 
         $registrations = $student->registrations()
             ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
@@ -25,19 +26,19 @@ class ResourcesController extends Controller
                 $q->orderBy('sort_order');
             }])
             ->get()
-            ->map(function ($subject) use ($groupIdBySubject) {
+            ->map(function ($subject) use ($groupIdBySubject, $studentId) {
                 $groupId = $groupIdBySubject->get($subject->id) ? (int) $groupIdBySubject->get($subject->id) : null;
 
                 $units = EducationalUnit::query()
                     ->whereIn('educational_stage_id', $subject->stages->pluck('id'))
-                    ->forGroup($groupId)
+                    ->visibleToStudent($studentId, $groupId)
                     ->where('is_active', true)
-                    ->with(['lessons' => function ($lq) use ($groupId) {
-                        $lq->forGroup($groupId)
+                    ->with(['lessons' => function ($lq) use ($groupId, $studentId) {
+                        $lq->visibleToStudent($studentId, $groupId)
                             ->where('is_active', true)
                             ->orderBy('sort_order')
-                            ->with(['resources' => function ($rq) use ($groupId) {
-                                $rq->active()->forGroup($groupId)->orderBy('sort_order');
+                            ->with(['resources' => function ($rq) use ($groupId, $studentId) {
+                                $rq->active()->visibleToStudent($studentId, $groupId)->orderBy('sort_order');
                             }]);
                     }])
                     ->orderBy('sort_order')
@@ -47,11 +48,20 @@ class ResourcesController extends Controller
                     })
                     ->values();
 
+                $generalResources = \App\Models\SubjectResource::query()
+                    ->where('subject_id', $subject->id)
+                    ->whereNull('educational_lesson_id')
+                    ->active()
+                    ->visibleToStudent($studentId, $groupId)
+                    ->orderBy('sort_order')
+                    ->get();
+
                 $subject->units = $units;
+                $subject->general_resources = $generalResources;
 
                 return $subject;
             })
-            ->filter(fn ($subject) => $subject->units->isNotEmpty())
+            ->filter(fn ($subject) => $subject->units->isNotEmpty() || $subject->general_resources->isNotEmpty())
             ->values();
 
         return view('student.resources.index', compact('subjects'));

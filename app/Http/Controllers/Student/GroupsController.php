@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\GroupJoinCode;
 use App\Models\Registration;
 use App\Models\Group;
+use App\Services\StudentContentGrantService;
 
 class GroupsController extends Controller
 {
@@ -36,7 +37,7 @@ class GroupsController extends Controller
         return view('student.groups.index', compact('withGroup', 'withoutGroup'));
     }
 
-    public function joinByCode(Request $request)
+    public function joinByCode(Request $request, StudentContentGrantService $grantService)
     {
         $request->validate([
             'code' => 'required|string',
@@ -95,6 +96,15 @@ class GroupsController extends Controller
 
         $oldGroupId = $registration->group_id;
 
+        if ($oldGroupId) {
+            $grantService->grantPreviousGroupContentOnTransfer(
+                $student,
+                (int) $group->subject_id,
+                (int) $oldGroupId,
+                (int) $group->id
+            );
+        }
+
         $registration->group_id = $group->id;
         $registration->save();
 
@@ -104,7 +114,7 @@ class GroupsController extends Controller
         $group->increment('current_count');
         $joinCode->increment('used_count');
 
-        return response()->json(['success' => true, 'message' => 'تم الانضمام للمجموعة بنجاح.']);
+        return response()->json(['success' => true, 'message' => 'تم الانضمام للمجموعة بنجاح مع الاحتفاظ بالمحتوى السابق إن وُجد.']);
     }
 
     public function show(Group $group)
@@ -133,26 +143,32 @@ class GroupsController extends Controller
         $group->load('teacher', 'subject');
 
         $subject = $group->subject;
+        $studentId = (int) $student->id;
+        $groupId = (int) $group->id;
+
         // Only surface stages/units/lessons that still have at least one active
         // resource beneath them — a lesson whose only resource was deleted (or
         // deactivated) shouldn't show up to students as an empty entry.
-        $hasVisibleResource = function ($lessonQuery) use ($group) {
+        // Includes personal grants retained after transferring from another group.
+        $hasVisibleResource = function ($lessonQuery) use ($studentId, $groupId) {
             $lessonQuery->where('is_active', true)
-                ->forGroup($group->id)
-                ->whereHas('resources', function ($q) use ($group) {
-                    $q->where('is_active', true)->forGroup($group->id);
+                ->visibleToStudent($studentId, $groupId)
+                ->whereHas('resources', function ($q) use ($studentId, $groupId) {
+                    $q->where('is_active', true)->visibleToStudent($studentId, $groupId);
                 });
         };
         $subject->load([
-            'stages' => function ($q) use ($hasVisibleResource, $group) {
+            'stages' => function ($q) use ($hasVisibleResource, $studentId, $groupId) {
                 $q->where('is_active', true)
-                    ->whereHas('units', function ($uq) use ($hasVisibleResource, $group) {
-                        $uq->forGroup($group->id)->where('is_active', true)->whereHas('lessons', $hasVisibleResource);
+                    ->whereHas('units', function ($uq) use ($hasVisibleResource, $studentId, $groupId) {
+                        $uq->visibleToStudent($studentId, $groupId)
+                            ->where('is_active', true)
+                            ->whereHas('lessons', $hasVisibleResource);
                     })
                     ->orderBy('sort_order');
             },
-            'stages.units' => function ($q) use ($hasVisibleResource, $group) {
-                $q->forGroup($group->id)
+            'stages.units' => function ($q) use ($hasVisibleResource, $studentId, $groupId) {
+                $q->visibleToStudent($studentId, $groupId)
                     ->where('is_active', true)
                     ->whereHas('lessons', $hasVisibleResource)
                     ->orderBy('sort_order');
@@ -161,8 +177,8 @@ class GroupsController extends Controller
                 $hasVisibleResource($q);
                 $q->orderBy('sort_order');
             },
-            'stages.units.lessons.resources' => function ($q) use ($group) {
-                $q->where('is_active', true)->forGroup($group->id)->orderBy('sort_order');
+            'stages.units.lessons.resources' => function ($q) use ($studentId, $groupId) {
+                $q->where('is_active', true)->visibleToStudent($studentId, $groupId)->orderBy('sort_order');
             }
         ]);
 
@@ -170,7 +186,7 @@ class GroupsController extends Controller
         $generalResources = \App\Models\SubjectResource::where('subject_id', $subject->id)
             ->where('is_active', true)
             ->whereNull('educational_lesson_id')
-            ->forGroup($group->id)
+            ->visibleToStudent($studentId, $groupId)
             ->orderBy('sort_order')
             ->get();
 
@@ -185,14 +201,26 @@ class GroupsController extends Controller
         $notes = $allNotes->whereNull('student_id')->values();
         $studentNotes = $allNotes->whereNotNull('student_id')->values();
 
-        // Exam schedule for this group, with this student's grade (when it has
-        // been reviewed/approved) attached per exam.
-        $exams = \App\Models\Exam::where('group_id', $group->id)
+        // Exam schedule: current group exams + exams retained via transfer grants.
+        $grantedExamIds = app(\App\Services\StudentExamGrantService::class)
+            ->grantedExamIdsForStudent($studentId);
+
+        $exams = \App\Models\Exam::query()
+            ->where(function ($q) use ($groupId, $grantedExamIds) {
+                $q->where('group_id', $groupId);
+                if ($grantedExamIds->isNotEmpty()) {
+                    $q->orWhereIn('id', $grantedExamIds);
+                }
+            })
+            ->where(function ($query) use ($studentId) {
+                $query->whereNull('excluded_student_ids')
+                    ->orWhereJsonDoesntContain('excluded_student_ids', $studentId);
+            })
             ->orderByDesc('start_time')
             ->get();
 
-        $grades = \App\Models\Grade::where('group_id', $group->id)
-            ->where('student_id', $student->id)
+        $grades = \App\Models\Grade::where('student_id', $student->id)
+            ->whereIn('exam_id', $exams->pluck('id'))
             ->get()
             ->keyBy('exam_id');
 

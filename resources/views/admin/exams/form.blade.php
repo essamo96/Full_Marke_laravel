@@ -118,6 +118,18 @@
                     </select>
                     <div class="text-muted fs-7">عند اختيار "ضيوف" سيُطلب من غير المسجلين إدخال الاسم ورقم الجوال والإيميل قبل بدء الامتحان.</div>
                 </div>
+
+                <div class="mb-5">
+                    <label class="form-label fw-bold">سماح مراجعة الإجابات للطلاب</label>
+                    <div class="form-check form-switch form-check-custom form-check-solid">
+                        <input type="hidden" name="allow_student_review" value="0">
+                        <input class="form-check-input" type="checkbox" value="1" name="allow_student_review" id="allow_student_review"
+                            {{ old('allow_student_review', $exam->allow_student_review ?? true) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="allow_student_review">
+                            تمكين الطالب من معاينة أسئلته والإجابات الصحيحة/الخاطئة وتحميل PDF بعد التسليم
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

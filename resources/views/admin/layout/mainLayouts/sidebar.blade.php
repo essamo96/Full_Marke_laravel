@@ -28,8 +28,16 @@
                     $parentActive = isset($active_menu) && $active_menu == $parent_item->name;
                     ?>
 
-                    @can($parentPermission)
-                        @if ($parent_item->mychild && sizeof($parent_item->mychild) > 0)
+                    <?php
+                    $hasChildren = $parent_item->mychild && sizeof($parent_item->mychild) > 0;
+                    $canSeeParent = auth('admin')->user()?->can($parentPermission);
+                    $canSeeAnyChild = $hasChildren && $parent_item->mychild->contains(
+                        fn ($child) => auth('admin')->user()?->can('admin.' . $child->name . '.view')
+                    );
+                    ?>
+
+                    @if ($canSeeParent || $canSeeAnyChild)
+                        @if ($hasChildren)
                             <x-admin.sidebar-menu 
                                 :title="$parentTitle" 
                                 :icon="$parentIcon" 
@@ -99,7 +107,7 @@
                                 :url="$parentUrl" 
                                 :active="$parentActive" />
                         @endif
-                    @endcan
+                    @endif
                 @endforeach
             @endif
 

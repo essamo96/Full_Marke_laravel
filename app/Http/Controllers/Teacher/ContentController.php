@@ -131,10 +131,39 @@ class ContentController extends Controller
             ->with(['groups', 'lessons' => function ($q) use ($selectedGroupId) {
                 $q->forGroup($selectedGroupId)->where('is_active', true)->with('groups')->orderBy('sort_order');
             }, 'lessons.resources' => function ($q) use ($selectedGroupId) {
-                $q->forGroup($selectedGroupId)->with('groups')->orderBy('sort_order');
+                $q->forGroup($selectedGroupId)->with(['groups', 'contentExclusions'])->orderBy('sort_order');
             }])
             ->orderBy('sort_order')
             ->get();
+
+        $generalResources = SubjectResource::where('subject_id', $subject->id)
+            ->whereNull('educational_lesson_id')
+            ->forGroup($selectedGroupId)
+            ->with(['groups', 'contentExclusions'])
+            ->orderBy('sort_order')
+            ->get();
+
+        $subjectStudents = \App\Models\Registration::query()
+            ->where('subject_id', $subject->id)
+            ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
+            ->whereIn('group_id', $groups->pluck('id'))
+            ->with('student:id,full_name_ar,full_name_en')
+            ->get()
+            ->map(function ($reg) {
+                $student = $reg->student;
+                if (! $student) {
+                    return null;
+                }
+
+                return [
+                    'id' => $student->id,
+                    'name' => $student->full_name_ar ?: $student->full_name_en,
+                    'group_id' => $reg->group_id,
+                ];
+            })
+            ->filter()
+            ->unique('id')
+            ->values();
 
         $processingResources = SubjectResource::where('subject_id', $subject->id)
             ->where('processing_status', 'processing')
@@ -142,7 +171,9 @@ class ContentController extends Controller
             ->map(fn ($resource) => $resource->getRouteKey())
             ->toArray();
 
-        return view('teacher.content.manage', compact('subject', 'units', 'processingResources', 'groups', 'selectedGroupId'));
+        return view('teacher.content.manage', compact(
+            'subject', 'units', 'generalResources', 'subjectStudents', 'processingResources', 'groups', 'selectedGroupId'
+        ));
     }
 
     private function stageFor(Subject $subject): EducationalStage
@@ -371,6 +402,8 @@ class ContentController extends Controller
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer|exists:groups,id',
             'is_shared' => 'nullable|boolean',
+            'excluded_student_ids' => 'nullable|array',
+            'excluded_student_ids.*' => 'integer|exists:students,id',
         ]);
 
         $storedPath = null;
@@ -404,6 +437,71 @@ class ContentController extends Controller
         ]);
 
         EducationalContentVisibility::apply($resource, $isShared, $data['group_ids'] ?? []);
+        EducationalContentVisibility::syncExclusions($resource, $subject->id, $data['excluded_student_ids'] ?? []);
+
+        return response()->json(['success' => true, 'id' => $resource->getRouteKey()]);
+    }
+
+    public function storeGeneralResource(Request $request, Subject $subject)
+    {
+        $this->authorizeSubject($subject);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'type' => 'required|in:video,document,image,link,zoom',
+            'url' => 'nullable|required_without_all:uploaded_path,file|string|max:500',
+            'file' => 'nullable|file|max:51200|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,webp,gif',
+            'uploaded_path' => 'nullable|string|starts_with:incoming/',
+            'original_filename' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'allow_download' => 'nullable|boolean',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'integer|exists:groups,id',
+            'is_shared' => 'nullable|boolean',
+            'excluded_student_ids' => 'nullable|array',
+            'excluded_student_ids.*' => 'integer|exists:students,id',
+        ]);
+
+        if (! empty($data['group_ids'])) {
+            foreach ($data['group_ids'] as $gid) {
+                abort_unless($this->canAccessGroup((int) $gid), 403);
+            }
+        }
+
+        $storedPath = null;
+        if (! empty($data['uploaded_path']) && Storage::disk('protected_videos')->exists($data['uploaded_path'])) {
+            $extension = pathinfo($data['uploaded_path'], PATHINFO_EXTENSION) ?: ($data['type'] === 'video' ? 'mp4' : 'bin');
+            $storedPath = 'resources/'.Str::uuid().'.'.$extension;
+            Storage::disk('protected_videos')->move($data['uploaded_path'], $storedPath);
+        } elseif ($request->hasFile('file')) {
+            $storedPath = $request->file('file')->store('resources', 'protected_videos');
+        } else {
+            $storedPath = $data['url'] ?? null;
+        }
+
+        abort_unless($storedPath, 422, 'يرجى إرفاق ملف أو رابط صحيح');
+
+        $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
+        $nextSort = ((int) SubjectResource::where('subject_id', $subject->id)->whereNull('educational_lesson_id')->max('sort_order')) + 1;
+
+        $resource = SubjectResource::create([
+            'subject_id' => $subject->id,
+            'educational_lesson_id' => null,
+            'title' => $data['title'],
+            'type' => $data['type'],
+            'category' => $data['type'],
+            'url' => $storedPath,
+            'original_filename' => $data['original_filename'] ?? null,
+            'processing_status' => 'ready',
+            'description' => $data['description'] ?? null,
+            'allow_download' => $data['allow_download'] ?? false,
+            'is_active' => true,
+            'is_shared' => $isShared,
+            'sort_order' => $nextSort,
+        ]);
+
+        EducationalContentVisibility::apply($resource, $isShared, $data['group_ids'] ?? []);
+        EducationalContentVisibility::syncExclusions($resource, $subject->id, $data['excluded_student_ids'] ?? []);
 
         return response()->json(['success' => true, 'id' => $resource->getRouteKey()]);
     }
@@ -424,6 +522,8 @@ class ContentController extends Controller
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'integer|exists:groups,id',
             'is_shared' => 'nullable|boolean',
+            'excluded_student_ids' => 'nullable|array',
+            'excluded_student_ids.*' => 'integer|exists:students,id',
         ]);
 
         $storedPath = $resource->url;
@@ -466,8 +566,64 @@ class ContentController extends Controller
 
         $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
         EducationalContentVisibility::apply($resource, $isShared, $data['group_ids'] ?? []);
+        EducationalContentVisibility::syncExclusions($resource, (int) $resource->subject_id, $data['excluded_student_ids'] ?? []);
 
         return response()->json(['success' => true]);
+    }
+
+    public function shareUnit(Request $request, EducationalUnit $unit)
+    {
+        $subject = $unit->stage?->subject;
+        abort_unless($subject && $this->canAccessSubject($subject->id), 404);
+
+        return $this->shareContent($request, $unit, $subject->id);
+    }
+
+    public function shareLesson(Request $request, EducationalLesson $lesson)
+    {
+        $this->authorizeLesson($lesson);
+
+        return $this->shareContent($request, $lesson, $lesson->unit->stage->subject_id);
+    }
+
+    public function shareResource(Request $request, SubjectResource $resource)
+    {
+        $this->authorizeSubjectResource($resource);
+
+        return $this->shareContent($request, $resource, $resource->subject_id);
+    }
+
+    private function shareContent(Request $request, $model, int $subjectId)
+    {
+        abort_unless(in_array($subjectId, $this->allowedSubjectIds(), true), 403);
+
+        $data = $request->validate([
+            'group_ids' => 'required|array|min:1',
+            'group_ids.*' => 'integer|exists:groups,id',
+        ]);
+
+        foreach ($data['group_ids'] as $gid) {
+            abort_unless(
+                Group::where('id', $gid)->where('subject_id', $subjectId)->exists(),
+                422,
+                'إحدى المجموعات لا تتبع نفس المادة.'
+            );
+        }
+
+        if ((bool) $model->is_shared) {
+            return response()->json([
+                'success' => true,
+                'message' => 'هذا المحتوى مشترك بالفعل مع كل مجموعات المادة.',
+            ]);
+        }
+
+        EducationalContentVisibility::shareWithGroups($model, $data['group_ids']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تمت مشاركة المحتوى مع المجموعات المحددة دون إعادة رفع.',
+            'group_ids' => $model->groups()->pluck('groups.id'),
+        ]);
     }
 
     public function viewResourceFile(SubjectResource $resource)

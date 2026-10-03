@@ -61,14 +61,14 @@ class SetupExamsSidebar extends Command
             ]
         );
 
-        // 5. Generate CRUD permissions
-        $parent->generateCrudPermissions();
+        // 5. Generate permissions (parent = view only, children = full CRUD)
+        $parent->generateCrudPermissions(['view']);
         $child1->generateCrudPermissions();
         $child2->generateCrudPermissions();
 
         // 6. Assign permissions to Super Admin (Role ID: 1)
         $superAdmin = Role::where('guard_name', 'admin')->where('name', 'Super Admin')->first();
-        
+
         if ($superAdmin) {
             $permissions = Permission::whereIn('group_id', [$parent->id, $child1->id, $child2->id])->get();
             $superAdmin->givePermissionTo($permissions);
@@ -78,8 +78,9 @@ class SetupExamsSidebar extends Command
         }
 
         // Clear Spatie Permission Cache
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         Cache::forget('spatie.permission.cache');
-        
+
         $this->info('Exams sidebar setup completed successfully!');
     }
 }

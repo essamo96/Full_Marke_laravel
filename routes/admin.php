@@ -108,7 +108,11 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     Route::delete('/subject-content/lessons/{lesson}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyLesson'])->name('subject_content.lessons.destroy');
     Route::post('/subject-content/lessons/reorder', [\App\Http\Controllers\Admin\SubjectContentController::class, 'reorderLessons'])->name('subject_content.lessons.reorder');
     Route::post('/subject-content/lessons/{lesson}/resources', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeResource'])->name('subject_content.resources.store');
+    Route::post('/subject-content/{id}/general-resources', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeGeneralResource'])->name('subject_content.general_resources.store');
     Route::put('/subject-content/resources/{resource}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'updateResource'])->name('subject_content.resources.update');
+    Route::post('/subject-content/units/{unit}/share', [\App\Http\Controllers\Admin\SubjectContentController::class, 'shareUnit'])->name('subject_content.units.share');
+    Route::post('/subject-content/lessons/{lesson}/share', [\App\Http\Controllers\Admin\SubjectContentController::class, 'shareLesson'])->name('subject_content.lessons.share');
+    Route::post('/subject-content/resources/{resource}/share', [\App\Http\Controllers\Admin\SubjectContentController::class, 'shareResource'])->name('subject_content.resources.share');
     Route::delete('/subject-content/resources/{resource}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyResource'])->name('subject_content.resources.destroy');
     Route::post('/subject-content/resources/reorder', [\App\Http\Controllers\Admin\SubjectContentController::class, 'reorderResources'])->name('subject_content.resources.reorder');
     Route::get('/subject-content/resources/{resource}/file', [\App\Http\Controllers\Admin\SubjectContentController::class, 'viewResourceFile'])->name('subject_content.resources.file');
