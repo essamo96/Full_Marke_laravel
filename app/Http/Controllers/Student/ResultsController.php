@@ -28,6 +28,8 @@ class ResultsController extends Controller
         $student = auth('student')->user();
         abort_unless($grade->student_id === $student->id, 403);
 
+        \App\Services\GradeAnswerRebuilder::ensure($grade);
+
         $grade->load(['exam', 'group', 'answers.question.options', 'answers.selectedOption', 'student']);
 
         $canReview = ExamReviewAccess::studentCanReviewAnswers($grade);
@@ -40,6 +42,8 @@ class ResultsController extends Controller
         $student = auth('student')->user();
         abort_unless($grade->student_id === $student->id, 403);
         abort_unless(ExamReviewAccess::studentCanDownloadPdf($grade), 403, 'مراجعة الإجابات غير مفعّلة لهذا الامتحان.');
+
+        \App\Services\GradeAnswerRebuilder::ensure($grade);
 
         $grade->load(['exam', 'group', 'answers.question.options', 'answers.selectedOption', 'student']);
 

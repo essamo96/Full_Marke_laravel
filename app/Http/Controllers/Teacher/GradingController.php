@@ -57,6 +57,8 @@ class GradingController extends Controller
         $teacher = Auth::guard('teacher')->user();
         abort_unless($grade->group && $grade->group->teacher_id === $teacher->id, 403);
 
+        \App\Services\GradeAnswerRebuilder::ensure($grade);
+
         $grade->load(['student', 'exam', 'answers.question.options', 'answers.selectedOption']);
 
         return view('teacher.grading.show', compact('grade'));

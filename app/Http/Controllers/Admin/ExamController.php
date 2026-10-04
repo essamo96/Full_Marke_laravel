@@ -170,6 +170,8 @@ class ExamController extends AdminController
 
     public function gradeAnswers(\App\Models\Grade $grade)
     {
+        \App\Services\GradeAnswerRebuilder::ensure($grade);
+
         $grade->load([
             'student:id,full_name_ar,full_name_en,phone',
             'exam:id,title,allow_student_review',
