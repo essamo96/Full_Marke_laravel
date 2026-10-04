@@ -25,9 +25,14 @@
 
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h1 class="h3 fw-bold mb-0" style="color: var(--text-primary);">{{ $subject->name }}</h1>
-    <button type="button" class="btn btn-luxury" onclick="openUnitModal()">
-      <i class="bi bi-plus-lg me-1"></i> <span data-en="Add Unit" data-ar="إضافة وحدة">إضافة وحدة</span>
-    </button>
+    <div class="tbtn-group">
+      <button type="button" class="tbtn tbtn--neutral" id="qsOpen" title="بحث سريع (Ctrl+K)">
+        <i class="bi bi-search"></i><span data-en="Quick search" data-ar="بحث سريع">بحث سريع</span><kbd class="qs-kbd">Ctrl K</kbd>
+      </button>
+      <button type="button" class="tbtn tbtn--solid" onclick="openUnitModal()">
+        <i class="bi bi-plus-lg"></i><span data-en="Add Unit" data-ar="إضافة وحدة">إضافة وحدة</span>
+      </button>
+    </div>
   </div>
 
   @if($groups->count() > 0)
@@ -570,6 +575,37 @@
       <button type="button" class="upload-monitor__cancel" id="upload_monitor_cancel">إلغاء الرفع</button>
     </div>
   </div>
+
+{{-- Quick search over every attachment on the page --}}
+<div class="modal fade teacher-content-modal" tabindex="-1" id="modal_quick_search" aria-labelledby="qsTitle">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content glass-panel">
+      <div class="modal-header flex-column align-items-stretch gap-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="modal-title" id="qsTitle"><i class="bi bi-search me-2" style="color: var(--accent-color);"></i>بحث سريع في المرفقات</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+        </div>
+        <input type="search" id="qsInput" class="form-control form-control-lg" placeholder="اكتب اسم ملف أو فيديو أو درس..." autocomplete="off" aria-label="بحث في المرفقات">
+        <div class="qs-types" role="group" aria-label="نوع المرفق">
+          <button type="button" class="ex-pill is-active" data-type="all">الكل</button>
+          <button type="button" class="ex-pill" data-type="video">فيديو</button>
+          <button type="button" class="ex-pill" data-type="document">ملف</button>
+          <button type="button" class="ex-pill" data-type="image">صورة</button>
+          <button type="button" class="ex-pill" data-type="link">رابط</button>
+          <button type="button" class="ex-pill" data-type="zoom">Zoom</button>
+        </div>
+      </div>
+      <div class="modal-body p-2">
+        <ul class="qs-list" id="qsList" role="listbox" aria-label="النتائج"></ul>
+        <div class="qs-empty d-none" id="qsEmpty"><i class="bi bi-inbox"></i><p class="mb-0">لا توجد مرفقات مطابقة.</p></div>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <span class="text-muted small" id="qsCount"></span>
+        <span class="text-muted small"><kbd class="qs-kbd">↑</kbd> <kbd class="qs-kbd">↓</kbd> للتنقل · <kbd class="qs-kbd">Enter</kbd> للفتح · <kbd class="qs-kbd">Esc</kbd> للإغلاق</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 {{-- Per-resource student exclusion (no re-upload) --}}
 <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_exclusions">
@@ -1610,6 +1646,148 @@ let editUnitId = null;
       error: function () { Swal.fire('خطأ', 'تعذر حفظ الاستثناءات.', 'error'); }
     });
   });
+
+  // ---- Quick search (command palette) -----------------------------------
+  // Built for speed: the index is read from the DOM once (lazily, first open),
+  // text is normalised once, queries are debounced, and at most 50 rows are
+  // rendered per query via a single DocumentFragment — no page re-layout.
+  (function () {
+    const modalEl = document.getElementById('modal_quick_search');
+    const input = document.getElementById('qsInput');
+    const list = document.getElementById('qsList');
+    const emptyEl = document.getElementById('qsEmpty');
+    const countEl = document.getElementById('qsCount');
+    const TYPE_LABEL = { video: 'فيديو', document: 'ملف', image: 'صورة', link: 'رابط', zoom: 'Zoom' };
+    const TYPE_ICON = { video: 'bi-play-circle-fill', document: 'bi-file-earmark-pdf-fill', image: 'bi-image-fill', link: 'bi-link-45deg', zoom: 'bi-camera-video-fill' };
+    const MAX = 50;
+    let index = null, type = 'all', timer = null, active = -1, rows = [];
+
+    // Arabic-insensitive: strips diacritics/tatweel, unifies alef/yaa/taa-marbuta.
+    function norm(t) {
+      return (t || '').toString().toLowerCase()
+        .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+        .replace(/[\u0623\u0625\u0622]/g, '\u0627')
+        .replace(/\u0649/g, '\u064A')
+        .replace(/\u0629/g, '\u0647')
+        .replace(/\s+/g, ' ').trim();
+    }
+
+    function build() {
+      index = [];
+      document.querySelectorAll('.teacher-resource-card').forEach(function (card) {
+        const titleEl = card.querySelector('.fw-bold');
+        const title = titleEl ? titleEl.textContent.trim() : '';
+        const unit = card.closest('.unit-card');
+        const lessonBlock = card.closest('.lesson-block');
+        const unitTitle = unit ? (unit.querySelector('.unit-title') || {}).textContent : '';
+        const lessonEl = lessonBlock ? lessonBlock.querySelector('.lesson-toggle .flex-grow-1') : null;
+        const lessonTitle = lessonEl ? lessonEl.textContent.trim() : '';
+        const icon = card.querySelector('.teacher-resource-icon');
+        const t = icon ? (['video', 'document', 'image', 'link', 'zoom'].find(function (k) { return icon.classList.contains(k); }) || 'link') : 'link';
+        const desc = (card.querySelector('.small.text-muted') || {}).textContent || '';
+        index.push({
+          card: card, title: title, unit: (unitTitle || '').trim(), lesson: lessonTitle, type: t,
+          hay: norm(title + ' ' + lessonTitle + ' ' + unitTitle + ' ' + desc), tnorm: norm(title)
+        });
+      });
+    }
+
+    function run() {
+      if (!index) build();
+      const q = norm(input.value);
+      const words = q ? q.split(' ') : [];
+      const hits = [];
+      for (let i = 0; i < index.length && hits.length < 400; i++) {
+        const it = index[i];
+        if (type !== 'all' && it.type !== type) continue;
+        let ok = true, score = 0;
+        for (let w = 0; w < words.length; w++) {
+          if (it.hay.indexOf(words[w]) === -1) { ok = false; break; }
+          if (it.tnorm.indexOf(words[w]) !== -1) score += 2;
+          if (it.tnorm.indexOf(words[w]) === 0) score += 1;
+        }
+        if (ok) { it.score = score; hits.push(it); }
+      }
+      if (words.length) hits.sort(function (a, b) { return b.score - a.score; });
+
+      const frag = document.createDocumentFragment();
+      const shown = hits.slice(0, MAX);
+      shown.forEach(function (it, i) {
+        const li = document.createElement('li');
+        li.className = 'qs-item';
+        li.setAttribute('role', 'option');
+        li.dataset.i = i;
+        li.innerHTML = '<span class="qs-ic ' + it.type + '"><i class="bi ' + TYPE_ICON[it.type] + '"></i></span>'
+          + '<span class="qs-txt"><span class="qs-title"></span><span class="qs-path"></span></span>'
+          + '<span class="qs-type"></span>';
+        li.querySelector('.qs-title').textContent = it.title || '(بدون عنوان)';
+        li.querySelector('.qs-path').textContent = [it.unit, it.lesson].filter(Boolean).join(' › ');
+        li.querySelector('.qs-type').textContent = TYPE_LABEL[it.type];
+        frag.appendChild(li);
+      });
+      list.replaceChildren(frag);
+      rows = shown;
+      active = shown.length ? 0 : -1;
+      paintActive(false);
+      emptyEl.classList.toggle('d-none', shown.length !== 0);
+      countEl.textContent = hits.length + ' مرفق' + (hits.length > MAX ? ' (يظهر أول ' + MAX + ')' : '');
+    }
+
+    function paintActive(scroll) {
+      const items = list.children;
+      for (let i = 0; i < items.length; i++) items[i].classList.toggle('is-active', i === active);
+      if (scroll && items[active]) items[active].scrollIntoView({ block: 'nearest' });
+    }
+
+    function go(it) {
+      if (!it) return;
+      const m = bootstrap.Modal.getInstance(modalEl);
+      modalEl.addEventListener('hidden.bs.modal', function reveal() {
+        modalEl.removeEventListener('hidden.bs.modal', reveal);
+        [it.card.closest('.collapse[id^="lesson_res_"]'), it.card.closest('.collapse[id^="unit_"]')].forEach(function (c) {
+          if (c && !c.classList.contains('show')) bootstrap.Collapse.getOrCreateInstance(c, { toggle: false }).show();
+        });
+        setTimeout(function () {
+          it.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          it.card.classList.add('qs-flash');
+          setTimeout(function () { it.card.classList.remove('qs-flash'); }, 2200);
+        }, 260);
+      });
+      m.hide();
+    }
+
+    input.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(run, 100); });
+    modalEl.querySelectorAll('.qs-types .ex-pill').forEach(function (b) {
+      b.addEventListener('click', function () {
+        modalEl.querySelectorAll('.qs-types .ex-pill').forEach(function (x) { x.classList.remove('is-active'); });
+        b.classList.add('is-active');
+        type = b.dataset.type;
+        run();
+        input.focus();
+      });
+    });
+    list.addEventListener('click', function (e) {
+      const li = e.target.closest('.qs-item');
+      if (li) go(rows[+li.dataset.i]);
+    });
+    list.addEventListener('mousemove', function (e) {
+      const li = e.target.closest('.qs-item');
+      if (li && +li.dataset.i !== active) { active = +li.dataset.i; paintActive(false); }
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (rows.length) { active = (active + 1) % rows.length; paintActive(true); } }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); if (rows.length) { active = (active - 1 + rows.length) % rows.length; paintActive(true); } }
+      else if (e.key === 'Enter') { e.preventDefault(); go(rows[active]); }
+    });
+    modalEl.addEventListener('shown.bs.modal', function () { input.focus(); input.select(); });
+    modalEl.addEventListener('show.bs.modal', function () { index = null; run(); });
+
+    function open() { bootstrap.Modal.getOrCreateInstance(modalEl).show(); }
+    document.getElementById('qsOpen').addEventListener('click', open);
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); open(); }
+    });
+  })();
 
   let modalShareContent = null;
   function openShareModal(type, id, currentGroupIds, isShared, excludedIds) {

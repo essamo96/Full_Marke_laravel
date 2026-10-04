@@ -35,7 +35,11 @@ class ExamController extends Controller
         $teacher = Auth::guard('teacher')->user();
         $groupIds = Group::where('teacher_id', $teacher->id)->pluck('id');
 
-        $exams = Exam::whereIn('group_id', $groupIds)->with('subject', 'group')->latest()->paginate(10);
+        $exams = Exam::whereIn('group_id', $groupIds)
+            ->with('subject', 'group')
+            ->withCount(['questions', 'grades'])
+            ->latest()
+            ->paginate(12);
 
         return view('teacher.exams.index', compact('exams'));
     }
