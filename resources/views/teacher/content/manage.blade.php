@@ -110,18 +110,20 @@
                       @endphp
                       <div class="col-12 col-md-6 col-xl-4" data-id="{{ $resource->id }}">
                         <div class="teacher-resource-card h-100">
-                          <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
-                            <div class="d-flex align-items-center gap-2">
+                          <div class="tc-card-head">
+                            <div class="tc-card-info">
                               <span class="teacher-resource-icon {{ $resourceType }}"><i class="{{ $icon }}"></i></span>
                               <div>
-                                <div class="fw-bold" style="color: var(--text-primary);">{{ $resource->title }}</div>
+                                <div class="fw-bold tc-card-title" style="color: var(--text-primary);">{{ $resource->title }}</div>
                                 <div class="teacher-resource-badge mt-1">{{ $title }}</div>
                               </div>
                             </div>
-                            <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit" onclick="openEditResourceModal('{{ $resource->getRouteKey() }}', {{ json_encode(['title' => $resource->title, 'type' => $resource->type, 'url' => $resource->url, 'description' => $resource->description, 'allow_download' => $resource->allow_download, 'group_ids' => $resource->groups->pluck('id'), 'excluded_student_ids' => $resource->contentExclusions->pluck('student_id'), 'is_shared' => $resource->is_shared]) }})"><i class="bi bi-pencil"></i></button>
+                            <div class="tc-actions">
+                            <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit" title="تعديل" aria-label="تعديل" onclick="openEditResourceModal('{{ $resource->getRouteKey() }}', {{ json_encode(['title' => $resource->title, 'type' => $resource->type, 'url' => $resource->url, 'description' => $resource->description, 'allow_download' => $resource->allow_download, 'group_ids' => $resource->groups->pluck('id'), 'excluded_student_ids' => $resource->contentExclusions->pluck('student_id'), 'is_shared' => $resource->is_shared]) }})"><i class="bi bi-pencil"></i></button>
                             <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--neutral" title="استثناء طلاب" onclick="openExclusionModal('{{ $resource->getRouteKey() }}', {{ json_encode($resource->contentExclusions->pluck('student_id')) }})"><i class="bi bi-person-x"></i>@if($resource->contentExclusions->count()) <span class="badge bg-danger">{{ $resource->contentExclusions->count() }}</span>@endif</button>
                             <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--share" title="مشاركة مع مجموعات أخرى" onclick="openShareModal('resource', '{{ $resource->getRouteKey() }}', {{ json_encode($resource->groups->pluck('id')) }}, {{ $resource->is_shared ? 'true' : 'false' }}, {{ json_encode($resource->contentExclusions->pluck('student_id')) }})"><i class="bi bi-share"></i></button>
-                             <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
+                             <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--danger" title="حذف" aria-label="حذف" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
+                            </div>
                           </div>
 
                           <div class="small text-muted mb-3">
@@ -138,18 +140,18 @@
 
                           <div class="d-flex flex-wrap gap-2 mt-auto">
                             @if($resource->isExternalLink())
-                              <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit w-100"
-                                      onclick="openProtectedViewer('link', @js($resource->url), @js($resource->title))">فتح الرابط</button>
+                              <button type="button" class="tbtn tbtn--solid tbtn--sm w-100"
+                                      onclick="openProtectedViewer('link', @js($resource->url), @js($resource->title))"><i class="bi bi-box-arrow-up-right"></i><i class="bi bi-box-arrow-up-right"></i>فتح الرابط</button>
                             @elseif($resource->type === 'document' || $resource->isImage())
-                              <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit w-100"
-                                      onclick="openProtectedViewer('{{ $resource->isImage() ? 'image' : 'document' }}', @js(route('teacher.content.view-file', $resource)), @js($resource->title))">فتح الملف</button>
+                              <button type="button" class="tbtn tbtn--solid tbtn--sm w-100"
+                                      onclick="openProtectedViewer('{{ $resource->isImage() ? 'image' : 'document' }}', @js(route('teacher.content.view-file', $resource)), @js($resource->title))"><i class="bi bi-file-earmark-text"></i><i class="bi bi-file-earmark-text"></i>فتح الملف</button>
                             @elseif($resource->type === 'video' && $resource->isReady())
-                              <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit w-100"
-                                      onclick="openProtectedViewer('video', @js(route('teacher.content.view-file', $resource)), @js($resource->title))">مشاهدة الفيديو</button>
+                              <button type="button" class="tbtn tbtn--solid tbtn--sm w-100"
+                                      onclick="openProtectedViewer('video', @js(route('teacher.content.view-file', $resource)), @js($resource->title))"><i class="bi bi-play-fill"></i><i class="bi bi-play-fill"></i>مشاهدة الفيديو</button>
                             @elseif($resource->type === 'video')
-                              <span class="tbtn tbtn--icon tbtn--sm tbtn--neutral disabled w-100">الفيديو قيد المعالجة</span>
+                              <span class="tbtn tbtn--neutral tbtn--sm w-100 disabled" aria-disabled="true">الفيديو قيد المعالجة</span>
                             @else
-                              <span class="tbtn tbtn--icon tbtn--sm tbtn--neutral disabled w-100">لا يوجد محتوى</span>
+                              <span class="tbtn tbtn--neutral tbtn--sm w-100 disabled" aria-disabled="true">لا يوجد محتوى</span>
                             @endif
                           </div>
                         </div>
@@ -162,10 +164,10 @@
                   </div>
                   
                   <div class="d-flex flex-wrap gap-2 pt-2 border-top border-secondary border-opacity-25">
-                    <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--ok" onclick="selectVideoForLesson('{{ $lesson->getRouteKey() }}')">
+                    <button type="button" class="tbtn tbtn--sm tbtn--ok" onclick="selectVideoForLesson('{{ $lesson->getRouteKey() }}')">
                       <i class="bi bi-cloud-arrow-up me-1"></i> رفع فيديو
                     </button>
-                    <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit" onclick="openResourceModal('{{ $lesson->getRouteKey() }}')">
+                    <button type="button" class="tbtn tbtn--sm tbtn--edit" onclick="openResourceModal('{{ $lesson->getRouteKey() }}')">
                       <i class="bi bi-plus-lg me-1"></i> إضافة مرفق (PDF / رابط)
                     </button>
                   </div>
@@ -1595,6 +1597,7 @@ let editUnitId = null;
       $el.select2({
         width: '100%',
         dir: 'rtl',
+        language: { noResults: function () { return 'لا توجد نتائج'; }, searching: function () { return 'جارٍ البحث…'; } },
         closeOnSelect: false,
         dropdownParent: $modal.length ? $modal : $(document.body),
         placeholder: $el.data('placeholder') || '',

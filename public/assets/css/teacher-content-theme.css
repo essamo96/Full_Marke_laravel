@@ -202,3 +202,29 @@
 .tc-chip__x:hover { background: #dc2626; color: #fff; }
 .tc-chip__x:focus-visible { outline: 2px solid #dc2626; outline-offset: 1px; }
 .tc-chip__x i { font-size: .65rem; }
+
+/* ---- Resource card layout: nothing can overflow the card ---- */
+.teacher-resource-card { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.tc-card-head { display: flex; flex-direction: column; gap: .7rem; margin-bottom: .75rem; }
+.tc-card-info { display: flex; align-items: center; gap: .7rem; min-width: 0; }
+.tc-card-info > div { min-width: 0; }
+.tc-card-title { overflow-wrap: anywhere; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tc-actions { display: flex; flex-wrap: wrap; gap: .4rem; padding-top: .65rem; border-top: 1px solid var(--separator-color); }
+.tc-actions .tbtn { flex: 0 0 auto; }
+.teacher-resource-card .tbtn.w-100 { flex: 1 1 100%; }
+.tbtn.disabled { opacity: .55; pointer-events: none; }
+
+/* ---- Student exclusion select ---- */
+.student-exclusion-select + .select2-container .select2-selection--multiple {
+  min-height: 48px; max-height: 148px; overflow-y: auto; padding: 4px 6px;
+}
+.student-exclusion-select + .select2-container .select2-search--inline { float: none; display: block; width: 100%; }
+.student-exclusion-select + .select2-container .select2-search--inline .select2-search__field {
+  width: 100% !important; min-height: 34px; margin: 2px 0 0; padding: 0 .4rem; font-size: .9rem;
+}
+.select2-container--default .select2-results > .select2-results__options { max-height: 260px; overflow-y: auto; }
+/* students already picked disappear from the list (they live in the chips above) */
+.select2-container--default .select2-results__option[aria-selected=true],
+.select2-container--default .select2-results__option--selected { display: none; }
+.select2-container--default .select2-results__option--selectable { cursor: pointer; }
+.select2-container--default .select2-results__message { color: var(--text-muted); padding: .7rem .8rem; }
