@@ -45,21 +45,8 @@
   display: block;
 }
 
-.teacher-resource-card {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 1rem;
-  padding: 1rem;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(14px);
-  height: 100%;
-}
-
-.teacher-resource-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255,255,255,0.24);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.16);
-}
+/* resource card: solid theme surface (no backdrop-filter => no scroll/modal jank) */
+.teacher-resource-card { }
 
 .teacher-resource-icon {
   width: 46px;
@@ -87,6 +74,6 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(255,255,255,0.12);
+  background: color-mix(in srgb, var(--accent-color) 14%, transparent);
   color: var(--text-primary);
 }

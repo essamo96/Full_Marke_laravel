@@ -5,6 +5,7 @@
 @section('page_title_ar', 'إدارة الامتحانات')
 
 @section('content')
+  @include('exams._styles')
 
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h1 class="h3 fw-bold mb-0" style="color: var(--text-primary);" data-en="Exams" data-ar="الامتحانات">الامتحانات</h1>
@@ -36,14 +37,16 @@
               <td>{{ $exam->group->name ?? '' }}</td>
               <td>{{ $exam->start_time?->format('Y-m-d H:i') }}</td>
               <td><span class="badge bg-gold text-dark">{{ $exam->status }}</span></td>
-              <td class="d-flex gap-2">
-                <a href="{{ route('teacher.exams.edit', $exam) }}" class="btn btn-sm btn-outline-primary" data-en="Edit" data-ar="تعديل">تعديل</a>
-                <a href="{{ route('teacher.exams.preview', $exam) }}" class="btn btn-sm btn-outline-success" data-en="Preview" data-ar="معاينة">معاينة</a>
-                <a href="{{ route('teacher.exams.blank-pdf', $exam) }}" class="btn btn-sm btn-outline-danger" data-en="Blank PDF" data-ar="نموذج PDF">نموذج PDF</a>
-                @if($exam->allowsGuests())
-                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="copyGuestLink(this)" data-link="{{ route('guest.exam.enter', $exam) }}" data-en="Copy Guest Link" data-ar="نسخ رابط الضيوف">نسخ رابط الضيوف</button>
-                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showExamQr(this)" data-url="{{ route('qr.exam', $exam) }}" data-name="{{ $exam->title }}" data-en="QR Code" data-ar="رمز QR">رمز QR</button>
-                @endif
+              <td>
+                <div class="tbtn-group">
+                  <a href="{{ route('teacher.exams.preview', $exam) }}" class="tbtn tbtn--preview" title="معاينة الأسئلة والإجابات"><i class="bi bi-eye"></i><span data-en="Preview" data-ar="معاينة">معاينة</span></a>
+                  <a href="{{ route('teacher.exams.blank-pdf', $exam) }}" class="tbtn tbtn--pdf" title="تحميل نموذج فارغ"><i class="bi bi-file-earmark-pdf"></i><span data-en="Blank PDF" data-ar="نموذج PDF">نموذج PDF</span></a>
+                  <a href="{{ route('teacher.exams.edit', $exam) }}" class="tbtn tbtn--edit"><i class="bi bi-pencil"></i><span data-en="Edit" data-ar="تعديل">تعديل</span></a>
+                  @if($exam->allowsGuests())
+                    <button type="button" class="tbtn tbtn--neutral" onclick="copyGuestLink(this)" data-link="{{ route('guest.exam.enter', $exam) }}"><i class="bi bi-link-45deg"></i><span data-en="Guest link" data-ar="رابط الضيوف">رابط الضيوف</span></button>
+                    <button type="button" class="tbtn tbtn--neutral" onclick="showExamQr(this)" data-url="{{ route('qr.exam', $exam) }}" data-name="{{ $exam->title }}"><i class="bi bi-qr-code"></i><span>QR</span></button>
+                  @endif
+                </div>
               </td>
             </tr>
           @empty
@@ -81,9 +84,10 @@
   function copyGuestLink(btn) {
     const link = btn.getAttribute('data-link');
     navigator.clipboard.writeText(link).then(() => {
-      const original = btn.textContent;
-      btn.textContent = 'تم النسخ!';
-      setTimeout(() => { btn.textContent = original; }, 1500);
+      const label = btn.querySelector('span');
+      const original = label.textContent;
+      label.textContent = 'تم النسخ!';
+      setTimeout(() => { label.textContent = original; }, 1500);
     });
   }
 

@@ -14,11 +14,13 @@
 @endpush
 
 @section('content')
+@include('exams._styles')
 
 @push('styles')
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
   <link rel="stylesheet" href="{{ asset_ver('assets/css/teacher-content.css') }}">
   <link rel="stylesheet" href="{{ asset_ver('assets/css/curriculum-accordion.css') }}">
+  <link rel="stylesheet" href="{{ asset_ver('assets/css/teacher-content-theme.css') }}">
 @endpush
 
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -55,10 +57,10 @@
             <span class="unit-meta d-block">{{ $unit->lessons->count() }} <span data-en="lesson(s)" data-ar="درس">درس</span></span>
           </span>
           <div class="d-flex gap-2 ms-auto me-3 align-items-center">
-            <button type="button" class="btn btn-sm btn-outline-primary" title="تعديل الوحدة" onclick="event.stopPropagation(); openEditUnitModal('{{ $unit->getRouteKey() }}', {{ json_encode(['name_ar' => $unit->name_ar, 'name_en' => $unit->name_en, 'group_ids' => $unit->groups->pluck('id'), 'is_shared' => $unit->is_shared]) }})"><i class="bi bi-pencil"></i></button>
-            <button type="button" class="btn btn-sm btn-outline-warning" title="مشاركة مع مجموعات أخرى" onclick="event.stopPropagation(); openShareModal('unit', '{{ $unit->getRouteKey() }}', {{ json_encode($unit->groups->pluck('id')) }}, {{ $unit->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
-            <button type="button" class="btn btn-sm btn-outline-success" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal('{{ $unit->getRouteKey() }}')"><i class="bi bi-plus-lg"></i></button>
-            <button type="button" class="btn btn-sm btn-outline-danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit('{{ $unit->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
+            <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit" title="تعديل الوحدة" onclick="event.stopPropagation(); openEditUnitModal('{{ $unit->getRouteKey() }}', {{ json_encode(['name_ar' => $unit->name_ar, 'name_en' => $unit->name_en, 'group_ids' => $unit->groups->pluck('id'), 'is_shared' => $unit->is_shared]) }})"><i class="bi bi-pencil"></i></button>
+            <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--share" title="مشاركة مع مجموعات أخرى" onclick="event.stopPropagation(); openShareModal('unit', '{{ $unit->getRouteKey() }}', {{ json_encode($unit->groups->pluck('id')) }}, {{ $unit->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
+            <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--ok" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal('{{ $unit->getRouteKey() }}')"><i class="bi bi-plus-lg"></i></button>
+            <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit('{{ $unit->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
           </div>
           <i class="bi bi-chevron-down"></i>
         </div>
@@ -71,10 +73,10 @@
                 <span class="flex-grow-1">{{ $lesson->name_ar ?? $lesson->name_en }}</span>
                 
                 <div class="d-flex gap-2 align-items-center me-3">
-                  <button type="button" class="btn btn-sm btn-outline-primary" title="تعديل الدرس" onclick="event.stopPropagation(); openEditLessonModal('{{ $lesson->getRouteKey() }}', {{ json_encode(['name_ar' => $lesson->name_ar, 'name_en' => $lesson->name_en, 'group_ids' => $lesson->groups->pluck('id'), 'is_shared' => $lesson->is_shared]) }})"><i class="bi bi-pencil"></i></button>
-                  <button type="button" class="btn btn-sm btn-outline-warning" title="مشاركة مع مجموعات أخرى" onclick="event.stopPropagation(); openShareModal('lesson', '{{ $lesson->getRouteKey() }}', {{ json_encode($lesson->groups->pluck('id')) }}, {{ $lesson->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
+                  <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit" title="تعديل الدرس" onclick="event.stopPropagation(); openEditLessonModal('{{ $lesson->getRouteKey() }}', {{ json_encode(['name_ar' => $lesson->name_ar, 'name_en' => $lesson->name_en, 'group_ids' => $lesson->groups->pluck('id'), 'is_shared' => $lesson->is_shared]) }})"><i class="bi bi-pencil"></i></button>
+                  <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--share" title="مشاركة مع مجموعات أخرى" onclick="event.stopPropagation(); openShareModal('lesson', '{{ $lesson->getRouteKey() }}', {{ json_encode($lesson->groups->pluck('id')) }}, {{ $lesson->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
                   <span class="lesson-count">{{ $lesson->resources->count() }} مرفق</span>
-                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteLesson('{{ $lesson->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
+                  <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--danger" onclick="event.stopPropagation(); deleteLesson('{{ $lesson->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                 </div>
                 <i class="bi bi-chevron-down"></i>
               </div>
@@ -111,10 +113,10 @@
                                 <div class="teacher-resource-badge mt-1">{{ $title }}</div>
                               </div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditResourceModal('{{ $resource->getRouteKey() }}', {{ json_encode(['title' => $resource->title, 'type' => $resource->type, 'url' => $resource->url, 'description' => $resource->description, 'allow_download' => $resource->allow_download, 'group_ids' => $resource->groups->pluck('id'), 'excluded_student_ids' => $resource->contentExclusions->pluck('student_id'), 'is_shared' => $resource->is_shared]) }})"><i class="bi bi-pencil"></i></button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" title="استثناء طلاب" onclick="openExclusionModal('{{ $resource->getRouteKey() }}', {{ json_encode($resource->contentExclusions->pluck('student_id')) }})"><i class="bi bi-person-x"></i>@if($resource->contentExclusions->count()) <span class="badge bg-danger">{{ $resource->contentExclusions->count() }}</span>@endif</button>
-                            <button type="button" class="btn btn-sm btn-outline-warning" title="مشاركة مع مجموعات أخرى" onclick="openShareModal('resource', '{{ $resource->getRouteKey() }}', {{ json_encode($resource->groups->pluck('id')) }}, {{ $resource->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
-                             <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
+                            <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit" onclick="openEditResourceModal('{{ $resource->getRouteKey() }}', {{ json_encode(['title' => $resource->title, 'type' => $resource->type, 'url' => $resource->url, 'description' => $resource->description, 'allow_download' => $resource->allow_download, 'group_ids' => $resource->groups->pluck('id'), 'excluded_student_ids' => $resource->contentExclusions->pluck('student_id'), 'is_shared' => $resource->is_shared]) }})"><i class="bi bi-pencil"></i></button>
+                            <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--neutral" title="استثناء طلاب" onclick="openExclusionModal('{{ $resource->getRouteKey() }}', {{ json_encode($resource->contentExclusions->pluck('student_id')) }})"><i class="bi bi-person-x"></i>@if($resource->contentExclusions->count()) <span class="badge bg-danger">{{ $resource->contentExclusions->count() }}</span>@endif</button>
+                            <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--share" title="مشاركة مع مجموعات أخرى" onclick="openShareModal('resource', '{{ $resource->getRouteKey() }}', {{ json_encode($resource->groups->pluck('id')) }}, {{ $resource->is_shared ? 'true' : 'false' }}, {{ json_encode($resource->contentExclusions->pluck('student_id')) }})"><i class="bi bi-share"></i></button>
+                             <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                           </div>
 
                           <div class="small text-muted mb-3">
@@ -131,18 +133,18 @@
 
                           <div class="d-flex flex-wrap gap-2 mt-auto">
                             @if($resource->isExternalLink())
-                              <button type="button" class="btn btn-sm btn-outline-primary w-100"
+                              <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit w-100"
                                       onclick="openProtectedViewer('link', @js($resource->url), @js($resource->title))">فتح الرابط</button>
                             @elseif($resource->type === 'document' || $resource->isImage())
-                              <button type="button" class="btn btn-sm btn-outline-primary w-100"
+                              <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit w-100"
                                       onclick="openProtectedViewer('{{ $resource->isImage() ? 'image' : 'document' }}', @js(route('teacher.content.view-file', $resource)), @js($resource->title))">فتح الملف</button>
                             @elseif($resource->type === 'video' && $resource->isReady())
-                              <button type="button" class="btn btn-sm btn-outline-primary w-100"
+                              <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit w-100"
                                       onclick="openProtectedViewer('video', @js(route('teacher.content.view-file', $resource)), @js($resource->title))">مشاهدة الفيديو</button>
                             @elseif($resource->type === 'video')
-                              <span class="btn btn-sm btn-outline-secondary disabled w-100">الفيديو قيد المعالجة</span>
+                              <span class="tbtn tbtn--icon tbtn--sm tbtn--neutral disabled w-100">الفيديو قيد المعالجة</span>
                             @else
-                              <span class="btn btn-sm btn-outline-secondary disabled w-100">لا يوجد محتوى</span>
+                              <span class="tbtn tbtn--icon tbtn--sm tbtn--neutral disabled w-100">لا يوجد محتوى</span>
                             @endif
                           </div>
                         </div>
@@ -155,10 +157,10 @@
                   </div>
                   
                   <div class="d-flex flex-wrap gap-2 pt-2 border-top border-secondary border-opacity-25">
-                    <button type="button" class="btn btn-sm btn-outline-success" onclick="selectVideoForLesson('{{ $lesson->getRouteKey() }}')">
+                    <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--ok" onclick="selectVideoForLesson('{{ $lesson->getRouteKey() }}')">
                       <i class="bi bi-cloud-arrow-up me-1"></i> رفع فيديو
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="openResourceModal('{{ $lesson->getRouteKey() }}')">
+                    <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit" onclick="openResourceModal('{{ $lesson->getRouteKey() }}')">
                       <i class="bi bi-plus-lg me-1"></i> إضافة مرفق (PDF / رابط)
                     </button>
                   </div>
@@ -210,8 +212,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
-            <button type="submit" class="btn btn-luxury">حفظ</button>
+            <button type="button" class="tbtn tbtn--neutral" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="tbtn tbtn--solid">حفظ</button>
           </div>
         </form>
       </div>
@@ -253,8 +255,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
-            <button type="submit" class="btn btn-luxury">حفظ</button>
+            <button type="button" class="tbtn tbtn--neutral" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="tbtn tbtn--solid">حفظ</button>
           </div>
         </form>
       </div>
@@ -344,8 +346,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
-            <button type="submit" class="btn btn-luxury">حفظ</button>
+            <button type="button" class="tbtn tbtn--neutral" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="tbtn tbtn--solid">حفظ</button>
           </div>
         </form>
       </div>
@@ -388,8 +390,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
-            <button type="submit" class="btn btn-luxury">حفظ</button>
+            <button type="button" class="tbtn tbtn--neutral" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="tbtn tbtn--solid">حفظ</button>
           </div>
         </form>
       </div>
@@ -431,8 +433,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
-            <button type="submit" class="btn btn-luxury">حفظ</button>
+            <button type="button" class="tbtn tbtn--neutral" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="tbtn tbtn--solid">حفظ</button>
           </div>
         </form>
       </div>
@@ -501,8 +503,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-glass" data-bs-dismiss="modal">إلغاء</button>
-            <button type="submit" class="btn btn-luxury">حفظ</button>
+            <button type="button" class="tbtn tbtn--neutral" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="tbtn tbtn--solid">حفظ</button>
           </div>
         </form>
       </div>
@@ -580,12 +582,15 @@
       <form id="form_exclusions">
         <div class="modal-body">
           <input type="hidden" id="exclusion_resource_id">
-          <div class="alert alert-info py-2 small">الطلاب المستثنون لن يروا هذا المرفق حتى لو كانت المجموعة مشاركة. تظهر فقط طلاب مجموعاتك.</div>
-          @include('teacher.content._exclusion-select', ['id' => 'exclusion_students'])
+          <div class="tc-section">
+            <div class="tc-section__title"><i class="bi bi-person-x"></i> الطلاب المستثنون من المشاهدة</div>
+            @include('teacher.content._exclusion-select', ['id' => 'exclusion_students'])
+            <div class="form-text mt-2">يظهر هنا طلاب مجموعاتك فقط. الاستثناء يتفوق على مشاركة المجموعة.</div>
+          </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn btn-primary">حفظ</button>
+          <button type="button" class="tbtn tbtn--neutral" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="tbtn tbtn--solid">حفظ</button>
         </div>
       </form>
     </div>
@@ -594,32 +599,45 @@
 
 {{-- Share content with additional groups without re-upload --}}
 <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_share_content">
-  <div class="modal-dialog">
-    <div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-panel">
       <div class="modal-header">
-        <h5 class="modal-title">مشاركة مع مجموعات أخرى</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title"><i class="bi bi-share me-2" style="color: var(--accent-color);"></i>مشاركة المحتوى</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
       </div>
       <form id="form_share_content">
         <div class="modal-body">
           <input type="hidden" id="share_content_type">
           <input type="hidden" id="share_content_id">
-          <div class="alert alert-info py-2 small">
-            ستظهر نفس الوحدة/الدرس/الملف للمجموعات المختارة بدون رفع من جديد.
+
+          <div class="tc-section">
+            <div class="tc-section__title"><i class="bi bi-eye"></i> يظهر حالياً في</div>
+            <div id="share_current_chips"></div>
           </div>
-          <div id="share_already_shared_msg" class="alert alert-success d-none">هذا المحتوى مرئي لكل مجموعات المادة بالفعل.</div>
-          <div class="mb-3" id="share_groups_wrap">
-            <label class="form-label fw-bold">المجموعات الإضافية</label>
-            <select id="share_group_ids" class="form-select" data-control="select2" multiple="multiple" data-placeholder="اختر المجموعات...">
+
+          <div id="share_already_shared_msg" class="alert alert-success d-none mb-0">
+            <i class="bi bi-check-circle me-1"></i> هذا المحتوى مرئي لكل مجموعات المادة بالفعل.
+          </div>
+
+          <div class="tc-section" id="share_groups_wrap">
+            <div class="tc-section__title"><i class="bi bi-plus-circle"></i> إضافة مجموعات</div>
+            <select id="share_group_ids" class="form-select" data-control="select2" multiple="multiple" data-placeholder="اختر مجموعة أو أكثر...">
               @foreach($groups as $group)
                 <option value="{{ $group->id }}">{{ $group->name }}</option>
               @endforeach
             </select>
+            <div class="form-text mt-2">المجموعات المعطّلة تشاهد المحتوى بالفعل. لا حاجة لإعادة الرفع.</div>
+          </div>
+
+          <div class="tc-section d-none" id="share_exclusion_wrap">
+            <div class="tc-section__title"><i class="bi bi-person-x"></i> استثناء طلاب (اختياري)</div>
+            @include('teacher.content._exclusion-select', ['id' => 'share_excluded_students'])
+            <div class="form-text mt-2">الطلاب المستثنون لن يروا هذا المرفق حتى لو كانت مجموعتهم مشاركة.</div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
-          <button type="submit" class="btn btn-primary" id="share_submit_btn">مشاركة</button>
+          <button type="button" class="tbtn tbtn--neutral" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="tbtn tbtn--solid" id="share_submit_btn"><i class="bi bi-share"></i> مشاركة</button>
         </div>
       </form>
     </div>
@@ -1094,7 +1112,7 @@ let editUnitId = null;
     if (unitsAccordion) {
       new Sortable(unitsAccordion, {
         animation: 150,
-        handle: '.unit-toggle',
+        handle: '.unit-toggle', filter: 'button, .tbtn, a', preventOnFilter: false,
         onEnd: function (evt) {
           let order = Array.from(unitsAccordion.children).map(el => el.getAttribute('data-id')).filter(Boolean);
           $.post(unitsBaseUrl + '/reorder', { _token: csrfToken, order: order });
@@ -1106,7 +1124,7 @@ let editUnitId = null;
     document.querySelectorAll('[data-sortable="lessons"]').forEach(el => {
       new Sortable(el, {
         animation: 150,
-        handle: '.lesson-toggle',
+        handle: '.lesson-toggle', filter: 'button, .tbtn, a', preventOnFilter: false,
         onEnd: function (evt) {
           let order = Array.from(el.children).map(child => child.getAttribute('data-id')).filter(Boolean);
           $.post(lessonsBaseUrl + '/reorder', { _token: csrfToken, order: order });
@@ -1594,29 +1612,39 @@ let editUnitId = null;
   });
 
   let modalShareContent = null;
-  function openShareModal(type, id, currentGroupIds, isShared) {
-    if (!modalShareContent) {
-      modalShareContent = new bootstrap.Modal(document.getElementById('modal_share_content'));
-    }
+  function openShareModal(type, id, currentGroupIds, isShared, excludedIds) {
     $('#share_content_type').val(type);
     $('#share_content_id').val(id);
     const $select = $('#share_group_ids');
-    $select.find('option').prop('disabled', false).prop('selected', false);
+    $select.val(null);
+    $select.find('option').prop('disabled', false);
+    const names = [];
     (currentGroupIds || []).forEach(function (gid) {
-      $select.find('option[value="' + gid + '"]').prop('disabled', true);
+      const $o = $select.find('option[value="' + gid + '"]');
+      $o.prop('disabled', true);
+      names.push($o.text());
     });
     $select.trigger('change');
 
+    const $chips = $('#share_current_chips').empty();
     if (isShared) {
-      $('#share_already_shared_msg').removeClass('d-none');
-      $('#share_groups_wrap').addClass('d-none');
-      $('#share_submit_btn').prop('disabled', true);
+      $chips.append('<span class="tc-chip tc-chip--all"><i class="bi bi-people-fill"></i> كل مجموعات المادة</span>');
+    } else if (names.length) {
+      names.forEach(function (n) { $chips.append($('<span class="tc-chip"></span>').text(n)); });
     } else {
-      $('#share_already_shared_msg').addClass('d-none');
-      $('#share_groups_wrap').removeClass('d-none');
-      $('#share_submit_btn').prop('disabled', false);
+      $chips.append('<span class="tc-chip tc-chip--muted">مسودة - غير ظاهر لأي مجموعة</span>');
     }
-    modalShareContent.show();
+
+    $('#share_already_shared_msg').toggleClass('d-none', !isShared);
+    $('#share_groups_wrap').toggleClass('d-none', !!isShared);
+    $('#share_submit_btn').prop('disabled', !!isShared);
+
+    // Exclusions only exist for resources.
+    const isResource = type === 'resource';
+    $('#share_exclusion_wrap').toggleClass('d-none', !isResource);
+    $('#share_excluded_students').val((excludedIds || []).map(String)).trigger('change');
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modal_share_content')).show();
   }
 
   $('#form_share_content').on('submit', function (e) {
@@ -1624,19 +1652,31 @@ let editUnitId = null;
     const type = $('#share_content_type').val();
     const id = $('#share_content_id').val();
     const groupIds = $('#share_group_ids').val() || [];
-    if (!groupIds.length) {
+    const base = type === 'unit' ? unitsBaseUrl
+      : (type === 'lesson' ? lessonsBaseUrl : resourcesBaseUrl);
+    const exclusionsChanged = type === 'resource';
+    if (!groupIds.length && !exclusionsChanged) {
       Swal.fire({ icon: 'warning', title: 'اختر مجموعة واحدة على الأقل' });
       return;
     }
-    const base = type === 'unit' ? unitsBaseUrl
-      : (type === 'lesson' ? lessonsBaseUrl : resourcesBaseUrl);
+    const saveExclusions = function () {
+      return $.post(base + '/' + id + '/exclusions', { _token: csrfToken, excluded_student_ids: $('#share_excluded_students').val() || [] });
+    };
+    if (!groupIds.length) {
+      saveExclusions().done(function () { location.reload(); })
+        .fail(function () { Swal.fire({ icon: 'error', title: 'تعذر حفظ الاستثناءات' }); });
+      return;
+    }
     $.ajax({
       url: base + '/' + id + '/share',
       type: 'POST',
       data: { _token: csrfToken, group_ids: groupIds },
       success: function (res) {
-        Swal.fire({ icon: 'success', title: res.message || 'تمت المشاركة', timer: 1500, showConfirmButton: false });
-        location.reload();
+        const done = function () {
+          Swal.fire({ icon: 'success', title: res.message || 'تمت المشاركة', timer: 1200, showConfirmButton: false });
+          location.reload();
+        };
+        if (exclusionsChanged) { saveExclusions().always(done); } else { done(); }
       },
       error: function (xhr) {
         const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'تعذر إتمام المشاركة';
@@ -1647,10 +1687,3 @@ let editUnitId = null;
 </script>
 @endpush
 
-@push('styles')
-<style>
-  .select2-container--default .select2-selection--multiple { min-height: 38px; border-color: var(--bs-border-color, #dee2e6); border-radius: .5rem; }
-  .select2-dropdown { z-index: 2000; }
-  .select2-container { z-index: 2000; }
-</style>
-@endpush

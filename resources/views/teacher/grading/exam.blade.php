@@ -5,9 +5,14 @@
 @section('page_title_ar', 'التصحيح')
 
 @section('content')
+  @include('exams._styles')
 
   <h1 class="h3 fw-bold mb-1" style="color: var(--text-primary);">{{ $exam->title }}</h1>
-  <p class="text-muted mb-4">{{ $exam->group->name ?? '' }} — {{ $exam->subject->name ?? '' }}</p>
+  <p class="text-muted mb-3">{{ $exam->group->name ?? '' }} — {{ $exam->subject->name ?? '' }}</p>
+  <div class="tbtn-group mb-4">
+    <a href="{{ route('teacher.exams.preview', $exam) }}" class="tbtn tbtn--preview"><i class="bi bi-eye"></i><span data-en="Preview exam" data-ar="معاينة الامتحان">معاينة الامتحان</span></a>
+    <a href="{{ route('teacher.exams.blank-pdf', $exam) }}" class="tbtn tbtn--pdf"><i class="bi bi-file-earmark-pdf"></i><span data-en="Blank PDF" data-ar="نموذج PDF">نموذج PDF</span></a>
+  </div>
 
   <div class="glass-panel rounded-4 p-0 overflow-hidden">
     <div class="table-responsive">
@@ -51,7 +56,7 @@
               </td>
               <td>
                 @if($grade)
-                  <a href="{{ route('teacher.grading.show', $grade) }}" class="btn btn-sm btn-outline-primary" data-en="View Answers" data-ar="عرض الإجابات">عرض الإجابات</a>
+                  <a href="{{ route('teacher.grading.show', $grade) }}" class="tbtn"><i class="bi bi-list-check"></i><span data-en="View Answers" data-ar="عرض الإجابات">عرض الإجابات</span></a>
                 @endif
               </td>
             </tr>

@@ -1,18 +1,19 @@
 {{-- Exam questions preview. $exam loaded with questions.options; optional $stats, $showCorrect --}}
 @php $showCorrect = $showCorrect ?? false; $stats = $stats ?? null; @endphp
+@include('exams._styles')
 @foreach($exam->questions as $i => $q)
   @php
     $qStats = $stats[$q->id] ?? [];
     $total = array_sum($qStats);
   @endphp
-  <div class="border rounded p-4 mb-4" style="background:#fff;color:#212529;">
-    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
+  <div class="xp-card">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <h5 class="fw-bold m-0">سؤال {{ $i + 1 }}</h5>
-      <span class="badge bg-secondary">{{ $q->points }} درجة</span>
+      <span class="xp-pts">{{ $q->points }} درجة</span>
     </div>
     <div class="mb-3 fs-5">{!! $q->content !!}</div>
     @if($q->type === 'essay')
-      <div class="text-muted">سؤال مقالي</div>
+      <div class="text-muted"><i class="bi bi-pencil-square me-1"></i> سؤال مقالي</div>
     @else
       @foreach($q->options as $opt)
         @php
@@ -20,13 +21,12 @@
           $pct = $total ? round($cnt / $total * 100) : 0;
           $isOk = $showCorrect && $opt->is_correct;
         @endphp
-        <div class="d-flex align-items-center gap-2 p-3 rounded border mb-2"
-             style="{{ $isOk ? 'background:rgba(40,167,69,.15);border-color:rgba(40,167,69,.5)!important;' : '' }}">
-          <i class="bi {{ $isOk ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted' }}"></i>
-          <span class="{{ $isOk ? 'fw-bold text-success' : '' }}">{!! $opt->option_text !!}</span>
+        <div class="xp-opt {{ $isOk ? 'xp-opt--ok' : '' }}">
+          <i class="bi xp-mark {{ $isOk ? 'bi-check-circle-fill' : 'bi-circle' }}"></i>
+          <span>{!! $opt->option_text !!}</span>
           @if($isOk)<span class="fs-8 text-success">(الإجابة الصحيحة)</span>@endif
           @if($stats !== null)
-            <span class="ms-auto badge {{ $opt->is_correct ? 'bg-success' : 'bg-danger' }}">{{ $cnt }} ({{ $pct }}%)</span>
+            <span class="xp-count {{ $opt->is_correct ? 'xp-count--ok' : 'xp-count--bad' }}" title="عدد من اختار هذا الخيار">{{ $cnt }} ({{ $pct }}%)</span>
           @endif
         </div>
       @endforeach
