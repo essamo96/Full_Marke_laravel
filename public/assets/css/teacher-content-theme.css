@@ -196,3 +196,9 @@
 }
 @media (prefers-reduced-motion: reduce) { .qs-flash { animation: none; box-shadow: 0 0 0 3px var(--accent-color); } }
 @media (max-width: 575.98px) { .qs-kbd { display: none; } }
+
+.tc-chip__x { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; padding: 0; margin-inline-start: .15rem;
+  border-radius: 50%; border: 0; background: transparent; color: var(--text-muted); cursor: pointer; transition: background-color .15s, color .15s; }
+.tc-chip__x:hover { background: #dc2626; color: #fff; }
+.tc-chip__x:focus-visible { outline: 2px solid #dc2626; outline-offset: 1px; }
+.tc-chip__x i { font-size: .65rem; }

@@ -72,6 +72,11 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::post('content/{subject}/general-resources', [ContentController::class, 'storeGeneralResource'])->name('content.store-general-resource');
         Route::put('content/resources/{resource}', [ContentController::class, 'updateResource'])->name('content.update-resource');
         Route::post('content/resources/{resource}/exclusions', [ContentController::class, 'updateExclusions'])->name('content.update-exclusions');
+        Route::post('content/units/{unit}/exclusions', [ContentController::class, 'updateUnitExclusions'])->name('content.update-unit-exclusions');
+        Route::post('content/lessons/{lesson}/exclusions', [ContentController::class, 'updateLessonExclusions'])->name('content.update-lesson-exclusions');
+        Route::post('content/units/{unit}/unshare', [ContentController::class, 'unshareUnit'])->name('content.unshare-unit');
+        Route::post('content/lessons/{lesson}/unshare', [ContentController::class, 'unshareLesson'])->name('content.unshare-lesson');
+        Route::post('content/resources/{resource}/unshare', [ContentController::class, 'unshareResource'])->name('content.unshare-resource');
         Route::post('content/units/{unit}/share', [ContentController::class, 'shareUnit'])->name('content.share-unit');
         Route::post('content/lessons/{lesson}/share', [ContentController::class, 'shareLesson'])->name('content.share-lesson');
         Route::post('content/resources/{resource}/share', [ContentController::class, 'shareResource'])->name('content.share-resource');

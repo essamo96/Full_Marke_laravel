@@ -129,8 +129,8 @@ class ContentController extends Controller
                 $q->where('subject_id', $subject->id);
             })
             ->forManagement($selectedGroupId, $myGroupIds)
-            ->with(['groups', 'lessons' => function ($q) use ($selectedGroupId, $myGroupIds) {
-                $q->forManagement($selectedGroupId, $myGroupIds)->with('groups')->orderBy('sort_order');
+            ->with(['groups', 'contentExclusions', 'lessons' => function ($q) use ($selectedGroupId, $myGroupIds) {
+                $q->forManagement($selectedGroupId, $myGroupIds)->with(['groups', 'contentExclusions'])->orderBy('sort_order');
             }, 'lessons.resources' => function ($q) use ($selectedGroupId, $myGroupIds) {
                 $q->forManagement($selectedGroupId, $myGroupIds)->with(['groups', 'contentExclusions'])->orderBy('sort_order');
             }])
@@ -601,14 +601,109 @@ class ContentController extends Controller
     {
         $this->authorizeSubjectResource($resource);
 
+        return $this->saveExclusions($request, $resource, (int) $resource->subject_id);
+    }
+
+    public function updateUnitExclusions(Request $request, EducationalUnit $unit)
+    {
+        $subject = $unit->stage?->subject;
+        abort_unless($subject && $this->canAccessSubject($subject->id), 404);
+
+        return $this->saveExclusions($request, $unit, $subject->id);
+    }
+
+    public function updateLessonExclusions(Request $request, EducationalLesson $lesson)
+    {
+        $this->authorizeLesson($lesson);
+
+        return $this->saveExclusions($request, $lesson, (int) $lesson->unit->stage->subject_id);
+    }
+
+    private function saveExclusions(Request $request, $model, int $subjectId)
+    {
         $data = $request->validate([
             'excluded_student_ids' => 'nullable|array',
             'excluded_student_ids.*' => 'integer|exists:students,id',
         ]);
 
-        $this->syncTeacherExclusions($resource, (int) $resource->subject_id, $data['excluded_student_ids'] ?? []);
+        $this->syncTeacherExclusions($model, $subjectId, $data['excluded_student_ids'] ?? []);
 
         return response()->json(['success' => true, 'message' => 'تم تحديث الاستثناءات.']);
+    }
+
+    public function unshareUnit(Request $request, EducationalUnit $unit)
+    {
+        $subject = $unit->stage?->subject;
+        abort_unless($subject && $this->canAccessSubject($subject->id), 404);
+
+        return $this->unshareContent($request, $unit, $subject->id);
+    }
+
+    public function unshareLesson(Request $request, EducationalLesson $lesson)
+    {
+        $this->authorizeLesson($lesson);
+
+        return $this->unshareContent($request, $lesson, (int) $lesson->unit->stage->subject_id);
+    }
+
+    public function unshareResource(Request $request, SubjectResource $resource)
+    {
+        $this->authorizeSubjectResource($resource);
+
+        return $this->unshareContent($request, $resource, (int) $resource->subject_id);
+    }
+
+    /**
+     * Stop showing a unit / lesson / resource to one of the teacher's groups.
+     * Content shared with "all groups" is first converted to an explicit list
+     * of every group of the subject (so other teachers' groups keep access),
+     * minus the removed one. Children follow, mirroring how sharing cascades.
+     */
+    private function unshareContent(Request $request, $model, int $subjectId)
+    {
+        abort_unless(in_array($subjectId, $this->allowedSubjectIds(), true), 403);
+
+        $data = $request->validate(['group_id' => 'required|integer|exists:groups,id']);
+        $groupId = (int) $data['group_id'];
+
+        abort_unless(in_array($groupId, $this->allowedGroupIds(), true), 403);
+        abort_unless(Group::where('id', $groupId)->where('subject_id', $subjectId)->exists(), 422);
+
+        $allSubjectGroups = Group::where('subject_id', $subjectId)->pluck('id')->all();
+
+        $detach = function ($m) use ($groupId, $allSubjectGroups) {
+            if ($m->is_shared) {
+                $m->forceFill(['is_shared' => false])->save();
+                $m->groups()->sync(array_values(array_diff($allSubjectGroups, [$groupId])));
+            } else {
+                $m->groups()->detach($groupId);
+            }
+        };
+
+        $detach($model);
+
+        if ($model instanceof EducationalUnit) {
+            $model->loadMissing('lessons.resources');
+            foreach ($model->lessons as $lesson) {
+                $detach($lesson);
+                foreach ($lesson->resources as $resource) {
+                    $detach($resource);
+                }
+            }
+        } elseif ($model instanceof EducationalLesson) {
+            $model->loadMissing('resources');
+            foreach ($model->resources as $resource) {
+                $detach($resource);
+            }
+        }
+
+        $model->refresh();
+
+        return response()->json([
+            'success' => true,
+            'is_shared' => (bool) $model->is_shared,
+            'group_ids' => $model->groups()->pluck('groups.id'),
+        ]);
     }
 
     public function shareUnit(Request $request, EducationalUnit $unit)

@@ -63,7 +63,7 @@
           </span>
           <div class="d-flex gap-2 ms-auto me-3 align-items-center">
             <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit" title="تعديل الوحدة" onclick="event.stopPropagation(); openEditUnitModal('{{ $unit->getRouteKey() }}', {{ json_encode(['name_ar' => $unit->name_ar, 'name_en' => $unit->name_en, 'group_ids' => $unit->groups->pluck('id'), 'is_shared' => $unit->is_shared]) }})"><i class="bi bi-pencil"></i></button>
-            <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--share" title="مشاركة مع مجموعات أخرى" onclick="event.stopPropagation(); openShareModal('unit', '{{ $unit->getRouteKey() }}', {{ json_encode($unit->groups->pluck('id')) }}, {{ $unit->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
+            <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--share" title="مشاركة مع مجموعات أخرى" onclick="event.stopPropagation(); openShareModal('unit', '{{ $unit->getRouteKey() }}', {{ json_encode($unit->groups->pluck('id')) }}, {{ $unit->is_shared ? 'true' : 'false' }}, {{ json_encode($unit->contentExclusions->pluck('student_id')) }})"><i class="bi bi-share"></i></button>
             <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--ok" title="إضافة درس" onclick="event.stopPropagation(); openLessonModal('{{ $unit->getRouteKey() }}')"><i class="bi bi-plus-lg"></i></button>
             <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--danger" title="حذف الوحدة" onclick="event.stopPropagation(); deleteUnit('{{ $unit->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
           </div>
@@ -79,7 +79,7 @@
                 
                 <div class="d-flex gap-2 align-items-center me-3">
                   <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--edit" title="تعديل الدرس" onclick="event.stopPropagation(); openEditLessonModal('{{ $lesson->getRouteKey() }}', {{ json_encode(['name_ar' => $lesson->name_ar, 'name_en' => $lesson->name_en, 'group_ids' => $lesson->groups->pluck('id'), 'is_shared' => $lesson->is_shared]) }})"><i class="bi bi-pencil"></i></button>
-                  <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--share" title="مشاركة مع مجموعات أخرى" onclick="event.stopPropagation(); openShareModal('lesson', '{{ $lesson->getRouteKey() }}', {{ json_encode($lesson->groups->pluck('id')) }}, {{ $lesson->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
+                  <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--share" title="مشاركة مع مجموعات أخرى" onclick="event.stopPropagation(); openShareModal('lesson', '{{ $lesson->getRouteKey() }}', {{ json_encode($lesson->groups->pluck('id')) }}, {{ $lesson->is_shared ? 'true' : 'false' }}, {{ json_encode($lesson->contentExclusions->pluck('student_id')) }})"><i class="bi bi-share"></i></button>
                   <span class="lesson-count">{{ $lesson->resources->count() }} مرفق</span>
                   <button type="button" class="tbtn tbtn--icon tbtn--sm tbtn--danger" onclick="event.stopPropagation(); deleteLesson('{{ $lesson->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                 </div>
@@ -638,7 +638,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content glass-panel">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-share me-2" style="color: var(--accent-color);"></i>مشاركة المحتوى</h5>
+        <h5 class="modal-title"><i class="bi bi-share me-2" style="color: var(--accent-color);"></i>مشاركة المحتوى والاستثناء</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
       </div>
       <form id="form_share_content">
@@ -647,12 +647,12 @@
           <input type="hidden" id="share_content_id">
 
           <div class="tc-section">
-            <div class="tc-section__title"><i class="bi bi-eye"></i> يظهر حالياً في</div>
+            <div class="tc-section__title"><i class="bi bi-eye"></i> يظهر حالياً في <span class="text-muted fw-normal">(اضغط × لإيقاف الظهور في مجموعة)</span></div>
             <div id="share_current_chips"></div>
           </div>
 
-          <div id="share_already_shared_msg" class="alert alert-success d-none mb-0">
-            <i class="bi bi-check-circle me-1"></i> هذا المحتوى مرئي لكل مجموعات المادة بالفعل.
+          <div id="share_all_hint" class="alert alert-success d-none">
+            <i class="bi bi-check-circle me-1"></i> المحتوى ظاهر لكل مجموعاتك في هذه المادة، لا توجد مجموعات لإضافتها.
           </div>
 
           <div class="tc-section" id="share_groups_wrap">
@@ -662,13 +662,13 @@
                 <option value="{{ $group->id }}">{{ $group->name }}</option>
               @endforeach
             </select>
-            <div class="form-text mt-2">المجموعات المعطّلة تشاهد المحتوى بالفعل. لا حاجة لإعادة الرفع.</div>
+            <div class="form-text mt-2">لا تظهر هنا المجموعات التي تشاهد المحتوى حالياً. لا حاجة لإعادة الرفع.</div>
           </div>
 
           <div class="tc-section d-none" id="share_exclusion_wrap">
-            <div class="tc-section__title"><i class="bi bi-person-x"></i> استثناء طلاب (اختياري)</div>
+            <div class="tc-section__title"><i class="bi bi-person-x"></i> استثناء طلاب من هذا المحتوى</div>
             @include('teacher.content._exclusion-select', ['id' => 'share_excluded_students'])
-            <div class="form-text mt-2">الطلاب المستثنون لن يروا هذا المرفق حتى لو كانت مجموعتهم مشاركة.</div>
+            <div class="form-text mt-2">يظهر طلاب مجموعاتك في هذه المادة فقط (ابحث بالاسم). الاستثناء يتفوق على مشاركة المجموعة.</div>
           </div>
         </div>
         <div class="modal-footer">
@@ -1790,77 +1790,100 @@ let editUnitId = null;
   })();
 
   let modalShareContent = null;
-  function openShareModal(type, id, currentGroupIds, isShared, excludedIds) {
-    $('#share_content_type').val(type);
-    $('#share_content_id').val(id);
+  // Share modal state: groups currently seeing the item + whether anything changed.
+  const shareState = { type: null, id: null, groups: [], isShared: false, dirty: false };
+  const groupNames = {};
+  $('#share_group_ids option').each(function () { groupNames[this.value] = $(this).text(); });
+
+  function shareBase(type) {
+    return type === 'unit' ? unitsBaseUrl : (type === 'lesson' ? lessonsBaseUrl : resourcesBaseUrl);
+  }
+
+  function renderShare() {
     const $select = $('#share_group_ids');
+    const current = shareState.isShared ? Object.keys(groupNames) : shareState.groups.map(String);
+
+    // "Add groups": hide the groups that already see the item.
     $select.val(null);
-    $select.find('option').prop('disabled', false);
-    const names = [];
-    (currentGroupIds || []).forEach(function (gid) {
-      const $o = $select.find('option[value="' + gid + '"]');
-      $o.prop('disabled', true);
-      names.push($o.text());
+    $select.find('option').each(function () {
+      const has = current.indexOf(this.value) !== -1;
+      this.hidden = has;
+      this.disabled = has;
     });
     $select.trigger('change');
 
     const $chips = $('#share_current_chips').empty();
-    if (isShared) {
+    if (shareState.isShared) {
       $chips.append('<span class="tc-chip tc-chip--all"><i class="bi bi-people-fill"></i> كل مجموعات المادة</span>');
-    } else if (names.length) {
-      names.forEach(function (n) { $chips.append($('<span class="tc-chip"></span>').text(n)); });
-    } else {
+    }
+    current.forEach(function (gid) {
+      if (!groupNames[gid]) return;
+      const $chip = $('<span class="tc-chip"></span>').append($('<span></span>').text(groupNames[gid]));
+      $chip.append($('<button type="button" class="tc-chip__x" aria-label="إيقاف الظهور في هذه المجموعة"><i class="bi bi-x-lg"></i></button>').attr('data-gid', gid));
+      $chips.append($chip);
+    });
+    if (!current.length && !shareState.isShared) {
       $chips.append('<span class="tc-chip tc-chip--muted">مسودة - غير ظاهر لأي مجموعة</span>');
     }
+    $('#share_groups_wrap').toggleClass('d-none', $select.find('option:not([hidden])').length === 0);
+    $('#share_all_hint').toggleClass('d-none', $select.find('option:not([hidden])').length !== 0);
+  }
 
-    $('#share_already_shared_msg').toggleClass('d-none', !isShared);
-    $('#share_groups_wrap').toggleClass('d-none', !!isShared);
-    $('#share_submit_btn').prop('disabled', !!isShared);
-
-    // Exclusions only exist for resources.
-    const isResource = type === 'resource';
-    $('#share_exclusion_wrap').toggleClass('d-none', !isResource);
+  function openShareModal(type, id, currentGroupIds, isShared, excludedIds) {
+    Object.assign(shareState, { type: type, id: id, groups: (currentGroupIds || []).slice(), isShared: !!isShared, dirty: false });
+    $('#share_content_type').val(type);
+    $('#share_content_id').val(id);
+    renderShare();
+    $('#share_submit_btn').prop('disabled', false);
     $('#share_excluded_students').val((excludedIds || []).map(String)).trigger('change');
-
     bootstrap.Modal.getOrCreateInstance(document.getElementById('modal_share_content')).show();
   }
 
+  // Remove the item from one group (converts "all groups" into an explicit list).
+  $('#share_current_chips').on('click', '.tc-chip__x', function () {
+    const gid = String($(this).data('gid'));
+    Swal.fire({
+      icon: 'question', title: 'إيقاف الظهور؟',
+      text: 'لن تشاهد مجموعة "' + (groupNames[gid] || '') + '" هذا المحتوى (وما بداخله) بعد الآن.',
+      showCancelButton: true, confirmButtonText: 'نعم، أوقف', cancelButtonText: 'إلغاء'
+    }).then(function (r) {
+      if (!r.isConfirmed) return;
+      $.post(shareBase(shareState.type) + '/' + shareState.id + '/unshare', { _token: csrfToken, group_id: gid })
+        .done(function (res) {
+          shareState.isShared = !!res.is_shared;
+          shareState.groups = res.group_ids || [];
+          shareState.dirty = true;
+          renderShare();
+        })
+        .fail(function (xhr) {
+          Swal.fire({ icon: 'error', title: (xhr.responseJSON && xhr.responseJSON.message) || 'تعذر إيقاف الظهور' });
+        });
+    });
+  });
+
+  document.getElementById('modal_share_content').addEventListener('hidden.bs.modal', function () {
+    if (shareState.dirty) location.reload();
+  });
+
   $('#form_share_content').on('submit', function (e) {
     e.preventDefault();
-    const type = $('#share_content_type').val();
-    const id = $('#share_content_id').val();
+    const type = shareState.type, id = shareState.id;
+    const base = shareBase(type);
     const groupIds = $('#share_group_ids').val() || [];
-    const base = type === 'unit' ? unitsBaseUrl
-      : (type === 'lesson' ? lessonsBaseUrl : resourcesBaseUrl);
-    const exclusionsChanged = type === 'resource';
-    if (!groupIds.length && !exclusionsChanged) {
-      Swal.fire({ icon: 'warning', title: 'اختر مجموعة واحدة على الأقل' });
-      return;
-    }
+    const $btn = $('#share_submit_btn').prop('disabled', true);
+    const fail = function (xhr) {
+      $btn.prop('disabled', false);
+      Swal.fire({ icon: 'error', title: (xhr && xhr.responseJSON && xhr.responseJSON.message) || 'تعذر إتمام العملية' });
+    };
     const saveExclusions = function () {
       return $.post(base + '/' + id + '/exclusions', { _token: csrfToken, excluded_student_ids: $('#share_excluded_students').val() || [] });
     };
-    if (!groupIds.length) {
-      saveExclusions().done(function () { location.reload(); })
-        .fail(function () { Swal.fire({ icon: 'error', title: 'تعذر حفظ الاستثناءات' }); });
-      return;
-    }
-    $.ajax({
-      url: base + '/' + id + '/share',
-      type: 'POST',
-      data: { _token: csrfToken, group_ids: groupIds },
-      success: function (res) {
-        const done = function () {
-          Swal.fire({ icon: 'success', title: res.message || 'تمت المشاركة', timer: 1200, showConfirmButton: false });
-          location.reload();
-        };
-        if (exclusionsChanged) { saveExclusions().always(done); } else { done(); }
-      },
-      error: function (xhr) {
-        const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'تعذر إتمام المشاركة';
-        Swal.fire({ icon: 'error', title: msg });
-      }
-    });
+    const finish = function () { shareState.dirty = false; location.reload(); };
+
+    const step = groupIds.length
+      ? $.post(base + '/' + id + '/share', { _token: csrfToken, group_ids: groupIds })
+      : $.Deferred().resolve().promise();
+    step.done(function () { saveExclusions().done(finish).fail(fail); }).fail(fail);
   });
 </script>
 @endpush
