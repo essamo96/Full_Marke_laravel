@@ -47,6 +47,23 @@ class ExamPaper
         return ArabicPdf::loadView('exams.paper-pdf', compact('exam'));
     }
 
+    /**
+     * Download response, or null after logging when the PDF could not be built.
+     * $error receives a short, user-safe reason so the failure can be diagnosed
+     * from the page instead of a bare HTTP 500.
+     */
+    public static function download(Exam $exam, ?string &$error = null)
+    {
+        try {
+            return self::blankPdf($exam)->download(self::pdfFilename($exam));
+        } catch (\Throwable $e) {
+            report($e);
+            $error = 'تعذر إنشاء ملف PDF ('.class_basename($e).': '.\Illuminate\Support\Str::limit($e->getMessage(), 140).')';
+
+            return null;
+        }
+    }
+
     public static function pdfFilename(Exam $exam): string
     {
         return 'exam-'.$exam->id.'-blank.pdf';

@@ -5,6 +5,7 @@ namespace App\Support;
 use ArPHP\I18N\Arabic;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as DomPdf;
+use Illuminate\Support\Facades\File;
 
 class ArabicPdf
 {
@@ -15,8 +16,17 @@ class ArabicPdf
     {
         $html = view($view, $data)->render();
 
+        // DomPDF writes its font cache / temp files; point both at a directory
+        // inside storage that we create ourselves, so a locked-down host (read-only
+        // storage/fonts, open_basedir on the system temp dir) can not 500 the export.
+        $workDir = storage_path('app/dompdf');
+        File::ensureDirectoryExists($workDir);
+
         return Pdf::loadHTML(self::shapeArabicHtml($html))
             ->setPaper($paper, $orientation)
+            ->setOption('tempDir', $workDir)
+            ->setOption('fontDir', $workDir)
+            ->setOption('fontCache', $workDir)
             ->setOption('isRemoteEnabled', false)
             ->setOption('isHtml5ParserEnabled', true)
             ->setOption('defaultFont', 'DejaVu Sans');

@@ -13,6 +13,9 @@
 @endsection
 
 @section('page-content')
+@if(session('error'))
+    <div class="alert alert-danger mt-5" dir="auto">{{ session('error') }}</div>
+@endif
 <div class="card card-flush mt-5">
     <div class="card-header align-items-center py-5 gap-2 gap-md-5">
         <div class="card-toolbar">

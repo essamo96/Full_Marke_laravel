@@ -36,20 +36,18 @@
   </div>
 
   @if($groups->count() > 0)
-    <ul class="nav nav-pills mb-4 flex-wrap gap-2">
-      <li class="nav-item">
-        <a class="btn btn-sm {{ is_null($selectedGroupId) ? 'btn-luxury' : 'btn-outline-primary' }}" href="{{ route('teacher.content.manage', $subject) }}">
-          محتوى مشترك (كل مجموعاتي)
-        </a>
-      </li>
+    <nav class="tc-tabs mb-4" aria-label="تصفية المحتوى حسب المجموعة">
+      <a class="tc-tab {{ is_null($selectedGroupId) ? 'is-active' : '' }}" @if(is_null($selectedGroupId)) aria-current="page" @endif
+         href="{{ route('teacher.content.manage', $subject) }}">
+        <i class="bi bi-collection"></i><span>محتوى مشترك (كل مجموعاتي)</span>
+      </a>
       @foreach($groups as $group)
-        <li class="nav-item">
-          <a class="btn btn-sm {{ $selectedGroupId === $group->id ? 'btn-luxury' : 'btn-outline-primary' }}" href="{{ route('teacher.content.manage', $subject) }}?group={{ $group->id }}">
-            {{ $group->name }}
-          </a>
-        </li>
+        <a class="tc-tab {{ $selectedGroupId === $group->id ? 'is-active' : '' }}" @if($selectedGroupId === $group->id) aria-current="page" @endif
+           href="{{ route('teacher.content.manage', $subject) }}?group={{ $group->id }}" title="{{ $group->name }}">
+          <i class="bi bi-people"></i><span>{{ $group->name }}</span>
+        </a>
       @endforeach
-    </ul>
+    </nav>
   @endif
 
   <div class="accordion teacher-accordion teacher-content-accordion" id="unitsAccordion" data-sortable="units">

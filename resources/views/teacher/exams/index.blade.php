@@ -15,6 +15,9 @@
   @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
   @endif
+  @if(session('error'))
+    <div class="alert alert-danger" dir="auto">{{ session('error') }}</div>
+  @endif
 
   @if($exams->count())
     <div class="ex-toolbar mb-3">
@@ -69,7 +72,7 @@
           @if($exam->allowsGuests())
             <span class="ex-card__sep" aria-hidden="true"></span>
             <button type="button" class="tbtn tbtn--neutral tbtn--sm" onclick="copyGuestLink(this)" data-link="{{ route('guest.exam.enter', $exam) }}" title="نسخ رابط الضيوف"><i class="bi bi-link-45deg"></i><span data-en="Guest link" data-ar="رابط الضيوف">رابط الضيوف</span></button>
-            <button type="button" class="tbtn tbtn--neutral tbtn--sm tbtn--icon" onclick="showExamQr(this)" data-url="{{ route('qr.exam', $exam) }}" data-name="{{ $exam->title }}" title="QR" aria-label="QR"><i class="bi bi-qr-code"></i></button>
+            <button type="button" class="tbtn tbtn--neutral tbtn--sm tbtn--icon" onclick="showExamQr(this)" data-url="{{ route('qr.exam', $exam) }}" data-name="{{ $exam->title }}" data-link="{{ route('guest.exam.enter', $exam) }}" title="QR" aria-label="QR"><i class="bi bi-qr-code"></i></button>
           @endif
         </footer>
       </article>
@@ -86,18 +89,24 @@
   <div class="mt-4">{{ $exams->links() }}</div>
 
   <!-- QR Code preview modal -->
-  <div class="modal fade" id="examQrModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content glass-panel text-center">
+  <div class="modal fade ex-modal" id="examQrModal" tabindex="-1" aria-labelledby="examQrModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+      <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="examQrModalTitle" style="color: var(--text-primary);">QR Code</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <h5 class="modal-title"><i class="bi bi-qr-code-scan me-2" style="color: var(--accent-color);"></i><span data-en="Guest access QR" data-ar="رمز QR لدخول الضيوف">رمز QR لدخول الضيوف</span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
         </div>
-        <div class="modal-body py-8">
-          <img id="examQrModalImg" src="" alt="QR Code" class="rounded" style="width: 260px; height: 260px; background: #fff; padding: 10px;">
-          <a id="examQrModalDownload" href="" download class="btn btn-luxury d-block mt-4 mx-auto" style="max-width: 220px;">
-            <i class="bi bi-download me-1"></i> تحميل
-          </a>
+        <div class="modal-body text-center">
+          <p class="ex-qr-name" id="examQrModalTitle"></p>
+          <div class="ex-qr-frame">
+            <img id="examQrModalImg" src="" alt="QR Code" width="240" height="240">
+          </div>
+          <p class="ex-qr-hint">وجّه كاميرا الجوال نحو الرمز لفتح صفحة الامتحان</p>
+          <div class="ex-qr-link" id="examQrLink" dir="ltr"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="tbtn tbtn--neutral" id="examQrCopy"><i class="bi bi-link-45deg"></i><span>نسخ الرابط</span></button>
+          <a id="examQrModalDownload" href="" download class="tbtn tbtn--solid"><i class="bi bi-download"></i><span data-en="Download" data-ar="تحميل">تحميل</span></a>
         </div>
       </div>
     </div>
@@ -140,6 +149,21 @@
   .ex-stat strong { color: var(--text-primary); }
   .ex-card__actions { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin-top: auto; padding-top: .85rem; border-top: 1px solid var(--separator-color); }
   .ex-card__sep { width: 1px; align-self: stretch; background: var(--separator-color); margin: 0 .15rem; }
+  .ex-modal .modal-content { background: var(--card-bg, var(--bg-secondary)); color: var(--text-primary); border: 1px solid var(--card-border, var(--glass-border));
+    border-radius: 18px; box-shadow: var(--shadow-lg); }
+  .ex-modal .modal-header, .ex-modal .modal-footer { border-color: var(--separator-color); }
+  .ex-modal .modal-title { font-weight: 700; font-size: 1rem; color: var(--text-primary); }
+  .ex-modal .modal-footer { justify-content: center; gap: .5rem; flex-wrap: wrap; }
+  [data-theme="dark"] .ex-modal .btn-close, .theme-dark .ex-modal .btn-close { filter: invert(1); }
+  .ex-modal.fade .modal-dialog { opacity: 0; transform: translateY(22px) scale(.97); transition: transform .28s cubic-bezier(.2,.8,.2,1), opacity .22s ease; }
+  .ex-modal.show .modal-dialog { opacity: 1; transform: none; }
+  .ex-qr-name { font-weight: 700; margin: 0 0 .9rem; overflow-wrap: anywhere; }
+  .ex-qr-frame { display: inline-block; padding: 14px; background: #fff; border-radius: 16px; border: 1px solid var(--card-border, var(--glass-border)); box-shadow: var(--shadow-md); }
+  .ex-qr-frame img { display: block; width: 240px; max-width: 100%; height: auto; }
+  .ex-qr-hint { color: var(--text-muted); font-size: .85rem; margin: .9rem 0 .5rem; }
+  .ex-qr-link { font-size: .75rem; color: var(--text-secondary); background: color-mix(in srgb, var(--text-muted) 10%, transparent);
+    border-radius: 8px; padding: .4rem .6rem; overflow-wrap: anywhere; }
+  @media (prefers-reduced-motion: reduce) { .ex-modal.fade .modal-dialog { transition: none; transform: none; } }
   .ex-empty { grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
   .ex-empty i { font-size: 2.5rem; color: var(--accent-color); display: block; margin-bottom: .5rem; }
   @media (prefers-reduced-motion: reduce) { .ex-card, .ex-pill { transition: none; } .ex-card:hover { transform: none; } }
@@ -193,12 +217,22 @@
   function showExamQr(btn) {
     const url = btn.getAttribute('data-url');
     const name = btn.getAttribute('data-name');
+    const link = btn.getAttribute('data-link') || '';
     document.getElementById('examQrModalTitle').textContent = name;
     document.getElementById('examQrModalImg').src = url + '?t=' + Date.now();
+    document.getElementById('examQrLink').textContent = link;
     const dl = document.getElementById('examQrModalDownload');
     dl.setAttribute('href', url);
     dl.setAttribute('download', name.replace(/\s+/g, '_') + '_qr.svg');
-    new bootstrap.Modal(document.getElementById('examQrModal')).show();
+    const copy = document.getElementById('examQrCopy');
+    copy.onclick = function () {
+      navigator.clipboard.writeText(link).then(function () {
+        const label = copy.querySelector('span'); const old = label.textContent;
+        label.textContent = 'تم النسخ!';
+        setTimeout(function () { label.textContent = old; }, 1500);
+      });
+    };
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('examQrModal')).show();
   }
 </script>
 @endpush

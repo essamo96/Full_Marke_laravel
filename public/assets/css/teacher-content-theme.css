@@ -228,3 +228,18 @@
 .select2-container--default .select2-results__option--selected { display: none; }
 .select2-container--default .select2-results__option--selectable { cursor: pointer; }
 .select2-container--default .select2-results__message { color: var(--text-muted); padding: .7rem .8rem; }
+
+/* ---- Group tabs: one scrollable row, clear active state ---- */
+.tc-tabs { display: flex; gap: .4rem; overflow-x: auto; padding: .35rem; border-radius: 14px;
+  background: color-mix(in srgb, var(--text-muted) 9%, transparent); border: 1px solid var(--card-border, var(--glass-border));
+  scroll-snap-type: x proximity; scrollbar-width: thin; }
+.tc-tab { display: inline-flex; align-items: center; gap: .45rem; flex: 0 0 auto; max-width: 280px; min-height: 42px; padding: .45rem .95rem;
+  border-radius: 10px; font-size: .88rem; font-weight: 600; color: var(--text-secondary); text-decoration: none; scroll-snap-align: start;
+  border: 1px solid transparent; transition: background-color .18s ease, color .18s ease, box-shadow .18s ease; }
+.tc-tab span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tc-tab i { color: var(--accent-color); font-size: 1rem; }
+.tc-tab:hover { color: var(--text-primary); background: color-mix(in srgb, var(--accent-color) 12%, transparent); }
+.tc-tab:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent-color) 55%, transparent); outline-offset: 1px; }
+.tc-tab.is-active { background: var(--accent-color); color: #fff; box-shadow: 0 6px 16px -8px var(--accent-color); }
+.tc-tab.is-active i { color: #fff; }
+@media (prefers-reduced-motion: reduce) { .tc-tab { transition: none; } }

@@ -134,7 +134,8 @@ class ExamController extends Controller
         $teacher = Auth::guard('teacher')->user();
         abort_unless($exam->group && $exam->group->teacher_id === $teacher->id, 403);
 
-        return \App\Support\ExamPaper::blankPdf($exam)->download(\App\Support\ExamPaper::pdfFilename($exam));
+        return \App\Support\ExamPaper::download($exam, $error)
+            ?? redirect()->route('teacher.exams.index')->with('error', $error);
     }
 
     public function reorderQuestions(Request $request, Exam $exam)

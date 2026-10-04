@@ -77,7 +77,8 @@ class ExamController extends AdminController
 
     public function blankPdf(Exam $exam)
     {
-        return \App\Support\ExamPaper::blankPdf($exam)->download(\App\Support\ExamPaper::pdfFilename($exam));
+        return \App\Support\ExamPaper::download($exam, $error)
+            ?? redirect()->route('exams.view')->with('error', $error)->with('danger', $error);
     }
 
     public function destroy(Exam $exam)

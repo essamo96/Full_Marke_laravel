@@ -47,7 +47,8 @@ class GuestExamController extends Controller
         abort_unless($exam->status === 'published', 404);
         abort_unless($exam->allowsGuests(), 403);
 
-        return \App\Support\ExamPaper::blankPdf($exam)->download(\App\Support\ExamPaper::pdfFilename($exam));
+        return \App\Support\ExamPaper::download($exam, $error)
+            ?? back()->withErrors(['pdf' => $error]);
     }
 
     public function register(Request $request, Exam $exam)
