@@ -5,7 +5,9 @@ namespace App\Support;
 use App\Models\Exam;
 use App\Models\ExamAnswer;
 use App\Models\ExamGuestAnswer;
-use Barryvdh\DomPDF\PDF as DomPdf;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
+use Mpdf\Mpdf;
 
 class ExamPaper
 {
@@ -39,12 +41,64 @@ class ExamPaper
         return $stats;
     }
 
-    /** Empty (answer-key-free) exam paper as a PDF. */
-    public static function blankPdf(Exam $exam): DomPdf
+    /**
+     * Rich-text question/option HTML -> safe markup for the printed paper.
+     * Keeps line breaks and sub/superscripts (chemistry / maths), drops every
+     * other tag, and decodes entities (&nbsp; etc.) so they never leak as
+     * literal text into the PDF.
+     */
+    public static function plain(?string $html): string
+    {
+        $t = (string) $html;
+        $t = preg_replace('#<\s*br\s*/?>#i', "\n", $t);
+        $t = preg_replace('#</\s*(p|div|li|tr|h[1-6])\s*>#i', "\n", $t);
+        $t = preg_replace('#<\s*(/?)\s*(sub|sup)\b[^>]*>#i', '[[$1$2]]', $t);
+        $t = strip_tags($t);
+        $t = html_entity_decode($t, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $t = str_replace("\u{00A0}", ' ', $t);
+        $t = preg_replace("/[ \t\x{200B}]+/u", ' ', $t);
+        $t = preg_replace("/\s*\n\s*/", "\n", trim($t));
+        $t = e($t);
+        $t = preg_replace('#\[\[(/?)(sub|sup)\]\]#', '<$1$2>', $t);
+
+        return nl2br($t, false);
+    }
+
+    /** Empty (answer-key-free) exam paper as PDF bytes (mPDF: native RTL + Arabic shaping). */
+    public static function blankPdfBytes(Exam $exam): string
     {
         self::load($exam);
 
-        return ArabicPdf::loadView('exams.paper-pdf', compact('exam'));
+        $logo = public_path('site/images/logo_v2_blue.png');
+        $html = view('exams.paper-pdf', [
+            'exam' => $exam,
+            'logo' => is_file($logo) ? $logo : null,
+        ])->render();
+
+        $tmp = storage_path('app/mpdf');
+        File::ensureDirectoryExists($tmp);
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => 'P',
+            'tempDir' => $tmp,
+            'default_font' => 'dejavusans',
+            'margin_left' => 16,
+            'margin_right' => 16,
+            'margin_top' => 14,
+            'margin_bottom' => 18,
+            'margin_footer' => 8,
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
+            'useSubstitutions' => true,
+        ]);
+        $mpdf->SetDirectionality('rtl');
+        $mpdf->SetTitle($exam->title);
+        $mpdf->SetAuthor(config('app.name', 'Full Mark Academy'));
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('', 'S');
     }
 
     /**
@@ -55,10 +109,16 @@ class ExamPaper
     public static function download(Exam $exam, ?string &$error = null)
     {
         try {
-            return self::blankPdf($exam)->download(self::pdfFilename($exam));
+            $bytes = self::blankPdfBytes($exam);
+
+            return response($bytes, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.self::pdfFilename($exam).'"',
+                'Content-Length' => (string) strlen($bytes),
+            ]);
         } catch (\Throwable $e) {
             report($e);
-            $error = 'تعذر إنشاء ملف PDF ('.class_basename($e).': '.\Illuminate\Support\Str::limit($e->getMessage(), 140).')';
+            $error = 'تعذر إنشاء ملف PDF ('.class_basename($e).': '.Str::limit($e->getMessage(), 140).')';
 
             return null;
         }
