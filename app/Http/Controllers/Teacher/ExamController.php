@@ -114,6 +114,25 @@ class ExamController extends Controller
         return redirect()->route('teacher.exams.index')->with('success', 'تم تحديث الامتحان بنجاح.');
     }
 
+    public function preview(Exam $exam)
+    {
+        $teacher = Auth::guard('teacher')->user();
+        abort_unless($exam->group && $exam->group->teacher_id === $teacher->id, 403);
+
+        \App\Support\ExamPaper::load($exam);
+        $stats = \App\Support\ExamPaper::optionStats($exam);
+
+        return view('teacher.exams.preview', compact('exam', 'stats'));
+    }
+
+    public function blankPdf(Exam $exam)
+    {
+        $teacher = Auth::guard('teacher')->user();
+        abort_unless($exam->group && $exam->group->teacher_id === $teacher->id, 403);
+
+        return \App\Support\ExamPaper::blankPdf($exam)->download(\App\Support\ExamPaper::pdfFilename($exam));
+    }
+
     public function reorderQuestions(Request $request, Exam $exam)
     {
         $teacher = Auth::guard('teacher')->user();

@@ -6,6 +6,7 @@
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('assets/vendor/resumable/resumable.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -15,6 +16,7 @@
 @section('content')
 
 @push('styles')
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
   <link rel="stylesheet" href="{{ asset_ver('assets/css/teacher-content.css') }}">
   <link rel="stylesheet" href="{{ asset_ver('assets/css/curriculum-accordion.css') }}">
 @endpush
@@ -109,7 +111,8 @@
                                 <div class="teacher-resource-badge mt-1">{{ $title }}</div>
                               </div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditResourceModal('{{ $resource->getRouteKey() }}', {{ json_encode(['title' => $resource->title, 'type' => $resource->type, 'url' => $resource->url, 'description' => $resource->description, 'allow_download' => $resource->allow_download, 'group_ids' => $resource->groups->pluck('id'), 'is_shared' => $resource->is_shared]) }})"><i class="bi bi-pencil"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditResourceModal('{{ $resource->getRouteKey() }}', {{ json_encode(['title' => $resource->title, 'type' => $resource->type, 'url' => $resource->url, 'description' => $resource->description, 'allow_download' => $resource->allow_download, 'group_ids' => $resource->groups->pluck('id'), 'excluded_student_ids' => $resource->contentExclusions->pluck('student_id'), 'is_shared' => $resource->is_shared]) }})"><i class="bi bi-pencil"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" title="استثناء طلاب" onclick="openExclusionModal('{{ $resource->getRouteKey() }}', {{ json_encode($resource->contentExclusions->pluck('student_id')) }})"><i class="bi bi-person-x"></i>@if($resource->contentExclusions->count()) <span class="badge bg-danger">{{ $resource->contentExclusions->count() }}</span>@endif</button>
                             <button type="button" class="btn btn-sm btn-outline-warning" title="مشاركة مع مجموعات أخرى" onclick="openShareModal('resource', '{{ $resource->getRouteKey() }}', {{ json_encode($resource->groups->pluck('id')) }}, {{ $resource->is_shared ? 'true' : 'false' }})"><i class="bi bi-share"></i></button>
                              <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteResource('{{ $resource->getRouteKey() }}')"><i class="bi bi-trash"></i></button>
                           </div>
@@ -297,6 +300,10 @@
                 @endforeach
               </select>
             </div>
+            <div class="mb-3">
+              <label class="form-label">استثناء طلاب (لن يروا هذا المرفق)</label>
+              @include('teacher.content._exclusion-select', ['id' => 'resource_excluded_students'])
+            </div>
             <div class="mb-3" id="resource_video_field">
               <label class="form-label">رفع فيديو</label>
               <div class="d-flex align-items-center gap-3 flex-wrap">
@@ -472,6 +479,10 @@
                 @endforeach
               </select>
             </div>
+            <div class="mb-3">
+              <label class="form-label">استثناء طلاب (لن يروا هذا المرفق)</label>
+              @include('teacher.content._exclusion-select', ['id' => 'edit_resource_excluded_students'])
+            </div>
             <div class="mb-3 edit_resource_url_field">
               <label class="form-label">رابط خارجي</label>
               <input type="text" name="url" class="form-control">
@@ -557,6 +568,29 @@
       <button type="button" class="upload-monitor__cancel" id="upload_monitor_cancel">إلغاء الرفع</button>
     </div>
   </div>
+
+{{-- Per-resource student exclusion (no re-upload) --}}
+<div class="modal fade teacher-content-modal" tabindex="-1" id="modal_exclusions">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h5 class="modal-title">استثناء طلاب من هذا المرفق</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="form_exclusions">
+        <div class="modal-body">
+          <input type="hidden" id="exclusion_resource_id">
+          <div class="alert alert-info py-2 small">الطلاب المستثنون لن يروا هذا المرفق حتى لو كانت المجموعة مشاركة. تظهر فقط طلاب مجموعاتك.</div>
+          @include('teacher.content._exclusion-select', ['id' => 'exclusion_students'])
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 {{-- Share content with additional groups without re-upload --}}
 <div class="modal fade teacher-content-modal" tabindex="-1" id="modal_share_content">
@@ -1130,6 +1164,7 @@ let editUnitId = null;
     form.allow_download.checked = data.allow_download;
     setSharedCheckbox(form, data.is_shared);
     $(form).find('select[name="group_ids[]"]').val(data.group_ids || []).trigger('change');
+    $('#edit_resource_excluded_students').val((data.excluded_student_ids || []).map(String)).trigger('change');
     
     if (data.type === 'link' || data.type === 'zoom') {
         $(form).find('.edit_resource_url_field').show();
@@ -1495,6 +1530,69 @@ let editUnitId = null;
     deleteWithSharedGuard(resourcesBaseUrl + '/' + resourceId + '{{ $selectedGroupId ? '?detach_group_id='.$selectedGroupId : '' }}');
   }
 
+  // ---- select2 (multi-select, searchable) -------------------------------
+  // Bootstrap's modal focus trap breaks select2 dropdowns appended to <body>,
+  // so each one is bound to its own modal via dropdownParent.
+  function initSelect2All() {
+    $('select[data-control="select2"]').each(function () {
+      const $el = $(this);
+      if ($el.hasClass('select2-hidden-accessible')) return;
+      const $modal = $el.closest('.modal');
+      $el.select2({
+        width: '100%',
+        dir: 'rtl',
+        closeOnSelect: false,
+        dropdownParent: $modal.length ? $modal : $(document.body),
+        placeholder: $el.data('placeholder') || '',
+        matcher: function (params, data) {
+          const term = $.trim(params.term || '').toLowerCase();
+          if (term && (data.text || '').toLowerCase().indexOf(term) === -1) return null;
+          if (data.element && data.element.hidden) return null;
+          return data;
+        }
+      });
+    });
+  }
+  $(initSelect2All);
+
+  // Students offered in an exclusion picker follow the targeted groups: when the
+  // item is limited to specific groups only those groups' students are listed.
+  function filterExclusionStudents(form) {
+    const $form = $(form);
+    const $students = $form.find('.student-exclusion-select');
+    if (!$students.length) return;
+    const shared = $form.find('.is-shared-checkbox').prop('checked');
+    const groupIds = ($form.find('select[name="group_ids[]"]').val() || []).map(String);
+    $students.find('option').each(function () {
+      const ids = String($(this).data('group-ids') || '').split(',');
+      const show = shared || !groupIds.length || ids.some(function (g) { return groupIds.indexOf(g) !== -1; });
+      this.hidden = !show;
+      if (!show) this.selected = false;
+    });
+    $students.trigger('change.select2');
+  }
+  $(document).on('change', '#form_add_resource select[name="group_ids[]"], #form_edit_resource select[name="group_ids[]"], #form_add_resource .is-shared-checkbox, #form_edit_resource .is-shared-checkbox', function () {
+    filterExclusionStudents($(this).closest('form'));
+  });
+
+  function openExclusionModal(resourceId, excludedIds) {
+    $('#exclusion_resource_id').val(resourceId);
+    $('#exclusion_students').find('option').each(function () { this.hidden = false; });
+    $('#exclusion_students').val((excludedIds || []).map(String)).trigger('change');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modal_exclusions')).show();
+  }
+
+  $('#form_exclusions').on('submit', function (e) {
+    e.preventDefault();
+    $.ajax({
+      url: resourcesBaseUrl + '/' + $('#exclusion_resource_id').val() + '/exclusions',
+      type: 'POST',
+      data: { _token: csrfToken, excluded_student_ids: $('#exclusion_students').val() || [] },
+      success: function () { location.reload(); },
+      error: function () { Swal.fire('خطأ', 'تعذر حفظ الاستثناءات.', 'error'); }
+    });
+  });
+
   let modalShareContent = null;
   function openShareModal(type, id, currentGroupIds, isShared) {
     if (!modalShareContent) {
@@ -1547,4 +1645,12 @@ let editUnitId = null;
     });
   });
 </script>
+@endpush
+
+@push('styles')
+<style>
+  .select2-container--default .select2-selection--multiple { min-height: 38px; border-color: var(--bs-border-color, #dee2e6); border-radius: .5rem; }
+  .select2-dropdown { z-index: 2000; }
+  .select2-container { z-index: 2000; }
+</style>
 @endpush

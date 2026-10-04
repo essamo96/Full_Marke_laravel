@@ -66,6 +66,8 @@ Route::middleware(['site.locale', 'site.maintenance'])->group(function () {
 
     Route::prefix('exam/guest')->name('guest.exam.')->group(function () {
         Route::get('/{exam}', [\App\Http\Controllers\GuestExamController::class, 'enter'])->name('enter');
+        Route::get('/{exam}/preview', [\App\Http\Controllers\GuestExamController::class, 'preview'])->name('preview');
+        Route::get('/{exam}/blank-pdf', [\App\Http\Controllers\GuestExamController::class, 'blankPdf'])->name('blank-pdf');
         Route::post('/{exam}/register', [\App\Http\Controllers\GuestExamController::class, 'register'])->name('register');
         Route::get('/{exam}/take', [\App\Http\Controllers\GuestExamController::class, 'take'])->name('take');
         Route::post('/{exam}/violation', [\App\Http\Controllers\GuestExamController::class, 'recordViolation'])->name('violation');

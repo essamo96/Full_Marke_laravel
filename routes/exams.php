@@ -9,6 +9,8 @@ Route::prefix('exams')->name('exams.')->group(function () {
     Route::post('/', [ExamController::class, 'store'])->name('store');
     Route::get('/{exam}/edit', [ExamController::class, 'edit'])->name('edit');
     Route::put('/{exam}', [ExamController::class, 'update'])->name('update');
+    Route::get('/{exam}/preview', [ExamController::class, 'preview'])->name('preview');
+    Route::get('/{exam}/blank-pdf', [ExamController::class, 'blankPdf'])->name('blank-pdf');
     Route::delete('/{exam}', [ExamController::class, 'destroy'])->name('destroy');
     Route::get('/{exam}/results', [ExamController::class, 'results'])->name('results');
     Route::get('/grades/{grade}/answers', [ExamController::class, 'gradeAnswers'])->name('grades.answers');

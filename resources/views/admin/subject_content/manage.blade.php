@@ -1878,3 +1878,29 @@ let editUnitId = null;
     });
 </script>
 @endpush
+
+
+@push('scripts')
+<script>
+    // Metronic initialises select2 on <body>; inside a Bootstrap modal that
+    // fights the modal's focus trap (the list freezes after one pick). Rebind
+    // every select2 in a modal to its own modal and keep the list open so
+    // several groups / students can be picked in a row.
+    $(function () {
+        $('.modal select[data-control="select2"]').each(function () {
+            const $el = $(this);
+            const $modal = $el.closest('.modal');
+            if ($el.hasClass('select2-hidden-accessible')) {
+                $el.select2('destroy');
+            }
+            $el.select2({
+                width: '100%',
+                dir: 'rtl',
+                closeOnSelect: false,
+                dropdownParent: $modal,
+                placeholder: $el.data('placeholder') || ''
+            });
+        });
+    });
+</script>
+@endpush

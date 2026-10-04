@@ -9,6 +9,30 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 trait HasEducationalContentVisibility
 {
+    /**
+     * Management ("all groups") listing.
+     * - a group is picked      -> same as forGroup()
+     * - $allowedGroupIds null  -> admin: no scoping, everything is listed
+     * - $allowedGroupIds array -> teacher: shared + drafts + anything tied to
+     *   one of the teacher's own groups
+     */
+    public function scopeForManagement(Builder $query, ?int $groupId, ?array $allowedGroupIds = null): Builder
+    {
+        if ($groupId) {
+            return $query->forGroup($groupId);
+        }
+
+        if ($allowedGroupIds === null) {
+            return $query;
+        }
+
+        return $query->where(function (Builder $q) use ($allowedGroupIds) {
+            $q->where('is_shared', true)
+                ->orDoesntHave('groups')
+                ->orWhereHas('groups', fn ($g) => $g->whereIn('groups.id', $allowedGroupIds));
+        });
+    }
+
     public function contentGrants(): MorphMany
     {
         return $this->morphMany(StudentContentGrant::class, 'grantable');

@@ -66,6 +66,20 @@ class ExamController extends AdminController
             ->with('success', 'تم تحديث الامتحان بنجاح.');
     }
 
+    public function preview(Exam $exam)
+    {
+        \App\Support\ExamPaper::load($exam);
+        $stats = \App\Support\ExamPaper::optionStats($exam);
+        $pdfRoute = route('exams.blank-pdf', $exam);
+
+        return view('admin.exams.preview', self::$data + compact('exam', 'stats', 'pdfRoute'));
+    }
+
+    public function blankPdf(Exam $exam)
+    {
+        return \App\Support\ExamPaper::blankPdf($exam)->download(\App\Support\ExamPaper::pdfFilename($exam));
+    }
+
     public function destroy(Exam $exam)
     {
         $exam->delete();

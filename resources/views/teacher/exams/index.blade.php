@@ -38,6 +38,8 @@
               <td><span class="badge bg-gold text-dark">{{ $exam->status }}</span></td>
               <td class="d-flex gap-2">
                 <a href="{{ route('teacher.exams.edit', $exam) }}" class="btn btn-sm btn-outline-primary" data-en="Edit" data-ar="تعديل">تعديل</a>
+                <a href="{{ route('teacher.exams.preview', $exam) }}" class="btn btn-sm btn-outline-success" data-en="Preview" data-ar="معاينة">معاينة</a>
+                <a href="{{ route('teacher.exams.blank-pdf', $exam) }}" class="btn btn-sm btn-outline-danger" data-en="Blank PDF" data-ar="نموذج PDF">نموذج PDF</a>
                 @if($exam->allowsGuests())
                   <button type="button" class="btn btn-sm btn-outline-secondary" onclick="copyGuestLink(this)" data-link="{{ route('guest.exam.enter', $exam) }}" data-en="Copy Guest Link" data-ar="نسخ رابط الضيوف">نسخ رابط الضيوف</button>
                   <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showExamQr(this)" data-url="{{ route('qr.exam', $exam) }}" data-name="{{ $exam->title }}" data-en="QR Code" data-ar="رمز QR">رمز QR</button>

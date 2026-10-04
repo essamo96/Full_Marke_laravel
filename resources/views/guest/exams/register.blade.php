@@ -42,6 +42,15 @@
                     <i class="bi bi-arrow-left-circle-fill me-2"></i> متابعة إلى الامتحان
                 </button>
             </form>
+
+            <div class="d-flex gap-2 mt-3">
+                <a href="{{ route('guest.exam.preview', $exam) }}" class="btn btn-outline-light flex-fill rounded-pill">
+                    <i class="bi bi-eye me-1"></i> معاينة الامتحان
+                </a>
+                <a href="{{ route('guest.exam.blank-pdf', $exam) }}" class="btn btn-outline-light flex-fill rounded-pill">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> تحميل PDF
+                </a>
+            </div>
         </div>
     </div>
 </div>

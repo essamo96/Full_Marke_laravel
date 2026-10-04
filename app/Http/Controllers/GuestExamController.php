@@ -32,6 +32,24 @@ class GuestExamController extends Controller
         return view('guest.exams.register', compact('exam'));
     }
 
+    public function preview(Exam $exam)
+    {
+        abort_unless($exam->status === 'published', 404);
+        abort_unless($exam->allowsGuests(), 403);
+
+        \App\Support\ExamPaper::load($exam);
+
+        return view('guest.exams.preview', compact('exam'));
+    }
+
+    public function blankPdf(Exam $exam)
+    {
+        abort_unless($exam->status === 'published', 404);
+        abort_unless($exam->allowsGuests(), 403);
+
+        return \App\Support\ExamPaper::blankPdf($exam)->download(\App\Support\ExamPaper::pdfFilename($exam));
+    }
+
     public function register(Request $request, Exam $exam)
     {
         abort_unless($exam->status === 'published', 404);

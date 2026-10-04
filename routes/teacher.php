@@ -45,6 +45,8 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::post('exams', [ExamController::class, 'store'])->name('exams.store');
         Route::get('exams/{exam}/edit', [ExamController::class, 'edit'])->name('exams.edit');
         Route::put('exams/{exam}', [ExamController::class, 'update'])->name('exams.update');
+        Route::get('exams/{exam}/preview', [ExamController::class, 'preview'])->name('exams.preview');
+        Route::get('exams/{exam}/blank-pdf', [ExamController::class, 'blankPdf'])->name('exams.blank-pdf');
         Route::post('exams/{exam}/reorder-questions', [ExamController::class, 'reorderQuestions'])->name('exams.reorder-questions');
         Route::get('exams/ajax/subject/{subject}/groups', [ExamController::class, 'getSubjectGroups'])->name('exams.ajax.subject-groups');
         Route::get('exams/ajax/group/{groupId}/students', [ExamController::class, 'getGroupStudents'])->name('exams.ajax.group-students');
@@ -69,6 +71,7 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::post('content/lessons/{lesson}/resources', [ContentController::class, 'storeResource'])->name('content.store-resource');
         Route::post('content/{subject}/general-resources', [ContentController::class, 'storeGeneralResource'])->name('content.store-general-resource');
         Route::put('content/resources/{resource}', [ContentController::class, 'updateResource'])->name('content.update-resource');
+        Route::post('content/resources/{resource}/exclusions', [ContentController::class, 'updateExclusions'])->name('content.update-exclusions');
         Route::post('content/units/{unit}/share', [ContentController::class, 'shareUnit'])->name('content.share-unit');
         Route::post('content/lessons/{lesson}/share', [ContentController::class, 'shareLesson'])->name('content.share-lesson');
         Route::post('content/resources/{resource}/share', [ContentController::class, 'shareResource'])->name('content.share-resource');

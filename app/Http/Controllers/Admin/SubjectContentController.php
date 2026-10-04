@@ -46,19 +46,18 @@ class SubjectContentController extends AdminController
         $units = EducationalUnit::whereHas('stage', function ($q) use ($subject) {
                 $q->where('subject_id', $subject->id);
             })
-            ->forGroup($selectedGroupId)
-            ->where('is_active', true)
+            ->forManagement($selectedGroupId)
             ->with(['groups', 'lessons' => function ($q) use ($selectedGroupId) {
-                $q->forGroup($selectedGroupId)->where('is_active', true)->with('groups')->orderBy('sort_order');
+                $q->forManagement($selectedGroupId)->with('groups')->orderBy('sort_order');
             }, 'lessons.resources' => function ($q) use ($selectedGroupId) {
-                $q->forGroup($selectedGroupId)->with(['groups', 'contentExclusions'])->orderBy('sort_order');
+                $q->forManagement($selectedGroupId)->with(['groups', 'contentExclusions'])->orderBy('sort_order');
             }])
             ->orderBy('sort_order')
             ->get();
 
         $generalResources = SubjectResource::where('subject_id', $subject->id)
             ->whereNull('educational_lesson_id')
-            ->forGroup($selectedGroupId)
+            ->forManagement($selectedGroupId)
             ->with(['groups', 'contentExclusions'])
             ->orderBy('sort_order')
             ->get();
@@ -68,20 +67,23 @@ class SubjectContentController extends AdminController
             ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
             ->with('student:id,full_name_ar,full_name_en')
             ->get()
-            ->map(function ($reg) {
-                $student = $reg->student;
+            ->groupBy('student_id')
+            ->map(function ($regs) {
+                $student = $regs->first()->student;
                 if (! $student) {
                     return null;
                 }
 
+                $groupIds = $regs->pluck('group_id')->filter()->unique()->values()->all();
+
                 return [
                     'id' => $student->id,
                     'name' => $student->full_name_ar ?: $student->full_name_en,
-                    'group_id' => $reg->group_id,
+                    'group_id' => $groupIds[0] ?? null,
+                    'group_ids' => $groupIds,
                 ];
             })
             ->filter()
-            ->unique('id')
             ->values();
 
         $processingResources = \App\Models\SubjectResource::where('subject_id', $subject->id)

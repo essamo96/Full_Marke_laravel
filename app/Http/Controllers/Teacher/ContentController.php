@@ -123,22 +123,23 @@ class ContentController extends Controller
             $selectedGroupId = null;
         }
 
+        $myGroupIds = $groups->pluck('id')->all();
+
         $units = EducationalUnit::whereHas('stage', function ($q) use ($subject) {
                 $q->where('subject_id', $subject->id);
             })
-            ->forGroup($selectedGroupId)
-            ->where('is_active', true)
-            ->with(['groups', 'lessons' => function ($q) use ($selectedGroupId) {
-                $q->forGroup($selectedGroupId)->where('is_active', true)->with('groups')->orderBy('sort_order');
-            }, 'lessons.resources' => function ($q) use ($selectedGroupId) {
-                $q->forGroup($selectedGroupId)->with(['groups', 'contentExclusions'])->orderBy('sort_order');
+            ->forManagement($selectedGroupId, $myGroupIds)
+            ->with(['groups', 'lessons' => function ($q) use ($selectedGroupId, $myGroupIds) {
+                $q->forManagement($selectedGroupId, $myGroupIds)->with('groups')->orderBy('sort_order');
+            }, 'lessons.resources' => function ($q) use ($selectedGroupId, $myGroupIds) {
+                $q->forManagement($selectedGroupId, $myGroupIds)->with(['groups', 'contentExclusions'])->orderBy('sort_order');
             }])
             ->orderBy('sort_order')
             ->get();
 
         $generalResources = SubjectResource::where('subject_id', $subject->id)
             ->whereNull('educational_lesson_id')
-            ->forGroup($selectedGroupId)
+            ->forManagement($selectedGroupId, $myGroupIds)
             ->with(['groups', 'contentExclusions'])
             ->orderBy('sort_order')
             ->get();
@@ -149,20 +150,23 @@ class ContentController extends Controller
             ->whereIn('group_id', $groups->pluck('id'))
             ->with('student:id,full_name_ar,full_name_en')
             ->get()
-            ->map(function ($reg) {
-                $student = $reg->student;
+            ->groupBy('student_id')
+            ->map(function ($regs) {
+                $student = $regs->first()->student;
                 if (! $student) {
                     return null;
                 }
 
+                $groupIds = $regs->pluck('group_id')->filter()->unique()->values()->all();
+
                 return [
                     'id' => $student->id,
                     'name' => $student->full_name_ar ?: $student->full_name_en,
-                    'group_id' => $reg->group_id,
+                    'group_id' => $groupIds[0] ?? null,
+                    'group_ids' => $groupIds,
                 ];
             })
             ->filter()
-            ->unique('id')
             ->values();
 
         $processingResources = SubjectResource::where('subject_id', $subject->id)
@@ -437,7 +441,7 @@ class ContentController extends Controller
         ]);
 
         EducationalContentVisibility::apply($resource, $isShared, $data['group_ids'] ?? []);
-        EducationalContentVisibility::syncExclusions($resource, $subject->id, $data['excluded_student_ids'] ?? []);
+        $this->syncTeacherExclusions($resource, $subject->id, $data['excluded_student_ids'] ?? []);
 
         return response()->json(['success' => true, 'id' => $resource->getRouteKey()]);
     }
@@ -501,7 +505,7 @@ class ContentController extends Controller
         ]);
 
         EducationalContentVisibility::apply($resource, $isShared, $data['group_ids'] ?? []);
-        EducationalContentVisibility::syncExclusions($resource, $subject->id, $data['excluded_student_ids'] ?? []);
+        $this->syncTeacherExclusions($resource, $subject->id, $data['excluded_student_ids'] ?? []);
 
         return response()->json(['success' => true, 'id' => $resource->getRouteKey()]);
     }
@@ -566,9 +570,45 @@ class ContentController extends Controller
 
         $isShared = EducationalContentVisibility::resolveIsShared($request, $data['group_ids'] ?? null);
         EducationalContentVisibility::apply($resource, $isShared, $data['group_ids'] ?? []);
-        EducationalContentVisibility::syncExclusions($resource, (int) $resource->subject_id, $data['excluded_student_ids'] ?? []);
+        $this->syncTeacherExclusions($resource, (int) $resource->subject_id, $data['excluded_student_ids'] ?? []);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Teachers only manage exclusions for students in their own groups: exclusions
+     * of anyone outside that pool (e.g. set by an admin) are preserved untouched.
+     */
+    private function syncTeacherExclusions($resource, int $subjectId, array $submittedIds): void
+    {
+        $pool = \App\Models\Registration::query()
+            ->where('subject_id', $subjectId)
+            ->whereIn('group_id', $this->allowedGroupIds())
+            ->pluck('student_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique();
+
+        $kept = $resource->contentExclusions()->pluck('student_id')
+            ->map(fn ($id) => (int) $id)
+            ->reject(fn ($id) => $pool->contains($id));
+
+        $mine = collect($submittedIds)->map(fn ($id) => (int) $id)->filter(fn ($id) => $pool->contains($id));
+
+        EducationalContentVisibility::syncExclusions($resource, $subjectId, $kept->merge($mine)->unique()->values()->all());
+    }
+
+    public function updateExclusions(Request $request, SubjectResource $resource)
+    {
+        $this->authorizeSubjectResource($resource);
+
+        $data = $request->validate([
+            'excluded_student_ids' => 'nullable|array',
+            'excluded_student_ids.*' => 'integer|exists:students,id',
+        ]);
+
+        $this->syncTeacherExclusions($resource, (int) $resource->subject_id, $data['excluded_student_ids'] ?? []);
+
+        return response()->json(['success' => true, 'message' => 'تم تحديث الاستثناءات.']);
     }
 
     public function shareUnit(Request $request, EducationalUnit $unit)

@@ -63,6 +63,12 @@
                             @endif
                         </td>
                         <td class="text-end">
+                            <a href="{{ route('exams.preview', $exam) }}" class="btn btn-icon btn-bg-light btn-active-color-success btn-sm me-1" title="معاينة الأسئلة والإجابات">
+                                <i class="bi bi-eye fs-4"></i>
+                            </a>
+                            <a href="{{ route('exams.blank-pdf', $exam) }}" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm me-1" title="تحميل نموذج فارغ PDF">
+                                <i class="bi bi-file-earmark-pdf fs-4"></i>
+                            </a>
                             <a href="{{ route('exams.results', $exam) }}" class="btn btn-icon btn-bg-light btn-active-color-info btn-sm me-1" title="نتائج الامتحان">
                                 <i class="ki-duotone ki-chart-simple fs-2"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span></i>
                             </a>
