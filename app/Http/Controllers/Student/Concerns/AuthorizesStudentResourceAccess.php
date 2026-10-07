@@ -3,25 +3,54 @@
 namespace App\Http\Controllers\Student\Concerns;
 
 use App\Models\SubjectResource;
+use App\Services\ResourceLibrary\ResourceFileStore;
+use App\Services\StudentContentGate;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 trait AuthorizesStudentResourceAccess
 {
+    /**
+     * A stored file whose bytes are gone (typically a database restored without its files folder):
+     * the student gets a clear message instead of a bare 404, and the staff get one log line per
+     * resource per day - the quality check ("missing_file") lists and switches these off.
+     */
+    protected function ensureResourceFileExists(SubjectResource $resource): void
+    {
+        if (! app(ResourceFileStore::class)->isMissing($resource)) {
+            return;
+        }
+
+        if (Cache::add('library:missing-file-reported:'.$resource->id, true, now()->addDay())) {
+            Log::warning('Student opened a resource whose file is missing', [
+                'resource_id' => $resource->id,
+                'subject_id' => $resource->subject_id,
+                'path' => $resource->url,
+            ]);
+        }
+
+        $message = 'هذا الملف غير متاح حالياً، تواصل مع المدرس.';
+
+        // a download link opened in the tab gets the normal error page; the in-page players fetch() and read JSON
+        abort_if(request()->header('Sec-Fetch-Mode') === 'navigate', 410, $message);
+
+        throw new HttpResponseException(response()->json(['message' => $message, 'code' => 'file_missing'], 410));
+    }
+
+    /**
+     * One rule for the listing pages and for every direct URL (stream, file, link, download,
+     * embed): the resource must pass StudentContentGate - kill switch, audience, exclusions on
+     * the resource AND on its lesson / unit, and an open placement. A link copied before the
+     * student was excluded stops working the moment the exclusion is saved.
+     */
     protected function authorizeStudentResource(SubjectResource $resource): void
     {
         $student = Auth::guard('student')->user();
         abort_unless($student, 403);
-        abort_unless($resource->is_active, 404);
 
-        $registration = $student->registrations()
-            ->where('subject_id', $resource->subject_id)
-            ->whereIn('status', ['pending', 'partially_paid', 'fully_paid'])
-            ->first();
-
-        abort_unless($registration, 403);
-
-        $groupId = $registration->group_id ? (int) $registration->group_id : null;
-        abort_unless($resource->isVisibleToStudent((int) $student->id, $groupId), 403);
+        app(StudentContentGate::class)->authorize($resource, (int) $student->id);
     }
 
     /**
@@ -29,6 +58,8 @@ trait AuthorizesStudentResourceAccess
      */
     protected function resolveMediaPayload(SubjectResource $resource): array
     {
+        $this->ensureResourceFileExists($resource);
+
         if ($resource->isVideo()) {
             abort_unless($resource->isReady(), 409, 'الفيديو غير جاهز للعرض بعد.');
 

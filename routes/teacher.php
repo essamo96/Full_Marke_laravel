@@ -57,34 +57,15 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::post('grading/answers/{answer}', [GradingController::class, 'gradeEssay'])->name('grading.grade-essay');
         Route::post('grading/{grade}/approve', [GradingController::class, 'approve'])->name('grading.approve');
 
+        // Resource library: the same JSON API the admin uses, fenced into this teacher's groups.
+        Route::prefix('library')->name('library.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Teacher\LibraryController::class, 'index'])->name('index');
+            (require __DIR__.'/library-api.php')(\App\Http\Controllers\Teacher\LibraryApiController::class);
+        });
+
         Route::get('content', [ContentController::class, 'index'])->name('content.index');
         Route::get('content-hub', [ContentController::class, 'hub'])->name('content.hub');
         Route::get('content/{subject}', [ContentController::class, 'manage'])->name('content.manage');
-        Route::post('content/{subject}/units', [ContentController::class, 'storeUnit'])->name('content.store-unit');
-        Route::put('content/units/{unit}', [ContentController::class, 'updateUnit'])->name('content.update-unit');
-        Route::delete('content/units/{unit}', [ContentController::class, 'destroyUnit'])->name('content.destroy-unit');
-        Route::post('content/units/reorder', [ContentController::class, 'reorderUnits'])->name('content.reorder-units');
-        Route::post('content/units/{unit}/lessons', [ContentController::class, 'storeLesson'])->name('content.store-lesson');
-        Route::put('content/lessons/{lesson}', [ContentController::class, 'updateLesson'])->name('content.update-lesson');
-        Route::delete('content/lessons/{lesson}', [ContentController::class, 'destroyLesson'])->name('content.destroy-lesson');
-        Route::post('content/lessons/reorder', [ContentController::class, 'reorderLessons'])->name('content.reorder-lessons');
-        Route::post('content/lessons/{lesson}/resources', [ContentController::class, 'storeResource'])->name('content.store-resource');
-        Route::post('content/{subject}/general-resources', [ContentController::class, 'storeGeneralResource'])->name('content.store-general-resource');
-        Route::put('content/resources/{resource}', [ContentController::class, 'updateResource'])->name('content.update-resource');
-        Route::post('content/resources/{resource}/exclusions', [ContentController::class, 'updateExclusions'])->name('content.update-exclusions');
-        Route::post('content/units/{unit}/exclusions', [ContentController::class, 'updateUnitExclusions'])->name('content.update-unit-exclusions');
-        Route::post('content/lessons/{lesson}/exclusions', [ContentController::class, 'updateLessonExclusions'])->name('content.update-lesson-exclusions');
-        Route::post('content/units/{unit}/unshare', [ContentController::class, 'unshareUnit'])->name('content.unshare-unit');
-        Route::post('content/lessons/{lesson}/unshare', [ContentController::class, 'unshareLesson'])->name('content.unshare-lesson');
-        Route::post('content/resources/{resource}/unshare', [ContentController::class, 'unshareResource'])->name('content.unshare-resource');
-        Route::post('content/units/{unit}/share', [ContentController::class, 'shareUnit'])->name('content.share-unit');
-        Route::post('content/lessons/{lesson}/share', [ContentController::class, 'shareLesson'])->name('content.share-lesson');
-        Route::post('content/resources/{resource}/share', [ContentController::class, 'shareResource'])->name('content.share-resource');
-        Route::delete('content/resources/{resource}', [ContentController::class, 'destroyResource'])->name('content.destroy-resource');
-        Route::post('content/resources/reorder', [ContentController::class, 'reorderResources'])->name('content.reorder-resources');
-        Route::get('content/resources/{resource}/file', [ContentController::class, 'viewResourceFile'])->name('content.view-file');
-        Route::get('content/resources/{resource}/progress', [ContentController::class, 'progress'])->name('content.progress');
-        Route::post('content/upload-chunk', [VideoChunkUploadController::class, 'upload'])->name('content.upload-chunk');
 
         // Financial reporting. Group and Registration both encrypt their route
         // keys, so no sequential ids appear in these URLs.

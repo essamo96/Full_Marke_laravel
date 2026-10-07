@@ -18,6 +18,15 @@
     return function destroy() {};
   }
 
+  // Our own refusals carry an Arabic `message` (e.g. "file unavailable"); framework defaults are English.
+  function failure(res, fallback) {
+    return res.json()
+      .then(function (body) { return body && body.message; }, function () { return null; })
+      .then(function (message) {
+        throw new Error(message && /[\u0600-\u06FF]/.test(message) ? message : fallback);
+      });
+  }
+
   /**
    * @param {Object} opts
    * @param {HTMLElement} opts.container - must be position:relative
@@ -42,7 +51,7 @@
 
     fetch(opts.fileUrl, { credentials: 'same-origin' })
       .then(function (res) {
-        if (!res.ok) throw new Error('تعذّر تحميل الصورة');
+        if (!res.ok) return failure(res, 'تعذّر تحميل الصورة');
         return res.blob();
       })
       .then(function (blob) {

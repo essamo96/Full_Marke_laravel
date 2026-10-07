@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\GroupJoinCode;
 use App\Models\Registration;
 use App\Models\Group;
+use App\Services\StudentContentGate;
 use App\Services\StudentContentGrantService;
 
 class GroupsController extends Controller
@@ -146,49 +147,13 @@ class GroupsController extends Controller
         $studentId = (int) $student->id;
         $groupId = (int) $group->id;
 
-        // Only surface stages/units/lessons that still have at least one active
-        // resource beneath them — a lesson whose only resource was deleted (or
-        // deactivated) shouldn't show up to students as an empty entry.
-        // Includes personal grants retained after transferring from another group.
-        $hasVisibleResource = function ($lessonQuery) use ($studentId, $groupId) {
-            $lessonQuery->where('is_active', true)
-                ->visibleToStudent($studentId, $groupId)
-                ->whereHas('resources', function ($q) use ($studentId, $groupId) {
-                    $q->where('is_active', true)->visibleToStudent($studentId, $groupId);
-                });
-        };
-        $subject->load([
-            'stages' => function ($q) use ($hasVisibleResource, $studentId, $groupId) {
-                $q->where('is_active', true)
-                    ->whereHas('units', function ($uq) use ($hasVisibleResource, $studentId, $groupId) {
-                        $uq->visibleToStudent($studentId, $groupId)
-                            ->where('is_active', true)
-                            ->whereHas('lessons', $hasVisibleResource);
-                    })
-                    ->orderBy('sort_order');
-            },
-            'stages.units' => function ($q) use ($hasVisibleResource, $studentId, $groupId) {
-                $q->visibleToStudent($studentId, $groupId)
-                    ->where('is_active', true)
-                    ->whereHas('lessons', $hasVisibleResource)
-                    ->orderBy('sort_order');
-            },
-            'stages.units.lessons' => function ($q) use ($hasVisibleResource) {
-                $hasVisibleResource($q);
-                $q->orderBy('sort_order');
-            },
-            'stages.units.lessons.resources' => function ($q) use ($studentId, $groupId) {
-                $q->where('is_active', true)->visibleToStudent($studentId, $groupId)->orderBy('sort_order');
-            }
-        ]);
+        // What this student may see of the subject, from the one gate every student surface uses:
+        // kill switch, group audience (shared / linked / paused), personal grants, exclusions at
+        // resource / lesson / unit level, and open placements - empty lessons and units are dropped.
+        $tree = app(StudentContentGate::class)->tree($studentId, $subject, [$groupId]);
+        $units = $tree['units'];
+        $generalResources = $tree['general'];
 
-        // Also fetch general resources that are not attached to any lesson
-        $generalResources = \App\Models\SubjectResource::where('subject_id', $subject->id)
-            ->where('is_active', true)
-            ->whereNull('educational_lesson_id')
-            ->visibleToStudent($studentId, $groupId)
-            ->orderBy('sort_order')
-            ->get();
 
         $allNotes = $group->notes()
             ->where(function ($q) use ($student) {
@@ -225,7 +190,7 @@ class GroupsController extends Controller
             ->keyBy('exam_id');
 
         return view('student.groups.show', compact(
-            'group', 'subject', 'generalResources', 'notes', 'studentNotes', 'exams', 'grades'
+            'group', 'subject', 'units', 'generalResources', 'notes', 'studentNotes', 'exams', 'grades'
         ));
     }
 }

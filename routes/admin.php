@@ -22,23 +22,6 @@ Route::prefix('admin')->name('admin.')->middleware('admin.locale')->group(functi
     Route::middleware('auth:admin')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('qr-code', [\App\Http\Controllers\QrCodeController::class, 'admin'])->name('qr.admin');
-
-        Route::get('/test-broadcast', function() {
-            $student = \App\Models\Student::first();
-            if(!$student) {
-                $student = new \App\Models\Student();
-                $student->id = 999;
-                $student->full_name_ar = 'طالب تجريبي';
-            }
-            
-            // Broadcast to admins
-            \Illuminate\Support\Facades\Notification::send(
-                \App\Models\Admin::all(), 
-                new \App\Notifications\NewStudentRegisteredNotification($student)
-            );
-            
-            return 'Broadcast sent successfully. Check your admin dashboard for notifications!';
-        });
     });
     
     Route::get('/clear-cache', [\App\Http\Controllers\Admin\AdminController::class, 'clearCache'])->name('clear-cache');
@@ -76,7 +59,6 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     require __DIR__.'/branches.php';
     require __DIR__.'/programs.php';
     require __DIR__.'/subjects.php';
-    require __DIR__.'/subject-resources.php';
     require __DIR__.'/groups.php';
     require __DIR__.'/teachers.php';
     require __DIR__.'/students.php';
@@ -99,25 +81,14 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     // Subject Content (Educational Content) Screen
     Route::get('/subject-content', [\App\Http\Controllers\Admin\SubjectContentController::class, 'index'])->name('subject_content.view');
     Route::get('/subject-content/{id}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'manage'])->name('subject_content.manage');
-    Route::post('/subject-content/{id}/units', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeUnit'])->name('subject_content.units.store');
-    Route::put('/subject-content/units/{unit}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'updateUnit'])->name('subject_content.units.update');
-    Route::delete('/subject-content/units/{unit}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyUnit'])->name('subject_content.units.destroy');
-    Route::post('/subject-content/units/reorder', [\App\Http\Controllers\Admin\SubjectContentController::class, 'reorderUnits'])->name('subject_content.units.reorder');
-    Route::post('/subject-content/units/{unit}/lessons', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeLesson'])->name('subject_content.lessons.store');
-    Route::put('/subject-content/lessons/{lesson}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'updateLesson'])->name('subject_content.lessons.update');
-    Route::delete('/subject-content/lessons/{lesson}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyLesson'])->name('subject_content.lessons.destroy');
-    Route::post('/subject-content/lessons/reorder', [\App\Http\Controllers\Admin\SubjectContentController::class, 'reorderLessons'])->name('subject_content.lessons.reorder');
-    Route::post('/subject-content/lessons/{lesson}/resources', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeResource'])->name('subject_content.resources.store');
-    Route::post('/subject-content/{id}/general-resources', [\App\Http\Controllers\Admin\SubjectContentController::class, 'storeGeneralResource'])->name('subject_content.general_resources.store');
-    Route::put('/subject-content/resources/{resource}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'updateResource'])->name('subject_content.resources.update');
-    Route::post('/subject-content/units/{unit}/share', [\App\Http\Controllers\Admin\SubjectContentController::class, 'shareUnit'])->name('subject_content.units.share');
-    Route::post('/subject-content/lessons/{lesson}/share', [\App\Http\Controllers\Admin\SubjectContentController::class, 'shareLesson'])->name('subject_content.lessons.share');
-    Route::post('/subject-content/resources/{resource}/share', [\App\Http\Controllers\Admin\SubjectContentController::class, 'shareResource'])->name('subject_content.resources.share');
-    Route::delete('/subject-content/resources/{resource}', [\App\Http\Controllers\Admin\SubjectContentController::class, 'destroyResource'])->name('subject_content.resources.destroy');
-    Route::post('/subject-content/resources/reorder', [\App\Http\Controllers\Admin\SubjectContentController::class, 'reorderResources'])->name('subject_content.resources.reorder');
-    Route::get('/subject-content/resources/{resource}/file', [\App\Http\Controllers\Admin\SubjectContentController::class, 'viewResourceFile'])->name('subject_content.resources.file');
-    Route::post('/subject-content/upload-chunk', [\App\Http\Controllers\Admin\VideoChunkUploadController::class, 'upload'])->name('subject_content.upload_chunk');
-    Route::get('/subject-content/resources/{resource}/progress', [\App\Http\Controllers\Admin\SubjectContentController::class, 'progress'])->name('subject_content.resources.progress');
+
+    // Resource library JSON API (shared with the teacher side, see routes/library-api.php)
+    Route::prefix('library')->name('library.')
+        // anyone with a library permission reads; only "subject_content.edit" may change (EnsureLibraryEditAccess)
+        ->middleware(['permission:admin.resource-library.view|admin.subject_content.view|admin.subject_content.edit', \App\Http\Middleware\EnsureLibraryEditAccess::class])
+        ->group(function () {
+            (require __DIR__.'/library-api.php')(\App\Http\Controllers\Admin\LibraryApiController::class);
+        });
 
     // Resource Library
     Route::get('/resource-library', [\App\Http\Controllers\Admin\ResourceLibraryController::class, 'index'])->name('resource-library.view');
@@ -125,5 +96,3 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin.locale'])->group(functi
     Route::post('resource-archive/{id}/restore', [\App\Http\Controllers\Admin\ResourceArchiveController::class, 'restore'])->name('resource-archive.restore');
     Route::delete('resource-archive/{id}/force-delete', [\App\Http\Controllers\Admin\ResourceArchiveController::class, 'forceDelete'])->name('resource-archive.force-delete');
 });
-Route::get('auto-login', function () { Auth::guard('admin')->loginUsingId(1); return redirect('/admin/users'); });
-Route::get('test-dt', function() { Auth::guard('admin')->loginUsingId(1); return app(App\Http\Controllers\Admin\UsersController::class)->getList(request()); });

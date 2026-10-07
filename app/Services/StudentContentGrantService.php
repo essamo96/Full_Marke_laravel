@@ -2,9 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\EducationalLesson;
-use App\Models\EducationalStage;
-use App\Models\EducationalUnit;
 use App\Models\Student;
 use App\Models\StudentContentGrant;
 use App\Models\SubjectResource;
@@ -13,8 +10,14 @@ use Illuminate\Support\Facades\DB;
 class StudentContentGrantService
 {
     /**
-     * Snapshot content visible in the old group but not in the new one,
-     * and grant it personally so the student does not lose access after transfer.
+     * Keep what a student could see in their previous group after moving to another one.
+     *
+     * Works on the same rules the student sees (SubjectResource::visibleToStudent): every resource
+     * visible in the old group but NOT in the new one is granted to the student personally. Units
+     * and lessons need no grants of their own - they are shown whenever one of their resources is.
+     *
+     * Exclusions still win: a resource the student was excluded from is never granted, and a
+     * grant never overrides an exclusion afterwards.
      */
     public function grantPreviousGroupContentOnTransfer(
         Student|int $student,
@@ -30,94 +33,15 @@ class StudentContentGrantService
         }
 
         $contentGranted = DB::transaction(function () use ($studentId, $subjectId, $fromGroupId, $toGroupId, $source) {
-            $stageIds = EducationalStage::where('subject_id', $subjectId)->pluck('id');
-
-            $oldUnitIds = EducationalUnit::query()
-                ->whereIn('educational_stage_id', $stageIds)
-                ->forGroup($fromGroupId)
-                ->pluck('id');
-
-            $newUnitIds = EducationalUnit::query()
-                ->whereIn('educational_stage_id', $stageIds)
-                ->forGroup($toGroupId)
-                ->pluck('id');
-
-            $unitsToGrant = $oldUnitIds->diff($newUnitIds)->values();
-
-            $unitIdsInSubject = EducationalUnit::query()
-                ->whereIn('educational_stage_id', $stageIds)
-                ->pluck('id');
-
-            $oldLessonIds = EducationalLesson::query()
-                ->whereIn('educational_unit_id', $unitIdsInSubject)
-                ->forGroup($fromGroupId)
-                ->pluck('id');
-
-            $newLessonIds = EducationalLesson::query()
-                ->whereIn('educational_unit_id', $unitIdsInSubject)
-                ->forGroup($toGroupId)
-                ->pluck('id');
-
-            $lessonsToGrant = $oldLessonIds->diff($newLessonIds)->values();
-
-            $oldResourceIds = SubjectResource::query()
+            $visibleIn = fn (int $groupId) => SubjectResource::query()
                 ->where('subject_id', $subjectId)
-                ->where('is_active', true)
-                ->forGroup($fromGroupId)
-                ->pluck('id');
+                ->visibleToStudent($studentId, [$groupId])
+                ->pluck('subject_resources.id')
+                ->map(fn ($id) => (int) $id);
 
-            $newResourceIds = SubjectResource::query()
-                ->where('subject_id', $subjectId)
-                ->where('is_active', true)
-                ->forGroup($toGroupId)
-                ->pluck('id');
+            $toGrant = $visibleIn($fromGroupId)->diff($visibleIn($toGroupId))->values();
 
-            $resourcesToGrant = $oldResourceIds->diff($newResourceIds)->values();
-
-            // Ensure ancestors exist in the tree when a resource/lesson is granted.
-            if ($resourcesToGrant->isNotEmpty()) {
-                $resources = SubjectResource::with('lesson')
-                    ->whereIn('id', $resourcesToGrant)
-                    ->get();
-
-                foreach ($resources as $resource) {
-                    if (! $resource->lesson) {
-                        continue;
-                    }
-
-                    if (! $newLessonIds->contains($resource->educational_lesson_id)
-                        && ! $lessonsToGrant->contains($resource->educational_lesson_id)
-                    ) {
-                        $lessonsToGrant->push($resource->educational_lesson_id);
-                    }
-
-                    $unitId = $resource->lesson->educational_unit_id;
-                    if ($unitId
-                        && ! $newUnitIds->contains($unitId)
-                        && ! $unitsToGrant->contains($unitId)
-                    ) {
-                        $unitsToGrant->push($unitId);
-                    }
-                }
-            }
-
-            if ($lessonsToGrant->isNotEmpty()) {
-                $lessons = EducationalLesson::whereIn('id', $lessonsToGrant)->get(['id', 'educational_unit_id']);
-                foreach ($lessons as $lesson) {
-                    if (! $newUnitIds->contains($lesson->educational_unit_id)
-                        && ! $unitsToGrant->contains($lesson->educational_unit_id)
-                    ) {
-                        $unitsToGrant->push($lesson->educational_unit_id);
-                    }
-                }
-            }
-
-            $granted = 0;
-            $granted += $this->upsertGrants($studentId, $subjectId, EducationalUnit::class, $unitsToGrant->unique()->all(), $source, $fromGroupId);
-            $granted += $this->upsertGrants($studentId, $subjectId, EducationalLesson::class, $lessonsToGrant->unique()->all(), $source, $fromGroupId);
-            $granted += $this->upsertGrants($studentId, $subjectId, SubjectResource::class, $resourcesToGrant->unique()->all(), $source, $fromGroupId);
-
-            return $granted;
+            return $this->upsertGrants($studentId, $subjectId, SubjectResource::class, $toGrant->all(), $source, $fromGroupId);
         });
 
         // Also retain published exams from the previous group for this student.
@@ -178,6 +102,6 @@ class StudentContentGrantService
 
     public function studentCanAccessResource(SubjectResource $resource, int $studentId, ?int $groupId): bool
     {
-        return $resource->isVisibleToStudent($studentId, $groupId);
+        return $resource->isVisibleToStudent($studentId, $groupId ? [$groupId] : []);
     }
 }

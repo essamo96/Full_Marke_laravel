@@ -47,13 +47,9 @@ class SubjectsController extends Controller
         $teacher = Auth::guard('teacher')->user();
         abort_unless($teacher->subjects->contains($subject->id), 403);
 
-        $subject->load([
-            'stages' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
-            'stages.units' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
-            'stages.units.lessons' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
-            'stages.units.lessons.resources' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
-        ]);
-
+        // The curriculum is managed (and listed, scoped to this teacher's groups) in the content
+        // screen; this page never rendered it, so it no longer loads every unit / lesson / resource
+        // of the subject - including other teachers' - for nothing.
         $groups = Group::where('subject_id', $subject->id)
             ->where('teacher_id', $teacher->id)
             ->withCount(['registrations as students_count' => function ($q) {

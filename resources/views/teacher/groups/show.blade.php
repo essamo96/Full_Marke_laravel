@@ -112,7 +112,7 @@
                                   <span class="badge ms-auto" style="background: rgba(197,168,128,0.15); color: var(--accent-color);" data-en="Processing" data-ar="قيد المعالجة">قيد المعالجة</span>
                                 </span>
                               @else
-                                <a href="{{ $resource->isExternalLink() ? $resource->url : route('teacher.content.view-file', $resource) }}"
+                                <a href="{{ $resource->isExternalLink() ? $resource->url : route('teacher.library.resources.file', ['key' => $resource->getRouteKey()]) }}"
                                    target="_blank" rel="noopener"
                                    class="text-decoration-none text-muted d-flex align-items-center gap-2 fs-7 hover-text-gold transition-all">
                                   <i class="bi bi-{{ $rIcon }} text-gold"></i>

@@ -34,11 +34,12 @@ class Phase3CartTest extends TestCase
                          ]);
 
         $response->assertSessionHas('success');
+        // the student never picks their group: a posted group_id is ignored, the administration assigns it
         $this->assertDatabaseHas('cart_items', [
             'user_id' => $student->id,
             'user_type' => 'student',
             'subject_id' => $subject->id,
-            'group_id' => $group->id,
+            'group_id' => null,
         ]);
     }
 
@@ -167,7 +168,7 @@ class Phase3CartTest extends TestCase
             'user_id' => $student->id,
             'user_type' => 'student',
             'subject_id' => $subject1->id,
-            'group_id' => $group1->id,
+            'group_id' => null,
         ]);
 
         $this->assertDatabaseHas('cart_items', [

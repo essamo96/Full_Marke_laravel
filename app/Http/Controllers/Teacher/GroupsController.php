@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Models\EducationalStage;
 use App\Models\Group;
+use App\Services\StudentContentGate;
 use Illuminate\Support\Facades\Auth;
 
 class GroupsController extends Controller
@@ -38,12 +40,15 @@ class GroupsController extends Controller
 
         $group->load('subject.program');
         $groupId = $group->id;
-        $group->subject->load([
-            'stages' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
-            'stages.units' => fn ($q) => $q->forGroup($groupId)->where('is_active', true)->orderBy('sort_order'),
-            'stages.units.lessons' => fn ($q) => $q->forGroup($groupId)->where('is_active', true)->orderBy('sort_order'),
-            'stages.units.lessons.resources' => fn ($q) => $q->forGroup($groupId)->where('is_active', true)->orderBy('sort_order'),
-        ]);
+        // What the group's students actually see: the same gate as the student pages, so this
+        // list can never promise content that is hidden, switched off or only shared elsewhere.
+        $tree = app(StudentContentGate::class)->tree(0, $group->subject, [$groupId]);
+        $stages = EducationalStage::where('subject_id', $group->subject_id)->where('is_active', true)->orderBy('sort_order')->get()
+            ->each(fn ($stage) => $stage->setRelation('units', $tree['units']->where('educational_stage_id', $stage->id)->values()))
+            ->filter(fn ($stage) => $stage->units->isNotEmpty())
+            ->values();
+        $group->subject->setRelation('stages', $stages);
+        $generalResources = $tree['general'];
 
         $roster = $group->registrations()
             ->whereIn('status', self::ACTIVE_STATUSES)
@@ -69,6 +74,6 @@ class GroupsController extends Controller
             ->limit(5)
             ->get();
 
-        return view('teacher.groups.show', compact('group', 'roster', 'notes', 'exams', 'topStudents', 'mostAbsentStudents'));
+        return view('teacher.groups.show', compact('group', 'generalResources', 'roster', 'notes', 'exams', 'topStudents', 'mostAbsentStudents'));
     }
 }

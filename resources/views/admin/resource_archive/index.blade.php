@@ -108,15 +108,16 @@
                                             <span class="text-gray-400 fw-semibold d-block fs-7">{{ $resource->deleted_at->format('h:i A') }}</span>
                                         </td>
                                         <td>
-                                            @if($resource->deletedBy)
+                                            @php $deleter = $resource->deleter; @endphp
+                                            @if($deleter)
                                                 <div class="d-flex align-items-center">
                                                     <div class="d-flex justify-content-start flex-column">
-                                                        <span class="text-gray-800 fw-bold mb-1 fs-6">{{ $resource->deletedBy->name }}</span>
-                                                        <span class="text-gray-400 fw-semibold d-block fs-7">{{ $resource->deletedBy->email }}</span>
+                                                        <span class="text-gray-800 fw-bold mb-1 fs-6">{{ $deleter->name }}</span>
+                                                        <span class="text-gray-400 fw-semibold d-block fs-7">{{ $resource->deleted_by_type === 'teacher' ? 'معلم' : $deleter->email }}</span>
                                                     </div>
                                                 </div>
                                             @else
-                                                <span class="badge badge-light-warning">غير محدد (ربما بواسطة مدرس)</span>
+                                                <span class="badge badge-light-warning">غير محدد</span>
                                             @endif
                                         </td>
                                         <td class="text-end pe-4">

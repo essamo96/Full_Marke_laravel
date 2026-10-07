@@ -265,7 +265,7 @@
                 @endif
 
                 @php
-                    $allUnits = $subject->stages->flatMap->units;
+                    $allUnits = $units;
                 @endphp
                 @if($allUnits->isNotEmpty())
                     <div class="px-2 pt-1 pb-2 d-flex align-items-center justify-content-between">
@@ -275,7 +275,7 @@
                 @endif
                 @forelse($allUnits as $unitIndex => $unit)
                     @php
-                        $unitResourceCount = $unit->lessons->sum(fn ($l) => $l->resources->count());
+                        $unitResourceCount = $unit->lessons->sum(fn ($l) => $l->resources->count()) + $unit->directResources->count();
                     @endphp
                     <div class="unit-card">
                         <button type="button" class="unit-toggle" data-bs-toggle="collapse" data-bs-target="#unitPanel{{ $unit->id }}" aria-expanded="{{ $unitIndex === 0 ? 'true' : 'false' }}">
@@ -288,6 +288,27 @@
                         </button>
                         {{-- No data-bs-parent: every unit opens/closes independently, fully under the student's control --}}
                         <div id="unitPanel{{ $unit->id }}" class="collapse {{ $unitIndex === 0 ? 'show' : '' }}">
+                            @if($unit->directResources->isNotEmpty())
+                                <div class="lesson-resources px-2 pt-2">
+                                    @foreach($unit->directResources as $resource)
+                                        @php
+                                            $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
+                                            $isPdf = $resource->type === 'document' && !$isUrl && strtolower(pathinfo($resource->url ?? '', PATHINFO_EXTENSION)) === 'pdf';
+                                            $rIcon = match($resource->type) {
+                                                'video' => 'play-circle-fill',
+                                                'zoom' => 'camera-video-fill',
+                                                'image' => 'image-fill',
+                                                'link' => 'link-45deg',
+                                                default => 'file-earmark-text-fill',
+                                            };
+                                        @endphp
+                                        <a href="javascript:void(0)" class="resource-item" onclick="loadResource({{ json_encode(['id' => $resource->getRouteKey(), 'title' => $resource->title, 'type' => $resource->type, 'is_pdf' => $isPdf, 'is_image' => $resource->isImage(), 'is_external' => $isUrl, 'url' => $isUrl ? $resource->url : null, 'description' => $resource->description]) }})">
+                                            <i class="bi bi-{{ $rIcon }}" style="color: var(--accent-color);"></i>
+                                            <span class="text-sm">{{ $resource->title }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                             @foreach($unit->lessons as $lesson)
                                 <div class="lesson-block">
                                     <button type="button" class="lesson-toggle collapsed" data-bs-toggle="collapse" data-bs-target="#lessonPanel{{ $lesson->id }}" aria-expanded="false">
@@ -787,7 +808,13 @@
                     const loadingEl = document.getElementById('imageLoading');
                     if (loadingEl) loadingEl.remove();
                 },
-                onError: function () {},
+                onError: function (message) {
+                    container.innerHTML = '';
+                    const errorEl = document.createElement('p');
+                    errorEl.className = 'text-danger mb-0 px-3';
+                    errorEl.textContent = message;
+                    container.appendChild(errorEl);
+                },
             });
         } else {
             badge.innerText = 'ملف مقروء';

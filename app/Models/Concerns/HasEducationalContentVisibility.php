@@ -4,35 +4,21 @@ namespace App\Models\Concerns;
 
 use App\Models\StudentContentExclusion;
 use App\Models\StudentContentGrant;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * Per-student overrides shared by units, lessons and resources.
+ *
+ * Who may see a piece of content is decided in ONE place - App\Services\StudentContentGate
+ * (resources) and the `visibleToStudent` scope of each model, which is derived from it.
+ * This trait only owns the two per-student override tables:
+ *
+ *  - exclusions: "this student must NOT see it". Always wins, at every level of the
+ *    tree (excluding a student from a unit hides everything inside the unit).
+ *  - grants:     "this student keeps seeing it" after a group transfer (resources only).
+ */
 trait HasEducationalContentVisibility
 {
-    /**
-     * Management ("all groups") listing.
-     * - a group is picked      -> same as forGroup()
-     * - $allowedGroupIds null  -> admin: no scoping, everything is listed
-     * - $allowedGroupIds array -> teacher: shared + drafts + anything tied to
-     *   one of the teacher's own groups
-     */
-    public function scopeForManagement(Builder $query, ?int $groupId, ?array $allowedGroupIds = null): Builder
-    {
-        if ($groupId) {
-            return $query->forGroup($groupId);
-        }
-
-        if ($allowedGroupIds === null) {
-            return $query;
-        }
-
-        return $query->where(function (Builder $q) use ($allowedGroupIds) {
-            $q->where('is_shared', true)
-                ->orDoesntHave('groups')
-                ->orWhereHas('groups', fn ($g) => $g->whereIn('groups.id', $allowedGroupIds));
-        });
-    }
-
     public function contentGrants(): MorphMany
     {
         return $this->morphMany(StudentContentGrant::class, 'grantable');
@@ -43,48 +29,21 @@ trait HasEducationalContentVisibility
         return $this->morphMany(StudentContentExclusion::class, 'excludable');
     }
 
-    /**
-     * Content visible to a student in their current group context,
-     * including personal grants retained after a group transfer,
-     * minus explicit per-student exclusions (exclusions always win).
-     */
-    public function scopeVisibleToStudent(Builder $query, int $studentId, ?int $groupId): Builder
-    {
-        return $query
-            ->where(function (Builder $q) use ($studentId, $groupId) {
-                if ($groupId) {
-                    $q->where(function (Builder $gq) use ($groupId) {
-                        $gq->where('is_shared', true)
-                            ->orWhereHas('groups', function ($q2) use ($groupId) {
-                                $q2->where('groups.id', $groupId);
-                            });
-                    });
-                } else {
-                    // No group assigned: only fully shared subject content.
-                    $q->where('is_shared', true);
-                }
-
-                $q->orWhereHas('contentGrants', function ($gq) use ($studentId) {
-                    $gq->where('student_id', $studentId);
-                });
-            })
-            ->whereDoesntHave('contentExclusions', function ($eq) use ($studentId) {
-                $eq->where('student_id', $studentId);
-            });
-    }
-
-    public function isVisibleToStudent(int $studentId, ?int $groupId): bool
-    {
-        return static::query()
-            ->whereKey($this->getKey())
-            ->visibleToStudent($studentId, $groupId)
-            ->exists();
-    }
-
     public function isExcludedForStudent(int $studentId): bool
     {
         return $this->contentExclusions()
             ->where('student_id', $studentId)
+            ->exists();
+    }
+
+    /**
+     * @param  int|array<int>|null  $groupIds  the student's group(s) in this subject
+     */
+    public function isVisibleToStudent(int $studentId, int|array|null $groupIds): bool
+    {
+        return static::query()
+            ->whereKey($this->getKey())
+            ->visibleToStudent($studentId, $groupIds)
             ->exists();
     }
 }

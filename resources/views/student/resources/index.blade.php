@@ -22,7 +22,7 @@
     @foreach($subjects as $subject)
       @php
         $generalCount = ($subject->general_resources ?? collect())->count();
-        $subjectResourceCount = $subject->units->sum(fn($u) => $u->lessons->sum(fn($l) => $l->resources->count())) + $generalCount;
+        $subjectResourceCount = $subject->units->sum(fn($u) => $u->lessons->sum(fn($l) => $l->resources->count()) + $u->directResources->count()) + $generalCount;
       @endphp
       <div class="glass-panel rounded-4 p-4 mb-4">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
@@ -43,7 +43,7 @@
 
         <div class="accordion curriculum-accordion" id="accordion_subject_{{ $subject->id }}">
           @foreach($subject->units as $unitIndex => $unit)
-            @php $unitResourceCount = $unit->lessons->sum(fn($l) => $l->resources->count()); @endphp
+            @php $unitResourceCount = $unit->lessons->sum(fn($l) => $l->resources->count()) + $unit->directResources->count(); @endphp
             @continue($unitResourceCount === 0)
             
             <div class="unit-card">
@@ -57,6 +57,15 @@
               </button>
               
               <div id="unitPanel{{ $unit->id }}" class="collapse {{ $unitIndex === 0 ? 'show' : '' }}">
+                @if($unit->directResources->isNotEmpty())
+                  <div class="lesson-resources px-3 pt-3">
+                    <div class="row g-3">
+                      @foreach($unit->directResources as $resource)
+                        @include('student.resources.parts.resource-card', ['resource' => $resource])
+                      @endforeach
+                    </div>
+                  </div>
+                @endif
                 @foreach($unit->lessons as $lesson)
                   @continue($lesson->resources->isEmpty())
                   <div class="lesson-block">

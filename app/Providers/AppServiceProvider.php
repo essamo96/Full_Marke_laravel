@@ -11,7 +11,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // One journal per request: batched actions (e.g. "fix everything") share its state so
+        // twenty small changes end up as a single undoable entry.
+        $this->app->singleton(\App\Services\ResourceLibrary\LibraryJournal::class);
     }
 
     /**

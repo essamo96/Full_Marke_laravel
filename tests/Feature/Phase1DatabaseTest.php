@@ -91,7 +91,7 @@ class Phase1DatabaseTest extends TestCase
         $this->assertEquals(1, $guardian->students->count());
         $this->assertEquals(1, $student->registrations->count());
         $this->assertEquals(1, $student->emailVerificationCodes->count());
-        $this->assertEquals(1, $registration->paymentRegistrations->count());
+        $this->assertEquals(1, $registration->paymentItems->count());
         $this->assertEquals(1, $payment->paymentRegistrations->count());
         $this->assertEquals(1, $payment->statusLogs->count());
     }

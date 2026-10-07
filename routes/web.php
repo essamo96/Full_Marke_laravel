@@ -81,4 +81,3 @@ Route::middleware(['site.locale', 'site.maintenance'])->group(function () {
 });
 
 require __DIR__.'/admin.php';
-Route::get('test-dt', function() { Auth::guard('admin')->loginUsingId(1); return app(App\Http\Controllers\Admin\UsersController::class)->getList(request()); });

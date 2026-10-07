@@ -2,12 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\Subject;
-use App\Models\Group;
+use App\Http\Middleware\EnsureLibraryEditAccess;
+use App\Services\ResourceLibrary\LibraryActor;
+use App\Support\Library\UploadLimits;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 
+/**
+ * The admin's resource library: every resource of every subject in one table, with the
+ * distribution matrix (resource x group), the kill switch, sharing, exclusions and undo.
+ *
+ * It used to filter resources by a `group_ids` column that no longer exists, so every group
+ * "had" every video, general resources never appeared, and nothing could be changed from there.
+ * It now reads the same catalog the teacher's screens read, so both show the same videos.
+ */
 class ResourceLibraryController extends AdminController
 {
     public function __construct()
@@ -15,53 +24,43 @@ class ResourceLibraryController extends AdminController
         parent::__construct();
         self::$data['active_menu'] = 'resource-library';
     }
-    /**
-     * Display the Resource Library grouping resources by Subject -> Group -> Curriculum.
-     */
+
     public function index(Request $request)
     {
-        // Load all active subjects with their programs
-        $subjects = Subject::with('program')->orderBy('name_ar')->get();
-        
-        $selectedSubjectId = $request->query('subject_id') ? $request->query('subject_id') : null;
-        if ($selectedSubjectId) {
+        $actor = LibraryActor::admin(Auth::guard('admin')->user());
+
+        $config = [
+            'role' => 'admin',
+            'isAdmin' => true,
+            'canEdit' => (bool) Auth::guard('admin')->user()?->can(EnsureLibraryEditAccess::PERMISSION),
+            'api' => url('admin/library'),
+            'csrf' => csrf_token(),
+            'actorName' => $actor->name(),
+            'types' => config('resource_library.types'),
+            'upload' => UploadLimits::forClient(),
+            'subject' => $this->requestedSubject($request),
+            // "__SUBJECT__" is replaced by the encrypted key of the subject in the browser
+            'manageUrl' => url('admin/subject-content').'/__SUBJECT__',
+        ];
+
+        return view('admin.resource_library.index', self::$data + compact('config'));
+    }
+
+    /** ?subject=<id>, or the legacy ?subject_id=<Crypt::encrypt(id)> older links carry. */
+    private function requestedSubject(Request $request): ?int
+    {
+        if ($request->filled('subject')) {
+            return $request->integer('subject') ?: null;
+        }
+
+        if ($request->filled('subject_id')) {
             try {
-                $selectedSubjectId = (int) Crypt::decrypt($selectedSubjectId);
-            } catch (\Exception $e) {
-                $selectedSubjectId = null;
+                return (int) Crypt::decrypt($request->query('subject_id'));
+            } catch (\Throwable) {
+                return null;
             }
         }
-        
-        if ($selectedSubjectId && !$subjects->contains('id', $selectedSubjectId)) {
-            $selectedSubjectId = null;
-        }
 
-        $selectedSubject = null;
-        $groups = collect();
-        $units = collect();
-        
-        if ($selectedSubjectId) {
-            $selectedSubject = Subject::findOrFail($selectedSubjectId);
-            
-            // Load groups for this subject
-            $groups = Group::where('subject_id', $selectedSubjectId)->orderBy('name')->get();
-            
-            // To show the curriculum, we load units and lessons for the selected subject.
-            // When looping over these in the view for a specific group, we will filter the resources
-            // by calling `->filter(fn($r) => in_array($group->id, $r->group_ids ?? []) || empty($r->group_ids))`
-            $units = \App\Models\EducationalUnit::whereHas('stage', function ($q) use ($selectedSubjectId) {
-                    $q->where('subject_id', $selectedSubjectId);
-                })
-                ->where('is_active', true)
-                ->with(['lessons' => function ($q) {
-                    $q->where('is_active', true)->orderBy('sort_order');
-                }, 'lessons.resources' => function ($q) {
-                    $q->orderBy('sort_order');
-                }])
-                ->orderBy('sort_order')
-                ->get();
-        }
-
-        return view('admin.resource_library.index', self::$data + compact('subjects', 'selectedSubject', 'selectedSubjectId', 'groups', 'units'));
+        return null;
     }
 }

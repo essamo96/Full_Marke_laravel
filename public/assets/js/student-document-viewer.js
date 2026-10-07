@@ -38,6 +38,15 @@
     };
   }
 
+  // Our own refusals carry an Arabic `message` (e.g. "file unavailable"); framework defaults are English.
+  function failure(res, fallback) {
+    return res.json()
+      .then(function (body) { return body && body.message; }, function () { return null; })
+      .then(function (message) {
+        throw new Error(message && /[\u0600-\u06FF]/.test(message) ? message : fallback);
+      });
+  }
+
   /**
    * @param {Object} opts
    * @param {HTMLElement} opts.container - scroll container the pages + watermark mount into (must be position:relative)
@@ -57,7 +66,7 @@
 
     fetch(opts.fileUrl, { credentials: 'same-origin', headers: { Accept: 'application/pdf' } })
       .then(function (res) {
-        if (!res.ok) throw new Error('تعذّر تحميل الملف');
+        if (!res.ok) return failure(res, 'تعذّر تحميل الملف');
         return res.arrayBuffer();
       })
       .then(function (buffer) {

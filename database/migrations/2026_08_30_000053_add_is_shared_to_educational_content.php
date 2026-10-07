@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -21,24 +22,26 @@ return new class extends Migration
             $table->boolean('is_shared')->default(false)->after('allow_download');
         });
 
-        // Data preservation logic
-        $units = \App\Models\EducationalUnit::doesntHave('groups')->get();
-        foreach ($units as $unit) {
-            $unit->is_shared = true;
-            $unit->save();
-        }
+        // Data preservation logic.
+        //
+        // Plain query builder on purpose: the Eloquent models keep evolving
+        // (soft deletes, pivot columns...) and this migration runs *before* those
+        // columns exist on a fresh install, so it must not depend on the models.
+        DB::table('educational_units')
+            ->whereNotExists(fn ($q) => $q->from('educational_unit_group')
+                ->whereColumn('educational_unit_group.educational_unit_id', 'educational_units.id'))
+            ->update(['is_shared' => true]);
 
-        $lessons = \App\Models\EducationalLesson::doesntHave('groups')->get();
-        foreach ($lessons as $lesson) {
-            $lesson->is_shared = true;
-            $lesson->save();
-        }
+        DB::table('educational_lessons')
+            ->whereNotExists(fn ($q) => $q->from('educational_lesson_group')
+                ->whereColumn('educational_lesson_group.educational_lesson_id', 'educational_lessons.id'))
+            ->update(['is_shared' => true]);
 
-        $resources = \App\Models\SubjectResource::doesntHave('groups')->get();
-        foreach ($resources as $resource) {
-            $resource->is_shared = true;
-            $resource->save();
-        }
+        DB::table('subject_resources')
+            ->whereNull('deleted_at')
+            ->whereNotExists(fn ($q) => $q->from('group_subject_resource')
+                ->whereColumn('group_subject_resource.subject_resource_id', 'subject_resources.id'))
+            ->update(['is_shared' => true]);
     }
 
     /**

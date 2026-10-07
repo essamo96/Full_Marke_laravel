@@ -2,8 +2,10 @@
 
 namespace App\Traits;
 
-use Illuminate\Support\Facades\Crypt;
+use App\Support\RouteKey;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Crypt;
 
 trait EncryptsRouteKey
 {
@@ -30,17 +32,34 @@ trait EncryptsRouteKey
      */
     public function resolveRouteBinding($value, $field = null)
     {
-        $candidates = array_unique(array_filter([
-            $value,
-            rawurldecode((string) $value),
-            // Legacy keys were built with urlencode(); keep accepting them.
-            urldecode((string) $value),
-        ], fn ($candidate) => $candidate !== null && $candidate !== ''));
+        return $this->resolveEncryptedBinding($value, $field, false);
+    }
 
-        foreach ($candidates as $candidate) {
+    /**
+     * Same as resolveRouteBinding() but soft-deleted rows are found too. Laravel calls
+     * this for routes declared with ->withTrashed() (restore endpoints of the library).
+     *
+     * @param  mixed  $value
+     * @param  string|null  $field
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
+    public function resolveSoftDeletableRouteBinding($value, $field = null)
+    {
+        return $this->resolveEncryptedBinding($value, $field, true);
+    }
+
+    private function resolveEncryptedBinding($value, $field, bool $withTrashed)
+    {
+        foreach (RouteKey::candidates($value) as $candidate) {
             try {
                 $decryptedId = Crypt::decryptString($candidate);
-                $model = $this->where($field ?? $this->getRouteKeyName(), $decryptedId)->first();
+                $query = $this->newQuery();
+
+                if ($withTrashed && in_array(SoftDeletes::class, class_uses_recursive($this), true)) {
+                    $query->withTrashed();
+                }
+
+                $model = $query->where($field ?? $this->getRouteKeyName(), $decryptedId)->first();
                 if ($model) {
                     return $model;
                 }

@@ -15,7 +15,7 @@
         $sidebarTeacher = auth('teacher')->user();
         $openAcademic = request()->routeIs('teacher.subjects.*', 'teacher.groups.*', 'teacher.schedule.*');
         $openStudents = request()->routeIs('teacher.students.*');
-        $openContent = request()->routeIs('teacher.content.*');
+        $openContent = request()->routeIs('teacher.content.*', 'teacher.library.*');
         $openSessions = false;
         $openExams = request()->routeIs('teacher.exams.*', 'teacher.grading.*');
         $openFinance = request()->routeIs('teacher.finance.*');
@@ -78,6 +78,7 @@
         <div class="sidebar-submenu-wrapper {{ $openContent ? 'expanded' : '' }}" id="menuContent">
         <ul class="sidebar-submenu">
           <li><a href="{{ route('teacher.content.hub') }}" class="sidebar-submenu-item" data-en="Content Hub" data-ar="مركز المحتوى">Content Hub</a></li>
+          <li><a href="{{ route('teacher.library.index') }}" class="sidebar-submenu-item {{ request()->routeIs('teacher.library.*') ? 'active' : '' }}" data-en="Resource Library" data-ar="مكتبة الموارد">Resource Library</a></li>
           <li><a href="{{ route('teacher.content.index') }}" class="sidebar-submenu-item" data-en="Files" data-ar="الملفات التعليمية">Files</a></li>
           <li><a href="{{ route('teacher.content.index') }}" class="sidebar-submenu-item" data-en="Videos" data-ar="الفيديوهات">Videos</a></li>
           <li><a href="#" class="sidebar-submenu-item" data-en="Recordings" data-ar="التسجيلات">Recordings</a></li>

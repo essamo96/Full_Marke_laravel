@@ -122,18 +122,18 @@ document.getElementById('payRemainingForm')?.addEventListener('submit', function
   @if ($registration->status === 'fully_paid')
     <div class="glass-panel rounded-4 p-4">
       <h5 class="fw-bold mb-3" style="color: var(--text-primary);" data-en="Learning Resources" data-ar="الموارد التعليمية">Learning Resources</h5>
-      @forelse (($registration->subject?->resources ?? collect())->where('is_active', true) as $resource)
+      @forelse ($resources as $resource)
         @php
-            $isUrl = \Illuminate\Support\Str::startsWith($resource->url, ['http://', 'https://']);
-            $resUrl = $isUrl ? $resource->url : route('student.resources');
             $resIcon = match($resource->type) {
                 'video' => 'play-circle',
                 'document' => 'file-earmark-text',
+                'image' => 'image',
                 'zoom' => 'camera-video',
                 default => 'link-45deg',
             };
         @endphp
-        <a href="{{ $resUrl }}" target="_blank" class="d-flex align-items-center gap-2 mb-2 text-decoration-none">
+        {{-- Never a raw external URL here: every resource opens through the protected player. --}}
+        <a href="{{ route('student.resources') }}" class="d-flex align-items-center gap-2 mb-2 text-decoration-none">
           <i class="bi bi-{{ $resIcon }}"></i>
           <span style="color: var(--text-primary);">{{ $resource->title }}</span>
         </a>

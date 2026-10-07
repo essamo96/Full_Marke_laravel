@@ -9,6 +9,15 @@
   var LOAD_TIME_STORAGE_KEY = 'lessonVideoAvgLoadMs';
   var ytApiLoading = null;
 
+  // Our own refusals carry an Arabic `message` (e.g. "file unavailable"); framework defaults are English.
+  function failure(res, fallback) {
+    return res.json()
+      .then(function (body) { return body && body.message; }, function () { return null; })
+      .then(function (message) {
+        throw new Error(message && /[\u0600-\u06FF]/.test(message) ? message : fallback);
+      });
+  }
+
   function ensureStyles() {
     if (document.getElementById('secure-media-player-styles')) return;
     var style = document.createElement('style');
@@ -255,7 +264,7 @@
       headers: { 'X-CSRF-TOKEN': opts.csrfToken, 'Accept': 'application/json' },
     })
       .then(function (res) {
-        if (!res.ok) throw new Error('تعذّر بدء التشغيل');
+        if (!res.ok) return failure(res, 'تعذّر بدء التشغيل');
         return res.json();
       })
       .then(function (data) {
@@ -577,7 +586,7 @@
           credentials: 'same-origin',
           headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': opts.csrfToken },
         }).then(function (res) {
-          if (!res.ok) throw new Error('غير مصرح بتشغيل هذا المحتوى');
+          if (!res.ok) return failure(res, 'غير مصرح بتشغيل هذا المحتوى');
           return res.json();
         });
       })

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Registration;
 use App\Models\PaymentMethod;
 use App\Services\PaymentService;
+use App\Services\StudentContentGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -29,15 +30,24 @@ class RegistrationsController extends Controller
         return view('student.registrations.index', compact('registrations'));
     }
 
-    public function show(Registration $registration)
+    public function show(Registration $registration, StudentContentGate $gate)
     {
         $this->authorizeOwnership($registration);
 
-        $registration->load(['subject.program', 'group', 'paymentItems.payment', 'subject.resources']);
+        $registration->load(['subject.program', 'group', 'paymentItems.payment']);
+
+        // Only what THIS student may open. This page used to list every active resource of
+        // the subject (and print external links as raw <a href>), which showed excluded
+        // students - and students of other groups - the videos they must not see.
+        $resources = $registration->status === 'fully_paid'
+            ? $gate->visibleResources((int) $registration->student_id, (int) $registration->subject_id)
+                ->orderBy('subject_resources.title')
+                ->get(['subject_resources.id', 'subject_resources.title', 'subject_resources.type'])
+            : collect();
 
         $paymentMethods = PaymentMethod::active()->orderBy('sort_order')->get();
 
-        return view('student.registrations.show', compact('registration', 'paymentMethods'));
+        return view('student.registrations.show', compact('registration', 'paymentMethods', 'resources'));
     }
 
     public function payRemaining(Request $request, Registration $registration, PaymentService $service)

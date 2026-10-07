@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('students:delete-unverified')->hourly();
 Schedule::command('exams:notify-starting')->everyMinute();
+Schedule::command('library:cleanup-incoming')->dailyAt('03:30')->withoutOverlapping();

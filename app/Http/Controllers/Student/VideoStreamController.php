@@ -101,6 +101,7 @@ class VideoStreamController extends Controller
     public function startSession(Request $request, SubjectResource $resource)
     {
         $this->authorizeAccess($resource);
+        $this->ensureResourceFileExists($resource);
 
         abort_unless($resource->isVideo() && $resource->isReady(), 409, 'الفيديو غير جاهز للعرض بعد.');
 
@@ -212,7 +213,7 @@ class VideoStreamController extends Controller
             $log->update(['last_seen_at' => now()]);
         }
 
-        abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404);
+        $this->ensureResourceFileExists($resource);
 
         $path = Storage::disk('protected_videos')->path($resource->url);
 
@@ -240,7 +241,7 @@ class VideoStreamController extends Controller
             return redirect()->away($resource->url);
         }
         abort_if(! $resource->url, 404);
-        abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404);
+        $this->ensureResourceFileExists($resource);
 
         // Referer Protection: Block direct URL sharing or IDM downloads for documents and PDFs
         $referer = $request->headers->get('referer');
@@ -327,12 +328,7 @@ class VideoStreamController extends Controller
         }
 
         abort_unless($resource->url, 404);
-
-        if ($resource->isVideo()) {
-            abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404, 'الملف الأصلي غير متوفر للتحميل');
-        } else {
-            abort_unless(Storage::disk('protected_videos')->exists($resource->url), 404, 'الملف غير متوفر');
-        }
+        $this->ensureResourceFileExists($resource);
 
         return Storage::disk('protected_videos')->download(
             $resource->url,
