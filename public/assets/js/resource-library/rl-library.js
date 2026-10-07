@@ -59,7 +59,7 @@
           '<div class="rl-flex" id="rl-view-switch"></div></div>' +
         '<div class="rl-stats" id="rl-lib-stats"></div>' +
         '<div class="rl-toolbar" id="rl-lib-toolbar"></div>' +
-        '<div class="rl-table-wrap"><table class="rl-table" id="rl-lib-table"></table></div>';
+        '<div class="rl-table-wrap rl-table-wrap--cards"><table class="rl-table" id="rl-lib-table"></table></div>';
 
       paintToolbar();
     }
@@ -102,7 +102,7 @@
 
     function resourceCell(r) {
       return '<div class="rl-flex" style="flex-wrap:nowrap"><span class="rl-icon t-' + esc(r.type) + '"><i class="bi ' + esc(r.icon) + '"></i></span>' +
-        '<div style="min-width:0"><div class="rl-title" style="max-width:26rem" title="' + esc(r.title) + '">' + esc(r.title) + '</div>' +
+        '<div style="min-width:0"><div class="rl-title rl-title--clamp" title="' + esc(r.title) + '">' + esc(r.title) + '</div>' +
         '<div class="rl-sub">' + esc(r.type_label) + (r.size_label ? ' · ' + r.size_label : '') + (r.created_at ? ' · ' + r.created_at : '') + '</div>' +
         (r.file_missing && !S.trashed ? '<div class="rl-tags">' + RL.missingFileChip(r) + '</div>' : '') + '</div></div>';
     }
@@ -130,7 +130,7 @@
       }
 
       const on = r.state !== 'hidden';
-      return '<div class="rl-flex" style="flex-wrap:nowrap;gap:.25rem">' +
+      return '<div class="rl-row-actions">' +
         RL.switchEl(on, { title: RL.powerTitle(r, on), disabled: !r.can.toggle, raw: 'data-act="power"' }, r.state === 'partial' ? 'is-partial' : '') +
         '<button type="button" class="rl-btn rl-btn--icon rl-btn--ghost" data-act="preview" title="معاينة"><i class="bi bi-eye"></i></button>' +
         '<button type="button" class="rl-btn rl-btn--icon rl-btn--ghost" data-act="students" title="الطلاب والاستثناءات"><i class="bi bi-person-x"></i></button>' +
@@ -151,22 +151,23 @@
 
     // ----------------------------------------------------------------- table
 
+    // `label` names the cell when a narrow screen shows each row as a card (data-label)
     function columns() {
       const cols = [
-        { title: 'المورد', data: 'title', render: function (d, t, r) { return t === 'display' ? resourceCell(r) : d; } },
+        { title: 'المورد', data: 'title', className: 'rl-col-main', render: function (d, t, r) { return t === 'display' ? resourceCell(r) : d; } },
       ];
 
-      if (!S.subject) cols.push({ title: 'المادة', data: 'subject', render: function (d) { return esc(d); } });
+      if (!S.subject) cols.push({ title: 'المادة', label: 'المادة', data: 'subject', render: function (d) { return esc(d); } });
 
       cols.push({
-        title: 'الحالة', data: 'state_label',
+        title: 'الحالة', label: 'الحالة', data: 'state_label', className: 'rl-nowrap',
         render: function (d, t, r) { return t === 'display' ? '<span class="rl-chip rl-chip--' + esc(r.state_tone) + '">' + esc(d) + '</span>' : d; },
       });
 
       if (S.view === 'matrix') {
         S.groups.filter(function (g) { return cfg.isAdmin || g.mine; }).forEach(function (group) {
           cols.push({
-            title: esc(group.name), data: null, orderable: false, className: 'rl-matrix-cell',
+            title: esc(group.name), label: group.name, data: null, orderable: false, className: 'rl-matrix-cell',
             render: function (d, t, r) {
               if (t !== 'display') return '';
               const c = cellState(r, group);
@@ -174,16 +175,26 @@
             },
           });
         });
-        cols.push({ title: 'الأماكن', data: null, orderable: false, render: function (d, t, r) { return t === 'display' ? placesCell(r) : ''; } });
+        cols.push({ title: 'الأماكن', label: 'الأماكن', data: null, orderable: false, render: function (d, t, r) { return t === 'display' ? placesCell(r) : ''; } });
       } else {
-        cols.push({ title: 'الجمهور', data: null, orderable: false, render: function (d, t, r) { return t === 'display' ? audienceCell(r) : ''; } });
-        cols.push({ title: 'الأماكن', data: null, orderable: false, render: function (d, t, r) { return t === 'display' ? placesCell(r) : ''; } });
-        cols.push({ title: 'استثناءات', data: 'exclusions', className: 'text-center', render: function (d, t, r) { return t === 'display' ? (d ? '<button type="button" class="rl-chip rl-chip--excl" data-act="students"><i class="bi bi-person-x"></i> ' + d + '</button>' : '—') : d; } });
+        cols.push({ title: 'الجمهور', label: 'الجمهور', data: null, orderable: false, render: function (d, t, r) { return t === 'display' ? audienceCell(r) : ''; } });
+        cols.push({ title: 'الأماكن', label: 'الأماكن', data: null, orderable: false, render: function (d, t, r) { return t === 'display' ? placesCell(r) : ''; } });
+        cols.push({ title: 'استثناءات', label: 'استثناءات', data: 'exclusions', className: 'text-center', render: function (d, t, r) { return t === 'display' ? (d ? '<button type="button" class="rl-chip rl-chip--excl" data-act="students"><i class="bi bi-person-x"></i> ' + d + '</button>' : '—') : d; } });
       }
 
-      cols.push({ title: '', data: null, orderable: false, className: 'text-end', render: function (d, t, r) { return t === 'display' ? actionsCell(r) : ''; } });
+      cols.push({ title: '', data: null, orderable: false, className: 'text-end rl-col-actions', render: function (d, t, r) { return t === 'display' ? actionsCell(r) : ''; } });
+
+      cols.forEach(function (col) {
+        if (!col.label) return;
+        const render = col.render;
+        col.render = function (d, t, r, meta) { const out = render(d, t, r, meta); return t === 'display' ? '<div class="rl-cell-val">' + out + '</div>' : out; };
+      });
 
       return cols;
+    }
+
+    function labelCells(cells, cols) {
+      cells.forEach(function (td, i) { if (cols[i] && cols[i].label) td.setAttribute('data-label', cols[i].label); });
     }
 
     function paint() {
@@ -192,6 +203,7 @@
 
       const jq = window.jQuery;
       const tableEl = RL.$('#rl-lib-table', root);
+      tableEl.classList.toggle('rl-is-matrix', S.view === 'matrix');
 
       if (jq && jq.fn && jq.fn.DataTable) {
         // columns differ between views, so the table is rebuilt (the page is kept when only the rows change)
@@ -204,15 +216,19 @@
 
         if (S.table) { S.table.destroy(); tableEl.innerHTML = ''; S.table = null; }
 
+        const tableCols = columns();
         S.table = jq(tableEl).DataTable({
           data: S.rows,
-          columns: columns(),
+          columns: tableCols,
           autoWidth: false,
           pageLength: 25,
           lengthMenu: [10, 25, 50, 100],
           order: [],
           language: RL.AR_LANG,
-          createdRow: function (tr, data) { tr.className += ' rl-s-' + data.state; },
+          createdRow: function (tr, data, index, cells) {
+            tr.className += ' rl-s-' + data.state;
+            labelCells(Array.prototype.slice.call(cells), tableCols);
+          },
         });
         S.table.__signature = signature;
         return;
@@ -221,7 +237,11 @@
       // no DataTables on the page: plain table
       const cols = columns();
       tableEl.innerHTML = '<thead><tr>' + cols.map(function (c) { return '<th>' + c.title + '</th>'; }).join('') + '</tr></thead><tbody>' +
-        S.rows.map(function (r) { return '<tr data-key="' + esc(r.key) + '">' + cols.map(function (c) { return '<td class="' + (c.className || '') + '">' + (c.render ? c.render(r[c.data], 'display', r) : esc(r[c.data])) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody>';
+        S.rows.map(function (r) {
+          return '<tr class="rl-s-' + esc(r.state) + '" data-key="' + esc(r.key) + '">' + cols.map(function (c) {
+            return '<td class="' + (c.className || '') + '"' + (c.label ? ' data-label="' + esc(c.label) + '"' : '') + '>' + (c.render ? c.render(r[c.data], 'display', r) : esc(r[c.data])) + '</td>';
+          }).join('') + '</tr>';
+        }).join('') + '</tbody>';
     }
 
     // ----------------------------------------------------------------- events

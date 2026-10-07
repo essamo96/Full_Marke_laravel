@@ -85,6 +85,9 @@
 /* Main Content Layout */
 .dashboard-main {
   flex: 1;
+  /* a flex item never shrinks below its content by default: a wide table would stretch the page
+     past the screen and body's overflow-x:hidden would silently cut it off */
+  min-width: 0;
   margin-left: 280px;
   padding: 100px 24px 40px 24px;
   min-height: 100vh;
