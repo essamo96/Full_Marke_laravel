@@ -186,14 +186,15 @@
 
             confirmSubmit() {
                 Swal.fire({
-                    title: 'هل أنت متأكد من تسليم الامتحان؟',
-                    text: 'لن تتمكن من تعديل إجاباتك بعد التسليم.',
-                    icon: 'warning',
+                    title: 'تسليم الامتحان',
+                    text: 'في حال انتهائك من حل جميع الأسئلة اضغط على "تأكيد التسليم".',
+                    icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#c5a880',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'نعم، قم بالتسليم',
-                    cancelButtonText: 'إلغاء'
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'تأكيد التسليم',
+                    cancelButtonText: 'إلغاء التسليم',
+                    focusCancel: true,
                 }).then((result) => {
                     if (result.isConfirmed) {
                         submitExamForm();

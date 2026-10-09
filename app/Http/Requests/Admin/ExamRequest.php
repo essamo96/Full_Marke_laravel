@@ -71,6 +71,35 @@ class ExamRequest extends FormRequest
         ];
     }
 
+    /**
+     * A choice question saved without a correct option marks every student wrong (they all get 0),
+     * so require exactly one correct option among the options that are actually kept (non-empty text).
+     */
+    public function after(): array
+    {
+        return [
+            function ($validator) {
+                foreach ((array) $this->input('questions', []) as $index => $question) {
+                    if (! in_array($question['type'] ?? null, ['multiple_choice', 'true_false'], true)) {
+                        continue;
+                    }
+
+                    $correct = collect((array) ($question['options'] ?? []))
+                        ->filter(fn ($o) => is_array($o) && filled($o['option_text'] ?? null))
+                        ->filter(fn ($o) => filter_var($o['is_correct'] ?? false, FILTER_VALIDATE_BOOLEAN))
+                        ->count();
+
+                    if ($correct !== 1) {
+                        $validator->errors()->add(
+                            "questions.{$index}.options",
+                            'السؤال رقم '.((int) $index + 1).': يجب تحديد إجابة صحيحة واحدة.'
+                        );
+                    }
+                }
+            },
+        ];
+    }
+
     public function attributes(): array
     {
         return [

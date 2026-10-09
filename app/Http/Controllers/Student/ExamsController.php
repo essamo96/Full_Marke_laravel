@@ -116,12 +116,13 @@ class ExamsController extends Controller
         $data = $request->validate([
             'answers' => 'nullable|array',
             'begin' => 'nullable|boolean',
+            'begin_elapsed_ms' => 'nullable|integer|min:0|max:86400000',
         ]);
 
         $attempt = $drafts->attemptFor($exam, $student);
 
         if ($request->boolean('begin')) {
-            $drafts->begin($attempt);
+            $drafts->begin($attempt, (int) ($data['begin_elapsed_ms'] ?? 0), $exam->duration_minutes);
         }
 
         $stored = $attempt->answers ?? [];
@@ -145,16 +146,14 @@ class ExamsController extends Controller
         $this->authorizeExamAccess($exam, $student, $examGrants);
 
         $type = $request->input('type') === 'fullscreen_exit' ? 'fullscreen' : 'tab';
-        $cacheKey = "exam_violation_{$type}_{$student->id}_{$exam->id}";
 
-        $count = Cache::get($cacheKey, 0) + 1;
-        Cache::put($cacheKey, $count, now()->addDay());
+        $this->registerViolation($student, $exam, $type, $request->input('id'));
 
         $tabCount = Cache::get("exam_violation_tab_{$student->id}_{$exam->id}", 0);
         $fullscreenCount = Cache::get("exam_violation_fullscreen_{$student->id}_{$exam->id}", 0);
 
         return response()->json([
-            'count' => $count,
+            'count' => Cache::get("exam_violation_{$type}_{$student->id}_{$exam->id}", 0),
             'total' => $tabCount + $fullscreenCount,
         ]);
     }
@@ -179,6 +178,11 @@ class ExamsController extends Controller
         }
 
         $exam->load('questions.options');
+
+        // Violations the browser could not report while offline arrive with the submission.
+        foreach ($this->decodeViolations($request->input('pending_violations')) as $violation) {
+            $this->registerViolation($student, $exam, $violation['type'], $violation['id']);
+        }
 
         $state = $this->decodeState($request->input('answers_state'));
         $formAnswers = (array) $request->input('answers', []);
@@ -303,6 +307,37 @@ class ExamsController extends Controller
         }
 
         return redirect($url)->with($flashKey, $message);
+    }
+
+    /**
+     * Counts one proctoring violation. The browser gives every report a unique id, so a report
+     * that is sent twice (queued while offline, then flushed AND attached to the submission)
+     * is only ever counted once.
+     */
+    private function registerViolation($student, Exam $exam, string $type, ?string $id): void
+    {
+        if ($id !== null && $id !== '' && ! Cache::add("exam_violation_id_{$student->id}_{$exam->id}_".substr($id, 0, 64), 1, now()->addDay())) {
+            return;
+        }
+
+        // Atomic increment: a read-then-write here loses a violation when two requests (e.g. the
+        // flushed report and the submission) are handled by different workers at the same moment.
+        $cacheKey = "exam_violation_{$type}_{$student->id}_{$exam->id}";
+        Cache::add($cacheKey, 0, now()->addDay());
+        Cache::increment($cacheKey);
+    }
+
+    /** @return array<int, array{type: string, id: string}> */
+    private function decodeViolations(mixed $raw): array
+    {
+        $decoded = is_array($raw) ? $raw : (is_string($raw) && $raw !== '' ? json_decode($raw, true) : null);
+
+        return collect(is_array($decoded) ? $decoded : [])
+            ->filter(fn ($v) => is_array($v) && is_string($v['id'] ?? null) && $v['id'] !== '')
+            ->take(30)
+            ->map(fn ($v) => ['type' => ($v['type'] ?? '') === 'fullscreen_exit' ? 'fullscreen' : 'tab', 'id' => $v['id']])
+            ->values()
+            ->all();
     }
 
     /** @return array<string|int, mixed> */

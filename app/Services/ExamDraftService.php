@@ -6,6 +6,7 @@ use App\Models\Exam;
 use App\Models\ExamAttempt;
 use App\Models\Question;
 use App\Models\Student;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -33,10 +34,14 @@ class ExamDraftService
      */
     public function attemptFor(Exam $exam, Student $student): ExamAttempt
     {
-        return ExamAttempt::firstOrCreate(
-            ['exam_id' => $exam->id, 'student_id' => $student->id],
-            ['answers' => []]
-        );
+        $keys = ['exam_id' => $exam->id, 'student_id' => $student->id];
+
+        try {
+            return ExamAttempt::firstOrCreate($keys, ['answers' => []]);
+        } catch (UniqueConstraintViolationException) {
+            // two requests (e.g. page load + first autosave, or two tabs) raced to create it: the other one won
+            return ExamAttempt::where($keys)->firstOrFail();
+        }
     }
 
     /** A fresh attempt row (new id) replacing a finished one, e.g. when a grade was deleted to allow a retake. */
@@ -49,13 +54,26 @@ class ExamDraftService
         return ExamAttempt::create(['exam_id' => $examId, 'student_id' => $studentId, 'answers' => []]);
     }
 
-    /** Starts the countdown (idempotent); the server clock is the only authority. */
-    public function begin(ExamAttempt $attempt): ExamAttempt
+    /**
+     * Starts the countdown (idempotent); the server clock is the only authority.
+     *
+     * $elapsedMs is how long ago the student pressed "start" according to their browser: when that
+     * press happened while offline the request only arrives later, and the time spent in between
+     * must not be handed back to the student. It can only move the start earlier (never later than
+     * now, never earlier than one full exam duration).
+     */
+    public function begin(ExamAttempt $attempt, int $elapsedMs = 0, ?int $durationMinutes = null): ExamAttempt
     {
         if (! $attempt->started_at) {
             // Attempts that were already running before this feature existed keep their original start.
             $legacy = Cache::get('exam_start_'.$attempt->student_id.'_'.$attempt->exam_id);
-            $attempt->started_at = $legacy ? Carbon::parse($legacy) : now();
+
+            $elapsedSeconds = max(0, $elapsedMs) / 1000;
+            if ($durationMinutes) {
+                $elapsedSeconds = min($elapsedSeconds, $durationMinutes * 60);
+            }
+
+            $attempt->started_at = $legacy ? Carbon::parse($legacy) : now()->subMilliseconds((int) ($elapsedSeconds * 1000));
             $attempt->save();
         }
 

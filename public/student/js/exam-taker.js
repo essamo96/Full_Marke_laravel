@@ -113,6 +113,7 @@
         var inFlight = false;
         var failures = 0;
         var needBegin = false;
+        var startPressedAt = null; // device time of the "start" press, so a start made offline is not handed free time
         var stopped = false;
         var sessionExpired = false;
         var submitting = false;
@@ -121,12 +122,32 @@
         var deadline = null;     // epoch ms when time is up (timed exams)
         var timerHandle = null;
         var timeUpFired = false;
+        var SYNC_TIMEOUT_MS = cfg.syncTimeoutMs || 15000;
+        var SUBMIT_TIMEOUT_MS = cfg.submitTimeoutMs || 45000;
+
+        // Answer timestamps are expressed in SERVER time: students' device clocks are often wrong, and
+        // they get corrected (jump) exactly when the connection comes back. clockOffset = server - device.
+        var clockOffset = cfg.serverTime ? Number(cfg.serverTime) - nowFn() : 0;
 
         // ---------- state ----------
 
         function nextT() {
-            lastT = Math.max(nowFn(), lastT + 1);
+            // strictly increasing on this device, whatever the clock does
+            lastT = Math.max(nowFn() + clockOffset, lastT + 1);
             return lastT;
+        }
+
+        /** fetch that gives up after `ms` so one hung request on a bad connection can not block saving. */
+        function timedFetch(url, opts, ms) {
+            var Ctl = win.AbortController || (typeof AbortController !== 'undefined' ? AbortController : null);
+            var ctl = Ctl ? new Ctl() : null;
+            var timer = null;
+            if (ctl) {
+                opts.signal = ctl.signal;
+                timer = win.setTimeout(function () { ctl.abort(); }, ms);
+            }
+            var done = function () { if (timer) win.clearTimeout(timer); };
+            return { promise: doFetch(url, opts), done: done };
         }
 
         function persist() {
@@ -263,15 +284,18 @@
             if (stopped || sessionExpired || submitting) return Promise.resolve(false);
             if (inFlight) { scheduleSync(500); return Promise.resolve(false); }
 
-            var online = win.navigator ? win.navigator.onLine !== false : true;
-            if (!online) { setStatus('offline'); return Promise.resolve(false); }
-
+            // navigator.onLine is only a hint (it can be wrong behind VPNs / captive portals), so never
+            // skip the attempt because of it: a truly offline fetch fails instantly and is retried.
             inFlight = true;
             var sentVersion = version;
             // Only ship the answers when something changed; otherwise this is just a cheap clock/heartbeat check.
-            var payload = JSON.stringify({ answers: version !== syncedVersion ? state : {}, begin: needBegin });
+            var payload = JSON.stringify({
+                answers: version !== syncedVersion ? state : {},
+                begin: needBegin,
+                begin_elapsed_ms: needBegin && startPressedAt !== null ? Math.max(0, nowFn() - startPressedAt) : 0
+            });
 
-            return doFetch(cfg.draftUrl, {
+            var req = timedFetch(cfg.draftUrl, {
                 method: 'POST',
                 credentials: 'same-origin',
                 keepalive: !!opts.keepalive && payload.length < 60000,
@@ -282,7 +306,9 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: payload
-            }).then(function (res) {
+            }, SYNC_TIMEOUT_MS);
+
+            return req.promise.then(function (res) {
                 if (res.status === 409) {
                     return res.json().then(function (j) { stopped = true; if (j && j.redirect) navigate(j.redirect); return false; });
                 }
@@ -292,6 +318,7 @@
                     failures = 0;
                     if (needBegin && json.started) needBegin = false;
                     if (json.csrf) setCsrf(json.csrf);
+                    if (json.serverTime) clockOffset = Number(json.serverTime) - nowFn();
 
                     var merged = mergeStates(state, json.answers || {});
                     var changed = !statesEqual(merged, state);
@@ -313,6 +340,7 @@
                 scheduleSync(backoffDelay(failures - 1));
                 return false;
             }).then(function (ok) {
+                req.done();
                 inFlight = false;
                 return ok;
             });
@@ -391,6 +419,8 @@
                     fd.set('answers_state', JSON.stringify(state));
                     fd.set('auto_submitted', options.auto ? '1' : (fd.get('auto_submitted') || '0'));
                     fd.set('_token', csrf);
+                    var extra = hooks.extraSubmitFields ? hooks.extraSubmitFields() : null;
+                    if (extra) Object.keys(extra).forEach(function (k) { fd.set(k, extra[k]); });
                     return fd;
                 }
 
@@ -406,16 +436,18 @@
                 }
 
                 function post() {
-                    var online = win.navigator ? win.navigator.onLine !== false : true;
-                    if (!online) { retryLater(true); return; }
                     showOverlay(progressMessage, false);
 
-                    doFetch(cfg.submitUrl, {
+                    // A retry after a lost response is safe: the server answers "already submitted" with the same redirect.
+                    var req = timedFetch(cfg.submitUrl, {
                         method: 'POST',
                         credentials: 'same-origin',
                         headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
                         body: buildBody()
-                    }).then(function (res) {
+                    }, SUBMIT_TIMEOUT_MS);
+
+                    req.promise.then(function (res) {
+                        req.done();
                         if (res.status === 419 || res.status === 401 || res.redirected) {
                             // Answers stay on the device and on the server draft; the student has to log in again.
                             hideOverlay();
@@ -440,7 +472,10 @@
                                 resolve(false);
                             }
                         });
-                    }).catch(function () { retryLater(!(win.navigator ? win.navigator.onLine !== false : true)); });
+                    }).catch(function () {
+                        req.done();
+                        retryLater(!(win.navigator ? win.navigator.onLine !== false : true));
+                    });
                 }
 
                 post();
@@ -498,6 +533,7 @@
             /** Student pressed "start": arm the server countdown and begin our clock. */
             start: function () {
                 needBegin = !cfg.started;
+                if (needBegin && startPressedAt === null) startPressedAt = nowFn();
                 startTimer();
                 sync();
             },

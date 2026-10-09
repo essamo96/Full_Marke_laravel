@@ -205,6 +205,34 @@
         from { opacity: 1; }
         to { opacity: 0; visibility: hidden; }
     }
+    /* The start button must stand out clearly on the dark intro screen. */
+    #examStartBtn {
+        background: linear-gradient(135deg, #f1d27a 0%, #d4af37 55%, #c5a880 100%);
+        color: #111;
+        font-size: 1.35rem;
+        padding: 0.9rem 3rem;
+        min-width: 260px;
+        border: 2px solid rgba(255, 255, 255, 0.85);
+        box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.6), 0 8px 24px rgba(212, 175, 55, 0.35);
+        animation: examStartPulse 2s ease-in-out infinite;
+    }
+    #examStartBtn:hover,
+    #examStartBtn:focus-visible {
+        color: #000;
+        filter: brightness(1.08);
+        transform: translateY(-2px);
+    }
+    #examStartBtn:focus-visible {
+        outline: 3px solid #fff;
+        outline-offset: 3px;
+    }
+    @keyframes examStartPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.55), 0 8px 24px rgba(212, 175, 55, 0.35); }
+        50% { box-shadow: 0 0 0 12px rgba(212, 175, 55, 0), 0 8px 24px rgba(212, 175, 55, 0.35); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        #examStartBtn { animation: none; }
+    }
     #examSubmitOverlay.is-warning .spinner-border {
         color: #f59e0b !important;
     }
@@ -256,31 +284,43 @@
             }
         },
         beforeNavigate() { leavingForResult = true; },
+        // Violations the server has not acknowledged yet (made while offline) are attached to the submission.
+        extraSubmitFields() { return { pending_violations: JSON.stringify(pendingViolations) }; },
     });
 
     function submitExamForm(options) {
         return engine.submit(options || {});
     }
 
+    // Shown both when the student presses "submit" and when they try to leave the exam (back button).
+    const SUBMIT_PROMPT = 'في حال انتهائك من حل جميع الأسئلة اضغط على "تأكيد التسليم".';
+    let confirmOpen = false;
+
     function confirmSubmit() {
+        if (confirmOpen || autoSubmitting || engine.isSubmitting()) return;
+
         const unanswered = EXAM.questionIds.length - ExamTaker.countAnswered(engine.getState(), EXAM.questionIds);
-        const warning = unanswered > 0 ? `لم تجب على ${unanswered} سؤال. ` : '';
+        const warning = unanswered > 0 ? `تنبيه: لم تجب على ${unanswered} سؤال بعد.` : '';
 
         if (!hasSwal()) {
-            if (window.confirm(warning + 'هل أنت متأكد من تسليم الامتحان؟ لن تتمكن من تعديل إجاباتك بعد التسليم.')) submitExamForm();
+            if (window.confirm(SUBMIT_PROMPT + (warning ? '\n' + warning : '') + '\n\nموافق = تأكيد التسليم، إلغاء = إلغاء التسليم')) submitExamForm();
             return;
         }
 
+        confirmOpen = true;
         Swal.fire({
-            title: 'هل أنت متأكد من تسليم الامتحان؟',
-            text: warning + 'لن تتمكن من تعديل إجاباتك بعد التسليم.',
-            icon: 'warning',
+            title: 'تسليم الامتحان',
+            text: SUBMIT_PROMPT + (warning ? ' ' + warning : ''),
+            icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#c5a880',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'نعم، قم بالتسليم',
-            cancelButtonText: 'إلغاء'
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'تأكيد التسليم',
+            cancelButtonText: 'إلغاء التسليم',
+            reverseButtons: false,
+            focusCancel: true,
         }).then((result) => {
+            confirmOpen = false;
             if (result.isConfirmed) {
                 submitExamForm();
             }
@@ -291,7 +331,11 @@
 
     // ---- anti-cheat violations (kept working while offline: they are queued and sent on reconnect) ----
 
-    function postViolation(type) {
+    // Every violation gets a unique id so the server never counts one twice, even if it is both
+    // flushed after reconnecting and attached to the final submission.
+    const newViolationId = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+
+    function postViolation(violation) {
         return fetch(EXAM.violationUrl, {
             method: 'POST',
             headers: {
@@ -299,22 +343,29 @@
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ type: type })
+            body: JSON.stringify(violation)
         }).then(res => {
             if (!res.ok) throw new Error('http ' + res.status);
             return res.json();
         });
     }
 
+    let flushingViolations = false;
     function flushPendingViolations() {
-        if (!pendingViolations.length || !navigator.onLine) return;
-        const type = pendingViolations[0];
-        postViolation(type).then(() => {
-            pendingViolations.shift();
+        // navigator.onLine is only a hint, so just try; a failed attempt is retried on the next tick / online event
+        if (!pendingViolations.length || flushingViolations) return;
+        flushingViolations = true;
+        const violation = pendingViolations[0];
+        postViolation(violation).then(() => {
+            // the server counted it (or had already counted it): drop it, even if more were queued meanwhile
+            const i = pendingViolations.findIndex(v => v.id === violation.id);
+            if (i !== -1) pendingViolations.splice(i, 1);
+            flushingViolations = false;
             flushPendingViolations();
-        }).catch(() => {});
+        }).catch(() => { flushingViolations = false; });
     }
     window.addEventListener('online', flushPendingViolations);
+    setInterval(flushPendingViolations, 20000);
 
     function handleViolationTotal(total, message) {
         totalViolations = Math.max(totalViolations, total);
@@ -352,11 +403,13 @@
     function reportViolation(type, message) {
         if (!examStarted || autoSubmitting || engine.isSubmitting()) return;
 
-        postViolation(type).then(data => {
+        const violation = { type: type, id: newViolationId() };
+        postViolation(violation).then(data => {
             handleViolationTotal(data.total, message);
         }).catch(() => {
-            // No connection: count it locally so going offline is not a loophole, and report it later.
-            pendingViolations.push(type);
+            // No connection: count it locally so going offline is not a loophole; it is reported on
+            // reconnect or together with the submission, whichever comes first (the id prevents double counting).
+            pendingViolations.push(violation);
             handleViolationTotal(totalViolations + 1, message);
         });
     }
@@ -388,14 +441,14 @@
         }
     });
 
-    // Trap the browser back/forward buttons: keep re-pushing the current
-    // entry so navigating away requires an explicit tab close, and count the
-    // attempt as a violation like any other exit.
+    // Trap the browser back/forward buttons: keep re-pushing the current entry so the
+    // student never actually leaves, and offer to hand the exam in instead
+    // ("تأكيد التسليم" submits, "إلغاء التسليم" returns to the questions).
     history.pushState(null, '', location.href);
     window.addEventListener('popstate', () => {
         if (examStarted && !autoSubmitting) {
             history.pushState(null, '', location.href);
-            reportViolation('tab_switch', 'محاولة مغادرة صفحة الامتحان عبر زر الرجوع.');
+            confirmSubmit();
         }
     });
 

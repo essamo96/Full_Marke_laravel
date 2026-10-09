@@ -177,6 +177,25 @@ class ExamController extends AdminController
         return view('admin.exams.results', self::$data + compact('exam', 'students', 'grades', 'guestSubmissions'));
     }
 
+    /**
+     * Re-marks the exam's submitted grades against the current answer key (e.g. after the correct
+     * option was fixed). Grades and answers are only corrected, never deleted.
+     */
+    public function regrade(Exam $exam, \App\Services\ExamRegrader $regrader)
+    {
+        $report = $regrader->regradeExam($exam);
+
+        $message = $report['changed'] > 0
+            ? "تمت إعادة التصحيح: تم تحديث علامات {$report['changed']} من أصل {$report['checked']} طالب وفق مفتاح الإجابة الحالي."
+            : "تمت إعادة التصحيح: جميع العلامات ({$report['checked']}) مطابقة لمفتاح الإجابة الحالي، لا يوجد تغيير.";
+
+        if ($report['skipped'] > 0) {
+            $message .= " ({$report['skipped']} تسليم بدون إجابات مسجلة لم يتم تعديله.)";
+        }
+
+        return back()->with('success', $message);
+    }
+
     public function approveGrade(\App\Models\Grade $grade)
     {
         $grade->update(['admin_approved_at' => now()]);

@@ -36,12 +36,15 @@ const HTML = `
 `;
 
 /** Deterministic timers + clock so back-off and countdowns can be fast-forwarded. */
-function makeScheduler() {
+function makeScheduler(initialSkew = 0) {
     let now = 1_700_000_000_000;
+    let skew = initialSkew;       // device clock = true time + skew (wrong clocks, NTP jumps)
     let seq = 0;
     const timers = new Map();
     const api = {
-        now: () => now,
+        now: () => now + skew,        // what Date.now() would return on the student's device
+        trueNow: () => now,           // the server's clock
+        setSkew: (ms) => { skew = ms; },
         setTimeout: (fn, ms) => { const id = ++seq; timers.set(id, { fn, at: now + (ms || 0), every: null }); return id; },
         setInterval: (fn, ms) => { const id = ++seq; timers.set(id, { fn, at: now + ms, every: ms }); return id; },
         clearTimeout: (id) => timers.delete(id),
@@ -70,10 +73,10 @@ function respond(status, body, extra = {}) {
     return { status, ok: status >= 200 && status < 300, redirected: false, json: async () => body, ...extra };
 }
 
-function setup({ answers = {}, started = false, remainingSeconds = 3600, storageSeed = null, hooks = {} } = {}) {
+function setup({ answers = {}, started = false, remainingSeconds = 3600, storageSeed = null, hooks = {}, skew = 0, serverTime = null } = {}) {
     const dom = new JSDOM(HTML, { url: 'https://academy.test/student/exams/1/take' });
     const doc = dom.window.document;
-    const sched = makeScheduler();
+    const sched = makeScheduler(skew);
     const listeners = {};
     const store = new Map();
     if (storageSeed) store.set('fm_exam_1_7_5', JSON.stringify(storageSeed));
@@ -85,11 +88,12 @@ function setup({ answers = {}, started = false, remainingSeconds = 3600, storage
         addEventListener: (type, fn) => { (listeners[type] ||= []).push(fn); },
         removeEventListener: (type, fn) => { listeners[type] = (listeners[type] || []).filter((f) => f !== fn); },
         FormData: dom.window.FormData,
+        AbortController: dom.window.AbortController,
         location: { href: '' },
         dispatch: (type) => (listeners[type] || []).slice().forEach((fn) => fn({})),
     };
 
-    const server = { state: {}, remaining: remainingSeconds, started, calls: [], submits: [], mode: 'ok', submitMode: 'ok', holds: [] };
+    const server = { state: {}, remaining: remainingSeconds, started, calls: [], submits: [], accepted: [], mode: 'ok', submitMode: 'ok', holds: [] };
     Object.keys(answers).forEach((k) => { server.state[k] = answers[k]; });
 
     const fetchImpl = async (url, opts) => {
@@ -99,27 +103,34 @@ function setup({ answers = {}, started = false, remainingSeconds = 3600, storage
             if (server.mode === 'offline') throw new TypeError('Failed to fetch');
             if (server.mode === 'expired') return respond(419, {});
             if (server.mode === 'submitted') return respond(409, { submitted: true, redirect: '/results/9' });
+            if (server.mode === 'hang') {
+                return new Promise((resolve, reject) => { opts.signal.addEventListener('abort', () => reject(new Error('aborted'))); });
+            }
             if (server.mode === 'hold') {
                 return new Promise((resolve) => server.holds.push(() => {
                     server.state = ExamTaker.mergeStates(server.state, body.answers);
-                    resolve(respond(200, { answers: server.state, started: true, remainingSeconds: server.remaining, csrf: 'tok-2' }));
+                    resolve(respond(200, { answers: server.state, started: true, remainingSeconds: server.remaining, csrf: 'tok-2', serverTime: sched.trueNow() }));
                 }));
             }
             server.state = ExamTaker.mergeStates(server.state, body.answers);
             if (body.begin) server.started = true;
-            return respond(200, { answers: server.state, started: server.started, remainingSeconds: server.remaining, csrf: 'tok-2' });
+            return respond(200, { answers: server.state, started: server.started, remainingSeconds: server.remaining, csrf: 'tok-2', serverTime: sched.trueNow() });
         }
         // exam submit
         server.submits.push({ url, body: opts.body, headers: opts.headers });
+        if (server.submitMode === 'hang') {
+            return new Promise((resolve, reject) => { opts.signal.addEventListener('abort', () => reject(new Error('aborted'))); });
+        }
         if (server.submitMode === 'offline') throw new TypeError('Failed to fetch');
         if (server.submitMode === 'error') { server.submitMode = 'ok'; return respond(503, {}); }
         if (server.submitMode === 'expired') return respond(419, {});
+        server.accepted.push({ body: opts.body, headers: opts.headers });
         return respond(200, { submitted: true, redirect: '/results/1' });
     };
 
     const cfg = {
         examId: 1, studentId: 7, attemptId: 5, draftUrl: '/exams/1/draft', submitUrl: '/exams/1/submit',
-        questionIds: [1, 2, 3], answers, started, remainingSeconds, csrf: 'tok-1',
+        questionIds: [1, 2, 3], answers, started, remainingSeconds, csrf: 'tok-1', serverTime,
     };
     const storage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
     const engine = ExamTaker.init(cfg, { window: win, document: doc, fetch: fetchImpl, storage, now: sched.now }, hooks);
@@ -342,7 +353,7 @@ test('submitting offline waits for the connection and then hands the exam in onc
     const done = t.engine.submit({});
     await t.sched.advance(100);
 
-    assert.equal(t.server.submits.length, 0, 'nothing is posted while offline');
+    assert.equal(t.server.accepted.length, 0, 'the server received nothing while offline');
     const overlay = t.doc.getElementById('examSubmitOverlay');
     assert.ok(!overlay.classList.contains('d-none'));
     assert.match(t.doc.getElementById('examSubmitOverlayText').textContent, /تلقائياً فور عودة الاتصال/);
@@ -353,8 +364,8 @@ test('submitting offline waits for the connection and then hands the exam in onc
     await t.sched.advance(50);
     assert.equal(await done, true);
 
-    assert.equal(t.server.submits.length, 1, 'submitted exactly once');
-    const body = t.server.submits[0].body;
+    assert.equal(t.server.accepted.length, 1, 'submitted exactly once');
+    const body = t.server.accepted[0].body;
     const state = JSON.parse(body.get('answers_state'));
     assert.equal(state[1].v, '12');
     assert.equal(state[3].v, 'final essay');
@@ -445,4 +456,109 @@ test('session expiring during the final submit releases the screen and asks the 
     assert.equal(expired, 1);
     assert.ok(t.doc.getElementById('examSubmitOverlay').classList.contains('d-none'), 'overlay is gone so the login prompt is reachable');
     assert.equal(t.saved().answers[1].v, '11');
+});
+
+test('navigator.onLine wrongly reporting false never blocks saving or handing in', async () => {
+    const t = setup();
+    t.win.navigator.onLine = false;       // browser claims "offline" but the server is reachable (VPN / captive portal quirk)
+    t.engine.start();
+    await t.sched.advance(10);
+    t.pick(1, 12);
+    await t.sched.advance(500);
+    assert.equal(t.server.state[1].v, '12', 'saved even though onLine === false');
+
+    const done = t.engine.submit({});
+    await t.sched.advance(50);
+    assert.equal(await done, true);
+    assert.equal(t.server.accepted.length, 1);
+});
+
+test('a save request that hangs on a bad connection is aborted and retried instead of blocking all saving', async () => {
+    const t = setup();
+    t.engine.start();
+    await t.sched.advance(10);
+    t.server.mode = 'hang';
+    t.pick(1, 11);
+    await t.sched.advance(400);
+    assert.ok(t.server.calls.length >= 1, 'a request is in flight (and never answers)');
+
+    await t.sched.advance(16_000);        // longer than the 15s timeout: the hung request is aborted
+    t.server.mode = 'ok';
+    await t.sched.advance(10_000);        // the back-off retry goes through
+    assert.equal(t.server.state[1].v, '11', 'the answer finally reached the server');
+});
+
+test('a submit that hangs is aborted and retried until it gets through (exactly one accepted)', async () => {
+    const t = setup();
+    t.engine.start();
+    await t.sched.advance(10);
+    t.pick(2, 22);
+    t.server.submitMode = 'hang';
+
+    const done = t.engine.submit({});
+    await t.sched.advance(46_000);        // longer than the 45s submit timeout
+    assert.equal(t.server.accepted.length, 0);
+    t.server.submitMode = 'ok';
+    await t.sched.advance(10_000);
+    assert.equal(await done, true);
+    assert.equal(t.server.accepted.length, 1);
+    assert.equal(JSON.parse(t.server.accepted[0].body.get('answers_state'))[2].v, '22');
+});
+
+test('timestamps follow the SERVER clock even if the student device clock is an hour fast', async () => {
+    const TRUE_START = 1_700_000_000_000;
+    const t = setup({ skew: 3_600_000, serverTime: TRUE_START });   // device clock = server + 1h
+    t.engine.start();
+    await t.sched.advance(10);
+    t.pick(1, 11);
+    const stamp = t.saved().answers[1].t;
+    assert.ok(Math.abs(stamp - (TRUE_START + 10)) < 2000, `t=${stamp} should be near server time ${TRUE_START + 10}, not the device clock`);
+});
+
+test('a device clock that jumps BACKWARDS when the network returns can not make a newer answer look older', async () => {
+    const t = setup({ serverTime: 1_700_000_000_000 });
+    t.engine.start();
+    await t.sched.advance(10);
+    t.pick(1, 11);
+    await t.sched.advance(400);
+    const first = t.saved().answers[1].t;
+
+    // NTP corrects the device clock by -10 minutes right as the connection is restored; the server clock did not move
+    t.sched.setSkew(-600_000);
+    t.pick(1, 12);
+    const second = t.saved().answers[1].t;
+    assert.ok(second > first, 'second choice is stamped later than the first');
+
+    await t.sched.advance(500);
+    assert.equal(t.server.state[1].v, '12', 'the newer choice wins on the server');
+
+    // and the server clock is re-learned from the response, so later answers keep following server time
+    t.pick(1, 11);
+    assert.ok(t.saved().answers[1].t > second);
+});
+
+test('the page can attach extra fields (e.g. offline proctoring violations) to the final submission', async () => {
+    const t = setup({ hooks: { extraSubmitFields: () => ({ pending_violations: '[{"type":"tab_switch","id":"v1"}]' }) } });
+    t.engine.start();
+    await t.sched.advance(10);
+    const done = t.engine.submit({});
+    await t.sched.advance(50);
+    assert.equal(await done, true);
+    assert.equal(t.server.accepted[0].body.get('pending_violations'), '[{"type":"tab_switch","id":"v1"}]');
+});
+
+test('pressing start while OFFLINE: the start request reports how long ago it was pressed (no free time)', async () => {
+    const t = setup();
+    t.server.mode = 'offline';
+    t.win.navigator.onLine = false;
+    t.engine.start();                       // pressed offline
+    await t.sched.advance(20_000);          // 20s of exam time pass offline
+    t.server.mode = 'ok';
+    t.win.navigator.onLine = true;
+    t.win.dispatch('online');
+    await t.sched.advance(100);
+
+    const begin = t.server.calls.filter((c) => c.body.begin).pop();
+    assert.ok(begin, 'a begin request finally reached the server');
+    assert.ok(begin.body.begin_elapsed_ms >= 19_000 && begin.body.begin_elapsed_ms <= 25_000, `elapsed ${begin.body.begin_elapsed_ms}ms`);
 });

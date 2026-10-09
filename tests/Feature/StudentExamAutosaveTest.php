@@ -189,6 +189,24 @@ class StudentExamAutosaveTest extends TestCase
         $this->draft([], ['begin' => true])->assertJsonPath('remainingSeconds', 2400);
     }
 
+    public function test_a_start_registered_late_after_an_offline_period_gets_no_free_time(): void
+    {
+        Carbon::setTestNow('2026-10-09 12:00:00');
+
+        // the student pressed "start" 20s ago while offline; the request only reaches the server now
+        $this->draft([], ['begin' => true, 'begin_elapsed_ms' => 20000])->assertOk()->assertJsonPath('remainingSeconds', 3580);
+
+        // a start can never be back-dated by more than the exam length, nor into the future
+        $other = $this->makeStudent();
+        $this->enroll($other, $this->groupA);
+        $this->actingAs($other, 'student')
+            ->postJson(route('student.exams.draft', $this->exam), ['answers' => [], 'begin' => true, 'begin_elapsed_ms' => 86400000])
+            ->assertOk()->assertJsonPath('remainingSeconds', 0);
+        $this->actingAs($other, 'student')
+            ->postJson(route('student.exams.draft', $this->exam), ['answers' => [], 'begin' => true, 'begin_elapsed_ms' => -5])
+            ->assertStatus(422);
+    }
+
     public function test_time_never_goes_below_zero(): void
     {
         Carbon::setTestNow('2026-10-09 12:00:00');
@@ -326,6 +344,41 @@ class StudentExamAutosaveTest extends TestCase
         $this->assertFalse($state['started']);
         $this->assertSame(3600, $state['remainingSeconds']);
         $this->assertSame([], (array) $state['answers']);
+    }
+
+    public function test_a_violation_report_is_counted_once_even_if_it_is_sent_twice(): void
+    {
+        $this->actingAs($this->student, 'student');
+
+        $first = $this->postJson(route('student.exams.violation', $this->exam), ['type' => 'tab_switch', 'id' => 'abc-1'])->assertOk();
+        $again = $this->postJson(route('student.exams.violation', $this->exam), ['type' => 'tab_switch', 'id' => 'abc-1'])->assertOk();
+        $other = $this->postJson(route('student.exams.violation', $this->exam), ['type' => 'tab_switch', 'id' => 'abc-2'])->assertOk();
+
+        $this->assertSame(1, $first->json('total'));
+        $this->assertSame(1, $again->json('total'), 'the replayed report did not add a second violation');
+        $this->assertSame(2, $other->json('total'));
+    }
+
+    public function test_violations_made_while_offline_travel_with_the_submission_and_are_not_double_counted(): void
+    {
+        $this->actingAs($this->student, 'student');
+        // one of the three already reached the server before the connection dropped
+        $this->postJson(route('student.exams.violation', $this->exam), ['type' => 'tab_switch', 'id' => 'v1'])->assertOk();
+
+        $this->postJson(route('student.exams.submit', $this->exam), [
+            'auto_submitted' => 1,
+            'pending_violations' => json_encode([
+                ['type' => 'tab_switch', 'id' => 'v1'],          // already counted: ignored
+                ['type' => 'tab_switch', 'id' => 'v2'],
+                ['type' => 'fullscreen_exit', 'id' => 'v3'],
+                ['type' => 'tab_switch'],                        // no id: malformed, ignored
+            ]),
+        ])->assertOk();
+
+        $grade = Grade::where('exam_id', $this->exam->id)->firstOrFail();
+        $this->assertSame(2, (int) $grade->tab_switch_count);
+        $this->assertSame(1, (int) $grade->fullscreen_exit_count);
+        $this->assertTrue($grade->auto_submitted);
     }
 
     public function test_autosave_is_rate_limited_per_student_not_per_ip(): void

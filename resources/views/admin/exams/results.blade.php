@@ -21,6 +21,17 @@
                     <h3 class="fw-bold mb-1">الطلاب المسجلين في: {{ $exam->groupNames() }}</h3>
                     <div class="fs-6 fw-semibold text-muted">المادة: {{ $exam->subject->name }}</div>
                 </div>
+                @if($grades->isNotEmpty())
+                    <div class="card-toolbar">
+                        <form action="{{ route('exams.regrade', $exam) }}" method="POST"
+                              onsubmit="return confirm('سيتم إعادة احتساب علامات الطلاب الذين سلّموا هذا الامتحان وفق مفتاح الإجابة الحالي (دون حذف أي بيانات). متابعة؟');">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-light-warning">
+                                <i class="bi bi-arrow-repeat fs-4 me-1"></i> إعادة تصحيح الامتحان
+                            </button>
+                        </form>
+                    </div>
+                @endif
             </div>
             
             <div class="card-body pt-0">

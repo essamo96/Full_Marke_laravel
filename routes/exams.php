@@ -13,6 +13,7 @@ Route::prefix('exams')->name('exams.')->group(function () {
     Route::get('/{exam}/blank-pdf', [ExamController::class, 'blankPdf'])->name('blank-pdf');
     Route::delete('/{exam}', [ExamController::class, 'destroy'])->name('destroy');
     Route::get('/{exam}/results', [ExamController::class, 'results'])->name('results');
+    Route::post('/{exam}/regrade', [ExamController::class, 'regrade'])->name('regrade');
     Route::get('/grades/{grade}/answers', [ExamController::class, 'gradeAnswers'])->name('grades.answers');
     Route::post('/grades/{grade}/approve', [ExamController::class, 'approveGrade'])->name('grades.approve');
     Route::post('/{exam}/reorder-questions', [ExamController::class, 'reorderQuestions'])->name('reorder-questions');

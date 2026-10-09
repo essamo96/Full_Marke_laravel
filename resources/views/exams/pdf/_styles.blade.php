@@ -16,3 +16,4 @@
   .info .v { font-weight: bold; color: #0f172a; }
 
   .foot { font-size: 8.5pt; color: #64748b; }
+  .foot-contact { font-weight: bold; color: #0f172a; }

@@ -64,11 +64,14 @@
                             <a href="{{ route('student.results.show', $exam->grades->first()->id) }}" class="btn btn-sm btn-success rounded-pill">
                                 <i class="bi bi-check-circle-fill me-1"></i> تم التسليم
                             </a>
-                        @else
-                            <a href="{{ $isAvailable ? route('student.exams.take', $exam) : '#' }}" 
-                               class="btn btn-sm btn-gold rounded-pill {{ !$isAvailable ? 'disabled opacity-50' : '' }}">
+                        @elseif($isAvailable)
+                            <a href="{{ route('student.exams.take', $exam) }}" class="btn exam-start-btn rounded-pill">
                                 <i class="bi bi-play-circle-fill me-1"></i> بدء الامتحان
                             </a>
+                        @else
+                            <span class="btn exam-start-btn is-locked rounded-pill" aria-disabled="true">
+                                <i class="bi bi-lock-fill me-1"></i> بدء الامتحان
+                            </span>
                         @endif
                     </div>
                 </div>
@@ -84,3 +87,38 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Solid, high-contrast call to action that reads well in every theme (light / dark / gold). */
+    .exam-start-btn {
+        background: linear-gradient(135deg, #d4af37 0%, #c5a880 100%);
+        color: #111 !important;
+        border: none;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 0.55rem 1.4rem;
+        box-shadow: 0 4px 14px rgba(212, 175, 55, 0.45);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
+    .exam-start-btn:hover,
+    .exam-start-btn:focus-visible {
+        color: #000 !important;
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(212, 175, 55, 0.6);
+    }
+    .exam-start-btn:focus-visible {
+        outline: 3px solid rgba(212, 175, 55, 0.5);
+        outline-offset: 2px;
+    }
+    .exam-start-btn.is-locked {
+        background: #6b7280;
+        color: #f3f4f6 !important;
+        box-shadow: none;
+        cursor: not-allowed;
+        transform: none;
+        filter: none;
+    }
+</style>
+@endpush
