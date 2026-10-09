@@ -16,6 +16,17 @@ class ExamService
             $questions = $data['questions'] ?? null;
             unset($data['questions']);
 
+            // group_ids is the full target list; exams.group_id keeps the first one as the primary group.
+            $groupIds = $this->resolveGroupIds($data, $exam);
+            unset($data['group_ids']);
+            $data['group_id'] = $groupIds[0];
+
+            $exclusionsPosted = array_key_exists('excluded_student_ids', $data) || ! empty($data['exclusions_present']);
+            unset($data['exclusions_present']);
+            if ($exclusionsPosted) {
+                $data['excluded_student_ids'] = $this->normalizeIds($data['excluded_student_ids'] ?? []) ?: null;
+            }
+
             if (array_key_exists('allow_student_review', $data)) {
                 $data['allow_student_review'] = filter_var($data['allow_student_review'], FILTER_VALIDATE_BOOLEAN);
             }
@@ -26,12 +37,42 @@ class ExamService
                 $exam = Exam::create($data);
             }
 
+            $exam->groups()->sync($groupIds);
+            $exam->unsetRelation('groups');
+
             if (is_array($questions)) {
                 $this->syncQuestions($exam, $questions);
             }
 
             return $exam;
         });
+    }
+
+    /** @return array<int, int> non-empty list of target group ids */
+    protected function resolveGroupIds(array $data, ?Exam $exam): array
+    {
+        $ids = $this->normalizeIds($data['group_ids'] ?? ($data['group_id'] ?? []));
+
+        if ($ids === [] && $exam) {
+            $ids = $exam->allGroupIds();
+        }
+
+        if ($ids === []) {
+            throw new \InvalidArgumentException('An exam needs at least one target group.');
+        }
+
+        return $ids;
+    }
+
+    /** @return array<int, int> */
+    protected function normalizeIds(mixed $ids): array
+    {
+        return collect(is_array($ids) ? $ids : [$ids])
+            ->filter(fn ($id) => $id !== null && $id !== '' && is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

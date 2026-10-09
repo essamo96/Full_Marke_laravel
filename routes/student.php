@@ -67,6 +67,8 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('exams', [\App\Http\Controllers\Student\ExamsController::class, 'index'])->name('exams.index');
         Route::get('exams/{exam}/take', [\App\Http\Controllers\Student\ExamsController::class, 'take'])->name('exams.take');
         Route::post('exams/{exam}/submit', [\App\Http\Controllers\Student\ExamsController::class, 'submit'])->name('exams.submit');
+        // Autosave of the in-progress answers (also starts / re-syncs the server-side countdown).
+        Route::post('exams/{exam}/draft', [\App\Http\Controllers\Student\ExamsController::class, 'saveDraft'])->middleware('throttle:exam-draft')->name('exams.draft');
         Route::post('exams/{exam}/violation', [\App\Http\Controllers\Student\ExamsController::class, 'recordViolation'])->name('exams.violation');
         Route::get('results', [\App\Http\Controllers\Student\ResultsController::class, 'index'])->name('results.index');
         Route::get('results/{grade}', [\App\Http\Controllers\Student\ResultsController::class, 'show'])->name('results.show');

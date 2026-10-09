@@ -7,9 +7,10 @@ use App\Models\Group;
 use App\Models\Registration;
 use App\Models\Subject;
 use App\Models\Teacher;
-use App\Services\StudentContentGrantService;
+use App\Services\StudentGroupTransferService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use InvalidArgumentException;
 use Yajra\DataTables\Facades\DataTables;
 
 class GroupsController extends AdminController
@@ -193,27 +194,33 @@ class GroupsController extends AdminController
     }
 
     /**
-     * Groups the student can be transferred to: same subject (they've
-     * already paid into it via this registration), excluding the group
-     * they're currently in.
+     * Groups the student can be transferred to: every group of the same
+     * subject except the one they are currently in.
      */
     public function getTransferOptions($registrationId)
     {
-        $registration = Registration::with('group')->findOrFail(Crypt::decrypt($registrationId));
+        $registration = Registration::with('group')->findOrFail($this->resolvePlainOrEncryptedId($registrationId));
 
-        $groups = Group::where('subject_id', $registration->subject_id)
-            ->where('id', '!=', $registration->group_id)
+        $groups = Group::query()
+            ->with('teacher:id,name')
+            ->where('subject_id', $registration->subject_id)
+            ->when($registration->group_id, fn ($q) => $q->where('id', '!=', $registration->group_id))
+            ->orderByDesc('is_active')
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'teacher_id', 'start_time', 'end_time', 'is_active']);
 
         return response()->json([
             'success' => true,
             'current_group' => $registration->group->name ?? '-',
-            'groups' => $groups,
+            'groups' => $groups->map(fn (Group $group) => [
+                'id' => $group->id,
+                'name' => $group->name,
+                'label' => $this->transferGroupLabel($group),
+            ])->values(),
         ]);
     }
 
-    public function postTransferStudent(Request $request, StudentContentGrantService $grantService)
+    public function postTransferStudent(Request $request, StudentGroupTransferService $transferService)
     {
         $data = $request->validate([
             'registration_id' => 'required|exists:registrations,id',
@@ -223,26 +230,59 @@ class GroupsController extends AdminController
         $registration = Registration::findOrFail($data['registration_id']);
         $newGroup = Group::findOrFail($data['group_id']);
 
-        // A transfer only ever makes sense within the same subject — the
-        // student already paid into that subject, not into an arbitrary group.
-        if ($newGroup->subject_id !== $registration->subject_id) {
-            return response()->json(['success' => false, 'message' => 'المجموعة المختارة لا تتبع نفس المادة.'], 422);
+        try {
+            $transferService->transfer($registration, $newGroup);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
 
-        $oldGroupId = $registration->group_id;
+        return response()->json(['success' => true, 'message' => 'تم نقل الطالب إلى المجموعة الجديدة بنجاح مع ربط الدفعات ونقل العلامات والامتحانات المقدمة.']);
+    }
 
-        if ($oldGroupId) {
-            $grantService->grantPreviousGroupContentOnTransfer(
-                $registration->student_id,
-                $registration->subject_id,
-                (int) $oldGroupId,
-                (int) $newGroup->id
-            );
+    private function resolvePlainOrEncryptedId(mixed $value): int
+    {
+        if (is_numeric($value)) {
+            return (int) $value;
         }
 
-        $registration->update(['group_id' => $newGroup->id]);
+        try {
+            $decrypted = Crypt::decrypt($value);
+            if (is_numeric($decrypted)) {
+                return (int) $decrypted;
+            }
+        } catch (\Throwable) {
+            try {
+                $decrypted = Crypt::decryptString((string) $value);
+                if (is_numeric($decrypted)) {
+                    return (int) $decrypted;
+                }
+            } catch (\Throwable) {
+            }
+        }
 
-        return response()->json(['success' => true, 'message' => 'تم نقل الطالب إلى المجموعة الجديدة بنجاح مع الاحتفاظ بالمحتوى السابق.']);
+        abort(404);
+    }
+
+    private function transferGroupLabel(Group $group): string
+    {
+        $parts = [$group->name];
+
+        if ($group->teacher?->name) {
+            $parts[] = $group->teacher->name;
+        }
+
+        $time = trim(implode(' - ', array_filter([
+            $group->start_time ? substr((string) $group->start_time, 0, 5) : null,
+            $group->end_time ? substr((string) $group->end_time, 0, 5) : null,
+        ])));
+
+        if ($time !== '') {
+            $parts[] = $time;
+        }
+
+        $label = implode(' — ', $parts);
+
+        return $group->is_active ? $label : $label . ' (غير فعالة)';
     }
 
     /**

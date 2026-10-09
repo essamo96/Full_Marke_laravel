@@ -8,7 +8,7 @@
   @include('exams._styles')
 
   <h1 class="h3 fw-bold mb-1" style="color: var(--text-primary);">{{ $exam->title }}</h1>
-  <p class="text-muted mb-3">{{ $exam->group->name ?? '' }} — {{ $exam->subject->name ?? '' }}</p>
+  <p class="text-muted mb-3">{{ $exam->groupNames() }} — {{ $exam->subject->name ?? '' }}</p>
   <div class="tbtn-group mb-4">
     <a href="{{ route('teacher.exams.preview', $exam) }}" class="tbtn tbtn--preview"><i class="bi bi-eye"></i><span data-en="Preview exam" data-ar="معاينة الامتحان">معاينة الامتحان</span></a>
     <a href="{{ route('teacher.exams.blank-pdf', $exam) }}" class="tbtn tbtn--pdf"><i class="bi bi-file-earmark-pdf"></i><span data-en="Blank PDF" data-ar="نموذج PDF">نموذج PDF</span></a>
@@ -20,6 +20,7 @@
         <thead>
           <tr class="text-muted text-uppercase fs-7">
             <th data-en="Student" data-ar="الطالب">Student</th>
+            <th data-en="Group" data-ar="المجموعة">Group</th>
             <th data-en="Status" data-ar="الحالة">Status</th>
             <th data-en="Score" data-ar="العلامة">Score</th>
             <th data-en="Exits" data-ar="مرات الخروج">Exits</th>
@@ -31,6 +32,7 @@
             @php($grade = $grades->get($student->id))
             <tr>
               <td>{{ $student->full_name_ar ?? $student->full_name_en }}</td>
+              <td class="text-muted fs-7">{{ $student->registrations->pluck('group.name')->filter()->unique()->implode('، ') ?: '-' }}</td>
               <td>
                 @if($grade)
                   <span class="badge bg-success">تم التقديم</span>
@@ -61,7 +63,7 @@
               </td>
             </tr>
           @empty
-            <tr><td colspan="5" class="text-center text-muted py-4" data-en="No students in this group." data-ar="لا يوجد طلاب في هذه المجموعة.">لا يوجد طلاب في هذه المجموعة.</td></tr>
+            <tr><td colspan="6" class="text-center text-muted py-4" data-en="No students in this group." data-ar="لا يوجد طلاب في هذه المجموعة.">لا يوجد طلاب في هذه المجموعة.</td></tr>
           @endforelse
         </tbody>
       </table>

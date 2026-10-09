@@ -24,6 +24,21 @@ class Group extends Model
         'end_date' => 'date',
     ];
 
+    protected static function booted(): void
+    {
+        // exams.group_id (the primary group) cascades on delete. An exam published to
+        // several groups must survive losing its primary one: hand it to another group first.
+        static::deleting(function (Group $group) {
+            Exam::query()->where('group_id', $group->id)->get()->each(function (Exam $exam) use ($group) {
+                $otherGroupId = $exam->groups()->where('groups.id', '!=', $group->id)->value('groups.id');
+
+                if ($otherGroupId) {
+                    $exam->update(['group_id' => $otherGroupId]);
+                }
+            });
+        });
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', 1);

@@ -23,7 +23,7 @@
           @forelse($exams as $exam)
             <tr>
               <td>{{ $exam->title }}</td>
-              <td>{{ $exam->group->name ?? '' }}</td>
+              <td>{{ $exam->groupNames() }}</td>
               <td>{{ $submissionCounts[$exam->id] ?? 0 }}</td>
               <td><a href="{{ route('teacher.grading.exam', $exam) }}" class="btn btn-sm btn-outline-primary" data-en="Review" data-ar="مراجعة">مراجعة</a></td>
             </tr>

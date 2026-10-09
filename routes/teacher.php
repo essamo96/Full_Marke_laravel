@@ -50,6 +50,7 @@ Route::prefix('teacher')->name('teacher.')->group(function () {
         Route::post('exams/{exam}/reorder-questions', [ExamController::class, 'reorderQuestions'])->name('exams.reorder-questions');
         Route::get('exams/ajax/subject/{subject}/groups', [ExamController::class, 'getSubjectGroups'])->name('exams.ajax.subject-groups');
         Route::get('exams/ajax/group/{groupId}/students', [ExamController::class, 'getGroupStudents'])->name('exams.ajax.group-students');
+        Route::get('exams/ajax/groups/students', [ExamController::class, 'getGroupsStudents'])->name('exams.ajax.groups-students');
 
         Route::get('grading', [GradingController::class, 'index'])->name('grading.index');
         Route::get('grading/exams/{exam}', [GradingController::class, 'exam'])->name('grading.exam');

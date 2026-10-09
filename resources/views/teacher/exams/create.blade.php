@@ -86,6 +86,7 @@
     @include('admin.exams.form', [
         'subjectGroupsAjaxBase' => '/teacher/exams/ajax/subject',
         'groupStudentsAjaxBase' => '/teacher/exams/ajax/group',
+        'groupsStudentsAjaxUrl' => route('teacher.exams.ajax.groups-students'),
         'examReorderRouteName' => 'teacher.exams.reorder-questions',
         'preselectedGroupId' => $preselectedGroupId ?? null,
         'preselectedSubjectId' => $preselectedSubjectId ?? null,

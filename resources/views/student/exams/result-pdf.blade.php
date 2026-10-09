@@ -1,226 +1,137 @@
+@php
+    use App\Support\ArabicMpdf;
+    use App\Support\ExamPaper;
+
+    $letters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
+    $ar = fn ($n) => ArabicMpdf::digits($n);
+    // 5.00 -> 5, 2.50 -> 2.5 (marks may be fractional once an essay is graded by hand)
+    $num = fn ($n) => $ar(rtrim(rtrim(number_format((float) $n, 2, '.', ''), '0'), '.') ?: '0');
+
+    $studentName = $grade->student?->full_name_ar ?: ($grade->student?->full_name_en ?: '—');
+    $answers = $grade->answers->sortBy(fn ($a) => $a->question?->sort_order ?? 0)->values();
+    $percent = (float) $grade->max_score > 0 ? round(((float) $grade->score / (float) $grade->max_score) * 100) : 0;
+@endphp
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <title>نتيجة الامتحان - {{ $grade->exam_name }}</title>
-  <style>
-    @page { margin: 28px 32px; }
-    * { box-sizing: border-box; }
-    body {
-      font-family: DejaVu Sans, sans-serif;
-      font-size: 12px;
-      color: #1f2937;
-      /* DomPDF lacks native Arabic shaping; Ar-PHP glyphs expect LTR flow. */
-      direction: ltr;
-      text-align: right;
-      line-height: 1.6;
-    }
-    .header {
-      width: 100%;
-      border-bottom: 2px solid #c9a227;
-      padding-bottom: 14px;
-      margin-bottom: 18px;
-    }
-    .header-table { width: 100%; border-collapse: collapse; }
-    .header-table td { vertical-align: middle; }
-    .logo { height: 62px; width: auto; }
-    .brand {
-      text-align: left;
-      color: #6b7280;
-      font-size: 11px;
-    }
-    .brand-title {
-      color: #111827;
-      font-size: 15px;
-      font-weight: bold;
-      margin-bottom: 2px;
-    }
-    h1 {
-      font-size: 18px;
-      margin: 0 0 10px;
-      color: #111827;
-    }
-    .meta-box {
-      width: 100%;
-      background: #f8fafc;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      padding: 12px 14px;
-      margin-bottom: 14px;
-    }
-    .meta-table { width: 100%; border-collapse: collapse; }
-    .meta-table td { padding: 3px 0; vertical-align: top; }
-    .meta-label { color: #6b7280; width: 90px; }
-    .score-box {
-      text-align: center;
-      padding: 14px;
-      margin: 0 0 18px;
-      background: #fffbeb;
-      border: 1px solid #f59e0b;
-      border-radius: 6px;
-    }
-    .score-label {
-      color: #92400e;
-      font-size: 12px;
-      margin-bottom: 4px;
-    }
-    .score-value {
-      font-size: 26px;
-      font-weight: bold;
-      color: #111827;
-    }
-    h2 {
-      font-size: 14px;
-      margin: 0 0 10px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #e5e7eb;
-      color: #111827;
-    }
-    .q {
-      margin-bottom: 12px;
-      padding: 12px;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      page-break-inside: avoid;
-      background: #fff;
-    }
-    .q-head { margin-bottom: 8px; }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      margin-right: 6px;
-    }
-    .ok { background: #dcfce7; color: #166534; }
-    .bad { background: #fee2e2; color: #991b1b; }
-    .pending { background: #e5e7eb; color: #374151; }
-    .points { color: #6b7280; font-size: 11px; }
-    .q-content { margin: 8px 0 10px; }
-    .opt {
-      margin: 4px 0;
-      padding: 6px 8px;
-      border-radius: 4px;
-      border: 1px solid transparent;
-    }
-    .opt-correct { background: #ecfdf5; border-color: #a7f3d0; }
-    .opt-wrong { background: #fef2f2; border-color: #fecaca; }
-    .opt-note { color: #6b7280; font-size: 10px; }
-    .essay {
-      background: #f9fafb;
-      border: 1px dashed #d1d5db;
-      border-radius: 4px;
-      padding: 8px;
-      margin-top: 6px;
-    }
-    .footer {
-      margin-top: 22px;
-      padding-top: 10px;
-      border-top: 1px solid #e5e7eb;
-      color: #9ca3af;
-      font-size: 10px;
-      text-align: center;
-    }
-  </style>
+<meta charset="utf-8">
+<title>نتيجة الامتحان - {{ $grade->exam_name }}</title>
+<style>
+@include('exams.pdf._styles')
+
+  .score { border: .8pt solid #7dd3fc; background-color: #f0f9ff; margin-bottom: 12pt; }
+  .score td { text-align: center; padding: 7pt 6pt; }
+  .score .k { font-size: 9pt; color: #64748b; }
+  .score .big { font-size: 18pt; font-weight: bold; color: #0f172a; }
+
+  .section { font-size: 12.5pt; font-weight: bold; color: #0f172a; border-bottom: .6pt solid #cbd5e1; padding-bottom: 3pt; margin: 4pt 0 9pt; }
+
+  .q { margin-bottom: 11pt; page-break-inside: avoid; }
+  .q-head td { vertical-align: top; }
+  .q-no { width: 24pt; font-weight: bold; color: #0284c7; font-size: 11pt; }
+  .q-text { font-size: 11pt; font-weight: bold; color: #111827; }
+  .q-state { width: 100pt; text-align: left; font-size: 8.5pt; color: #64748b; }
+  .ok { color: #15803d; font-weight: bold; }
+  .bad { color: #b91c1c; font-weight: bold; }
+  .wait { color: #b45309; font-weight: bold; }
+
+  .opts { margin-top: 3pt; }
+  .opts td { padding: 2.5pt 0; vertical-align: top; }
+  .opt-l { width: 28pt; text-align: center; }
+  .bub { text-align: center; font-size: 10.5pt; font-weight: bold; color: #0284c7; }
+  .opt-t { font-size: 10.5pt; padding-right: 6pt; }
+  .opt-tag { width: 92pt; text-align: left; font-size: 8.5pt; padding-left: 4pt; }
+  .row-correct td { background-color: #ecfdf5; }
+  .row-wrong td { background-color: #fef2f2; }
+  .row-correct .bub { color: #15803d; }
+  .row-wrong .bub { color: #b91c1c; }
+
+  .essay-lbl { font-size: 9pt; color: #64748b; margin-top: 2pt; }
+  .essay { border: .7pt dashed #94a3b8; background-color: #f8fafc; padding: 6pt 8pt; margin-top: 2pt; font-size: 10.5pt; }
+</style>
 </head>
 <body>
+
+@include('exams.pdf._footer', ['footerTitle' => 'نتيجة الامتحان — '.$grade->exam_name.' — '.$studentName])
+
+@include('exams.pdf._header', ['logo' => $logo, 'docLabel' => 'نتيجة الامتحان', 'docDate' => optional($grade->created_at)->format('Y/m/d')])
+
+<div class="title">{{ $grade->exam_name }}</div>
+
+<table class="info">
+  <tr>
+    <td><span class="k">الطالب:</span> <span class="v">{{ $studentName }}</span></td>
+    <td><span class="k">المجموعة:</span> <span class="v">{{ $grade->group?->name ?? '-' }}</span></td>
+  </tr>
+  <tr>
+    <td style="border-bottom:0;"><span class="k">تاريخ التسليم:</span> <span class="v" dir="ltr">{{ $ar(optional($grade->created_at)->format('Y/m/d H:i')) }}</span></td>
+    <td style="border-bottom:0;"><span class="k">المدة المستغرقة:</span> <span class="v">{{ $grade->time_taken_minutes !== null ? $ar($grade->time_taken_minutes).' دقيقة' : '-' }}</span></td>
+  </tr>
+</table>
+
+<table class="score">
+  <tr>
+    <td style="width:50%;"><div class="k">الدرجة النهائية</div><div class="big">{{ $num($grade->score) }} من {{ $num($grade->max_score) }}</div></td>
+    <td style="width:50%;"><div class="k">النسبة المئوية</div><div class="big">{{ $ar($percent) }}٪</div></td>
+  </tr>
+</table>
+
+<div class="section">تفاصيل الإجابات</div>
+
+@foreach($answers as $i => $answer)
   @php
-    $logoPath = public_path('site/images/logo_v2_gold.png');
-    if (! is_file($logoPath)) {
-        $logoPath = public_path('site/images/logo_v2_blue.png');
-    }
-    $logoSrc = null;
-    if (is_file($logoPath)) {
-        $logoSrc = 'data:image/png;base64,'.base64_encode((string) file_get_contents($logoPath));
-    }
-    $studentName = $grade->student?->full_name_ar ?: ($grade->student?->full_name_en ?: '—');
+      $q = $answer->question;
+      $isEssay = $q?->type === 'essay';
+      $answered = $isEssay ? filled($answer->essay_answer) : $answer->selected_option_id !== null;
   @endphp
-
-  <div class="header">
-    <table class="header-table">
-      <tr>
-        <td class="brand" style="width: 70%; text-align: right;">
-          <div class="brand-title">Full Mark Academy</div>
-          <div>أكاديمية العلامة الكاملة</div>
-          <div>نتيجة الامتحان</div>
-        </td>
-        <td style="width: 30%; text-align: left;">
-          @if($logoSrc)
-            <img class="logo" src="{{ $logoSrc }}" alt="Full Mark Academy">
-          @endif
-        </td>
-      </tr>
-    </table>
-  </div>
-
-  <h1>{{ $grade->exam_name }}</h1>
-
-  <div class="meta-box">
-    <table class="meta-table">
-      <tr>
-        <td class="meta-label">الطالب:</td>
-        <td>{{ $studentName }}</td>
-      </tr>
-      <tr>
-        <td class="meta-label">المجموعة:</td>
-        <td>{{ $grade->group?->name ?? '—' }}</td>
-      </tr>
-      <tr>
-        <td class="meta-label">التاريخ:</td>
-        <td>{{ optional($grade->created_at)->format('Y-m-d H:i') }}</td>
-      </tr>
-    </table>
-  </div>
-
-  <div class="score-box">
-    <div class="score-label">الدرجة النهائية</div>
-    <div class="score-value">{{ $grade->score }} / {{ $grade->max_score }}</div>
-  </div>
-
-  <h2>تفاصيل الإجابات</h2>
-
-  @foreach($grade->answers->sortBy(fn ($a) => $a->question?->sort_order ?? 0)->values() as $i => $answer)
-    <div class="q">
-      <div class="q-head">
-        <strong>سؤال {{ $i + 1 }}</strong>
+  <div class="q">
+    <table class="q-head"><tr>
+      <td class="q-no">{{ $ar($i + 1) }}</td>
+      <td class="q-text">{!! ExamPaper::plain($q?->content) !!}</td>
+      <td class="q-state">
         @if($answer->is_correct === true)
-          <span class="badge ok">صحيح</span>
+          <span class="ok">صحيحة</span>
         @elseif($answer->is_correct === false)
-          <span class="badge bad">خاطئ</span>
+          <span class="bad">{{ $answered ? 'خاطئة' : 'بدون إجابة' }}</span>
         @else
-          <span class="badge pending">قيد التصحيح</span>
+          <span class="wait">{{ $answered ? 'بانتظار التصحيح' : 'بدون إجابة' }}</span>
         @endif
-        <span class="points">({{ $answer->points_earned !== null ? $answer->points_earned : '؟' }} / {{ $answer->question?->points }})</span>
+        <br>{{ $answer->points_earned !== null ? $num($answer->points_earned) : '؟' }} من {{ $num($q?->points ?? 0) }} درجة
+      </td>
+    </tr></table>
+
+    @if($isEssay)
+      <div style="margin-right:24pt;">
+        <div class="essay-lbl">إجابتك:</div>
+        <div class="essay">{!! $answered ? ExamPaper::plain($answer->essay_answer) : '—' !!}</div>
       </div>
-
-      <div class="q-content">{!! strip_tags($answer->question?->content ?? '', '<br><p><b><strong><i><ul><ol><li>') !!}</div>
-
-      @if($answer->question?->type === 'essay')
-        <div><strong>إجابة الطالب:</strong></div>
-        <div class="essay">{{ $answer->essay_answer ?: '—' }}</div>
-      @else
-        @foreach($answer->question?->options ?? [] as $option)
+    @else
+      <table class="opts" style="width:94%; margin-right:24pt;">
+        @foreach(($q?->options ?? []) as $k => $opt)
           @php
-            $isSelected = $option->id === $answer->selected_option_id;
-            $isCorrectOpt = (bool) $option->is_correct;
+              $isSelected = (int) $opt->id === (int) $answer->selected_option_id;
+              $isCorrectOpt = (bool) $opt->is_correct;
+              $optHtml = ExamPaper::plain($opt->option_text);
+              $isLtr = ! preg_match('/\p{Arabic}/u', strip_tags($optHtml));
           @endphp
-          <div class="opt {{ $isCorrectOpt ? 'opt-correct' : ($isSelected ? 'opt-wrong' : '') }}">
-            {{ $isCorrectOpt ? '✓' : ($isSelected ? '✗' : '○') }}
-            {!! strip_tags($option->option_text, '<b><strong><i>') !!}
-            @if($isSelected)
-              <span class="opt-note"> (إجابة الطالب)</span>
-            @endif
-            @if($isCorrectOpt && ! $isSelected)
-              <span class="opt-note"> (الصحيحة)</span>
-            @endif
-          </div>
+          <tr class="{{ $isCorrectOpt ? 'row-correct' : ($isSelected ? 'row-wrong' : '') }}">
+            <td class="opt-l"><span class="bub">{{ $letters[$k] ?? '' }}</span></td>
+            <td class="opt-t"@if($isLtr) dir="ltr" style="text-align:right;"@endif>{!! $optHtml !!}</td>
+            <td class="opt-tag">
+              @if($isSelected && $isCorrectOpt)
+                <span class="ok">إجابتك (صحيحة)</span>
+              @elseif($isSelected)
+                <span class="bad">إجابتك</span>
+              @elseif($isCorrectOpt)
+                <span class="ok">الإجابة الصحيحة</span>
+              @endif
+            </td>
+          </tr>
         @endforeach
-      @endif
-    </div>
-  @endforeach
-
-  <div class="footer">
-    Full Mark Academy — تم إنشاء هذا الملف تلقائياً من نظام الأكاديمية
+      </table>
+    @endif
   </div>
+@endforeach
+
 </body>
 </html>

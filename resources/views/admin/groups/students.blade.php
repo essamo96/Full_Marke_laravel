@@ -78,7 +78,7 @@
                     <input type="hidden" id="transfer_registration_id">
                     <p class="text-muted fs-7 mb-3">المجموعة الحالية: <strong id="transfer_current_group">-</strong></p>
                     <div class="alert alert-info fs-7 py-2">
-                        سيحتفظ الطالب بمحتوى مجموعته الحالية (فيديوهات وملفات غير مشتركة) بالإضافة إلى محتوى المجموعة الجديدة.
+                        ستظهر كل مجموعات نفس المادة ما عدا المجموعة الحالية. عند النقل تُربط دفعات الطالب بالمجموعة الجديدة، وتُنقل علاماته والامتحانات التي قدّمها من المجموعة السابقة، مع الاحتفاظ بمحتوى المجموعة الحالية.
                     </div>
                     <div id="transfer_no_groups_msg" class="alert alert-warning d-none">لا توجد مجموعات أخرى متاحة لنفس المادة.</div>
                     <div class="mb-3" id="transfer_group_select_wrap">
@@ -253,7 +253,10 @@ $(document).ready(function() {
                     return;
                 }
                 response.groups.forEach(function (g) {
-                    $('#transfer_group_id').append('<option value="' + g.id + '">' + g.name + '</option>');
+                    $('#transfer_group_id').append($('<option>', {
+                        value: g.id,
+                        text: g.label || g.name
+                    }));
                 });
                 $('#confirm_transfer_btn').prop('disabled', false);
             },

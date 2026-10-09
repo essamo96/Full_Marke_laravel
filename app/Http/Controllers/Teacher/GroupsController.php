@@ -57,7 +57,7 @@ class GroupsController extends Controller
 
         $notes = $group->notes()->whereNull('student_id')->latest()->get();
 
-        $exams = \App\Models\Exam::where('group_id', $group->id)->latest()->get();
+        $exams = \App\Models\Exam::forGroups([$group->id])->latest()->get();
 
         $topStudents = \App\Models\Grade::where('group_id', $group->id)
             ->with('student')

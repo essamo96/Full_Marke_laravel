@@ -13,7 +13,7 @@
     <div class="card-header align-items-center py-5 gap-2">
         <div class="card-title flex-column">
             <h3 class="fw-bold mb-1">{{ $exam->title }}</h3>
-            <div class="fs-6 text-muted">{{ $exam->subject->name ?? '' }} · {{ $exam->group->name ?? '' }} · {{ $exam->questions->count() }} سؤال</div>
+            <div class="fs-6 text-muted">{{ $exam->subject->name ?? '' }} · {{ $exam->groupNames() }} · {{ $exam->questions->count() }} سؤال</div>
         </div>
         <div class="card-toolbar">
             <a href="{{ $pdfRoute }}" class="btn btn-danger"><i class="bi bi-file-earmark-pdf me-1"></i> تحميل نموذج فارغ PDF</a>

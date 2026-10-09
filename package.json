@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test:js": "node --test \"tests/js/**/*.test.cjs\""
     },
     "devDependencies": {
         "@popperjs/core": "^2.11.6",
@@ -12,6 +13,7 @@
         "axios": "^1.11.0",
         "bootstrap": "^5.2.3",
         "concurrently": "^9.0.1",
+        "jsdom": "^30.0.1",
         "laravel-vite-plugin": "^2.0.0",
         "sass": "^1.56.1",
         "tailwindcss": "^4.0.0",

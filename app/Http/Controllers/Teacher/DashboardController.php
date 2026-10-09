@@ -42,9 +42,9 @@ class DashboardController extends Controller
 
         $totalStudents = $groups->sum('students_count');
 
-        $upcomingExams = Exam::whereIn('group_id', $groupIds)
+        $upcomingExams = Exam::forGroups($groupIds)
             ->where('status', 'published')
-            ->with(['group', 'subject'])
+            ->with(['group', 'groups', 'subject'])
             ->orderBy('start_time')
             ->limit(10)
             ->get();

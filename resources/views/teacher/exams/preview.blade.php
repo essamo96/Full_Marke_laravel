@@ -8,7 +8,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
       <h1 class="h3 fw-bold mb-0" style="color: var(--text-primary);">{{ $exam->title }}</h1>
-      <div class="text-muted">{{ $exam->subject->name ?? '' }} · {{ $exam->group->name ?? '' }}</div>
+      <div class="text-muted">{{ $exam->subject->name ?? '' }} · {{ $exam->groupNames() }}</div>
     </div>
     <div class="tbtn-group">
       <a href="{{ route('teacher.exams.index') }}" class="tbtn tbtn--neutral"><i class="bi bi-arrow-right"></i><span data-en="Back" data-ar="رجوع">رجوع</span></a>

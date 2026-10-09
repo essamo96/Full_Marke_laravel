@@ -29,20 +29,19 @@ class StudentExamGrantService
         return DB::transaction(function () use ($studentId, $subjectId, $fromGroupId, $source) {
             $exams = Exam::query()
                 ->where('subject_id', $subjectId)
-                ->where('group_id', $fromGroupId)
+                ->forGroups([$fromGroupId])
                 ->where('status', 'published')
                 ->where(function ($q) {
                     $q->whereNull('audience')
                         ->orWhereIn('audience', ['students', 'both']);
                 })
-                ->get(['id', 'excluded_student_ids']);
+                ->get(['exams.id', 'exams.group_id', 'exams.excluded_student_ids']);
 
             $now = now();
             $rows = [];
 
             foreach ($exams as $exam) {
-                $excluded = $exam->excluded_student_ids ?? [];
-                if (in_array($studentId, $excluded, true) || in_array((string) $studentId, array_map('strval', $excluded), true)) {
+                if ($exam->isStudentExcluded($studentId)) {
                     continue;
                 }
 
@@ -81,13 +80,13 @@ class StudentExamGrantService
             return false;
         }
 
-        $excluded = $exam->excluded_student_ids ?? [];
-        if (in_array($studentId, $excluded, true) || in_array((string) $studentId, array_map('strval', $excluded), true)) {
+        if ($exam->isStudentExcluded($studentId)) {
             return false;
         }
 
+        // An exam can target several groups: being in any one of them is enough.
         $groupIds = collect($currentGroupIds)->filter()->map(fn ($id) => (int) $id)->all();
-        if (in_array((int) $exam->group_id, $groupIds, true)) {
+        if (array_intersect($exam->allGroupIds(), $groupIds) !== []) {
             return true;
         }
 

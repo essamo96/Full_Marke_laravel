@@ -45,7 +45,7 @@
                         <td>
                             <div class="d-flex flex-column">
                                 <span class="text-gray-800">{{ $exam->subject->name ?? '-' }}</span>
-                                <span class="text-muted fs-7">{{ $exam->group->name ?? '-' }}</span>
+                                <span class="text-muted fs-7">{{ $exam->groupNames() }}</span>
                             </div>
                         </td>
                         <td>

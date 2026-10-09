@@ -24,6 +24,8 @@
                 $isAvailable = true;
                 $statusText = 'متاح الآن';
                 $statusClass = 'bg-success';
+                // only the group(s) this student belongs to, not every group the exam was published to
+                $myGroups = $exam->groupNames($groupIds->all());
                 
                 if($exam->start_time && $now->lt($exam->start_time)) {
                     $isAvailable = false;
@@ -45,7 +47,7 @@
                     </div>
                     
                     <h4 class="fw-bold text-white mb-1">{{ $exam->title }}</h4>
-                    <p class="text-white opacity-75 fs-7 mb-4">{{ $exam->subject->name ?? '' }} - {{ $exam->group->name ?? '' }}</p>
+                    <p class="text-white opacity-75 fs-7 mb-4">{{ $exam->subject->name ?? '' }}@if($myGroups !== '-') - {{ $myGroups }}@endif</p>
                     
                     <div class="mt-auto pt-3 border-top border-white/10 d-flex justify-content-between align-items-center">
                         <div>

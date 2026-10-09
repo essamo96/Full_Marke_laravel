@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Grade;
-use App\Support\ArabicPdf;
+use App\Support\ExamPaper;
 use App\Support\ExamReviewAccess;
 
 class ResultsController extends Controller
@@ -47,10 +47,21 @@ class ResultsController extends Controller
 
         $grade->load(['exam', 'group', 'answers.question.options', 'answers.selectedOption', 'student']);
 
-        $pdf = ArabicPdf::loadView('student.exams.result-pdf', compact('grade'));
+        // Built with the same mPDF pipeline as the teacher's exam paper (native RTL), so the
+        // student's PDF has the same fonts, spacing and letterhead instead of overlapping glyphs.
+        try {
+            $bytes = ExamPaper::resultPdfBytes($grade);
+        } catch (\Throwable $e) {
+            report($e);
 
-        $filename = 'exam-result-'.$grade->id.'.pdf';
+            return redirect()->route('student.results.show', $grade)
+                ->with('error', 'تعذر إنشاء ملف PDF حالياً، حاول مرة أخرى بعد قليل.');
+        }
 
-        return $pdf->download($filename);
+        return response($bytes, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="exam-result-'.$grade->id.'.pdf"',
+            'Content-Length' => (string) strlen($bytes),
+        ]);
     }
 }

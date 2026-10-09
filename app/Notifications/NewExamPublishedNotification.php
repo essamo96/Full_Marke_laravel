@@ -39,7 +39,11 @@ class NewExamPublishedNotification extends Notification implements ShouldBroadca
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
-        return new BroadcastMessage($this->toArray($notifiable));
+        // ShouldBroadcastNow on the notification itself does not make Laravel push it
+        // immediately (the underlying BroadcastNotificationCreated event is queued), so
+        // the "live" alert would silently wait for a queue worker. Force the sync
+        // connection so it reaches the student's open page right away.
+        return (new BroadcastMessage($this->toArray($notifiable)))->onConnection('sync');
     }
 
     public function broadcastAs()

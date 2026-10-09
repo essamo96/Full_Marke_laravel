@@ -17,6 +17,33 @@
         .ck-editor__editable_inline {
             min-height: 150px;
         }
+        .exam-pick-box {
+            border: 1px solid var(--separator-color, #e4e6ef);
+            border-radius: .475rem;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: .35rem .75rem;
+        }
+        .exam-pick-box .form-check {
+            margin: .4rem 0;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding-inline-start: 0;
+        }
+        .exam-pick-box .form-check-input {
+            float: none;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        .exam-pick-box .form-check-label {
+            cursor: pointer;
+            flex: 1;
+        }
+        .exam-pick-box .pick-sub {
+            font-size: .75rem;
+            opacity: .65;
+        }
     </style>
 @endpush
 
@@ -53,25 +80,25 @@
                 </div>
 
                 <div class="mb-5">
-                    <label class="required form-label">المجموعة</label>
-                    <select name="group_id" id="group_id" class="form-select" data-control="select2" data-placeholder="اختر المجموعة" required>
-                        <option></option>
-                        <!-- Populated by JS -->
-                    </select>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="required form-label mb-0">المجموعات المستهدفة</label>
+                        <button type="button" class="btn btn-sm btn-link p-0" id="toggleAllGroups">تحديد الكل</button>
+                    </div>
+                    <div id="groupsBox" class="exam-pick-box" role="group" aria-label="المجموعات المستهدفة">
+                        <div class="text-muted fs-7 p-3">اختر المادة أولاً لعرض مجموعاتها.</div>
+                    </div>
+                    <div class="text-muted fs-7 mt-1" id="groupsSummary">يمكنك اختيار أكثر من مجموعة، وسيُنشر الامتحان لها دفعة واحدة ويصل الإشعار اللحظي لجميع طلابها.</div>
                 </div>
 
                 <div class="mb-5">
-                    <label class="form-label">الطلاب المستثنون (لن يتمكنوا من التقديم)</label>
-                    <select name="excluded_student_ids[]" id="excluded_student_ids" class="form-select" data-control="select2" data-placeholder="اختر الطلاب" multiple>
-                        <!-- Populated by JS when group changes -->
-                        @if(isset($exam) && $exam->excluded_student_ids)
-                            @foreach($exam->group->registrations as $reg)
-                                @if(in_array($reg->student->id, $exam->excluded_student_ids))
-                                    <option value="{{ $reg->student->id }}" selected>{{ $reg->student->name }} ({{ $reg->student->phone }})</option>
-                                @endif
-                            @endforeach
-                        @endif
-                    </select>
+                    <label class="form-label">الطلاب المستثنون (لن يتمكنوا من التقديم ولن يصلهم إشعار)</label>
+                    {{-- Always posted, so un-ticking every student really clears the exclusions. --}}
+                    <input type="hidden" name="exclusions_present" value="1">
+                    <input type="search" id="excludedSearch" class="form-control form-control-sm mb-2" placeholder="ابحث باسم الطالب..." autocomplete="off">
+                    <div id="excludedBox" class="exam-pick-box" role="group" aria-label="الطلاب المستثنون">
+                        <div class="text-muted fs-7 p-3">اختر مجموعة واحدة على الأقل لعرض طلابها.</div>
+                    </div>
+                    <div class="text-muted fs-7 mt-1" id="excludedSummary"></div>
                 </div>
 
                 @if(!isset($exam))
@@ -263,77 +290,165 @@
         locale: "ar"
     });
 
-    // Subject/Group/Students dynamic loading
+    // Subject -> groups (multi-select) -> students (exclusion picker)
     const subjectSelect = document.getElementById('subject_id');
-    const groupSelect = document.getElementById('group_id');
-    const excludedSelect = document.getElementById('excluded_student_ids');
+    const groupsBox = document.getElementById('groupsBox');
+    const excludedBox = document.getElementById('excludedBox');
+    const excludedSearch = document.getElementById('excludedSearch');
+    const groupsSummary = document.getElementById('groupsSummary');
+    const excludedSummary = document.getElementById('excludedSummary');
+    const toggleAllGroups = document.getElementById('toggleAllGroups');
+    const groupsStudentsUrl = `{{ $groupsStudentsAjaxUrl ?? route('exams.ajax.groups-students') }}`;
+
+    // Selections are kept in these sets (not read back from the DOM) so they survive
+    // re-rendering the lists when the subject / groups change.
+    const selectedGroupIds = new Set(@json(collect(old('group_ids', isset($exam) ? $exam->allGroupIds() : (($preselectedGroupId ?? null) ? [$preselectedGroupId] : [])))->map(fn ($id) => (string) $id)->values()));
+    const excludedIds = new Set(@json(collect(old('excluded_student_ids', isset($exam) ? $exam->excludedStudentIds() : []))->map(fn ($id) => (string) $id)->values()));
+    let subjectLoadedOnce = false;
+    let studentsRequest = 0;
+
+    // Arabic number agreement: واحدة / مجموعتان / ٣ مجموعات / ١١ مجموعة
+    const countLabel = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : n <= 10 ? `${n} ${few}` : `${n} ${many}`;
+    const groupsLabel = (n) => countLabel(n, 'مجموعة واحدة', 'مجموعتان', 'مجموعات', 'مجموعة');
+    const studentsLabel = (n) => countLabel(n, 'طالب واحد', 'طالبان', 'طلاب', 'طالباً');
+
+    const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    function groupCheckboxes() {
+        return Array.from(groupsBox.querySelectorAll('input[name="group_ids[]"]'));
+    }
+
+    function renderGroups(groups) {
+        if (!groups.length) {
+            groupsBox.innerHTML = '<div class="text-muted fs-7 p-3">لا توجد مجموعات لهذه المادة.</div>';
+            return;
+        }
+        groupsBox.innerHTML = groups.map((g) => `
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="group_ids[]" value="${escapeHtml(g.id)}" id="grp_${escapeHtml(g.id)}" ${selectedGroupIds.has(String(g.id)) ? 'checked' : ''}>
+                <label class="form-check-label" for="grp_${escapeHtml(g.id)}">${escapeHtml(g.name)}</label>
+            </div>`).join('');
+    }
+
+    function syncGroupSelection() {
+        selectedGroupIds.clear();
+        groupCheckboxes().filter((c) => c.checked).forEach((c) => selectedGroupIds.add(String(c.value)));
+
+        const all = groupCheckboxes();
+        toggleAllGroups.textContent = all.length && all.every((c) => c.checked) ? 'إلغاء التحديد' : 'تحديد الكل';
+        groupsSummary.textContent = selectedGroupIds.size
+            ? `تم اختيار ${groupsLabel(selectedGroupIds.size)} — سيصل الإشعار اللحظي لجميع طلابها عدا المستثنين.`
+            : 'اختر مجموعة واحدة على الأقل.';
+    }
 
     function loadGroups() {
-        const subjectId = subjectSelect.value;
-        if (!subjectId) {
-            groupSelect.innerHTML = '<option></option>';
-            $(groupSelect).trigger('change');
+        const subjectKey = subjectSelect.selectedOptions[0]?.dataset.key;
+
+        // A different subject has different groups: drop the previous choice (but keep
+        // the saved one on the very first load of an existing exam).
+        if (subjectLoadedOnce) {
+            selectedGroupIds.clear();
+        }
+        subjectLoadedOnce = true;
+
+        if (!subjectKey) {
+            groupsBox.innerHTML = '<div class="text-muted fs-7 p-3">اختر المادة أولاً لعرض مجموعاتها.</div>';
+            syncGroupSelection();
+            loadStudents();
             return;
         }
 
         // The route binds the Subject model, whose route key is encrypted, so
         // the URL must use data-key rather than the raw id in option.value.
-        const subjectKey = subjectSelect.selectedOptions[0]?.dataset.key;
-        if (!subjectKey) {
-            groupSelect.innerHTML = '<option></option>';
-            $(groupSelect).trigger('change');
-            return;
-        }
-
-        fetch(`{{ $subjectGroupsAjaxBase ?? '/admin/exams/ajax/subject' }}/${subjectKey}/groups`)
+        fetch(`{{ $subjectGroupsAjaxBase ?? '/admin/exams/ajax/subject' }}/${subjectKey}/groups`, { headers: { 'Accept': 'application/json' } })
             .then(res => res.json())
             .then(groups => {
-                groupSelect.innerHTML = '<option></option>';
-                groups.forEach(g => {
-                    const opt = document.createElement('option');
-                    opt.value = g.id;
-                    opt.textContent = g.name;
-                    if (g.id == "{{ old('group_id', $exam->group_id ?? ($preselectedGroupId ?? '')) }}") {
-                        opt.selected = true;
-                    }
-                    groupSelect.appendChild(opt);
-                });
-                $(groupSelect).trigger('change');
+                renderGroups(groups);
+                syncGroupSelection();
+                loadStudents();
+            })
+            .catch(() => {
+                groupsBox.innerHTML = '<div class="text-danger fs-7 p-3">تعذر تحميل المجموعات، حدّث الصفحة وحاول مجدداً.</div>';
             });
+    }
+
+    function renderStudents(students, showGroups) {
+        if (!students.length) {
+            excludedBox.innerHTML = '<div class="text-muted fs-7 p-3">لا يوجد طلاب مسجلون في المجموعات المختارة.</div>';
+            return;
+        }
+        excludedBox.innerHTML = students.map((s) => {
+            const name = (s.full_name_ar || s.full_name_en || '') + (s.full_name_ar && s.full_name_en ? ' - ' + s.full_name_en : '');
+            const sub = showGroups && s.groups ? `<span class="pick-sub d-block">${escapeHtml(s.groups)}</span>` : '';
+            return `
+            <div class="form-check" data-name="${escapeHtml(name.toLowerCase())}">
+                <input class="form-check-input" type="checkbox" name="excluded_student_ids[]" value="${escapeHtml(s.id)}" id="stu_${escapeHtml(s.id)}" ${excludedIds.has(String(s.id)) ? 'checked' : ''}>
+                <label class="form-check-label" for="stu_${escapeHtml(s.id)}">${escapeHtml(name)}${sub}</label>
+            </div>`;
+        }).join('');
+    }
+
+    function syncExcludedSummary() {
+        const checked = excludedBox.querySelectorAll('input[name="excluded_student_ids[]"]:checked').length;
+        excludedSummary.textContent = checked ? `تم استثناء ${studentsLabel(checked)}.` : '';
+    }
+
+    function filterStudents() {
+        const q = excludedSearch.value.trim().toLowerCase();
+        excludedBox.querySelectorAll('.form-check').forEach((row) => {
+            row.style.display = !q || (row.dataset.name || '').includes(q) ? '' : 'none';
+        });
     }
 
     function loadStudents() {
-        const groupId = groupSelect.value;
-        if (!groupId) {
-            excludedSelect.innerHTML = '';
-            $(excludedSelect).trigger('change');
+        const groupIds = Array.from(selectedGroupIds);
+        const requestId = ++studentsRequest;
+
+        if (!groupIds.length) {
+            excludedBox.innerHTML = '<div class="text-muted fs-7 p-3">اختر مجموعة واحدة على الأقل لعرض طلابها.</div>';
+            syncExcludedSummary();
             return;
         }
 
-        fetch(`{{ $groupStudentsAjaxBase ?? '/admin/exams/ajax/group' }}/${groupId}/students`)
+        const qs = groupIds.map((id) => 'group_ids[]=' + encodeURIComponent(id)).join('&');
+        fetch(`${groupsStudentsUrl}?${qs}`, { headers: { 'Accept': 'application/json' } })
             .then(res => res.json())
             .then(students => {
-                const existingExcluded = @json(old('excluded_student_ids', isset($exam) ? $exam->excluded_student_ids ?? [] : []));
-                
-                excludedSelect.innerHTML = '';
-                students.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.id;
-                    opt.textContent = s.full_name_ar + (s.full_name_en ? ' - ' + s.full_name_en : '');
-                    // Convert both to strings for safe comparison
-                    if (existingExcluded.map(String).includes(String(s.id))) {
-                        opt.selected = true;
-                    }
-                    excludedSelect.appendChild(opt);
-                });
-                $(excludedSelect).trigger('change');
+                if (requestId !== studentsRequest) return; // a newer selection already replaced this one
+                renderStudents(students, groupIds.length > 1);
+                filterStudents();
+                syncExcludedSummary();
+            })
+            .catch(() => {
+                excludedBox.innerHTML = '<div class="text-danger fs-7 p-3">تعذر تحميل الطلاب، حدّث الصفحة وحاول مجدداً.</div>';
             });
     }
 
-    $(subjectSelect).on('change', loadGroups);
-    $(groupSelect).on('change', loadStudents);
+    groupsBox.addEventListener('change', () => { syncGroupSelection(); loadStudents(); });
+    excludedBox.addEventListener('change', (e) => {
+        if (e.target.name === 'excluded_student_ids[]') {
+            e.target.checked ? excludedIds.add(String(e.target.value)) : excludedIds.delete(String(e.target.value));
+            syncExcludedSummary();
+        }
+    });
+    excludedSearch.addEventListener('input', filterStudents);
+    toggleAllGroups.addEventListener('click', () => {
+        const all = groupCheckboxes();
+        const target = !all.every((c) => c.checked);
+        all.forEach((c) => { c.checked = target; });
+        syncGroupSelection();
+        loadStudents();
+    });
+    document.getElementById('examForm').addEventListener('submit', (e) => {
+        if (!selectedGroupIds.size) {
+            e.preventDefault();
+            alert('اختر مجموعة واحدة على الأقل لنشر الامتحان لها.');
+        }
+    });
 
-    if(subjectSelect.value) {
+    $(subjectSelect).on('change', loadGroups);
+
+    if (subjectSelect.value) {
         loadGroups();
     }
 

@@ -10,21 +10,7 @@
 <meta charset="utf-8">
 <title>{{ $exam->title }}</title>
 <style>
-  body { font-family: dejavusans, sans-serif; font-size: 11pt; color: #1f2937; direction: rtl; text-align: right; line-height: 1.7; }
-  table { border-collapse: collapse; width: 100%; }
-  td { vertical-align: middle; }
-
-  .brand-name { font-size: 15pt; font-weight: bold; color: #0f172a; }
-  .brand-sub { font-size: 9pt; color: #64748b; }
-  .rule { border-top: 2.5pt solid #0284c7; margin: 6pt 0 0; }
-  .rule-thin { border-top: .6pt solid #cbd5e1; margin: 2pt 0 8pt; }
-
-  .title { text-align: center; font-size: 17pt; font-weight: bold; color: #0f172a; margin: 10pt 0 8pt; }
-
-  .info { border: .8pt solid #cbd5e1; margin-bottom: 8pt; }
-  .info td { padding: 5pt 8pt; font-size: 10pt; border-bottom: .5pt solid #e2e8f0; }
-  .info .k { color: #64748b; }
-  .info .v { font-weight: bold; color: #0f172a; }
+@include('exams.pdf._styles')
 
   .student { margin-bottom: 10pt; }
   .student td { padding: 6pt 4pt 0; font-size: 10pt; color: #475569; }
@@ -41,42 +27,20 @@
   .bub { text-align: center; font-size: 10.5pt; font-weight: bold; color: #0284c7; }
   .opt-t { font-size: 10.5pt; padding-right: 6pt; }
   .lines div { border-bottom: .6pt solid #94a3b8; height: 20pt; }
-  .foot { font-size: 8.5pt; color: #64748b; }
 </style>
 </head>
 <body>
 
-<htmlpagefooter name="paperfooter">
-  <div class="rule-thin"></div>
-  <table class="foot"><tr>
-    <td style="text-align:right;">{{ $exam->title }}</td>
-    <td style="text-align:left;" dir="ltr">{PAGENO} / {nbpg}</td>
-  </tr></table>
-</htmlpagefooter>
-<sethtmlpagefooter name="paperfooter" value="on" />
+@include('exams.pdf._footer', ['footerTitle' => $exam->title])
 
-<table>
-  <tr>
-    <td style="width:60pt;">
-      @if($logo)<img src="{{ $logo }}" style="height:46pt;">@endif
-    </td>
-    <td style="padding-right:8pt;">
-      <div class="brand-name">أكاديمية فول مارك</div>
-      <div class="brand-sub">FULL MARK ACADEMY</div>
-    </td>
-    <td style="text-align:left;" class="brand-sub">
-      نموذج امتحان<br>{{ now()->format('Y/m/d') }}
-    </td>
-  </tr>
-</table>
-<div class="rule"></div>
+@include('exams.pdf._header', ['logo' => $logo, 'docLabel' => 'نموذج امتحان', 'docDate' => now()->format('Y/m/d')])
 
 <div class="title">{{ $exam->title }}</div>
 
 <table class="info">
   <tr>
     <td><span class="k">المادة:</span> <span class="v">{{ $exam->subject->name ?? '-' }}</span></td>
-    <td><span class="k">المجموعة:</span> <span class="v">{{ $exam->group->name ?? '-' }}</span></td>
+    <td><span class="k">{{ $exam->groups->count() > 1 ? 'المجموعات' : 'المجموعة' }}:</span> <span class="v">{{ $exam->groupNames() }}</span></td>
   </tr>
   <tr>
     <td style="border-bottom:0;"><span class="k">المدة:</span> <span class="v">{{ $exam->duration_minutes ? $ar($exam->duration_minutes).' دقيقة' : 'غير محددة' }}</span></td>

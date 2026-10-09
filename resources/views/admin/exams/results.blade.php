@@ -18,7 +18,7 @@
         <div class="card card-flush">
             <div class="card-header align-items-center py-5 gap-2 gap-md-5">
                 <div class="card-title flex-column">
-                    <h3 class="fw-bold mb-1">الطلاب المسجلين في مجموعة: {{ $exam->group->name }}</h3>
+                    <h3 class="fw-bold mb-1">الطلاب المسجلين في: {{ $exam->groupNames() }}</h3>
                     <div class="fs-6 fw-semibold text-muted">المادة: {{ $exam->subject->name }}</div>
                 </div>
             </div>

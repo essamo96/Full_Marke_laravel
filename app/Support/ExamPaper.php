@@ -5,16 +5,15 @@ namespace App\Support;
 use App\Models\Exam;
 use App\Models\ExamAnswer;
 use App\Models\ExamGuestAnswer;
-use Illuminate\Support\Facades\File;
+use App\Models\Grade;
 use Illuminate\Support\Str;
-use Mpdf\Mpdf;
 
 class ExamPaper
 {
     /** Loads everything the preview / blank-paper views need. */
     public static function load(Exam $exam): Exam
     {
-        return $exam->load(['subject', 'group', 'questions.options']);
+        return $exam->load(['subject', 'group', 'groups', 'questions.options']);
     }
 
     /**
@@ -69,33 +68,29 @@ class ExamPaper
     {
         self::load($exam);
 
-        $logo = public_path('site/images/logo_v2_blue.png');
         $html = view('exams.paper-pdf', [
             'exam' => $exam,
-            'logo' => is_file($logo) ? $logo : null,
+            'logo' => ArabicMpdf::logoPath(),
         ])->render();
 
-        $tmp = storage_path('app/mpdf');
-        File::ensureDirectoryExists($tmp);
+        $mpdf = ArabicMpdf::make($exam->title);
+        $mpdf->WriteHTML($html);
 
-        $mpdf = new Mpdf([
-            'mode' => 'utf-8',
-            'format' => 'A4',
-            'orientation' => 'P',
-            'tempDir' => $tmp,
-            'default_font' => 'dejavusans',
-            'margin_left' => 16,
-            'margin_right' => 16,
-            'margin_top' => 14,
-            'margin_bottom' => 18,
-            'margin_footer' => 8,
-            'autoScriptToLang' => true,
-            'autoLangToFont' => true,
-            'useSubstitutions' => true,
-        ]);
-        $mpdf->SetDirectionality('rtl');
-        $mpdf->SetTitle($exam->title);
-        $mpdf->SetAuthor(config('app.name', 'Full Mark Academy'));
+        return $mpdf->Output('', 'S');
+    }
+
+    /**
+     * A student's result sheet (their answers, the right answers, marks) as PDF bytes.
+     * Same engine, fonts and letterhead as the teacher's exam paper, so both read alike.
+     */
+    public static function resultPdfBytes(Grade $grade): string
+    {
+        $html = view('student.exams.result-pdf', [
+            'grade' => $grade,
+            'logo' => ArabicMpdf::logoPath(),
+        ])->render();
+
+        $mpdf = ArabicMpdf::make('نتيجة الامتحان - '.$grade->exam_name);
         $mpdf->WriteHTML($html);
 
         return $mpdf->Output('', 'S');

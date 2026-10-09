@@ -7,7 +7,8 @@ use App\Models\Exam;
 use App\Models\Subject;
 use App\Models\Question;
 use App\Services\ExamService;
-use App\Jobs\NotifyStudentsOfNewExam;
+use App\Services\ExamAudience;
+use App\Services\ExamNotifier;
 use App\Http\Requests\Admin\ExamRequest;
 use Illuminate\Http\Request;
 
@@ -15,16 +16,19 @@ class ExamController extends AdminController
 {
     protected $examService;
 
-    public function __construct(ExamService $examService)
+    protected ExamNotifier $examNotifier;
+
+    public function __construct(ExamService $examService, ExamNotifier $examNotifier)
     {
         parent::__construct();
         parent::$data['active_menu'] = 'exams';
         $this->examService = $examService;
+        $this->examNotifier = $examNotifier;
     }
 
     public function index()
     {
-        $exams = Exam::with('subject', 'group')->latest()->paginate(10);
+        $exams = Exam::with('subject', 'group', 'groups')->latest()->paginate(10);
         return view('admin.exams.index', self::$data + compact('exams'));
     }
 
@@ -38,9 +42,7 @@ class ExamController extends AdminController
     {
         $exam = $this->examService->saveExam($request->validated());
 
-        if ($exam->status === 'published') {
-            NotifyStudentsOfNewExam::dispatchSync($exam);
-        }
+        $this->examNotifier->afterSave($exam, null, [], true);
 
         return redirect()->route('exams.view')
             ->with('success', 'تم إنشاء الامتحان بنجاح.');
@@ -48,7 +50,7 @@ class ExamController extends AdminController
 
     public function edit(Exam $exam)
     {
-        $exam->load(['questions.options']);
+        $exam->load(['questions.options', 'group', 'groups']);
         $subjects = Subject::with('groups', 'registrations.student')->get();
         return view('admin.exams.edit', self::$data + compact('exam', 'subjects'));
     }
@@ -56,11 +58,10 @@ class ExamController extends AdminController
     public function update(ExamRequest $request, Exam $exam)
     {
         $oldStatus = $exam->status;
+        $oldGroupIds = $exam->allGroupIds();
         $exam = $this->examService->saveExam($request->validated(), $exam);
 
-        if ($oldStatus !== 'published' && $exam->status === 'published') {
-            NotifyStudentsOfNewExam::dispatchSync($exam);
-        }
+        $this->examNotifier->afterSave($exam, $oldStatus, $oldGroupIds, true);
 
         return redirect()->route('exams.view')
             ->with('success', 'تم تحديث الامتحان بنجاح.');
@@ -120,14 +121,28 @@ class ExamController extends AdminController
         return response()->json($students);
     }
 
+    /** Students of several groups at once (the exclude-students picker of a multi-group exam). */
+    public function getGroupsStudents(Request $request, ExamAudience $audience)
+    {
+        $groupIds = collect((array) $request->query('group_ids'))
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        return response()->json($audience->pickerRows($groupIds));
+    }
+
     public function results(Request $request, Exam $exam)
     {
-        $exam->load('subject', 'group');
+        $exam->load('subject', 'group', 'groups');
 
+        // Students of every group the exam targets (one exam can span several groups).
         $studentsQuery = \App\Models\Student::whereHas('registrations', function ($q) use ($exam) {
-            $q->where('group_id', $exam->group_id)
+            $q->whereIn('group_id', $exam->allGroupIds())
               ->whereIn('status', ['partially_paid', 'fully_paid']);
-        });
+        })->with(['registrations' => fn ($q) => $q->whereIn('group_id', $exam->allGroupIds())->with('group:id,name')]);
 
         if ($request->filled('student_name')) {
             $studentsQuery->where(function($q) use ($request) {
@@ -148,8 +163,8 @@ class ExamController extends AdminController
             }
         }
 
-        if (!empty($exam->excluded_student_ids)) {
-            $studentsQuery->whereNotIn('id', $exam->excluded_student_ids);
+        if ($excluded = $exam->excludedStudentIds()) {
+            $studentsQuery->whereNotIn('id', $excluded);
         }
 
         $students = $studentsQuery->get();

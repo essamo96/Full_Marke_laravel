@@ -3,13 +3,20 @@
 namespace App\Jobs;
 
 use App\Models\Exam;
+use App\Notifications\NewExamPublishedNotification;
+use App\Services\ExamAudience;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
+/**
+ * Tells every student of an exam's target group(s) that it was published,
+ * excluding the students the teacher left out.
+ */
 class NotifyStudentsOfNewExam implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -17,34 +24,35 @@ class NotifyStudentsOfNewExam implements ShouldQueue
     public $exam;
 
     /**
-     * Create a new job instance.
+     * @param  array<int>|null  $onlyGroupIds  notify just these groups (groups added to an already published exam)
      */
-    public function __construct(Exam $exam)
+    public function __construct(Exam $exam, public ?array $onlyGroupIds = null)
     {
         $this->exam = $exam;
     }
 
-    /**
-     * Execute the job.
-     */
-    public function handle(): void
+    public function handle(ExamAudience $audience): void
     {
-        // Get the group and its registered students
-        $group = $this->exam->group;
-        $excludedIds = $this->exam->excluded_student_ids ?? [];
+        $sent = 0;
 
-        // Fetch registered active students
-        $students = $group->registrations()
-            ->whereIn('status', ['partially_paid', 'fully_paid'])
-            ->with('student')
-            ->get()
-            ->pluck('student')
-            ->filter(function ($student) use ($excludedIds) {
-                return !in_array($student->id, $excludedIds);
-            });
+        $audience->query($this->exam, $this->onlyGroupIds)
+            ->chunkById(200, function ($students) use (&$sent) {
+                foreach ($students as $student) {
+                    // One student's failed push (offline Reverb, bad mail row...) must never
+                    // stop the rest of the groups from being notified.
+                    try {
+                        $student->notify(new NewExamPublishedNotification($this->exam, $student->id));
+                        $sent++;
+                    } catch (Throwable $e) {
+                        Log::warning('New-exam notification failed', [
+                            'exam_id' => $this->exam->id,
+                            'student_id' => $student->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }, 'students.id', 'id');
 
-        foreach ($students as $student) {
-            $student->notify(new \App\Notifications\NewExamPublishedNotification($this->exam, $student->id));
-        }
+        Log::info('New-exam notifications sent', ['exam_id' => $this->exam->id, 'students' => $sent]);
     }
 }

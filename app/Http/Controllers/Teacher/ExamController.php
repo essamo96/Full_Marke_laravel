@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ExamRequest;
-use App\Jobs\NotifyStudentsOfNewExam;
 use App\Models\Exam;
 use App\Models\Group;
 use App\Models\Question;
 use App\Models\Student;
 use App\Models\Subject;
+use App\Services\ExamAudience;
+use App\Services\ExamNotifier;
 use App\Services\ExamService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,9 +21,12 @@ class ExamController extends Controller
 {
     protected $examService;
 
-    public function __construct(ExamService $examService)
+    protected ExamNotifier $examNotifier;
+
+    public function __construct(ExamService $examService, ExamNotifier $examNotifier)
     {
         $this->examService = $examService;
+        $this->examNotifier = $examNotifier;
     }
 
     private function teacherSubjectIds()
@@ -35,8 +39,8 @@ class ExamController extends Controller
         $teacher = Auth::guard('teacher')->user();
         $groupIds = Group::where('teacher_id', $teacher->id)->pluck('id');
 
-        $exams = Exam::whereIn('group_id', $groupIds)
-            ->with('subject', 'group')
+        $exams = Exam::forGroups($groupIds)
+            ->with('subject', 'group', 'groups')
             ->withCount(['questions', 'grades'])
             ->latest()
             ->paginate(12);
@@ -71,32 +75,47 @@ class ExamController extends Controller
         return view('teacher.exams.create', compact('subjects', 'preselectedGroupId', 'preselectedSubjectId'));
     }
 
-    private function authorizeExamGroup($groupId): void
+    /** Every group the exam is being published to must belong to this teacher. */
+    private function authorizeExamGroups(array $groupIds): void
     {
         $teacher = Auth::guard('teacher')->user();
-        $group = Group::findOrFail($groupId);
-        abort_unless($group->teacher_id === $teacher->id, 403);
+        $groupIds = array_values(array_unique(array_map('intval', $groupIds)));
+
+        abort_if($groupIds === [], 403);
+        abort_unless(
+            Group::whereIn('id', $groupIds)->where('teacher_id', $teacher->id)->count() === count($groupIds),
+            403
+        );
+    }
+
+    /** Teacher may open the exam (preview / PDF) if they teach at least one of its groups. */
+    private function authorizeExamAccess(Exam $exam): void
+    {
+        abort_unless($exam->isTaughtBy(Auth::guard('teacher')->id()), 403);
+    }
+
+    /** Teacher may change the exam only if every group it targets is theirs. */
+    private function authorizeExamOwner(Exam $exam): void
+    {
+        abort_unless($exam->isOwnedBy(Auth::guard('teacher')->id()), 403);
     }
 
     public function store(ExamRequest $request)
     {
-        $this->authorizeExamGroup($request->validated()['group_id']);
+        $this->authorizeExamGroups($request->validated()['group_ids']);
 
         $exam = $this->examService->saveExam($request->validated());
 
-        if ($exam->status === 'published') {
-            NotifyStudentsOfNewExam::dispatch($exam);
-        }
+        $this->examNotifier->afterSave($exam, null);
 
         return redirect()->route('teacher.exams.index')->with('success', 'تم إنشاء الامتحان بنجاح.');
     }
 
     public function edit(Exam $exam)
     {
-        $teacher = Auth::guard('teacher')->user();
-        abort_unless($exam->group && $exam->group->teacher_id === $teacher->id, 403);
+        $this->authorizeExamOwner($exam);
 
-        $exam->load(['questions.options', 'group']);
+        $exam->load(['questions.options', 'group', 'groups']);
         $subjects = Subject::whereIn('id', $this->teacherSubjectIds())->with('groups', 'registrations.student')->get();
 
         return view('teacher.exams.edit', compact('exam', 'subjects'));
@@ -104,24 +123,21 @@ class ExamController extends Controller
 
     public function update(ExamRequest $request, Exam $exam)
     {
-        $teacher = Auth::guard('teacher')->user();
-        abort_unless($exam->group && $exam->group->teacher_id === $teacher->id, 403);
-        $this->authorizeExamGroup($request->validated()['group_id']);
+        $this->authorizeExamOwner($exam);
+        $this->authorizeExamGroups($request->validated()['group_ids']);
 
         $oldStatus = $exam->status;
+        $oldGroupIds = $exam->allGroupIds();
         $exam = $this->examService->saveExam($request->validated(), $exam);
 
-        if ($oldStatus !== 'published' && $exam->status === 'published') {
-            NotifyStudentsOfNewExam::dispatch($exam);
-        }
+        $this->examNotifier->afterSave($exam, $oldStatus, $oldGroupIds);
 
         return redirect()->route('teacher.exams.index')->with('success', 'تم تحديث الامتحان بنجاح.');
     }
 
     public function preview(Exam $exam)
     {
-        $teacher = Auth::guard('teacher')->user();
-        abort_unless($exam->group && $exam->group->teacher_id === $teacher->id, 403);
+        $this->authorizeExamAccess($exam);
 
         \App\Support\ExamPaper::load($exam);
         $stats = \App\Support\ExamPaper::optionStats($exam);
@@ -131,8 +147,7 @@ class ExamController extends Controller
 
     public function blankPdf(Exam $exam)
     {
-        $teacher = Auth::guard('teacher')->user();
-        abort_unless($exam->group && $exam->group->teacher_id === $teacher->id, 403);
+        $this->authorizeExamAccess($exam);
 
         return \App\Support\ExamPaper::download($exam, $error)
             ?? redirect()->route('teacher.exams.index')->with('error', $error);
@@ -140,8 +155,7 @@ class ExamController extends Controller
 
     public function reorderQuestions(Request $request, Exam $exam)
     {
-        $teacher = Auth::guard('teacher')->user();
-        abort_unless($exam->group && $exam->group->teacher_id === $teacher->id, 403);
+        $this->authorizeExamOwner($exam);
 
         $request->validate([
             'ordered_ids' => 'required|array',
@@ -179,5 +193,23 @@ class ExamController extends Controller
         })->select('id', 'full_name_ar', 'full_name_en')->get();
 
         return response()->json($students);
+    }
+
+    /**
+     * Students of several groups at once (the "exclude students" picker of a
+     * multi-group exam). Raw group ids, same as getGroupStudents().
+     */
+    public function getGroupsStudents(Request $request, ExamAudience $audience)
+    {
+        $groupIds = collect((array) $request->query('group_ids'))
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        $this->authorizeExamGroups($groupIds);
+
+        return response()->json($audience->pickerRows($groupIds));
     }
 }

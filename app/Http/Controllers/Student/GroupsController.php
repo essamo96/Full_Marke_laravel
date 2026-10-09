@@ -9,7 +9,7 @@ use App\Models\GroupJoinCode;
 use App\Models\Registration;
 use App\Models\Group;
 use App\Services\StudentContentGate;
-use App\Services\StudentContentGrantService;
+use App\Services\StudentGroupTransferService;
 
 class GroupsController extends Controller
 {
@@ -38,7 +38,7 @@ class GroupsController extends Controller
         return view('student.groups.index', compact('withGroup', 'withoutGroup'));
     }
 
-    public function joinByCode(Request $request, StudentContentGrantService $grantService)
+    public function joinByCode(Request $request, StudentGroupTransferService $transferService)
     {
         $request->validate([
             'code' => 'required|string',
@@ -95,24 +95,12 @@ class GroupsController extends Controller
             return response()->json(['success' => false, 'message' => 'أنت مسجل في هذه المجموعة بالفعل.'], 400);
         }
 
-        $oldGroupId = $registration->group_id;
-
-        if ($oldGroupId) {
-            $grantService->grantPreviousGroupContentOnTransfer(
-                $student,
-                (int) $group->subject_id,
-                (int) $oldGroupId,
-                (int) $group->id
-            );
+        try {
+            $transferService->transfer($registration, $group);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
         }
 
-        $registration->group_id = $group->id;
-        $registration->save();
-
-        if ($oldGroupId) {
-            Group::where('id', $oldGroupId)->decrement('current_count');
-        }
-        $group->increment('current_count');
         $joinCode->increment('used_count');
 
         return response()->json(['success' => true, 'message' => 'تم الانضمام للمجموعة بنجاح مع الاحتفاظ بالمحتوى السابق إن وُجد.']);
@@ -172,17 +160,16 @@ class GroupsController extends Controller
 
         $exams = \App\Models\Exam::query()
             ->where(function ($q) use ($groupId, $grantedExamIds) {
-                $q->where('group_id', $groupId);
+                $q->forGroups([$groupId]);
                 if ($grantedExamIds->isNotEmpty()) {
-                    $q->orWhereIn('id', $grantedExamIds);
+                    $q->orWhereIn('exams.id', $grantedExamIds);
                 }
             })
-            ->where(function ($query) use ($studentId) {
-                $query->whereNull('excluded_student_ids')
-                    ->orWhereJsonDoesntContain('excluded_student_ids', $studentId);
-            })
             ->orderByDesc('start_time')
-            ->get();
+            ->get()
+            // excluded_student_ids can hold ints or numeric strings: compare in PHP, not with JSON containment
+            ->reject(fn ($exam) => $exam->isStudentExcluded((int) $studentId))
+            ->values();
 
         $grades = \App\Models\Grade::where('student_id', $student->id)
             ->whereIn('exam_id', $exams->pluck('id'))

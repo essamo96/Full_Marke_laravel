@@ -4,11 +4,21 @@
 @section('exam_title', $exam->title)
 
 @section('exam_timer')
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-3 flex-wrap justify-content-end">
+        {{-- Autosave status: answers are saved on the device instantly and on the server whenever there is a connection. --}}
+        <div class="d-flex align-items-center gap-2 text-white fs-7" id="examSaveBadge" aria-live="polite">
+            <i id="examSaveIcon" class="bi bi-cloud-check-fill text-success"></i>
+            <span id="examSaveStatus" class="opacity-75 d-none d-md-inline">تم حفظ إجاباتك</span>
+        </div>
+
+        <div class="text-white fs-7 d-none d-sm-block">
+            أجبت على <span class="fw-bold" id="examProgress">0 / {{ $exam->questions->count() }}</span>
+        </div>
+
         <div id="violationBadge" class="badge bg-danger rounded-pill px-3 py-2 d-none" style="font-size: 1rem;">
             <i class="bi bi-exclamation-triangle-fill me-1"></i> المخالفات: <span id="violationCountSpan">0</span> / 3
         </div>
-        
+
         @if($exam->duration_minutes)
             <div class="d-flex align-items-center gap-2 bg-dark rounded-pill px-4 py-2 border border-secondary" id="timerContainer">
                 <i class="bi bi-stopwatch text-gold fs-4"></i>
@@ -27,12 +37,19 @@
     <div id="examIntroContent">
         <i class="bi bi-shield-lock-fill text-gold" style="font-size: 4rem;"></i>
         <h2 class="text-white fw-bold mt-4 mb-3">{{ $exam->title }}</h2>
-        <p class="text-white opacity-75 mb-5" style="max-width: 480px;">
+        <p class="text-white opacity-75 mb-4" style="max-width: 480px;">
             هذا امتحان مراقب. سيتم تسجيل عدد مرات خروجك من الصفحة، ولا يجوز نسخ الأسئلة أو مغادرة وضع ملء الشاشة.
             بالضغط على "ابدأ الامتحان" أنت توافق على هذه الشروط.
         </p>
+        <p class="text-white opacity-75 mb-5 fs-7" style="max-width: 480px;">
+            <i class="bi bi-cloud-check me-1"></i>
+            تُحفظ إجاباتك تلقائياً أثناء الامتحان، وإذا انقطع الإنترنت فسيتم إرسالها فور عودة الاتصال دون أن تتغير.
+        </p>
+        <div id="examResumeNote" class="alert alert-warning d-none mb-4" style="max-width: 480px;">
+            هذه محاولة غير مكتملة — استعدنا إجاباتك المحفوظة والوقت المتبقي كما هو.
+        </div>
         <button type="button" id="examStartBtn" class="btn btn-gold btn-lg px-8 rounded-pill fw-bold">
-            <i class="bi bi-play-circle-fill me-2"></i> ابدأ الامتحان
+            <i class="bi bi-play-circle-fill me-2"></i> <span id="examStartBtnLabel">ابدأ الامتحان</span>
         </button>
     </div>
     <div id="examCountdownContent" class="d-none">
@@ -41,9 +58,18 @@
     </div>
 </div>
 
+{{-- Shown while the exam is being handed in (and while waiting for the connection to come back to do so). --}}
+<div id="examSubmitOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center px-4" style="background: rgba(0,0,0,.92); z-index: 2500;">
+    <div class="spinner-border text-gold mb-4" style="width: 3rem; height: 3rem;" role="status"></div>
+    <p id="examSubmitOverlayText" class="text-white fs-5 mb-0" style="max-width: 520px;">جارٍ تسليم الامتحان...</p>
+</div>
+
+<div id="examConnBanner" class="alert alert-warning d-none mb-4 text-center fw-semibold" role="status" style="position: sticky; top: 76px; z-index: 1030;"></div>
+
 <div class="row justify-content-center" id="examContentWrapper" style="visibility: hidden;">
     <div class="col-lg-8">
-        <form action="{{ route('student.exams.submit', $exam) }}" method="POST" id="examForm" x-data="examEngine()">
+        {{-- autocomplete="off": the browser must never "restore" radio buttons on its own; the engine restores them from the saved draft. --}}
+        <form action="{{ route('student.exams.submit', $exam) }}" method="POST" id="examForm" autocomplete="off">
             @csrf
             <input type="hidden" name="auto_submitted" id="autoSubmittedField" value="0">
 
@@ -81,14 +107,12 @@
                     @if($question->type === 'multiple_choice' || $question->type === 'true_false')
                         <div class="d-flex flex-column gap-3">
                             @foreach($question->options as $option)
-                                <label class="custom-radio-card p-3 rounded-3 border d-flex align-items-center gap-3 cursor-pointer transition-all"
-                                       :class="answers[{{ $question->id }}] == {{ $option->id }} ? 'border-gold bg-gold/10' : 'border-white/10 hover:border-white/30'">
-
+                                <label class="custom-radio-card p-3 rounded-3 border border-white/10 d-flex align-items-center gap-3 cursor-pointer transition-all">
                                     <div class="form-check form-check-custom form-check-solid form-check-sm m-0">
                                         <input class="form-check-input" type="radio"
                                                name="answers[{{ $question->id }}]"
-                                               value="{{ $option->id }}"
-                                               x-model="answers[{{ $question->id }}]" required>
+                                               data-qid="{{ $question->id }}"
+                                               value="{{ $option->id }}">
                                     </div>
                                     <span class="text-white fs-6 no-select">{{ $option->option_text }}</span>
                                 </label>
@@ -96,16 +120,15 @@
                         </div>
                     @elseif($question->type === 'essay')
                         <div>
-                            <textarea name="answers[{{ $question->id }}]" class="form-control bg-dark text-white border-secondary"
-                                      rows="5" placeholder="اكتب إجابتك هنا..." required></textarea>
+                            <textarea name="answers[{{ $question->id }}]" data-qid="{{ $question->id }}" class="form-control bg-dark text-white border-secondary"
+                                      rows="5" placeholder="اكتب إجابتك هنا..."></textarea>
                         </div>
                     @endif
                 </div>
             @endforeach
 
             <div class="text-center mt-5 mb-10">
-                <button type="submit" class="btn btn-gold btn-lg px-8 rounded-pill fw-bold"
-                        @click.prevent="confirmSubmit">
+                <button type="button" id="submitExamBtn" class="btn btn-gold btn-lg px-8 rounded-pill fw-bold">
                     <i class="bi bi-send-check-fill me-2"></i> تسليم الامتحان
                 </button>
             </div>
@@ -117,6 +140,13 @@
 <style>
     .custom-radio-card {
         background: rgba(255,255,255,0.02);
+    }
+    .custom-radio-card:hover {
+        border-color: rgba(255,255,255,0.3) !important;
+    }
+    .custom-radio-card.is-selected {
+        border-color: var(--accent-color) !important;
+        background-color: rgba(197, 168, 128, 0.1);
     }
     .text-gold {
         color: var(--accent-color);
@@ -132,9 +162,6 @@
     }
     .border-gold {
         border-color: var(--accent-color) !important;
-    }
-    .bg-gold\/10 {
-        background-color: rgba(197, 168, 128, 0.1);
     }
     /* Fix images in CKEditor content */
     .content-area img {
@@ -178,50 +205,94 @@
         from { opacity: 1; }
         to { opacity: 0; visibility: hidden; }
     }
+    #examSubmitOverlay.is-warning .spinner-border {
+        color: #f59e0b !important;
+    }
 </style>
 @endpush
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset_ver('student/js/exam-taker.js') }}"></script>
 <script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('examEngine', () => ({
-            answers: {},
-
-            confirmSubmit() {
-                Swal.fire({
-                    title: 'هل أنت متأكد من تسليم الامتحان؟',
-                    text: 'لن تتمكن من تعديل إجاباتك بعد التسليم.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#c5a880',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'نعم، قم بالتسليم',
-                    cancelButtonText: 'إلغاء'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        submitExamForm();
-                    }
-                });
-            }
-        }));
-    });
-
+    const EXAM = @json($examState);
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const violationUrl = '{{ route("student.exams.violation", $exam) }}';
     const VIOLATION_LIMIT = 3;
     let totalViolations = 0;
     let examStarted = false;
     let autoSubmitting = false;
+    let leavingForResult = false;
+    const pendingViolations = [];
 
-    function submitExamForm() {
-        document.getElementById('examForm').submit();
+    // SweetAlert comes from a CDN; if it can not load (bad connection) fall back to native dialogs
+    // so the student can still submit.
+    const hasSwal = () => typeof Swal !== 'undefined';
+
+    const engine = ExamTaker.init({
+        examId: EXAM.examId,
+        studentId: EXAM.studentId,
+        attemptId: EXAM.attemptId,
+        draftUrl: EXAM.draftUrl,
+        submitUrl: EXAM.submitUrl,
+        questionIds: EXAM.questionIds,
+        answers: EXAM.answers,
+        started: EXAM.started,
+        remainingSeconds: EXAM.remainingSeconds,
+        csrf: csrfToken,
+    }, {}, {
+        onTimeUp() {
+            autoSubmitting = true;
+            engine.submit({ message: 'انتهى الوقت! جارٍ تسليم إجاباتك...' });
+        },
+        onSessionExpired() {
+            if (hasSwal()) {
+                Swal.fire({
+                    title: 'انتهت الجلسة',
+                    text: 'إجاباتك محفوظة على جهازك. سجّل الدخول مرة أخرى وافتح الامتحان لاستكماله.',
+                    icon: 'warning',
+                    confirmButtonText: 'تسجيل الدخول',
+                    allowOutsideClick: false,
+                }).then(() => { leavingForResult = true; window.location.href = '{{ route('student.login') }}'; });
+            }
+        },
+        beforeNavigate() { leavingForResult = true; },
+    });
+
+    function submitExamForm(options) {
+        return engine.submit(options || {});
     }
 
-    function reportViolation(type, message) {
-        if (!examStarted || autoSubmitting) return;
+    function confirmSubmit() {
+        const unanswered = EXAM.questionIds.length - ExamTaker.countAnswered(engine.getState(), EXAM.questionIds);
+        const warning = unanswered > 0 ? `لم تجب على ${unanswered} سؤال. ` : '';
 
-        fetch(violationUrl, {
+        if (!hasSwal()) {
+            if (window.confirm(warning + 'هل أنت متأكد من تسليم الامتحان؟ لن تتمكن من تعديل إجاباتك بعد التسليم.')) submitExamForm();
+            return;
+        }
+
+        Swal.fire({
+            title: 'هل أنت متأكد من تسليم الامتحان؟',
+            text: warning + 'لن تتمكن من تعديل إجاباتك بعد التسليم.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#c5a880',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، قم بالتسليم',
+            cancelButtonText: 'إلغاء'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                submitExamForm();
+            }
+        });
+    }
+
+    document.getElementById('submitExamBtn').addEventListener('click', confirmSubmit);
+
+    // ---- anti-cheat violations (kept working while offline: they are queued and sent on reconnect) ----
+
+    function postViolation(type) {
+        return fetch(EXAM.violationUrl, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrfToken,
@@ -229,31 +300,44 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ type: type })
-        }).then(res => res.json()).then(data => {
-            totalViolations = data.total;
+        }).then(res => {
+            if (!res.ok) throw new Error('http ' + res.status);
+            return res.json();
+        });
+    }
 
-            if (totalViolations >= VIOLATION_LIMIT) {
-                autoSubmitting = true;
-                document.getElementById('autoSubmittedField').value = '1';
-                Swal.fire({
-                    title: 'تم إنهاء الامتحان',
-                    text: 'تجاوزت الحد المسموح به لعدد مرات الخروج من صفحة الامتحان. سيتم تسليم إجاباتك الآن.',
-                    icon: 'error',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    timer: 3500
-                }).then(() => submitExamForm());
-                return;
-            }
+    function flushPendingViolations() {
+        if (!pendingViolations.length || !navigator.onLine) return;
+        const type = pendingViolations[0];
+        postViolation(type).then(() => {
+            pendingViolations.shift();
+            flushPendingViolations();
+        }).catch(() => {});
+    }
+    window.addEventListener('online', flushPendingViolations);
 
-            // Show warning badge
-            const badge = document.getElementById('violationBadge');
-            const countSpan = document.getElementById('violationCountSpan');
-            if (badge && countSpan) {
-                badge.classList.remove('d-none');
-                countSpan.textContent = totalViolations;
-            }
+    function handleViolationTotal(total, message) {
+        totalViolations = Math.max(totalViolations, total);
 
+        if (totalViolations >= VIOLATION_LIMIT) {
+            autoSubmitting = true;
+            document.getElementById('autoSubmittedField').value = '1';
+            submitExamForm({
+                auto: true,
+                message: 'تجاوزت الحد المسموح به لعدد مرات الخروج من صفحة الامتحان. جارٍ تسليم إجاباتك الآن.'
+            });
+            return;
+        }
+
+        // Show warning badge
+        const badge = document.getElementById('violationBadge');
+        const countSpan = document.getElementById('violationCountSpan');
+        if (badge && countSpan) {
+            badge.classList.remove('d-none');
+            countSpan.textContent = totalViolations;
+        }
+
+        if (hasSwal()) {
             Swal.fire({
                 title: 'تنبيه مراقبة',
                 text: message + ' (' + totalViolations + ' من ' + VIOLATION_LIMIT + ')',
@@ -262,7 +346,19 @@
                 confirmButtonColor: '#d33',
                 allowOutsideClick: false
             });
-        }).catch(() => {});
+        }
+    }
+
+    function reportViolation(type, message) {
+        if (!examStarted || autoSubmitting || engine.isSubmitting()) return;
+
+        postViolation(type).then(data => {
+            handleViolationTotal(data.total, message);
+        }).catch(() => {
+            // No connection: count it locally so going offline is not a loophole, and report it later.
+            pendingViolations.push(type);
+            handleViolationTotal(totalViolations + 1, message);
+        });
     }
 
     // Anti-cheat deterrents (best-effort — cannot fully block DevTools, printscreen, or force the tab to stay open)
@@ -303,9 +399,10 @@
         }
     });
 
-    // Warn before closing/refreshing the tab while the exam is in progress.
+    // Warn before closing/refreshing the tab while the exam is in progress
+    // (answers are autosaved, so a refresh is safe, but a stray close is still worth a prompt).
     window.addEventListener('beforeunload', (e) => {
-        if (examStarted && !autoSubmitting) {
+        if (examStarted && !autoSubmitting && !leavingForResult && !engine.isSubmitting()) {
             e.preventDefault();
             e.returnValue = '';
         }
@@ -318,7 +415,7 @@
     });
 
     document.addEventListener('fullscreenchange', () => {
-        if (examStarted && !document.fullscreenElement && !autoSubmitting) {
+        if (examStarted && !document.fullscreenElement && !autoSubmitting && !engine.isSubmitting()) {
             reportViolation('fullscreen_exit', 'يجب البقاء في وضع ملء الشاشة أثناء الامتحان.');
             const el = document.documentElement;
             if (el.requestFullscreen) {
@@ -327,7 +424,16 @@
         }
     });
 
-    // Removed beforeunload listener as requested
+    // ---- timer face before the exam starts + resume wording ----
+
+    const timerDisplay = document.getElementById('countdownTimer');
+    if (timerDisplay && EXAM.remainingSeconds !== null) {
+        timerDisplay.textContent = ExamTaker.formatClock(EXAM.remainingSeconds);
+    }
+    if (EXAM.started) {
+        document.getElementById('examResumeNote').classList.remove('d-none');
+        document.getElementById('examStartBtnLabel').textContent = 'استئناف الامتحان';
+    }
 
     // Entry animation flow
     document.getElementById('examStartBtn').addEventListener('click', function () {
@@ -361,54 +467,8 @@
         setTimeout(() => overlay.remove(), 500);
 
         examStarted = true;
-        startTimer();
+        engine.start();
     }
-
-    @if($exam->duration_minutes)
-        let durationSeconds = {{ $exam->duration_minutes * 60 }};
-        const timerDisplay = document.getElementById('countdownTimer');
-        let timerInterval = null;
-
-        function updateTimer() {
-            let h = Math.floor(durationSeconds / 3600);
-            let m = Math.floor((durationSeconds % 3600) / 60);
-            let s = durationSeconds % 60;
-
-            h = h < 10 ? '0' + h : h;
-            m = m < 10 ? '0' + m : m;
-            s = s < 10 ? '0' + s : s;
-
-            timerDisplay.textContent = h + ':' + m + ':' + s;
-
-            if (durationSeconds <= 300) {
-                timerDisplay.classList.remove('text-white');
-                timerDisplay.classList.add('text-danger');
-                timerDisplay.classList.add('animate-pulse');
-            }
-
-            if (durationSeconds <= 0) {
-                clearInterval(timerInterval);
-                autoSubmitting = true;
-                Swal.fire({
-                    title: 'انتهى الوقت!',
-                    text: 'سيتم تسليم إجاباتك تلقائياً.',
-                    icon: 'info',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    timer: 3000
-                }).then(() => submitExamForm());
-            }
-
-            durationSeconds--;
-        }
-
-        function startTimer() {
-            updateTimer();
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-    @else
-        function startTimer() {}
-    @endif
 </script>
 @endpush
 @endsection

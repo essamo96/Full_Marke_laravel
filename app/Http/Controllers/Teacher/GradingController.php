@@ -7,7 +7,7 @@ use App\Models\Exam;
 use App\Models\ExamAnswer;
 use App\Models\Grade;
 use App\Models\Group;
-use App\Models\Student;
+use App\Services\ExamAudience;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,8 +20,8 @@ class GradingController extends Controller
         $teacher = Auth::guard('teacher')->user();
         $groupIds = Group::where('teacher_id', $teacher->id)->pluck('id');
 
-        $exams = Exam::whereIn('group_id', $groupIds)
-            ->with('subject', 'group')
+        $exams = Exam::forGroups($groupIds)
+            ->with('subject', 'group', 'groups')
             ->latest()
             ->get();
 
@@ -33,19 +33,29 @@ class GradingController extends Controller
         return view('teacher.grading.index', compact('exams', 'submissionCounts'));
     }
 
-    public function exam(Exam $exam)
+    public function exam(Exam $exam, ExamAudience $audience)
     {
         $teacher = Auth::guard('teacher')->user();
-        abort_unless($exam->group && $exam->group->teacher_id === $teacher->id, 403);
+        abort_unless($exam->isTaughtBy($teacher->id), 403);
 
-        $exam->load('subject', 'group');
+        $exam->load('subject', 'group', 'groups');
 
-        $students = Student::whereHas('registrations', function ($q) use ($exam) {
-            $q->where('group_id', $exam->group_id)->whereIn('status', self::ACTIVE_STATUSES);
-        })->get();
+        // One exam can span several groups: list the students of every group this
+        // teacher teaches (excluded students are already left out by the audience).
+        $examGroupIds = $exam->allGroupIds();
+        $teacherGroupIds = Group::where('teacher_id', $teacher->id)
+            ->whereIn('id', $examGroupIds)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
 
-        $excludedIds = $exam->excluded_student_ids ?? [];
-        $students = $students->filter(fn ($s) => ! in_array($s->id, $excludedIds));
+        $students = $audience->query($exam, $teacherGroupIds)
+            ->with(['registrations' => fn ($q) => $q
+                ->whereIn('group_id', $teacherGroupIds)
+                ->whereIn('status', self::ACTIVE_STATUSES)
+                ->with('group:id,name')])
+            ->orderBy('full_name_ar')
+            ->get();
 
         $grades = Grade::where('exam_id', $exam->id)->get()->keyBy('student_id');
 

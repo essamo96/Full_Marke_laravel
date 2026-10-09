@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ExamRequest extends FormRequest
 {
@@ -16,6 +17,17 @@ class ExamRequest extends FormRequest
     }
 
     /**
+     * Older clients (and the legacy form) post a single `group_id`; fold it
+     * into `group_ids` so the rest of the request only deals with the list.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (! $this->has('group_ids') && $this->filled('group_id')) {
+            $this->merge(['group_ids' => [$this->input('group_id')]]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
@@ -24,7 +36,14 @@ class ExamRequest extends FormRequest
     {
         return [
             'subject_id' => 'required|exists:subjects,id',
-            'group_id' => 'required|exists:groups,id',
+            'group_id' => 'nullable|exists:groups,id',
+            // One exam can be published to several groups of the same subject at once.
+            'group_ids' => 'required|array|min:1',
+            'group_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('groups', 'id')->where('subject_id', $this->input('subject_id')),
+            ],
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'start_time' => 'nullable|date',
@@ -35,6 +54,8 @@ class ExamRequest extends FormRequest
             'allow_student_review' => 'nullable|boolean',
             'excluded_student_ids' => 'nullable|array',
             'excluded_student_ids.*' => 'exists:students,id',
+            // Sent by the form so that "nobody excluded" (no checkbox ticked, so no field) can be told apart from "field not sent".
+            'exclusions_present' => 'nullable|boolean',
             
             // Validate the questions array
             'questions' => 'nullable|array',
@@ -55,6 +76,8 @@ class ExamRequest extends FormRequest
         return [
             'subject_id' => 'المادة الدراسية',
             'group_id' => 'المجموعة',
+            'group_ids' => 'المجموعات',
+            'group_ids.*' => 'المجموعة',
             'title' => 'عنوان الامتحان',
             'description' => 'الوصف',
             'start_time' => 'وقت البدء',
@@ -76,6 +99,9 @@ class ExamRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'group_ids.required' => 'اختر مجموعة واحدة على الأقل.',
+            'group_ids.min' => 'اختر مجموعة واحدة على الأقل.',
+            'group_ids.*.exists' => 'إحدى المجموعات المختارة لا تتبع المادة الدراسية المحددة.',
             'questions.*.content.required' => 'حقل نص السؤال رقم :position مطلوب.',
             'questions.*.points.required' => 'حقل نقاط السؤال رقم :position مطلوب.',
             'questions.*.options.required_if' => 'الخيارات مطلوبة للسؤال رقم :position.',

@@ -46,7 +46,7 @@
         $audienceLabel = match($exam->audience) { 'guests' => 'ضيوف', 'both' => 'طلاب + ضيوف', default => 'طلاب' };
       @endphp
       <article class="ex-card" data-status="{{ $exam->status }}"
-               data-search="{{ \Illuminate\Support\Str::lower($exam->title.' '.($exam->subject->name ?? '').' '.($exam->group->name ?? '')) }}">
+               data-search="{{ \Illuminate\Support\Str::lower($exam->title.' '.($exam->subject->name ?? '').' '.$exam->groupNames()) }}">
         <header class="ex-card__head">
           <h2 class="ex-card__title">{{ $exam->title }}</h2>
           <span class="ex-badge ex-badge--{{ $statusTone }}">{{ $statusLabel }}</span>
@@ -54,7 +54,7 @@
 
         <div class="ex-card__meta">
           <span><i class="bi bi-journal-bookmark"></i> {{ $exam->subject->name ?? '-' }}</span>
-          <span><i class="bi bi-people"></i> {{ $exam->group->name ?? '-' }}</span>
+          <span><i class="bi bi-people"></i> {{ $exam->groupNames() }}</span>
           <span><i class="bi bi-calendar-event"></i> {{ $exam->start_time?->format('Y-m-d H:i') ?? 'غير محدد' }}</span>
         </div>
 
